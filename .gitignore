@@ -1,0 +1,9 @@
+.idea
+.DS_Store
+
+bin
+obj
+node_modules
+dist
+
+tsconfig.tsbuildinfo
