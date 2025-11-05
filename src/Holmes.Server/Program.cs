@@ -1,21 +1,29 @@
-var builder = WebApplication.CreateBuilder(args);
+using Holmes.Server;
+using Serilog;
 
-// TODO: register core services, persistence, and modules.
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-var app = builder.Build();
+Log.Information("Starting up");
 
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var builder = WebApplication.CreateBuilder(args);
+
+    var app = builder
+        .ConfigureServices()
+        .ConfigurePipeline();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.MapGet("/", () => Results.Ok("Holmes server online"))
-   .WithName("GetRoot")
-   .WithOpenApi();
-
-app.Run();
+catch (Exception ex) when
+    (ex.GetType().Name is not "HostAbortedException")
+{
+    Log.Fatal(ex, "Unhandled exception");
+}
+finally
+{
+    Log.Information("Shut down complete");
+    Log.CloseAndFlush();
+}

@@ -1,6 +1,9 @@
 # Holmes Delivery Plan
 
-This roadmap assumes a single deployment target (`src/Holmes.Server`) hosting APIs, SSE endpoints, and background workers. We build bounded-context modules as separate projects that plug into the server through an Infrastructure layer using EF Core + MySQL. Each phase bundles deployable value, expands observability, and keeps the event-sourced backbone intact.
+This roadmap assumes the ASP.NET Core host (`src/Holmes.App.Server`) fronts APIs, SSE endpoints, and background workers,
+with a developer MCP sidecar (`src/Holmes.Mcp.Server`) exposing tool endpoints. Feature slices live under `src/Modules/`
+and compose into the host through each module's Application + Infrastructure packages. Each phase bundles deployable
+value, expands observability, and keeps the event-sourced backbone intact.
 
 ---
 
@@ -13,6 +16,9 @@ This roadmap assumes a single deployment target (`src/Holmes.Server`) hosting AP
 - **Streaming:** Server-Sent Events `/changes` with tenant + stream filters.
 - **Security:** JWT auth, tenant isolation, AES-GCM for PII, secrets via user-secrets/env vars.
 - **Tooling:** `dotnet format`, GitHub Actions (later), Docker Compose for dev MySQL.
+- **Module layering:** `Holmes.Core.*` supplies shared primitives; each feature module is split into `*.Domain`,
+  `*.Application`, `*.Infrastructure` with `*.Application` → `*.Domain` dependencies only and `*.Infrastructure` wiring
+  into hosts without referencing `*.Application`.
 
 ---
 
@@ -20,74 +26,144 @@ This roadmap assumes a single deployment target (`src/Holmes.Server`) hosting AP
 
 ```
 /src
-  Holmes.Server/              # Host project (APIs, SSE, background services)
-  SharedKernel/               # Value objects, ULID, Result<T>, cryptography helpers
-  EventStore/                 # Event store abstraction, EF Core contexts, schema
-  Infrastructure/             # DbContexts, module registration, migrations
+  Holmes.App.Server/                 # ASP.NET Core host (APIs, SSE, background services)
+  Holmes.App.Server.Tests/           # Host-level integration/acceptance tests
+  Holmes.Client/                     # React workspace (components/, pages/, models/, lib/)
+  Holmes.Mcp.Server/                 # Dev MCP sidecar exposing tool endpoints
   Modules/
+    Core/
+      Holmes.Core.Domain/            # Value objects, integration events, policies
+      Holmes.Core.Application/       # Behaviors, pipeline, cross-cutting services
+      Holmes.Core.Infrastructure.Sql/ # EF Core base context, migrations
+      Holmes.Core.Infrastructure.OpenAi/
+      Holmes.Core.Tests/
     SubjectRegistry/
+      Holmes.Subjects.Domain/
+      Holmes.Subjects.Application/
+      Holmes.Subjects.Infrastructure.Sql/
+      Holmes.Subjects.Tests/
+    Users/
+      Holmes.Users.Domain/
+      Holmes.Users.Application/
+      Holmes.Users.Infrastructure.Sql/
+    Customers/
+      Holmes.Customers.Domain/
+      Holmes.Customers.Application/
+      Holmes.Customers.Infrastructure.Sql/
     Intake/
+      Holmes.Intake.Domain/
+      Holmes.Intake.Application/
+      Holmes.Intake.Infrastructure.Sql/
+      Holmes.Intake.Tests/
     Workflow/
+      Holmes.Workflow.Domain/
+      Holmes.Workflow.Application/
+      Holmes.Workflow.Infrastructure.Sql/
     SlaClocks/
+      Holmes.SlaClocks.Domain/
+      Holmes.SlaClocks.Application/
+      Holmes.SlaClocks.Infrastructure.Sql/
     Compliance/
-    AdverseAction/
+      Holmes.Compliance.Domain/
+      Holmes.Compliance.Application/
+      Holmes.Compliance.Infrastructure.Sql/
     Notifications/
+      Holmes.Notifications.Domain/
+      Holmes.Notifications.Application/
+      Holmes.Notifications.Infrastructure.Sql/
+    AdverseAction/
+      Holmes.AdverseAction.Domain/
+      Holmes.AdverseAction.Application/
+      Holmes.AdverseAction.Infrastructure.Sql/
     Adjudication/
-  Projections/                # Projection runners + read-model DbContexts
-/tests
-  Unit/
-  Integration/
+      Holmes.Adjudication.Domain/
+      Holmes.Adjudication.Application/
+      Holmes.Adjudication.Infrastructure.Sql/
+    ChargeTaxonomy/
+      Holmes.ChargeTaxonomy.Domain/
+      Holmes.ChargeTaxonomy.Application/
+      Holmes.ChargeTaxonomy.Infrastructure.Sql/
   Projections/
+    Holmes.Projections.Runner/       # Projection runners + read-model DbContexts
+    Holmes.Projections.Tests/
+/tests
+  Holmes.Tests.Unit/
+  Holmes.Tests.Integration/
 ```
 
-Each module compiles to a class library exposing domain + application services. Holmes.Server references modules and Infrastructure to compose the runtime.
+Each module compiles to a class library exposing domain + application services. Holmes.App.Server references modules and
+Infrastructure to compose the runtime.
 
 ---
 
 ## 2. Phase Roadmap
 
 ### Phase 0 — Bootstrap & Infrastructure
-**Modules touched:** SharedKernel, EventStore, Infrastructure, Holmes.Server scaffold  
+
+**Modules touched:** Holmes.Core.*, Holmes.App.Server scaffold, Holmes.Mcp.Server  
 **Outcomes**
-- `Holmes.Server` minimal host with health endpoint, Serilog, config, env-based settings.
-- SharedKernel primitives (`UlidId`, `Result<T>`, `ValueObject`, `ClockService`, crypto stubs).
-- Event store EF Core model (`events`, `snapshots`, `projection_checkpoints`) with optimistic concurrency + idempotency key.
+
+- `Holmes.App.Server` minimal host with health endpoint, Serilog, config, env-based settings.
+- `Holmes.Mcp.Server` stub with discovery + single tool endpoint for local orchestration.
+- Holmes.Core primitives (`UlidId`, `Result<T>`, `ValueObject`, pipeline behaviors, crypto stubs).
+- Event store EF Core model (`events`, `snapshots`, `projection_checkpoints`) with optimistic concurrency + idempotency
+  key.
 - Projection runner base class + background registration.
 - Docker Compose for MySQL; initial migration + seeding script.
 - CI lint/build workflow.
 
-### Phase 1 — Core Domain Foundations
-**Modules delivered:** SubjectRegistry, Intake, Workflow, Projections  
+### Phase 1 — Identity & Tenancy Foundations
+
+**Modules delivered:** Holmes.Core (domain/app), SubjectRegistry, Users, Customers  
 **Outcomes**
-- Aggregates + handlers for `Subject`, `IntakeSession`, `Order`.
-- REST endpoints for invite → submit flow; basic auth stub.
-- Read models: `subject_summary`, `order_summary`, `order_timeline_events`.
-- SSE `/changes` endpoint delivering ordered event frames with filters + heartbeats.
-- Integration tests for intake flow, SSE resume, optimistic concurrency.
+
+- Aggregates + handlers for `Subject`, `User`, `Customer`.
+- Tenant-aware policy snapshot + customer assignment to orders.
+- Identity endpoints (invite/activate user) with tenancy + audit trails.
+- Read models: `subject_summary`, `user_directory`, `customer_registry`.
+- Integration tests for user activation, subject merge, customer assignment flows.
 - Observability: structured logging, request tracing, basic metrics.
 
-### Phase 2 — SLA & Compliance Launch
+### Phase 2 — Intake & Workflow Launch
+
+**Modules delivered:** Intake, Workflow, SubjectRegistry enhancements  
+**Outcomes**
+
+- Aggregates + handlers for `IntakeSession`, `Order` workflow states.
+- REST endpoints for invite → submit flow; subject linkage + policy snapshot enforcement.
+- Read models: `order_summary`, `order_timeline_events`, `intake_sessions`.
+- SSE `/changes` endpoint delivering ordered event frames with filters + heartbeats.
+- Integration tests for intake flow, SSE resume, optimistic concurrency.
+- Initial PWA scaffolding within `Holmes.Client` for intake experience.
+
+### Phase 3 — SLA, Compliance & Notifications
+
 **Modules delivered:** SlaClocks, Compliance, Notifications (baseline)  
 **Outcomes**
+
 - Business calendar service + EF models for calendars/holidays.
 - Aggregates: `SlaClock`, `CompliancePolicy`, `PermissiblePurposeGrant`, `DisclosurePack`.
-- Guards wired into order workflow (PP grant, disclosure acceptance gates).
+- Guards wired into order workflow (PP grant, disclosure acceptance, customer policy overlays).
 - Watchdog background worker flipping clock states; read model `sla_clocks`.
 - Notification rules v1 (email/SMS/webhook stubs) firing on domain events, stored in `notifications_history`.
 - Dashboard-ready metrics: SLA status counts, notification success/failure.
 
-### Phase 3 — Adverse Action & Evidence Packs
+### Phase 4 — Adverse Action & Evidence Packs
+
 **Modules delivered:** AdverseAction, Artifacts (within Infrastructure)  
 **Outcomes**
+
 - State machine for pre/final adverse action, pause/resume, disputes linkage.
 - WORM artifact storage abstraction (local dev filesystem) with hash validation.
 - Evidence pack bundler (zip of PDFs + JSON manifest).
 - Read model `adverse_action_clocks` + API endpoints for regulators/ops.
 - Tests covering clock pauses, artifact integrity, policy-driven wait periods.
 
-### Phase 4 — Adjudication Engine
+### Phase 5 — Adjudication Engine
+
 **Modules delivered:** Adjudication, ChargeTaxonomy, Notifications enhancements  
 **Outcomes**
+
 - RuleSet authoring + publish workflow; persisted snapshots per order.
 - Deterministic assessment engine generating reason codes, recommended outcome.
 - Queue/read model for reviewer workload (`adjudication_queue`, `assessment_summary`).
@@ -95,9 +171,11 @@ Each module compiles to a class library exposing domain + application services. 
 - Notifications enriched with adjudication triggers; SSE events for assessment changes.
 - Simulator API for what-if runs (bounded scope).
 
-### Phase 5 — Hardening & Pilot Readiness
+### Phase 6 — Hardening & Pilot Readiness
+
 **Modules matured:** All  
 **Outcomes**
+
 - Tenant branding/localization hooks; policy snapshot UI contract.
 - Observability dashboards for SLA, adverse, adjudication throughput.
 - Property & chaos tests (duplicate events, out-of-order, SSE reconnect storms).
@@ -109,8 +187,12 @@ Each module compiles to a class library exposing domain + application services. 
 ## 3. Cross-Phase Practices
 
 - **Testing:** Unit + integration coverage per module, projection replay tests, SSE resilience harness.
-- **Security:** Secrets via `dotnet user-secrets` for dev, env variables for higher tiers; AES-GCM encryption utilities ready by Phase 2.
+- **Security:** Secrets via `dotnet user-secrets` for dev, env variables for higher tiers; AES-GCM encryption utilities
+  ready by Phase 2.
 - **Documentation:** Update DESIGN.md per phase completion; keep API contracts in `docs/` (future).
-- **Readiness Gates:** Each phase exits with automated tests green, migrations applied, SSE verified with Last-Event-ID resume, and key dashboards updated.
+- **Readiness Gates:** Each phase exits with automated tests green, migrations applied, SSE verified with Last-Event-ID
+  resume, and key dashboards updated.
 
-This structure should make it obvious which modules deliver in each phase and keeps us focused on incremental, deployable milestones. Adjust module sequencing as needed, but keep event-store integrity and SSE reliability as non-negotiable acceptance criteria throughout.
+This structure should make it obvious which modules deliver in each phase and keeps us focused on incremental,
+deployable milestones. Adjust module sequencing as needed, but keep event-store integrity and SSE reliability as
+non-negotiable acceptance criteria throughout.

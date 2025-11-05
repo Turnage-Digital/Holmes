@@ -1,0 +1,18 @@
+version: '3.0.0'
+
+services:
+  database-mysql:
+    image: mysql/mysql-server:latest
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: r00t#11
+      MYSQL_USER: heath
+      MYSQL_PASSWORD: ch@rlott3
+      MYSQL_DATABASE: holmes
+
+volumes:
+  mysql:

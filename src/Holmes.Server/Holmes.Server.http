@@ -1,6 +1,0 @@
-@Holmes.Server_HostAddress = http://localhost:5001
-
-GET {{Holmes.Server_HostAddress}}/
-Accept: application/json
-
-###

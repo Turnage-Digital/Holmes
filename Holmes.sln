@@ -1,17 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		global.json = global.json
 		DESIGN.md = DESIGN.md
 		PLAN.md = PLAN.md
+		ef-reset.ps1 = ef-reset.ps1
+		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Server", "src\Holmes.Server\Holmes.Server.csproj", "{5FD2099B-1F20-482B-8DFA-7450EEBBED84}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Domain", "src\Modules\Core\Holmes.Core.Domain\Holmes.Core.Domain.csproj", "{61CE89F8-90A9-4B9F-A0D4-A16BF05E0507}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Application", "src\Modules\Core\Holmes.Core.Application\Holmes.Core.Application.csproj", "{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Infrastructure.Sql", "src\Modules\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj", "{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Tests", "src\Modules\Core\Holmes.Core.Tests\Holmes.Core.Tests.csproj", "{71DDA0F4-1FA9-438D-A75D-B49695CC856F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,8 +37,30 @@ Global
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61CE89F8-90A9-4B9F-A0D4-A16BF05E0507}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61CE89F8-90A9-4B9F-A0D4-A16BF05E0507}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61CE89F8-90A9-4B9F-A0D4-A16BF05E0507}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61CE89F8-90A9-4B9F-A0D4-A16BF05E0507}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71DDA0F4-1FA9-438D-A75D-B49695CC856F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71DDA0F4-1FA9-438D-A75D-B49695CC856F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71DDA0F4-1FA9-438D-A75D-B49695CC856F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71DDA0F4-1FA9-438D-A75D-B49695CC856F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
+		{3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
+		{26E7CD83-1AD4-4569-A85C-EE6878FD4ADE} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
+		{61CE89F8-90A9-4B9F-A0D4-A16BF05E0507} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
+		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
+		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
+		{71DDA0F4-1FA9-438D-A75D-B49695CC856F} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 	EndGlobalSection
 EndGlobal
