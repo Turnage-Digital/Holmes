@@ -1,0 +1,650 @@
+# Holmes — Intake · Workflow · SLA · Audit · Compliance · Adjudication
+
+**Design Document (v1)**  
+**Date:** November 5, 2025  
+**Author:** Prepared for: Heath (Software Architect)
+
+---
+
+## 1) Executive Summary
+
+Build a mobile-first **intake and workflow core** for background screening that is:
+
+- A **Subject-first system** (one person → one canonical record).
+- An explicit **state machine** with visible **SLA** and **regulatory clocks** (no timers hidden in sagas).
+- **Event-sourced** with **CQRS** read models for instant visibility and audit.
+- **Compliance-by-construction** (FCRA/EEOC/613/611, Fair-Chance overlays, CA ICRAA) with immutable evidence packs.
+- **Adjudication matrices** that are explainable, policy-as-data, and fair-chance aware.
+- Integrations are **adapters** behind an anti-corruption layer (stubs in v1).
+
+**Non-goals (v1):** deep provider automations, full pricing/billing engine, postal letters (email/SMS only).
+
+---
+
+## 2) Scope & Objectives
+
+**Primary objectives**
+
+- Sub-minute intake from invite → submit (P50), P90 < 24 hours.
+- Queryable **SLA** and **pre-adverse/adverse** clocks; breach alerts.
+- Immutable **audit ledger** and **Timeline** per Order/Subject.
+- **Notifications** with policy-driven rules across email/SMS/webhooks.
+- **Adjudication** decisions that are deterministic, explainable, and human-conferrable.
+- **Policy snapshots**: configuration, not per-client forks in code.
+
+**Out-of-scope (v1)**: Full court/drug/MVR automation (use stubs), multi-region residency (design-ready, v2).
+
+---
+
+## 3) Architecture Overview
+
+**Flow:**  
+ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stubs)** → **Data Normalization** → *
+*Adjudication** → **Adverse Action/Disputes** → **Reporting/Billing**  
+↘ **Consent/IDV** ↙ ↘ **Ledger/Audit** ↙
+
+**Principles**
+
+- **DDD** with bounded contexts; **CQRS + Event Sourcing**.
+- **Events** are the source of truth; read models provide instant visibility.
+- **PII minimization** & field-level encryption; immutable WORM artifacts.
+
+### Solution Layout & Layering
+
+- `Holmes.sln` ties all .NET projects (hosts, modules, tooling) into one solution.
+- `ARCHITECTURE.md` will remain the canonical explainer for layering, events, and DI conventions.
+- `docker-compose.yml` + scripts (e.g. `ef-reset.ps1`) support local infra and database resets.
+- `global.json` and `nuget.config` pin the .NET SDK and package feeds.
+- `src/` is the single home for runtime hosts, modules, client, and supporting tests.
+
+```
+src/
+├── Holmes.App.Server/
+│   ├── Controllers/
+│   ├── Integration/
+│   ├── Services/
+│   └── Tools/
+├── Holmes.App.Server.Tests/
+├── Holmes.Client/
+│   ├── public/
+│   └── src/
+│       ├── components/
+│       ├── lib/
+│       ├── models/
+│       └── pages/
+├── Holmes.Mcp.Server/
+│   ├── Properties/
+│   ├── Services/
+│   └── Tools/
+└── Modules/
+    ├── Core/
+    │   ├── Holmes.Core.Domain/{IntegrationEvents,Services,ValueObjects}/
+    │   ├── Holmes.Core.Application/Behaviors/
+    │   ├── Holmes.Core.Infrastructure.OpenAi/Services/
+    │   ├── Holmes.Core.Infrastructure.Sql/{Entities,Migrations}/
+    │   └── Holmes.Core.Tests/
+    ├── Intake/
+    │   ├── Holmes.Intake.Domain/{Entities,Events,ValueObjects}/
+    │   ├── Holmes.Intake.Application/{Commands,Queries,EventHandlers}/
+    │   ├── Holmes.Intake.Infrastructure.Sql/{Entities,Services,Migrations}/
+    │   └── Holmes.Intake.Tests/
+    ├── Workflow/
+    │   ├── Holmes.Workflow.Domain/{Aggregates,Events,ValueObjects}/
+    │   ├── Holmes.Workflow.Application/{Commands,Queries,EventHandlers}/
+    │   ├── Holmes.Workflow.Infrastructure.Sql/{Entities,Services,Migrations}/
+    │   └── Holmes.Workflow.Tests/
+    ├── SlaClocks/
+    │   ├── Holmes.SlaClocks.Domain/{Aggregates,Events,ValueObjects}/
+    │   ├── Holmes.SlaClocks.Application/{Commands,Queries,EventHandlers}/
+    │   ├── Holmes.SlaClocks.Infrastructure.Sql/{Entities,Services,Migrations}/
+    │   └── Holmes.SlaClocks.Tests/
+    ├── Compliance/
+    │   ├── Holmes.Compliance.Domain/{Entities,Events,ValueObjects}/
+    │   ├── Holmes.Compliance.Application/{Commands,Queries,EventHandlers}/
+    │   ├── Holmes.Compliance.Infrastructure.Sql/{Entities,Services,Migrations}/
+    │   └── Holmes.Compliance.Tests/
+    ├── Notifications/
+    │   ├── Holmes.Notifications.Domain/{Entities,Events,ValueObjects}/
+    │   ├── Holmes.Notifications.Application/{Commands,Queries,EventHandlers}/
+    │   ├── Holmes.Notifications.Infrastructure.Sql/{Entities,Services,Migrations}/
+    │   └── Holmes.Notifications.Tests/
+    ├── AdverseAction/
+    │   ├── Holmes.AdverseAction.Domain/{Aggregates,Events,ValueObjects}/
+    │   ├── Holmes.AdverseAction.Application/{Commands,Queries,EventHandlers}/
+    │   ├── Holmes.AdverseAction.Infrastructure.Sql/{Entities,Services,Migrations}/
+    │   └── Holmes.AdverseAction.Tests/
+    ├── Adjudication/
+    │   ├── Holmes.Adjudication.Domain/{Aggregates,Events,ValueObjects}/
+    │   ├── Holmes.Adjudication.Application/{Commands,Queries,EventHandlers}/
+    │   ├── Holmes.Adjudication.Infrastructure.Sql/{Entities,Services,Migrations}/
+    │   └── Holmes.Adjudication.Tests/
+    ├── ChargeTaxonomy/
+    │   ├── Holmes.ChargeTaxonomy.Domain/{Entities,Events}/
+    │   ├── Holmes.ChargeTaxonomy.Application/{Commands,Queries}/
+    │   └── Holmes.ChargeTaxonomy.Infrastructure.Sql/{Entities,Migrations}/
+    ├── Users/
+    │   ├── Holmes.Users.Domain/{Entities,Services}/
+    │   ├── Holmes.Users.Application/{Commands,Queries,EventHandlers}/
+    │   └── Holmes.Users.Infrastructure.Sql/Migrations/
+    └── Customers/
+        ├── Holmes.Customers.Domain/{Entities,Events,ValueObjects}/
+        ├── Holmes.Customers.Application/{Commands,Queries,EventHandlers}/
+        └── Holmes.Customers.Infrastructure.Sql/Migrations/
+```
+
+**Layering rules**
+
+- `Holmes.Core.*` is the kernel module; all feature modules depend on it for primitives, cross-cutting behaviors, and
+  shared integrations.
+- A module's `*.Domain` project is pure (no Infrastructure or Application dependencies) and may depend only on
+  `Holmes.Core.Domain`.
+- `*.Application` projects depend on their matching `*.Domain` + `Holmes.Core.Application`; they expose commands,
+  queries, and pipelines for the host.
+- `*.Infrastructure` projects depend on `*.Domain` + `Holmes.Core.Infrastructure.*`; they never reference the module's
+  `*.Application`, and `*.Application` cannot reference `*.Infrastructure`.
+- Host projects (`Holmes.App.Server`, `Holmes.Mcp.Server`) wire modules through DI by referencing each module's
+  `*.Application` and `*.Infrastructure`.
+- Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.
+
+---
+
+## 4) Ubiquitous Language (DDD)
+
+- **Subject** — Person being screened (canonical identity; dedup/merge capable).
+- **Order** — Screening request for a Subject under a package and policy snapshot.
+- **Product** — Unit of work (criminal, MVR, TWN); abstracted behind adapters.
+- **Consent** — Signed authorization/disclosure artifacts tied to an Order.
+- **Clock** — SLA or regulatory timer with business-day math and deadlines.
+- **Policy** — Versioned configuration (tenant/client/role/jurisdiction overlays).
+- **Notice** — Pre-adverse/final communications + delivery proofs.
+- **Timeline** — Ordered, immutable events for audit and UI.
+- **Assessment** — Adjudication evaluation and outcome for an Order.
+
+---
+
+## 5) Bounded Contexts
+
+1) **Core Kernel** — Shared primitives, integration events, pipeline behaviors, crypto helpers.
+2) **Subject Registry** — Canonical identity, aliases, merges, lineage.
+3) **Users** — Operator accounts, roles, audit actors, tenant membership.
+4) **Customers** — CRA client organizations, policy mapping, billing profile, contacts.
+5) **Intake** — Invites, OTP verification, consents, PII capture, optional IDV.
+6) **Order Workflow** — State machines, transitions, package routing (abstract).
+7) **SLA/Clocks** — Business calendars, deadlines, at-risk/breach detection.
+8) **Compliance Policy** — FCRA/EEOC/613/611, Fair-Chance, ICRAA, DOT overlays, policy packs.
+9) **Notifications** — Rules, channels (email/SMS/webhook), delivery proofs.
+10) **Adverse Action** — Two-step process, notices, evidence packs, disputes integration.
+11) **Adjudication** — RuleSets, Assessments, Charge Taxonomy, human-in-the-loop.
+12) **Audit/Ledger** — Event store, WORM artifacts, projections.
+13) **Provider Adapters** — Anti-corruption layer; stubs for v1.
+
+---
+
+## 6) Aggregates & Invariants (selected)
+
+### Subject (Root)
+
+- One canonical record per person. Aliases allowed; merges preserve lineage.
+- PII encrypted; SSN tokenized.  
+  **Events:** Subject.Registered, Subject.AliasAdded, Subject.Merged.
+
+### User (Root)
+
+- Unique login per tenant; may belong to multiple tenants with scoped roles.
+- Immutable audit identity; status gates (invited, active, suspended, disabled).  
+  **Events:** User.Invited, User.Activated, User.RolesUpdated, User.Suspended, User.Disabled.
+
+### Customer (Root)
+
+- Represents a CRA client; binds policy packs, billing profile, contact roster.
+- Must have an owning tenant; may define sub-locations/jurisdictions for routing.  
+  **Events:** Customer.Registered, Customer.PolicySnapshotAssigned, Customer.ContactUpdated, Customer.Suspended.
+
+### Order (Root)
+
+- States:
+  `created → invited → intake_in_progress → intake_complete → ready_for_routing → in_progress → ready_for_report → closed`.
+- Must bind a Subject and a **policy_snapshot_id**.  
+  **Events:** Order.Created, Invite.Sent, Consent.Captured, Intake.Submitted, Order.StateChanged, Order.Canceled.
+
+### Clock (Root; SLA & Adverse)
+
+- Deterministic deadlines with business-day math; pausable; visible index.  
+  **Events:** Clock.Started, Clock.AtRisk, Clock.Breached, Clock.Paused, Clock.Resumed, Clock.ReadyToAdvance.
+
+### Notice (Entity under Adverse)
+
+- Template ids + render hashes; delivery proofs; artifacts in WORM.  
+  **Events:** Notice.Prepared, Notice.Sent, Notice.DeliveryFailed, Notice.Delivered.
+
+### Assessment (Adjudication Root)
+
+- States: `prepared → recommended → under_review → finalized`.  
+  **Events:** Assessment.Prepared, Assessment.Recommended, Assessment.Overridden, Assessment.Finalized.
+
+---
+
+## 7) State Machines
+
+### Order
+
+```
+created → invited → intake_in_progress → intake_complete → ready_for_routing → in_progress → ready_for_report → closed
+```
+
+**Guards**: `intake_complete` requires `Consent.Captured`; `ready_for_routing` requires policy/subject bound.
+
+### Adverse Action
+
+```
+idle → pre_sent → [paused ←→ pre_sent] → ready_final → final_sent → closed
+```
+
+### SLA clocks (examples)
+
+- **Intake SLA**: `invited → intake_complete` ≤ X business hours.
+- **Routing SLA**: `intake_complete → ready_for_routing` ≤ Y business hours.
+- **Overall SLA**: `created → ready_for_report` ≤ Z days (read-only v1).
+
+---
+
+## 8) Policies as Data (versioned)
+
+Snapshot the exact policy at Order creation; store its id forever.
+
+```yaml
+id: pol_cli_acme_2025_11_01
+intake:
+  require_idv: true
+  ssn_full: false
+  address_years: 7
+sla:
+  intake_hours: 4
+  routing_hours: 2
+adverse:
+  start_on: sent        # or delivered
+  wait_business_days: 5
+notifications:
+  on_state:
+    - when: order.invited
+      channels: [email, sms]
+      to: [subject]
+      template: invite_v2
+    - when: clock.at_risk
+      channels: [email, webhook]
+      to: [client_ops]
+      template: sla_at_risk_v1
+locales: { default: en-US }
+branding: { logo_url: https://cdn/acme/logo.svg }
+```
+
+---
+
+## 9) Clocks & Business-Day Math
+
+A dedicated **BusinessCalendar** service provides:
+
+- `add_business_days(ts, n, jurisdictions[]) -> deadline_ts`
+- `diff_business_seconds(a, b, jurisdictions[]) -> seconds`
+
+**Clock Index (read model)** — always queryable:
+
+-
+`adverse_action_clocks(clock_id, order_id, subject_id, client_id, state, pre_sent_at, deadline_at, remaining_business_s, pause_reason, jurisdictions, delivery_proofs_json, policy_snapshot_id, sla_status, created_at, updated_at)`
+- `sla_clocks(clock_id, order_id, kind, state, started_at, deadline_at, sla_status, created_at, updated_at)`
+
+**Watchdog** flags `on_track / at_risk / breached` for dashboards & alerts.
+
+---
+
+## 10) Notifications
+
+- Channels: email, SMS, webhook (postal in v2).
+- Provider abstraction; every send emits `Notification.Sent` (with provider ids).
+- Throttle/dedupe; retries with exponential backoff.
+- Delivery failures trigger `Notice.DeliveryFailed` and can **pause** adverse clocks per policy.
+
+---
+
+## 11) Timeline & Audit
+
+- **Event Store** (append-only) is canonical; outbox publishes to broker (future).
+- **Timeline projection** composes domain events + artifact refs for applicant/client/ops views.
+- **WORM Artifacts**: consents, notices, renders, signatures; events carry **hashes**, binaries stored with object-lock.
+- **Export**: Evidence packs (zip of PDFs + JSON) per order/date-range for audits/subpoenas.
+
+---
+
+## 12) Compliance-by-Construction (Integrated)
+
+### Non-negotiable outcomes
+
+- **Permissible Purpose (PP)** certification on every order.
+- **Standalone FCRA disclosure + authorization** before screening; CA ICRAA overlays when applicable.
+- **Two-step adverse action** with report copy + current CFPB Summary of Rights; visible, queryable clocks.
+- **§607(b) Accuracy** & **§613 strict-procedures/notice** path for public records; record match fields.
+- **§611 Disputes/Reinvestigation**: 30 days (+15 with new info); final adverse paused while open.
+- **Seven-year reporting windows** for non-convictions; do not restart clocks.
+- **Fair-Chance** (NYC/LA/SF/CA) gates + individualized assessment templates.
+- **DOT Part 40** kept separate; MRO artifacts if enabled.
+- **PBSA mapping** to speed accreditation audits.
+
+### Compliance Policy Packs (policy-as-data)
+
+- **Federal Baseline**: FCRA/EEOC/CFPB forms; pre-adverse/final flows.
+- **NYC FCA / LA County FCO / SF FCO**: post-offer sequencing + clocks + forms.
+- **CA ICRAA**: extra disclosures and CA summary of rights.
+- **DOT** (optional): MRO flow hooks; confidentiality.
+
+### Workflow Gates
+
+- `created → invited` requires PP grant.
+- `intake_in_progress → intake_complete` requires DisclosurePack acceptance.
+- `ready_for_report` requires §613 strict-procedures pass or consumer notice proof.
+- `pre_adverse` requires report + Summary of Rights artifacts attached.
+- Criminal components blocked pre-offer in covered jurisdictions.
+
+### Evidence Packs (immutable)
+
+- **Disclosure & Auth Pack** (FCRA + ICRAA as applicable).
+- **§613 Pack** (strict-procedures calc or consumer notice).
+- **Pre-Adverse Pack** (report, Summary of Rights, clock metadata).
+- **Final Adverse Pack** (final letter, CRA contact, dispute info).
+
+### Compliance SLOs
+
+- % orders with valid PP grant; disclosure defects; correct Summary-of-Rights version rate; 611 timeliness; Fair-Chance
+  deadline adherence; §613 path usage.
+
+---
+
+## 13) Adjudication Matrices (Integrated)
+
+### Design Goals
+
+- **Explainable** outcomes with reason codes & record lineage.
+- **RuleSet as data** (versioned snapshots; deterministic).
+- **Fair-Chance aware**; legal gates before evaluation.
+- **Human-in-the-loop** overrides with justification & attachments.
+
+### RuleSet DSL (excerpt)
+
+```yaml
+id: rs_cli_acme_finance_2025_11_01
+defaults: { outcome: clear, lookback_years_default: 7, arrest_only_excluded: true }
+criteria:
+  - id: CRIT_FINANCIAL_FELONY_7Y
+    when:
+      any:
+        - charge.category in [financial, theft_fraud]
+          and disposition.verdict in [CONVICTED, PLED]
+          and charge.severity == FELONY
+          and time_since.most_relevant_years <= 7
+    outcome: review
+    reason_code: RC-FINANCIAL-LOOKBACK
+```
+
+Outputs include `recommended_outcome`, matched criteria, excluded records (and why), taxonomy & rule versions.
+
+### Charge Taxonomy
+
+- Rule-based + curated statute map; versioned; curation queue for low-confidence mappings.
+
+### Events & Read Models
+
+- `RuleSet.Published`, `Assessment.Recommended`, `Assessment.Overridden`, `Assessment.Finalized`.
+- `adjudication_queue`, `assessment_summary`, `matrix_impact_report` projections.
+
+### Simulator & Analytics
+
+- What-if simulations on historical normalized results; impact by role/jurisdiction; top ReasonCodes.
+
+---
+
+## 14) API Surface (OpenAPI sketches)
+
+### Orders & Intake
+
+- `POST /orders` — create order
+- `POST /orders/{id}/invites` — send magic-link (sms/email)
+- `POST /intake/sessions/{sid}/verify` — OTP
+- `POST /intake/sessions/{sid}/consents` — capture consent (artifact)
+- `POST /intake/sessions/{sid}/submit` — finalize intake
+- `POST /orders/{id}/advance` — controlled state transitions
+
+### Clocks & Timeline
+
+- `GET /clocks/adverse/{order_id}` — visible regulatory clock
+- `GET /clocks/sla?order_id=&kind=` — query SLA clocks
+- `GET /timeline/{order_id}` — auditable event stream
+
+### Compliance
+
+- `POST /compliance/permissible-purpose` — certify PP
+- `GET/POST /compliance/policies` — list/preview policy packs
+- `POST /compliance/613/check` — strict-procedures vs notice evaluation
+- `POST /compliance/fair-chance/{order_id}/start` — jurisdictional flow
+- `POST/PATCH /disputes` — open/update disputes
+- `GET /evidence-packs/{order_id}/{type}` — WORM bundle
+
+### Adjudication
+
+- `GET/POST /adjudication/rulesets` — authoring & publish
+- `POST /adjudication/evaluate` — run engine for an order
+- `POST /adjudication/assessments/{id}/override` — human override
+- `POST /adjudication/assessments/{id}/finalize` — freeze outcome
+
+### Webhooks we send
+
+- `order.created`, `invite.sent`, `intake.submitted`, `order.ready_for_routing`
+- `clock.at_risk`, `clock.breached`, `pre_adverse.sent`, `final_adverse.sent`
+- `notice.delivery_failed`, `assessment.recommended`, `assessment.finalized`
+
+---
+
+## 15) Data Model (storage sketch)
+
+### Write (per context)
+
+- `subjects`, `subject_aliases`, `subject_links`
+- `orders`, `order_policy_snapshots`
+- `consents` (render_hash, doc_version, signed_at, artifact_ref)
+- `clocks` (aggregate snapshots) + `events_outbox` (idempotent)
+- `rulesets`, `assessments`, `assessment_matches`
+- Compliance: `pp_grants`, `disclosure_acceptances`, `fair_chance_clocks`, `section613_controls`
+
+### Read
+
+- `order_summary`, `order_timeline_events`
+- `adverse_action_clocks`, `sla_clocks`
+- `adjudication_queue`, `assessment_summary`
+- `notifications_history`
+
+### Artifacts (WORM)
+
+- `/artifacts/{order_id}/{type}/{hash}`
+
+### SQL Starters (excerpt)
+
+```sql
+create table events_outbox(
+  id char(26) primary key,
+  aggregate_id varchar(64),
+  aggregate_type varchar(64),
+  event_type varchar(128),
+  payload json,
+  occurred_at datetime(6) default current_timestamp(6),
+  published boolean default false,
+  key idx_agg (aggregate_id)
+);
+
+create table adverse_action_clocks(
+  clock_id char(26) primary key,
+  order_id char(26),
+  subject_id char(26),
+  client_id varchar(64),
+  state varchar(32),
+  pre_sent_at datetime(6),
+  deadline_at datetime(6),
+  remaining_business_s bigint,
+  pause_reason varchar(64),
+  jurisdictions json,
+  delivery_proofs json,
+  policy_snapshot_id varchar(64),
+  sla_status varchar(16),
+  created_at datetime(6) default current_timestamp(6),
+  updated_at datetime(6) default current_timestamp(6) on update current_timestamp(6),
+  key idx_order (order_id)
+);
+```
+
+---
+
+## 16) Security & Privacy
+
+- Field-level **AEAD encryption** for PII; SSN tokenization; least-privilege RBAC/ABAC.
+- **PII minimization** in read models; artifact hashes in events (not raw).
+- Object-lock (WORM) for evidence bundles; tamper-evident logs.
+- Secrets vaulted; rotation policy; environment isolation.
+
+---
+
+## 17) Observability
+
+- **Metrics**: invite→submit, intake P50/P90, on_track/at_risk/breached counts, notification send/fail, §611 dispute
+  cycle time, assessment distribution.
+- **Tracing**: command→events→projections (OpenTelemetry-style activity IDs).
+- **Dashboards**: At-Risk Clocks, Breaches by Client, Intake Funnel, Assessment Queue.
+- **Alerts**: SLA breaches, adverse-action deadline proximity, notification failure spikes.
+
+---
+
+## 18) Technology Baseline (swappable)
+
+- Language: **.NET 8** (ASP.NET Core Minimal APIs + BackgroundService).
+- DB: **MySQL 8** (InnoDB).
+- Eventing: **MySQL event store** (append-only) + **SSE** change feed.
+- Object storage: local dev filesystem (swap to S3/MinIO later).
+- EF Core for domain data, configuration UIs, and migrations; direct SQL/Dapper reserved for the event store &
+  projection hot paths.
+
+---
+
+## 19) Provider Adapters (v1 stubs)
+
+- Every product call is an idempotent job with a stable request/response contract.
+- Publish `Product.Requested → Product.Completed` (fixture payloads).
+- Anti-corruption layer isolates upstream from vendor-specific semantics.
+
+---
+
+## 20) Testing Strategy
+
+- **State machine** property tests: illegal transitions rejected.
+- **Clock math**: holidays; pause/resume; recompute; at-risk → breached.
+- **Compliance**: Disclosure correctness, Summary-of-Rights versioning, §613 strict-procedures vs notice, §611
+  timelines, Fair-Chance gates.
+- **Adjudication**: determinism; exclusions (arrest-only, stale non-convictions); rule/jurisdiction overrides; human
+  override requirements.
+- **Idempotency/chaos**: duplicate events, out-of-order deliveries, retries.
+- **SSE**: resume with Last-Event-ID; multi-tenant isolation; throughput under burst.
+
+---
+
+## 21) Delivery Plan (high-level milestones)
+
+### Phase 0 (Weeks 0–1): Bootstrap & Infrastructure
+
+- `Holmes.App.Server` host skeleton with health check, Serilog, configuration layers.
+- Holmes.Core primitives (`UlidId`, `Result<T>`, crypto stubs) and pipeline behaviors.
+- Event store schema + EF Core migrations; projection runner harness.
+- Docker Compose for MySQL; CI build + lint workflow.
+
+**Acceptance**: Host boots behind Docker, runs migrations, and emits heartbeat telemetry.
+
+### Phase 1 (Weeks 1–3): Identity & Tenancy Foundations
+
+- Subject registry aggregates + merge flows; canonical identity read model.
+- Users module (invite, activate, suspend) with tenant membership + role claims.
+- Customers module (register, assign policy snapshot, contact roster) tied to tenants.
+- Read models: `subject_summary`, `user_directory`, `customer_registry`.
+- Integration tests for user activation, subject merge, and customer linkage.
+
+**Acceptance**: Tenant admin can invite a user, activate, assign roles, and create a customer bound to policy snapshot.
+
+### Phase 2 (Weeks 3–6): Intake & Workflow Launch
+
+- Intake sessions + order workflow aggregates with subject/customer linkage.
+- REST + SSE endpoints for invite → submit, and order state transitions.
+- `Holmes.Client` PWA shell covering OTP verify, consent capture, intake submission.
+- Projections: `order_summary`, `order_timeline_events`, `intake_sessions`.
+
+**Acceptance**: End-to-end intake completes, order advances to `ready_for_routing`, and SSE streams events with
+Last-Event-ID resume.
+
+### Phase 3 (Weeks 6–8): SLA, Compliance & Notifications
+
+- Business calendar service, SLA watchdog, regulatory/adverse clock aggregates.
+- Compliance policy gating (PP grants, disclosure acceptance, fair-chance overlays).
+- Notification rules v1 for email/SMS/webhook with history + retries.
+- Read models: `sla_clocks`, `adverse_action_clocks`, `notifications_history`.
+
+**Acceptance**: Intake SLA flips to at_risk/breached, compliance gates block unauthorized progression, notifications
+fire with idempotent delivery.
+
+### Phase 4 (Weeks 8–9): Adverse Action & Evidence Packs
+
+- Adverse action state machine with pause/resume + dispute linkage.
+- WORM artifact store + evidence pack bundler (zip + manifest).
+- API endpoints for regulator view and audit download.
+
+**Acceptance**: Pre/final adverse timelines recompute after pause, evidence pack download verifies hash manifest.
+
+### Phase 5 (Weeks 9–11): Adjudication Engine
+
+- Charge taxonomy ingestion + normalization for assessments.
+- RuleSet authoring + publish workflow; deterministic recommendation engine.
+- Reviewer queue read models, override workflow, enriched notifications/SSE.
+
+**Acceptance**: Assessment recommendations return consistent reason codes, overrides require justification and emit
+audit trail.
+
+### Phase 6 (Weeks 11–12): Hardening & Pilot
+
+- Tenant branding + locale hooks; policy snapshot UI contract finalized.
+- SLA/adverse/adjudication dashboards; audit export; SLO tracking.
+- Chaos/property tests (duplicate events, SSE reconnect storms); perf tuning.
+
+**Acceptance**: Pilot tenant runs through intake→adjudication→adverse action with dashboards lit and SLOs green.
+
+---
+
+## 22) Marketability (review notes)
+
+**Category:** Screening intake & workflow orchestration with compliance and explainable adjudication.  
+**ICP:** Mid-market CRAs and high-volume in-house screeners on legacy OS stacks.  
+**Differentiators:** Visible **Clock Index** and **Timeline**; policy snapshots (no code forks); evidence packs;
+deterministic adjudication + simulator.  
+**Pricing idea:** Platform fee + usage (orders) + “Compliance Pack” add-on.  
+**Positioning:** “Provable compliance and explainable decisions, without ripping out your CRA OS.”
+
+---
+
+## 23) Appendices
+
+### A. Event Contracts (excerpt)
+
+- `Order.Created`, `Invite.Sent`, `Consent.Captured`, `Intake.Submitted`, `Order.StateChanged`,  
+  `Clock.Started`, `Clock.AtRisk`, `Clock.Breached`, `Notice.Sent`, `Assessment.Recommended`, `Assessment.Finalized`.
+
+### B. Example Requests (excerpt)
+
+```json
+{ "cmd":"CreateOrder","order_id":"ord_01","client_id":"cli_01",
+  "subject_ref":{"seed":{"first_name":"Avery","last_name":"Nguyen","dob":"1993-07-04","ssn_last4":"1234"}},
+  "package":"EMP_STD_US","policy_id":"pol_cli_acme_2025_11_01" }
+```
+
+```json
+{ "evt":"Clock.Started","clock_id":"clk_01","kind":"adverse","order_id":"ord_01","deadline_at":"2025-11-12T10:30:00Z" }
+```
