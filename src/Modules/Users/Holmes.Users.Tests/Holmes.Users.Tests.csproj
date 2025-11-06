@@ -9,9 +9,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-        <PackageReference Include="NUnit" Version="4.4.0" />
-        <PackageReference Include="NUnit3TestAdapter" Version="5.1.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
+        <PackageReference Include="NUnit" Version="4.4.0"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="5.1.0"/>
         <PackageReference Include="coverlet.collector" Version="6.0.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -19,12 +19,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="NUnit.Framework" />
+        <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Holmes.Users.Domain\Holmes.Users.Domain.csproj" />
-        <ProjectReference Include="..\Holmes.Users.Application\Holmes.Users.Application.csproj" />
+        <ProjectReference Include="..\Holmes.Users.Domain\Holmes.Users.Domain.csproj"/>
+        <ProjectReference Include="..\Holmes.Users.Application\Holmes.Users.Application.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Holmes.Core.Domain.ValueObjects;
 
 public abstract class ValueObject
@@ -45,5 +42,8 @@ public abstract class ValueObject
         return left.Equals(right);
     }
 
-    public static bool operator !=(ValueObject? left, ValueObject? right) => !(left == right);
+    public static bool operator !=(ValueObject? left, ValueObject? right)
+    {
+        return !(left == right);
+    }
 }

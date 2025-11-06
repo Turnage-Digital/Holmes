@@ -1,19 +1,23 @@
-using System;
-
 namespace Holmes.Core.Domain.ValueObjects;
 
 public readonly record struct UlidId
 {
-    public Ulid Value { get; }
-
     private UlidId(Ulid value)
     {
         Value = value;
     }
 
-    public static UlidId NewUlid() => new(Ulid.NewUlid());
+    public Ulid Value { get; }
 
-    public static UlidId FromUlid(Ulid value) => new(value);
+    public static UlidId NewUlid()
+    {
+        return new UlidId(Ulid.NewUlid());
+    }
+
+    public static UlidId FromUlid(Ulid value)
+    {
+        return new UlidId(value);
+    }
 
     public static bool TryParse(string? value, out UlidId ulid)
     {
@@ -37,8 +41,18 @@ public readonly record struct UlidId
         throw new FormatException($"Value '{value}' is not a valid ULID.");
     }
 
-    public override string ToString() => Value.ToString();
+    public override string ToString()
+    {
+        return Value.ToString();
+    }
 
-    public static implicit operator string(UlidId id) => id.ToString();
-    public static implicit operator Ulid(UlidId id) => id.Value;
+    public static implicit operator string(UlidId id)
+    {
+        return id.ToString();
+    }
+
+    public static implicit operator Ulid(UlidId id)
+    {
+        return id.Value;
+    }
 }

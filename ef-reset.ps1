@@ -5,7 +5,6 @@ $ErrorActionPreference = "Stop"
 
 $configuration = "Debug"
 $startupProject = "src/Holmes.App.Server/Holmes.App.Server.csproj"
-$migrationName = "InitialEventStore"
 $migrationOutputDir = "Migrations"
 
 $modules = @(
@@ -13,6 +12,25 @@ $modules = @(
         Name = "Core"
         Project = "src/Modules/Core/Holmes.Core.Infrastructure.Sql/Holmes.Core.Infrastructure.Sql.csproj"
         Context = "Holmes.Core.Infrastructure.Sql.CoreDbContext"
+        MigrationName = "InitialEventStore"
+    },
+    @{
+        Name = "Users"
+        Project = "src/Modules/Users/Holmes.Users.Infrastructure.Sql/Holmes.Users.Infrastructure.Sql.csproj"
+        Context = "Holmes.Users.Infrastructure.Sql.UsersDbContext"
+        MigrationName = "InitialUsers"
+    },
+    @{
+        Name = "Customers"
+        Project = "src/Modules/Customers/Holmes.Customers.Infrastructure.Sql/Holmes.Customers.Infrastructure.Sql.csproj"
+        Context = "Holmes.Customers.Infrastructure.Sql.CustomersDbContext"
+        MigrationName = "InitialCustomers"
+    },
+    @{
+        Name = "Subjects"
+        Project = "src/Modules/SubjectRegistry/Holmes.Subjects.Infrastructure.Sql/Holmes.Subjects.Infrastructure.Sql.csproj"
+        Context = "Holmes.Subjects.Infrastructure.Sql.SubjectsDbContext"
+        MigrationName = "InitialSubjects"
     }
 )
 
@@ -76,7 +94,15 @@ function Ensure-ModuleMigrations
     }
 
     $commonArgs = Get-EfCommonArgs -Module $Module
-    $addArgs = @("migrations", "add", $migrationName) + $commonArgs + @("--output-dir", $migrationOutputDir)
+    $name = if ($Module.ContainsKey("MigrationName") -and $Module.MigrationName)
+    {
+        $Module.MigrationName
+    }
+    else
+    {
+        "InitialMigration"
+    }
+    $addArgs = @("migrations", "add", $name) + $commonArgs + @("--output-dir", $migrationOutputDir)
     Invoke-DotNetEf -Arguments $addArgs
 }
 

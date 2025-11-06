@@ -1,20 +1,28 @@
-using System;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
-using Holmes.Core.Domain;
 using Holmes.Core.Domain.Security;
-using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Security;
-using Holmes.Users.Application.Users.Commands;
+using Holmes.Core.Infrastructure.Sql;
+using Holmes.Customers.Application.Commands;
+using Holmes.Customers.Domain;
+using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Customers.Infrastructure.Sql.Repositories;
+using Holmes.Subjects.Application.Commands;
+using Holmes.Subjects.Domain;
+using Holmes.Subjects.Infrastructure.Sql;
+using Holmes.Subjects.Infrastructure.Sql.Repositories;
+using Holmes.Users.Application.Commands;
+using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Repositories;
-using Holmes.Users.Domain.Users;
 using MediatR;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
@@ -33,7 +41,7 @@ internal static class HostingExtensions
             var seqApiKey = ctx.Configuration["Seq:ApiKey"];
 
             config.WriteTo.Console(outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level} {SourceContext}]{NewLine}{Message:lj}{NewLine}{NewLine}")
+                    "[{Timestamp:HH:mm:ss} {Level} {SourceContext}]{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Error)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Error)
                 .Enrich.WithCorrelationIdHeader("X-Correlation-ID")
@@ -65,13 +73,14 @@ internal static class HostingExtensions
                     new JsonStringEnumConverter( /* JsonNamingPolicy.CamelCase */));
             });
 
-        var isRunningInTestHost = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1", StringComparison.Ordinal);
+        builder.Services.AddAuthentication();
+        builder.Services.AddScoped<IUserContext, HttpUserContext>();
+
+        var isRunningInTestHost = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1",
+            StringComparison.Ordinal);
+        var isTestEnvironment = builder.Environment.IsEnvironment("Testing");
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            builder.Services.AddInfrastructureForTesting();
-        }
-        else if (isRunningInTestHost)
+        if (string.IsNullOrWhiteSpace(connectionString) || isTestEnvironment || isRunningInTestHost)
         {
             builder.Services.AddInfrastructureForTesting();
         }
@@ -79,14 +88,22 @@ internal static class HostingExtensions
         {
             builder.Services.AddInfrastructure(connectionString);
         }
+
         builder.Services.AddDomain();
         builder.Services.AddApplication();
 
         builder.Services.AddAuthorization();
 
-        builder.Services.AddDataProtection()
-            .SetApplicationName("Holmes")
-            .PersistKeysToDbContext<CoreDbContext>();
+        var dataProtection = builder.Services.AddDataProtection()
+            .SetApplicationName("Holmes");
+        if (isTestEnvironment || isRunningInTestHost)
+        {
+            dataProtection.UseEphemeralDataProtectionProvider();
+        }
+        else
+        {
+            dataProtection.PersistKeysToDbContext<CoreDbContext>();
+        }
 
         if (builder.Environment.IsDevelopment())
         {
@@ -117,7 +134,7 @@ internal static class HostingExtensions
         }
         else
         {
-            app.UseExceptionHandler();
+            app.UseExceptionHandler("/error");
             app.UseHsts();
         }
 
@@ -126,18 +143,32 @@ internal static class HostingExtensions
         app.UseStaticFiles();
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
         app.MapHealthChecks("/health").AllowAnonymous();
-        app.MapGet("/_info", (IHostEnvironment env) =>
-            Results.Ok(new
+        app.Map("/error", (HttpContext context, IHostEnvironment env, ILogger<Program> logger) =>
+        {
+            var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+            if (exceptionFeature?.Error is not null)
             {
-                service = typeof(HostingExtensions).Assembly.GetName().Name,
-                version = typeof(HostingExtensions).Assembly.GetName().Version?.ToString(),
-                environment = env.EnvironmentName,
-                machine = Environment.MachineName
-            }))
+                logger.LogError(exceptionFeature.Error, "Unhandled request error");
+            }
+            var detail = env.IsDevelopment() || env.IsEnvironment("Testing")
+                ? exceptionFeature?.Error.ToString()
+                : null;
+
+            return Results.Problem(statusCode: StatusCodes.Status500InternalServerError, detail: detail);
+        }).AllowAnonymous();
+        app.MapGet("/_info", (IHostEnvironment env) =>
+                Results.Ok(new
+                {
+                    service = typeof(HostingExtensions).Assembly.GetName().Name,
+                    version = typeof(HostingExtensions).Assembly.GetName().Version?.ToString(),
+                    environment = env.EnvironmentName,
+                    machine = Environment.MachineName
+                }))
             .AllowAnonymous();
 
         return app;
@@ -160,12 +191,16 @@ internal static class HostingExtensions
 
         /* Core */
         services.AddDbContextWithMigrations<CoreDbContext>(connectionString, serverVersion);
-        services.AddScoped<IDomainEventQueue, DomainEventQueue>();
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
-        services.AddScoped<IUnitOfWork, NoOpUnitOfWork>();
 
         /* Users */
         services.AddUsersInfrastructureSql(connectionString, serverVersion);
+
+        /* Customers */
+        services.AddCustomersInfrastructureSql(connectionString, serverVersion);
+
+        /* Subjects */
+        services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
 
         return services;
     }
@@ -174,10 +209,16 @@ internal static class HostingExtensions
     {
         services.AddDbContext<CoreDbContext>(options => options.UseInMemoryDatabase("holmes-core"));
         services.AddDbContext<UsersDbContext>(options => options.UseInMemoryDatabase("holmes-users"));
-        services.AddScoped<IDomainEventQueue, DomainEventQueue>();
+        services.AddDbContext<CustomersDbContext>(options => options.UseInMemoryDatabase("holmes-customers"));
+        services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUserRepository, SqlUserRepository>();
-        services.AddSingleton<IUnitOfWork, NoOpUnitOfWork>();
+        services.AddScoped<IUserDirectory, SqlUserDirectory>();
+        services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
+        services.AddScoped<ICustomerRepository, SqlCustomerRepository>();
+        services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
+        services.AddScoped<ISubjectRepository, SqlSubjectRepository>();
+        services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         return services;
     }
 
@@ -196,6 +237,8 @@ internal static class HostingExtensions
         {
             config.RegisterServicesFromAssemblyContaining<RequestBase>();
             config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
         });
 
         // services.AddTransient(typeof(IPipelineBehavior<,>),
@@ -265,14 +308,5 @@ internal static class HostingExtensions
         services.AddDbContext<TContext>(options => options.UseMySql(connectionString, serverVersion,
             optionsBuilder => optionsBuilder.MigrationsAssembly(migrationsAssembly)));
         return services;
-    }
-
-    private sealed class NoOpUnitOfWork : IUnitOfWork
-    {
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(0);
-
-        public void Dispose()
-        {
-        }
     }
 }

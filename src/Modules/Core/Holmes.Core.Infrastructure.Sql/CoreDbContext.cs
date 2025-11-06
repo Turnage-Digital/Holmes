@@ -7,10 +7,10 @@ namespace Holmes.Core.Infrastructure.Sql;
 public class CoreDbContext(DbContextOptions<CoreDbContext> options)
     : DbContext(options), IDataProtectionKeyContext
 {
-    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     public DbSet<EventRecord> Events { get; set; } = null!;
     public DbSet<SnapshotRecord> Snapshots { get; set; } = null!;
     public DbSet<ProjectionCheckpoint> ProjectionCheckpoints { get; set; } = null!;
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,10 +18,7 @@ public class CoreDbContext(DbContextOptions<CoreDbContext> options)
 
         modelBuilder.HasCharSet("utf8mb4");
 
-        modelBuilder.Entity<DataProtectionKey>(builder =>
-        {
-            builder.ToTable("data_protection_keys");
-        });
+        modelBuilder.Entity<DataProtectionKey>(builder => { builder.ToTable("data_protection_keys"); });
 
         modelBuilder.Entity<EventRecord>(builder =>
         {

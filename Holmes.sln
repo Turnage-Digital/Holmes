@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-#
+# 
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -40,6 +40,24 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Users.Infrastructure.Sql", "src\Modules\Users\Holmes.Users.Infrastructure.Sql\Holmes.Users.Infrastructure.Sql.csproj", "{5F8D125B-E661-4C97-AF19-65CB3FE6A6F5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Users.Tests", "src\Modules\Users\Holmes.Users.Tests\Holmes.Users.Tests.csproj", "{70A39AB0-5844-4E75-AE46-A0F3AD7C1097}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Customers", "Customers", "{53AA447A-6340-4411-B32B-59C440B65DCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Domain", "src\Modules\Customers\Holmes.Customers.Domain\Holmes.Customers.Domain.csproj", "{51AFF306-3456-4F00-BDAF-26E11D745384}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Application", "src\Modules\Customers\Holmes.Customers.Application\Holmes.Customers.Application.csproj", "{379430CA-79C1-4620-8062-0194ADF75271}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Infrastructure.Sql", "src\Modules\Customers\Holmes.Customers.Infrastructure.Sql\Holmes.Customers.Infrastructure.Sql.csproj", "{B58D45D7-CD84-427A-96E9-3ADA065CA4C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Tests", "src\Modules\Customers\Holmes.Customers.Tests\Holmes.Customers.Tests.csproj", "{CC2EB1DE-9AC5-4812-9A89-A0DAFCE67E50}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubjectRegistry", "SubjectRegistry", "{DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Domain", "src\Modules\SubjectRegistry\Holmes.Subjects.Domain\Holmes.Subjects.Domain.csproj", "{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Application", "src\Modules\SubjectRegistry\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj", "{8477540C-5E5C-47C0-B29D-F3EF981734AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Infrastructure.Sql", "src\Modules\SubjectRegistry\Holmes.Subjects.Infrastructure.Sql\Holmes.Subjects.Infrastructure.Sql.csproj", "{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +109,34 @@ Global
 		{70A39AB0-5844-4E75-AE46-A0F3AD7C1097}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70A39AB0-5844-4E75-AE46-A0F3AD7C1097}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70A39AB0-5844-4E75-AE46-A0F3AD7C1097}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51AFF306-3456-4F00-BDAF-26E11D745384}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51AFF306-3456-4F00-BDAF-26E11D745384}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51AFF306-3456-4F00-BDAF-26E11D745384}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51AFF306-3456-4F00-BDAF-26E11D745384}.Release|Any CPU.Build.0 = Release|Any CPU
+		{379430CA-79C1-4620-8062-0194ADF75271}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{379430CA-79C1-4620-8062-0194ADF75271}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{379430CA-79C1-4620-8062-0194ADF75271}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{379430CA-79C1-4620-8062-0194ADF75271}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B58D45D7-CD84-427A-96E9-3ADA065CA4C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B58D45D7-CD84-427A-96E9-3ADA065CA4C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B58D45D7-CD84-427A-96E9-3ADA065CA4C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B58D45D7-CD84-427A-96E9-3ADA065CA4C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC2EB1DE-9AC5-4812-9A89-A0DAFCE67E50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC2EB1DE-9AC5-4812-9A89-A0DAFCE67E50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC2EB1DE-9AC5-4812-9A89-A0DAFCE67E50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC2EB1DE-9AC5-4812-9A89-A0DAFCE67E50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8477540C-5E5C-47C0-B29D-F3EF981734AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8477540C-5E5C-47C0-B29D-F3EF981734AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8477540C-5E5C-47C0-B29D-F3EF981734AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8477540C-5E5C-47C0-B29D-F3EF981734AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -107,5 +153,14 @@ Global
 		{F91B6A33-ECB8-43A6-8422-B2A1D9514454} = {B9351E67-7A50-4B05-9B5B-2D78F42E4E8E}
 		{5F8D125B-E661-4C97-AF19-65CB3FE6A6F5} = {B9351E67-7A50-4B05-9B5B-2D78F42E4E8E}
 		{70A39AB0-5844-4E75-AE46-A0F3AD7C1097} = {B9351E67-7A50-4B05-9B5B-2D78F42E4E8E}
+		{53AA447A-6340-4411-B32B-59C440B65DCB} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
+		{51AFF306-3456-4F00-BDAF-26E11D745384} = {53AA447A-6340-4411-B32B-59C440B65DCB}
+		{379430CA-79C1-4620-8062-0194ADF75271} = {53AA447A-6340-4411-B32B-59C440B65DCB}
+		{B58D45D7-CD84-427A-96E9-3ADA065CA4C7} = {53AA447A-6340-4411-B32B-59C440B65DCB}
+		{CC2EB1DE-9AC5-4812-9A89-A0DAFCE67E50} = {53AA447A-6340-4411-B32B-59C440B65DCB}
+		{DA18B859-CC68-40AB-9ED2-D7DFBA34D19A} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
+		{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8} = {DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}
+		{8477540C-5E5C-47C0-B29D-F3EF981734AE} = {DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}
+		{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A} = {DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}
 	EndGlobalSection
 EndGlobal

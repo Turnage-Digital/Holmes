@@ -1,5 +1,3 @@
-using System;
-
 namespace Holmes.Core.Infrastructure.Sql.Entities;
 
 public class SnapshotRecord

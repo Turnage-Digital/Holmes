@@ -1,28 +1,252 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Domain.Users;
+using Holmes.Users.Domain;
+using Holmes.Users.Infrastructure.Sql.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Users.Infrastructure.Sql.Repositories;
 
-/// <summary>
-/// Placeholder repository; will be replaced with event-sourced persistence in future phase.
-/// </summary>
 public class SqlUserRepository : IUserRepository
 {
-    public Task<User?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException("User persistence not implemented yet.");
-    }
+    private readonly UsersDbContext _dbContext;
+    private readonly IUsersUnitOfWork _unitOfWork;
 
-    public Task<User?> GetByExternalIdentityAsync(string issuer, string subject, CancellationToken cancellationToken)
+    public SqlUserRepository(UsersDbContext dbContext, IUsersUnitOfWork unitOfWork)
     {
-        throw new NotImplementedException("User persistence not implemented yet.");
+        _dbContext = dbContext;
+        _unitOfWork = unitOfWork;
     }
 
     public Task AddAsync(User user, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException("User persistence not implemented yet.");
+        var record = ToDb(user);
+        _dbContext.Users.Add(record);
+        UpsertDirectory(user, record);
+        _unitOfWork.RegisterDomainEvents(user);
+        return Task.CompletedTask;
+    }
+
+    public async Task<User?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
+    {
+        var userId = id.ToString();
+        var record = await _dbContext.Users
+            .Include(x => x.ExternalIdentities)
+            .Include(x => x.RoleMemberships)
+            .FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
+        if (record is null)
+        {
+            return null;
+        }
+
+        return Rehydrate(record);
+    }
+
+    public async Task<User?> GetByExternalIdentityAsync(
+        string issuer,
+        string subject,
+        CancellationToken cancellationToken
+    )
+    {
+        var identity = await _dbContext.UserExternalIdentities
+            .Include(x => x.User)
+            .ThenInclude(u => u!.ExternalIdentities)
+            .Include(x => x.User)
+            .ThenInclude(u => u!.RoleMemberships)
+            .FirstOrDefaultAsync(x => x.Issuer == issuer && x.Subject == subject, cancellationToken);
+
+        if (identity is null || identity.User is null)
+        {
+            return null;
+        }
+
+        return Rehydrate(identity.User);
+    }
+
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken)
+    {
+        var record = await _dbContext.Users
+            .Include(x => x.ExternalIdentities)
+            .Include(x => x.RoleMemberships)
+            .FirstOrDefaultAsync(x => x.UserId == user.Id.ToString(), cancellationToken);
+
+        if (record is null)
+        {
+            throw new InvalidOperationException($"User '{user.Id}' does not exist.");
+        }
+
+        ApplyState(user, record);
+        UpsertDirectory(user, record);
+        _unitOfWork.RegisterDomainEvents(user);
+    }
+
+    private static User Rehydrate(UserDb record)
+    {
+        var identities = record.ExternalIdentities
+            .Select(e =>
+                ExternalIdentity.Restore(e.Issuer, e.Subject, e.AuthenticationMethod, e.LinkedAt, e.LastSeenAt));
+
+        var roles = record.RoleMemberships
+            .Select(r => new RoleAssignment(r.Role, r.CustomerId, r.GrantedBy, r.GrantedAt));
+
+        return User.Rehydrate(
+            UlidId.Parse(record.UserId),
+            record.Email,
+            record.DisplayName,
+            record.Status,
+            record.CreatedAt,
+            identities,
+            roles);
+    }
+
+    private static void ApplyState(User user, UserDb record)
+    {
+        record.Email = user.Email;
+        record.DisplayName = user.DisplayName;
+        record.Status = user.Status;
+
+        SyncExternalIdentities(user, record);
+        SyncRoles(user, record);
+    }
+
+    private static void SyncExternalIdentities(User user, UserDb record)
+    {
+        var desired = user.ExternalIdentities.ToDictionary(x => (x.Issuer, x.Subject), x => x);
+        var existing = record.ExternalIdentities.ToDictionary(x => (x.Issuer, x.Subject), x => x);
+
+        foreach (var toRemove in existing.Keys.Except(desired.Keys).ToList())
+        {
+            var recordToRemove = existing[toRemove];
+            record.ExternalIdentities.Remove(recordToRemove);
+        }
+
+        foreach (var kvp in desired)
+        {
+            if (existing.TryGetValue(kvp.Key, out var recordIdentity))
+            {
+                recordIdentity.AuthenticationMethod = kvp.Value.AuthenticationMethod;
+                recordIdentity.LinkedAt = kvp.Value.LinkedAt;
+                recordIdentity.LastSeenAt = kvp.Value.LastSeenAt;
+            }
+            else
+            {
+                record.ExternalIdentities.Add(new UserExternalIdentityDb
+                {
+                    UserId = record.UserId,
+                    Issuer = kvp.Value.Issuer,
+                    Subject = kvp.Value.Subject,
+                    AuthenticationMethod = kvp.Value.AuthenticationMethod,
+                    LinkedAt = kvp.Value.LinkedAt,
+                    LastSeenAt = kvp.Value.LastSeenAt
+                });
+            }
+        }
+    }
+
+    private static void SyncRoles(User user, UserDb record)
+    {
+        var desired = user.Roles.ToDictionary(x => (x.Role, x.CustomerId), x => x);
+        var existing = record.RoleMemberships.ToDictionary(x => (x.Role, x.CustomerId), x => x);
+
+        foreach (var toRemove in existing.Keys.Except(desired.Keys).ToList())
+        {
+            var membership = existing[toRemove];
+            record.RoleMemberships.Remove(membership);
+        }
+
+        foreach (var kvp in desired)
+        {
+            if (existing.TryGetValue(kvp.Key, out var membership))
+            {
+                membership.GrantedBy = kvp.Value.GrantedBy;
+                membership.GrantedAt = kvp.Value.GrantedAt;
+            }
+            else
+            {
+                record.RoleMemberships.Add(new UserRoleMembershipDb
+                {
+                    UserId = record.UserId,
+                    Role = kvp.Value.Role,
+                    CustomerId = kvp.Value.CustomerId,
+                    GrantedBy = kvp.Value.GrantedBy,
+                    GrantedAt = kvp.Value.GrantedAt
+                });
+            }
+        }
+    }
+
+    private static UserDb ToDb(User user)
+    {
+        var record = new UserDb
+        {
+            UserId = user.Id.ToString(),
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            Status = user.Status,
+            CreatedAt = user.CreatedAt
+        };
+
+        foreach (var identity in user.ExternalIdentities)
+        {
+            record.ExternalIdentities.Add(new UserExternalIdentityDb
+            {
+                UserId = record.UserId,
+                Issuer = identity.Issuer,
+                Subject = identity.Subject,
+                AuthenticationMethod = identity.AuthenticationMethod,
+                LinkedAt = identity.LinkedAt,
+                LastSeenAt = identity.LastSeenAt
+            });
+        }
+
+        foreach (var role in user.Roles)
+        {
+            record.RoleMemberships.Add(new UserRoleMembershipDb
+            {
+                UserId = record.UserId,
+                Role = role.Role,
+                CustomerId = role.CustomerId,
+                GrantedBy = role.GrantedBy,
+                GrantedAt = role.GrantedAt
+            });
+        }
+
+        return record;
+    }
+
+    private void UpsertDirectory(User user, UserDb record)
+    {
+        var entry = _dbContext.UserDirectory.SingleOrDefault(x => x.UserId == record.UserId);
+        var lastSeen = user.ExternalIdentities.Any()
+            ? user.ExternalIdentities.Max(x => x.LastSeenAt)
+            : user.CreatedAt;
+        var primaryIdentity = user.ExternalIdentities.FirstOrDefault();
+
+        if (entry is null)
+        {
+            entry = new UserDirectoryDb
+            {
+                UserId = record.UserId,
+                Email = user.Email,
+                DisplayName = user.DisplayName,
+                Issuer = primaryIdentity?.Issuer ?? string.Empty,
+                Subject = primaryIdentity?.Subject ?? string.Empty,
+                LastAuthenticatedAt = lastSeen,
+                Status = user.Status
+            };
+            _dbContext.UserDirectory.Add(entry);
+        }
+        else
+        {
+            entry.Email = user.Email;
+            entry.DisplayName = user.DisplayName;
+            entry.Status = user.Status;
+            if (primaryIdentity is not null)
+            {
+                entry.Issuer = primaryIdentity.Issuer;
+                entry.Subject = primaryIdentity.Subject;
+            }
+
+            entry.LastAuthenticatedAt = lastSeen;
+        }
     }
 }

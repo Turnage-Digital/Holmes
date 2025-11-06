@@ -1,13 +1,10 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Holmes.Core.Domain.Security;
 
 namespace Holmes.Core.Infrastructure.Security;
 
 /// <summary>
-/// Development-only AEAD encryptor that returns payloads unchanged.
-/// Replace with a real implementation when secrets management is available.
+///     Development-only AEAD encryptor that returns payloads unchanged.
+///     Replace with a real implementation when secrets management is available.
 /// </summary>
 public sealed class NoOpAeadEncryptor : IAeadEncryptor
 {

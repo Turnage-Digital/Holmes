@@ -1,20 +1,22 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Holmes.Core.Domain.Results;
 
 public class Result
 {
-    public bool IsSuccess { get; }
-    public string? Error { get; }
-
     protected Result(bool isSuccess, string? error)
     {
         IsSuccess = isSuccess;
         Error = error;
     }
 
-    public static Result Success() => new(true, null);
+    public bool IsSuccess { get; }
+    public string? Error { get; }
+
+    public static Result Success()
+    {
+        return new Result(true, null);
+    }
 
     public static Result Fail(string error)
     {
@@ -22,9 +24,15 @@ public class Result
         return new Result(false, error);
     }
 
-    public static Result<T> Success<T>(T value) => Result<T>.Success(value);
+    public static Result<T> Success<T>(T value)
+    {
+        return Result<T>.Success(value);
+    }
 
-    public static Result<T> Fail<T>(string error) => Result<T>.Fail(error);
+    public static Result<T> Fail<T>(string error)
+    {
+        return Result<T>.Fail(error);
+    }
 }
 
 public class Result<T> : Result
@@ -42,7 +50,10 @@ public class Result<T> : Result
             ? _value!
             : throw new InvalidOperationException("Cannot access the value of a failed result.");
 
-    public static Result<T> Success(T value) => new(true, value, null);
+    public static Result<T> Success(T value)
+    {
+        return new Result<T>(true, value, null);
+    }
 
     public new static Result<T> Fail(string error)
     {

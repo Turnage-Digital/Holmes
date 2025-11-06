@@ -1,8 +1,7 @@
-using Holmes.Users.Domain.Users;
+using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Holmes.Users.Infrastructure.Sql;
 
@@ -19,6 +18,8 @@ public static class DependencyInjection
                 builder.MigrationsAssembly(typeof(UsersDbContext).Assembly.FullName)));
 
         services.AddScoped<IUserRepository, SqlUserRepository>();
+        services.AddScoped<IUserDirectory, SqlUserDirectory>();
+        services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
 
         return services;
     }

@@ -51,43 +51,54 @@ ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stu
 
 ### Users Module (Phase 1 preview)
 
-**Bounded context goal:** project external OIDC identities into Holmes, capture authorization roles, and expose tenant-scoped policies without ever persisting credentials.
+**Bounded context goal:** project external OIDC identities into Holmes, capture authorization roles, and expose
+tenant-scoped policies without ever persisting credentials.
 
 - **Aggregates**
-  - `UserAggregate`: canonical record keyed by `UlidId` with external identity tuple `(issuer, subject)`, profile (email, name), status (`Active`, `Suspended`, `PendingApproval`), and `RoleAssignments`.
-  - `RoleAssignment` value object: `Role` (`Admin`, `CustomerAdmin`, `Ops`, `Auditor`, etc.), optional `CustomerId`, `GrantedBy`, `GrantedAt`.
-  - `ExternalIdentity` value object: `Issuer`, `Subject`, `AuthenticationMethod`, `LinkedAt`, `LastSeenAt`.
+    - `UserAggregate`: canonical record keyed by `UlidId` with external identity tuple `(issuer, subject)`, profile (
+      email, name), status (`Active`, `Suspended`, `PendingApproval`), and `RoleAssignments`.
+    - `RoleAssignment` value object: `Role` (`Admin`, `CustomerAdmin`, `Ops`, `Auditor`, etc.), optional `CustomerId`,
+      `GrantedBy`, `GrantedAt`.
+    - `ExternalIdentity` value object: `Issuer`, `Subject`, `AuthenticationMethod`, `LinkedAt`, `LastSeenAt`.
 - **Domain events**
-  - `UserRegistered` – first successful trust of an external token.
-  - `UserProfileUpdated` – profile attribute refresh from IdP.
-  - `UserRoleGranted` / `UserRoleRevoked`.
-  - `UserSuspended` / `UserReactivated`.
+    - `UserRegistered` – first successful trust of an external token.
+    - `UserProfileUpdated` – profile attribute refresh from IdP.
+    - `UserRoleGranted` / `UserRoleRevoked`.
+    - `UserSuspended` / `UserReactivated`.
 - **Commands**
-  - `RegisterExternalUserCommand` – invoked after token validation; idempotent on `(issuer, subject)`.
-  - `GrantUserRoleCommand` / `RevokeUserRoleCommand` – enforce tenant scope and invariants (e.g., cannot remove last global Admin).
-  - `UpdateUserProfileCommand` – keep audit trail of claim refreshes.
-  - `SuspendUserCommand` / `ReactivateUserCommand`.
+    - `RegisterExternalUserCommand` – invoked after token validation; idempotent on `(issuer, subject)`.
+    - `GrantUserRoleCommand` / `RevokeUserRoleCommand` – enforce tenant scope and invariants (e.g., cannot remove last
+      global Admin).
+    - `UpdateUserProfileCommand` – keep audit trail of claim refreshes.
+    - `SuspendUserCommand` / `ReactivateUserCommand`.
 - **Policies**
-  - `RequireGlobalRolePolicy(role)` – ensures caller holds global role via read model lookup.
-  - `RequireCustomerRolePolicy(role, customerId)` – ensures caller is assigned role scoped to target customer.
-  - Invariants like “a user cannot hold both Admin and CustomerAdmin for different tenants” expressed via aggregate guards.
+    - `RequireGlobalRolePolicy(role)` – ensures caller holds global role via read model lookup.
+    - `RequireCustomerRolePolicy(role, customerId)` – ensures caller is assigned role scoped to target customer.
+    - Invariants like “a user cannot hold both Admin and CustomerAdmin for different tenants” expressed via aggregate
+      guards.
 - **Read models**
-  - `user_directory` – flattened profile plus `Issuer`, `Subject`, last seen, statuses for quick lookup & API responses.
-  - `user_role_memberships` – per `(userId, role, customerId)` rows to power authorization checks and UI.
-  - `user_login_audit` – append-only event projection capturing login timestamps from `UserRegistered` + `UserProfileUpdated`.
+    - `user_directory` – flattened profile plus `Issuer`, `Subject`, last seen, statuses for quick lookup & API
+      responses.
+    - `user_role_memberships` – per `(userId, role, customerId)` rows to power authorization checks and UI.
+    - `user_login_audit` – append-only event projection capturing login timestamps from `UserRegistered` +
+      `UserProfileUpdated`.
 - **Application services**
-  - `OidcLoginHandler` – orchestrator that receives validated tokens, runs `RegisterExternalUserCommand`, and stamps correlation ids.
-  - `RoleAssignmentService` – higher-level orchestration for Grant/Revoke with domain-based validation.
-  - `AuthorizationCacheRefresher` – updates distributed cache entries when role events fire.
+    - `OidcLoginHandler` – orchestrator that receives validated tokens, runs `RegisterExternalUserCommand`, and stamps
+      correlation ids.
+    - `RoleAssignmentService` – higher-level orchestration for Grant/Revoke with domain-based validation.
+    - `AuthorizationCacheRefresher` – updates distributed cache entries when role events fire.
 - **Integration points**
-  - `IOidcProviderCatalog` – resolves customer-specific OIDC settings (issuer, audience) to validate tokens before commands execute.
-  - API endpoints: `/users/me` (introspect), `/admin/users`, `/customers/{id}/admins`.
+    - `IOidcProviderCatalog` – resolves customer-specific OIDC settings (issuer, audience) to validate tokens before
+      commands execute.
+    - API endpoints: `/users/me` (introspect), `/admin/users`, `/customers/{id}/admins`.
 - **Testing**
-  - Unit tests for aggregate invariants (prevent duplicate roles, protect last admin).
-  - Integration tests asserting role-based authorization flows (e.g., CustomerAdmin cannot grant global Admin).
-  - Projection consistency tests – replays should rebuild `user_directory` exactly.
+    - Unit tests for aggregate invariants (prevent duplicate roles, protect last admin).
+    - Integration tests asserting role-based authorization flows (e.g., CustomerAdmin cannot grant global Admin) via
+      header-driven test auth over `WebApplicationFactory`.
+    - Projection consistency tests – replays should rebuild `user_directory` exactly.
 
-This module sits orthogonally to authentication middleware: the HTTP pipeline validates access tokens, then Application handlers consult the read models to enforce policies.
+This module sits orthogonally to authentication middleware: the HTTP pipeline validates access tokens, then Application
+handlers consult the read models to enforce policies.
 
 ### Solution Layout & Layering
 
@@ -96,6 +107,13 @@ This module sits orthogonally to authentication middleware: the HTTP pipeline va
 - `docker-compose.yml` + scripts (e.g. `ef-reset.ps1`) support local infra and database resets.
 - `global.json` and `nuget.config` pin the .NET SDK and package feeds.
 - `src/` is the single home for runtime hosts, modules, client, and supporting tests.
+
+### Unit of Work & Domain Events
+
+- Aggregates implement `IHasDomainEvents` (exposes `DomainEvents` + `ClearDomainEvents()`).
+- Repositories register aggregates with their module-specific `*UnitOfWork` before returning so that the shared `UnitOfWork<TContext>` can emit collected events after a successful `SaveChangesAsync`.
+- No separate `DomainEventQueue` is needed; events are gathered directly from aggregates, ensuring each unit of work publishes exactly the notifications generated during that transaction.
+- See `docs/unit-of-work-domain-events.md` for a step-by-step reference.
 
 ```
 src/
@@ -330,7 +348,9 @@ A dedicated **BusinessCalendar** service provides:
 **Clock Index (read model)** — always queryable:
 
 -
+
 `adverse_action_clocks(clock_id, order_id, subject_id, client_id, state, pre_sent_at, deadline_at, remaining_business_s, pause_reason, jurisdictions, delivery_proofs_json, policy_snapshot_id, sla_status, created_at, updated_at)`
+
 - `sla_clocks(clock_id, order_id, kind, state, started_at, deadline_at, sla_status, created_at, updated_at)`
 
 **Watchdog** flags `on_track / at_risk / breached` for dashboards & alerts.
