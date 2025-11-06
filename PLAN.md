@@ -118,6 +118,11 @@ Infrastructure to compose the runtime.
 **Outcomes**
 
 - Aggregates + handlers for `Subject`, `User`, `Customer`.
+- Users module cadence:
+  - Define `User`, `RoleAssignment`, `ExternalIdentity` aggregates/events (no credential storage).
+  - Scaffold projections (`user_directory`, `user_role_memberships`) that power authorization policies.
+  - Expose commands for register/activate external users, grant/revoke roles, suspend/reactivate.
+  - Integrate HTTP middleware to map OIDC tokens → Holmes roles via read models.
 - Tenant-aware policy snapshot + customer assignment to orders.
 - Identity endpoints (invite/activate user) with tenancy + audit trails.
 - Read models: `subject_summary`, `user_directory`, `customer_registry`.

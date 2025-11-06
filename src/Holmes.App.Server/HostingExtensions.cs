@@ -1,11 +1,18 @@
+using System;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.Security;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Core.Infrastructure.Sql.Security;
+using Holmes.Core.Infrastructure.Security;
+using Holmes.Users.Application.Users.Commands;
+using Holmes.Users.Infrastructure.Sql;
+using Holmes.Users.Infrastructure.Sql.Repositories;
+using Holmes.Users.Domain.Users;
 using MediatR;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -58,8 +65,20 @@ internal static class HostingExtensions
                     new JsonStringEnumConverter( /* JsonNamingPolicy.CamelCase */));
             });
 
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
-        builder.Services.AddInfrastructure(connectionString);
+        var isRunningInTestHost = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1", StringComparison.Ordinal);
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            builder.Services.AddInfrastructureForTesting();
+        }
+        else if (isRunningInTestHost)
+        {
+            builder.Services.AddInfrastructureForTesting();
+        }
+        else
+        {
+            builder.Services.AddInfrastructure(connectionString);
+        }
         builder.Services.AddDomain();
         builder.Services.AddApplication();
 
@@ -143,33 +162,22 @@ internal static class HostingExtensions
         services.AddDbContextWithMigrations<CoreDbContext>(connectionString, serverVersion);
         services.AddScoped<IDomainEventQueue, DomainEventQueue>();
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
+        services.AddScoped<IUnitOfWork, NoOpUnitOfWork>();
 
-        // /* Users */
-        // services.AddDbContextWithMigrations<UsersDbContext>(connectionString, serverVersion);
-        // services.AddScoped<IGetCurrentUser, CurrentUserGetter>();
-        //
-        // /* Lists */
-        // services.AddDbContextWithMigrations<ListsDbContext>(connectionString, serverVersion);
-        // services.AddScoped<IListsUnitOfWork<ListDb, ItemDb>, ListsUnitOfWork>();
-        // services.AddScoped<IGetCompletedJson, CompletedJsonGetter>();
-        // services.AddScoped<IGetItemDetails, ItemDetailsGetter>();
-        // services.AddScoped<IGetListItemDefinition, ListItemDefinitionGetter>();
-        // services.AddScoped<IGetPagedList, PagedListGetter>();
-        // services.AddScoped<IGetListNames, ListNamesGetter>();
-        // services.AddScoped<IGetListHistory, ListHistoryGetter>();
-        // services.AddScoped<IGetItemHistory, ItemHistoryGetter>();
-        // services.AddScoped<IGetMigrationJobStatus, MigrationJobStatusGetter>();
-        //
-        // /* Notifications */
-        // services.AddDbContextWithMigrations<NotificationsDbContext>(connectionString, serverVersion);
-        // services.AddScoped<INotificationsUnitOfWork<NotificationRuleDb, NotificationDb>, NotificationsUnitOfWork>();
-        // services.AddScoped<IGetUserNotifications, UserNotificationsGetter>();
-        // services.AddScoped<IGetNotificationDetails, NotificationDetailsGetter>();
-        // services.AddScoped<IGetUserNotificationRules, UserNotificationRulesGetter>();
-        // services.AddScoped<IGetUnreadNotificationCount, UnreadNotificationCountGetter>();
-        // services.AddScoped<IGetActiveNotificationRules, ActiveNotificationRulesGetter>();
-        // services.AddScoped<IGetPendingNotifications, PendingNotificationsGetter>();
+        /* Users */
+        services.AddUsersInfrastructureSql(connectionString, serverVersion);
 
+        return services;
+    }
+
+    private static IServiceCollection AddInfrastructureForTesting(this IServiceCollection services)
+    {
+        services.AddDbContext<CoreDbContext>(options => options.UseInMemoryDatabase("holmes-core"));
+        services.AddDbContext<UsersDbContext>(options => options.UseInMemoryDatabase("holmes-users"));
+        services.AddScoped<IDomainEventQueue, DomainEventQueue>();
+        services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
+        services.AddScoped<IUserRepository, SqlUserRepository>();
+        services.AddSingleton<IUnitOfWork, NoOpUnitOfWork>();
         return services;
     }
 
@@ -187,6 +195,7 @@ internal static class HostingExtensions
         services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssemblyContaining<RequestBase>();
+            config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
         });
 
         // services.AddTransient(typeof(IPipelineBehavior<,>),
@@ -256,5 +265,14 @@ internal static class HostingExtensions
         services.AddDbContext<TContext>(options => options.UseMySql(connectionString, serverVersion,
             optionsBuilder => optionsBuilder.MigrationsAssembly(migrationsAssembly)));
         return services;
+    }
+
+    private sealed class NoOpUnitOfWork : IUnitOfWork
+    {
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(0);
+
+        public void Dispose()
+        {
+        }
     }
 }

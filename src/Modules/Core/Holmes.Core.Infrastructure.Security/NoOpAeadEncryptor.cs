@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Holmes.Core.Domain.Security;
 
-namespace Holmes.Core.Infrastructure.Sql.Security;
+namespace Holmes.Core.Infrastructure.Security;
 
 /// <summary>
 /// Development-only AEAD encryptor that returns payloads unchanged.

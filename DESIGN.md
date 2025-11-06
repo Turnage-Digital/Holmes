@@ -49,6 +49,46 @@ ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stu
 - **Events** are the source of truth; read models provide instant visibility.
 - **PII minimization** & field-level encryption; immutable WORM artifacts.
 
+### Users Module (Phase 1 preview)
+
+**Bounded context goal:** project external OIDC identities into Holmes, capture authorization roles, and expose tenant-scoped policies without ever persisting credentials.
+
+- **Aggregates**
+  - `UserAggregate`: canonical record keyed by `UlidId` with external identity tuple `(issuer, subject)`, profile (email, name), status (`Active`, `Suspended`, `PendingApproval`), and `RoleAssignments`.
+  - `RoleAssignment` value object: `Role` (`Admin`, `CustomerAdmin`, `Ops`, `Auditor`, etc.), optional `CustomerId`, `GrantedBy`, `GrantedAt`.
+  - `ExternalIdentity` value object: `Issuer`, `Subject`, `AuthenticationMethod`, `LinkedAt`, `LastSeenAt`.
+- **Domain events**
+  - `UserRegistered` – first successful trust of an external token.
+  - `UserProfileUpdated` – profile attribute refresh from IdP.
+  - `UserRoleGranted` / `UserRoleRevoked`.
+  - `UserSuspended` / `UserReactivated`.
+- **Commands**
+  - `RegisterExternalUserCommand` – invoked after token validation; idempotent on `(issuer, subject)`.
+  - `GrantUserRoleCommand` / `RevokeUserRoleCommand` – enforce tenant scope and invariants (e.g., cannot remove last global Admin).
+  - `UpdateUserProfileCommand` – keep audit trail of claim refreshes.
+  - `SuspendUserCommand` / `ReactivateUserCommand`.
+- **Policies**
+  - `RequireGlobalRolePolicy(role)` – ensures caller holds global role via read model lookup.
+  - `RequireCustomerRolePolicy(role, customerId)` – ensures caller is assigned role scoped to target customer.
+  - Invariants like “a user cannot hold both Admin and CustomerAdmin for different tenants” expressed via aggregate guards.
+- **Read models**
+  - `user_directory` – flattened profile plus `Issuer`, `Subject`, last seen, statuses for quick lookup & API responses.
+  - `user_role_memberships` – per `(userId, role, customerId)` rows to power authorization checks and UI.
+  - `user_login_audit` – append-only event projection capturing login timestamps from `UserRegistered` + `UserProfileUpdated`.
+- **Application services**
+  - `OidcLoginHandler` – orchestrator that receives validated tokens, runs `RegisterExternalUserCommand`, and stamps correlation ids.
+  - `RoleAssignmentService` – higher-level orchestration for Grant/Revoke with domain-based validation.
+  - `AuthorizationCacheRefresher` – updates distributed cache entries when role events fire.
+- **Integration points**
+  - `IOidcProviderCatalog` – resolves customer-specific OIDC settings (issuer, audience) to validate tokens before commands execute.
+  - API endpoints: `/users/me` (introspect), `/admin/users`, `/customers/{id}/admins`.
+- **Testing**
+  - Unit tests for aggregate invariants (prevent duplicate roles, protect last admin).
+  - Integration tests asserting role-based authorization flows (e.g., CustomerAdmin cannot grant global Admin).
+  - Projection consistency tests – replays should rebuild `user_directory` exactly.
+
+This module sits orthogonally to authentication middleware: the HTTP pipeline validates access tokens, then Application handlers consult the read models to enforce policies.
+
 ### Solution Layout & Layering
 
 - `Holmes.sln` ties all .NET projects (hosts, modules, tooling) into one solution.
