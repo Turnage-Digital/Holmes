@@ -4,8 +4,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $configuration = "Debug"
-$startupProject = "src/Holmes.Server/Holmes.Server.csproj"
-$migrationName = "Initial"
+$startupProject = "src/Holmes.App.Server/Holmes.App.Server.csproj"
+$migrationName = "InitialEventStore"
 $migrationOutputDir = "Migrations"
 
 $modules = @(
@@ -48,7 +48,7 @@ function Get-EfCommonArgs
     )
 }
 
-function Reset-ModuleMigrations
+function Ensure-ModuleMigrations
 {
     param(
         [Parameter(Mandatory = $true)]
@@ -61,11 +61,21 @@ function Reset-ModuleMigrations
         return
     }
 
+    $migrationDir = Join-Path (Split-Path $Module.Project) $migrationOutputDir
+    $existingMigrations = @()
+    if (Test-Path -Path $migrationDir)
+    {
+        $existingMigrations = Get-ChildItem -Path $migrationDir -Filter "*.cs" `
+            | Where-Object { $_.Name -notlike "*.Designer.cs" -and $_.Name -ne ".gitkeep" }
+    }
+
+    if ($existingMigrations.Count -gt 0)
+    {
+        Write-Host "Skipping migration scaffolding for $( $Module.Name ) – existing migrations detected." -ForegroundColor Yellow
+        return
+    }
+
     $commonArgs = Get-EfCommonArgs -Module $Module
-
-    $removeArgs = @("migrations", "remove") + $commonArgs + @("--force")
-    Invoke-DotNetEf -Arguments $removeArgs
-
     $addArgs = @("migrations", "add", $migrationName) + $commonArgs + @("--output-dir", $migrationOutputDir)
     Invoke-DotNetEf -Arguments $addArgs
 }
@@ -117,7 +127,7 @@ Remove-ModuleDatabase -Module $coreModule
 
 foreach ($module in $modules)
 {
-    Reset-ModuleMigrations -Module $module
+    Ensure-ModuleMigrations -Module $module
 }
 
 foreach ($module in $modules)

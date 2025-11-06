@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Server", "src\Holmes.Server\Holmes.Server.csproj", "{5FD2099B-1F20-482B-8DFA-7450EEBBED84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Server", "src\Holmes.App.Server\Holmes.App.Server.csproj", "{5FD2099B-1F20-482B-8DFA-7450EEBBED84}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}"
 EndProject
@@ -26,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Infrastructure.Sql", "src\Modules\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj", "{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Tests", "src\Modules\Core\Holmes.Core.Tests\Holmes.Core.Tests.csproj", "{71DDA0F4-1FA9-438D-A75D-B49695CC856F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Server.Tests", "src\Holmes.App.Server.Tests\Holmes.App.Server.Tests.csproj", "{21197E8D-2FAF-4599-A374-07C24F22C33F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{71DDA0F4-1FA9-438D-A75D-B49695CC856F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71DDA0F4-1FA9-438D-A75D-B49695CC856F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71DDA0F4-1FA9-438D-A75D-B49695CC856F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21197E8D-2FAF-4599-A374-07C24F22C33F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21197E8D-2FAF-4599-A374-07C24F22C33F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21197E8D-2FAF-4599-A374-07C24F22C33F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21197E8D-2FAF-4599-A374-07C24F22C33F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -62,5 +68,6 @@ Global
 		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{71DDA0F4-1FA9-438D-A75D-B49695CC856F} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
+		{21197E8D-2FAF-4599-A374-07C24F22C33F} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 	EndGlobalSection
 EndGlobal

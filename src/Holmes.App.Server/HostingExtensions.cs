@@ -3,7 +3,9 @@ using System.Text.Json.Serialization;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Domain;
+using Holmes.Core.Domain.Security;
 using Holmes.Core.Infrastructure.Sql;
+using Holmes.Core.Infrastructure.Sql.Security;
 using MediatR;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +14,7 @@ using MySqlConnector;
 using Serilog;
 using Serilog.Events;
 
-namespace Holmes.Server;
+namespace Holmes.App.Server;
 
 internal static class HostingExtensions
 {
@@ -45,7 +47,7 @@ internal static class HostingExtensions
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddDistributedMemoryCache();
-        //builder.Services.AddSingleton<ChangeFeed>();
+        builder.Services.AddHealthChecks();
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -60,20 +62,6 @@ internal static class HostingExtensions
         builder.Services.AddInfrastructure(connectionString);
         builder.Services.AddDomain();
         builder.Services.AddApplication();
-
-        // builder.Services
-        //     .AddIdentityApiEndpoints<User>()
-        //     .AddEntityFrameworkStores<UsersDbContext>()
-        //     .AddDefaultTokenProviders();
-        //
-        // builder.Services.AddTransient<IEmailSender, StubEmailSender>();
-
-        builder.Services
-            .ConfigureApplicationCookie(options =>
-            {
-                options.Cookie.HttpOnly = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(30);
-            });
 
         builder.Services.AddAuthorization();
 
@@ -119,28 +107,19 @@ internal static class HostingExtensions
         app.UseStaticFiles();
         app.UseRouting();
 
-        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
-
-        // var identityGroup = app
-        //     .MapGroup("/identity")
-        //     .WithTags("Identity");
-        //
-        // identityGroup.MapIdentityApi<User>();
-        //
-        // identityGroup.MapPost("logout",
-        //     async (SignInManager<User> signInManager) =>
-        //     {
-        //         await signInManager.SignOutAsync();
-        //         return Results.Ok();
-        //     }
-        // );
-
-#if DEBUG
-        // SeedData.EnsureSeedData(app);
-#endif
+        app.MapHealthChecks("/health").AllowAnonymous();
+        app.MapGet("/_info", (IHostEnvironment env) =>
+            Results.Ok(new
+            {
+                service = typeof(HostingExtensions).Assembly.GetName().Name,
+                version = typeof(HostingExtensions).Assembly.GetName().Version?.ToString(),
+                environment = env.EnvironmentName,
+                machine = Environment.MachineName
+            }))
+            .AllowAnonymous();
 
         return app;
     }
@@ -163,6 +142,7 @@ internal static class HostingExtensions
         /* Core */
         services.AddDbContextWithMigrations<CoreDbContext>(connectionString, serverVersion);
         services.AddScoped<IDomainEventQueue, DomainEventQueue>();
+        services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
 
         // /* Users */
         // services.AddDbContextWithMigrations<UsersDbContext>(connectionString, serverVersion);

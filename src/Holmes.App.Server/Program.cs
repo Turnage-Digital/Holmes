@@ -1,4 +1,4 @@
-using Holmes.Server;
+using Holmes.App.Server;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -27,3 +27,5 @@ finally
     Log.Information("Shut down complete");
     Log.CloseAndFlush();
 }
+
+public partial class Program;
