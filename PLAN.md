@@ -118,11 +118,22 @@ Infrastructure to compose the runtime.
 **Outcomes**
 
 - Aggregates + handlers for `Subject`, `User`, `Customer`.
+- Subject Registry scaffolding (aggregate, commands, EF infrastructure) ready for intake + policy linkage.
+- Users module cadence:
+    - Define `User`, `RoleAssignment`, `ExternalIdentity` aggregates/events (no credential storage).
+    - Scaffold projections (`user_directory`, `user_role_memberships`) that power authorization policies.
+    - Expose commands for register/activate external users, grant/revoke roles, suspend/reactivate.
+    - Integrate HTTP middleware to map OIDC tokens → Holmes roles via read models.
 - Tenant-aware policy snapshot + customer assignment to orders.
 - Identity endpoints (invite/activate user) with tenancy + audit trails.
 - Read models: `subject_summary`, `user_directory`, `customer_registry`.
 - Integration tests for user activation, subject merge, customer assignment flows.
 - Observability: structured logging, request tracing, basic metrics.
+
+**Follow-ups**
+
+- Circle back and align `Holmes.Core` module conventions with the finalized Users & Customers modules post Phase 1.
+- Capture a concise UnitOfWork/domain-event dispatch overview so future modules follow the shared pattern.
 
 ### Phase 2 — Intake & Workflow Launch
 
