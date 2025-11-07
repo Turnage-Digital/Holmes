@@ -39,8 +39,7 @@ Build a mobile-first **intake and workflow core** for background screening that 
 ## 3) Architecture Overview
 
 **Flow:**  
-ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stubs)** → **Data Normalization** → *
-*Adjudication** → **Adverse Action/Disputes** → **Reporting/Billing**  
+ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stubs)** → **Data Normalization** → **Adjudication** → **Adverse Action/Disputes** → **Reporting/Billing**  
 ↘ **Consent/IDV** ↙ ↘ **Ledger/Audit** ↙
 
 **Principles**
@@ -103,94 +102,41 @@ handlers consult the read models to enforce policies.
 ### Solution Layout & Layering
 
 - `Holmes.sln` ties all .NET projects (hosts, modules, tooling) into one solution.
-- `ARCHITECTURE.md` will remain the canonical explainer for layering, events, and DI conventions.
 - `docker-compose.yml` + scripts (e.g. `ef-reset.ps1`) support local infra and database resets.
 - `global.json` and `nuget.config` pin the .NET SDK and package feeds.
 - `src/` is the single home for runtime hosts, modules, client, and supporting tests.
 
 ### Unit of Work & Domain Events
 
-- Aggregates implement `IHasDomainEvents` (exposes `DomainEvents` + `ClearDomainEvents()`).
-- Repositories register aggregates with their module-specific `*UnitOfWork` before returning so that the shared
-  `UnitOfWork<TContext>` can emit collected events after a successful `SaveChangesAsync`.
-- No separate `DomainEventQueue` is needed; events are gathered directly from aggregates, ensuring each unit of work
-  publishes exactly the notifications generated during that transaction.
-- See `docs/unit-of-work-domain-events.md` for a step-by-step reference.
+Aggregates that emit MediatR notifications implement `IHasDomainEvents`, exposing a read-only list of pending events
+plus `ClearDomainEvents()`. Repository methods must call their module-specific unit of work (e.g. `UsersUnitOfWork`) to
+register each aggregate before returning so the shared `UnitOfWork<TContext>` can collect the notifications.
 
-```
-src/
-├── Holmes.App.Server/
-│   ├── Controllers/
-│   ├── Integration/
-│   ├── Services/
-│   └── Tools/
-├── Holmes.App.Server.Tests/
-├── Holmes.Client/
-│   ├── public/
-│   └── src/
-│       ├── components/
-│       ├── lib/
-│       ├── models/
-│       └── pages/
-├── Holmes.Mcp.Server/
-│   ├── Properties/
-│   ├── Services/
-│   └── Tools/
-└── Modules/
-    ├── Core/
-    │   ├── Holmes.Core.Domain/{IntegrationEvents,Services,ValueObjects}/
-    │   ├── Holmes.Core.Application/Behaviors/
-    │   ├── Holmes.Core.Infrastructure.OpenAi/Services/
-    │   ├── Holmes.Core.Infrastructure.Sql/{Entities,Migrations}/
-    │   └── Holmes.Core.Tests/
-    ├── Intake/
-    │   ├── Holmes.Intake.Domain/{Entities,Events,ValueObjects}/
-    │   ├── Holmes.Intake.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Intake.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Intake.Tests/
-    ├── Workflow/
-    │   ├── Holmes.Workflow.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.Workflow.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Workflow.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Workflow.Tests/
-    ├── SlaClocks/
-    │   ├── Holmes.SlaClocks.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.SlaClocks.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.SlaClocks.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.SlaClocks.Tests/
-    ├── Compliance/
-    │   ├── Holmes.Compliance.Domain/{Entities,Events,ValueObjects}/
-    │   ├── Holmes.Compliance.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Compliance.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Compliance.Tests/
-    ├── Notifications/
-    │   ├── Holmes.Notifications.Domain/{Entities,Events,ValueObjects}/
-    │   ├── Holmes.Notifications.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Notifications.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Notifications.Tests/
-    ├── AdverseAction/
-    │   ├── Holmes.AdverseAction.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.AdverseAction.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.AdverseAction.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.AdverseAction.Tests/
-    ├── Adjudication/
-    │   ├── Holmes.Adjudication.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.Adjudication.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Adjudication.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Adjudication.Tests/
-    ├── ChargeTaxonomy/
-    │   ├── Holmes.ChargeTaxonomy.Domain/{Entities,Events}/
-    │   ├── Holmes.ChargeTaxonomy.Application/{Commands,Queries}/
-    │   └── Holmes.ChargeTaxonomy.Infrastructure.Sql/{Entities,Migrations}/
-    ├── Users/
-    │   ├── Holmes.Users.Domain/{Entities,Services}/
-    │   ├── Holmes.Users.Application/{Commands,Queries,EventHandlers}/
-    │   └── Holmes.Users.Infrastructure.Sql/Migrations/
-    └── Customers/
-        ├── Holmes.Customers.Domain/{Entities,Events,ValueObjects}/
-        ├── Holmes.Customers.Application/{Commands,Queries,EventHandlers}/
-        └── Holmes.Customers.Infrastructure.Sql/Migrations/
-```
+`UnitOfWork<TContext>` stores those events, executes `SaveChangesAsync`, and only when the transaction succeeds does it
+publish the captured notifications. This keeps domain events tightly coupled to the database transaction—if the commit
+fails, nothing is published.
+
+**Usage pattern**
+
+1. Aggregate mutates state and records events internally.
+2. Repository persists the aggregate and calls `_unitOfWork.RegisterDomainEvents(aggregate)`.
+3. Command handler invokes `*UnitOfWork.SaveChangesAsync()` which commits and then dispatches the buffered events via
+   MediatR.
+4. `ClearDomainEvents()` runs automatically, so aggregates are ready for subsequent mutations.
+
+When a command touches multiple aggregates, register each one before exiting the repository so every notification
+participates in the same transaction boundary. No separate `DomainEventQueue` is required; the unit of work guarantees
+exactly-once publication per successful commit.
+
+### Client Application (Holmes.Client)
+
+- React + Vite (TypeScript) solution tracked via `Holmes.Client.esproj`, launched with `npm run dev`.
+- `Holmes.App.Server` references the SPA via `SpaRoot` + SpaProxy so `dotnet run` proxies to `https://localhost:3000`
+  during development and serves the static build in production pipelines.
+- Phase 1.5 delivers an admin-focused shell that surfaces Subject, User, and Customer read models, plus flows to invite
+  and activate users, grant/revoke roles, create customers, and inspect deduped subjects—proving Phase 1 behavior via UI.
+- Shared API clients (OpenAPI-generated or typed fetch helpers) live beside the SPA to keep DTOs aligned with server
+  contracts; basic Playwright/component tests exercise the invite → activate → assign role path end-to-end.
 
 **Layering rules**
 
@@ -634,7 +580,21 @@ create table adverse_action_clocks(
 
 **Acceptance**: Tenant admin can invite a user, activate, assign roles, and create a customer bound to policy snapshot.
 
-### Phase 2 (Weeks 3–6): Intake & Workflow Launch
+### Phase 1.5 (Weeks 3–4): Platform Cohesion & Event Plumbing
+
+- Align `Holmes.Core` conventions, base behaviors, and dependency rules with what the Users/Customers modules actually
+  needed during Phase 1 so new feature slices inherit a consistent template.
+- Lock down the shared `UnitOfWork<TContext>` + domain-event dispatch pipeline with integration tests (multi-aggregate
+  commits, failure rollbacks), and document the usage inside this architecture guide.
+- Wire the identity/tenant read models into `Holmes.App.Server` (auth middleware, authorization helpers, seed scripts)
+  so the host is ready for Intake flows without code churn.
+- Expand base observability (structured logs, correlation IDs, baseline metrics) and add dev ergonomics like database
+  reset scripts and fixture seeds.
+
+**Acceptance**: A developer can run the host, exercise user/customer flows end-to-end with domain events firing once per
+transaction, and new modules can copy the hardened templates without manual tweaks.
+
+### Phase 2 (Weeks 4–7): Intake & Workflow Launch
 
 - Intake sessions + order workflow aggregates with subject/customer linkage.
 - REST + SSE endpoints for invite → submit, and order state transitions.
@@ -644,7 +604,7 @@ create table adverse_action_clocks(
 **Acceptance**: End-to-end intake completes, order advances to `ready_for_routing`, and SSE streams events with
 Last-Event-ID resume.
 
-### Phase 3 (Weeks 6–8): SLA, Compliance & Notifications
+### Phase 3 (Weeks 7–9): SLA, Compliance & Notifications
 
 - Business calendar service, SLA watchdog, regulatory/adverse clock aggregates.
 - Compliance policy gating (PP grants, disclosure acceptance, fair-chance overlays).
@@ -654,7 +614,7 @@ Last-Event-ID resume.
 **Acceptance**: Intake SLA flips to at_risk/breached, compliance gates block unauthorized progression, notifications
 fire with idempotent delivery.
 
-### Phase 4 (Weeks 8–9): Adverse Action & Evidence Packs
+### Phase 4 (Weeks 9–10): Adverse Action & Evidence Packs
 
 - Adverse action state machine with pause/resume + dispute linkage.
 - WORM artifact store + evidence pack bundler (zip + manifest).
@@ -662,7 +622,7 @@ fire with idempotent delivery.
 
 **Acceptance**: Pre/final adverse timelines recompute after pause, evidence pack download verifies hash manifest.
 
-### Phase 5 (Weeks 9–11): Adjudication Engine
+### Phase 5 (Weeks 10–12): Adjudication Engine
 
 - Charge taxonomy ingestion + normalization for assessments.
 - RuleSet authoring + publish workflow; deterministic recommendation engine.
@@ -671,7 +631,7 @@ fire with idempotent delivery.
 **Acceptance**: Assessment recommendations return consistent reason codes, overrides require justification and emit
 audit trail.
 
-### Phase 6 (Weeks 11–12): Hardening & Pilot
+### Phase 6 (Weeks 12–13): Hardening & Pilot
 
 - Tenant branding + locale hooks; policy snapshot UI contract finalized.
 - SLA/adverse/adjudication dashboards; audit export; SLO tracking.

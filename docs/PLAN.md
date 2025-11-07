@@ -130,10 +130,40 @@ Infrastructure to compose the runtime.
 - Integration tests for user activation, subject merge, customer assignment flows.
 - Observability: structured logging, request tracing, basic metrics.
 
-**Follow-ups**
+**Follow-ups (rolled into Phase 1.5)**
 
-- Circle back and align `Holmes.Core` module conventions with the finalized Users & Customers modules post Phase 1.
+- Align `Holmes.Core` module conventions with the finalized Users & Customers modules.
 - Capture a concise UnitOfWork/domain-event dispatch overview so future modules follow the shared pattern.
+
+### Phase 1.5 — Platform Cohesion & Event Plumbing
+
+**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, SubjectRegistry, Holmes.Client  
+**Outcomes**
+
+- Harden the shared `UnitOfWork<TContext>` and domain-event dispatch path with integration tests (multi-aggregate
+  transaction, rollback safety) and cross-module documentation.
+- Promote the identity/tenant read models into `Holmes.App.Server` (authorization helpers, policies, seeding) so Intake
+  work can assume a consistent host surface.
+- Normalize module template conventions (namespace layout, dependency graph, base behaviors) so every new module copies
+  the same scaffolding.
+- Expand baseline observability (structured logging, tracing correlation IDs, seed scripts, DB reset tooling) to make
+  future module debugging repeatable.
+- Land the React SPA scaffold (`Holmes.Client`) with Vite + SPA proxy wiring so the server can proxy to `npm run dev`
+  during local development and serve the static build in CI/CD.
+- Build “Phase 1 proof” UI flows: tenant switcher stub + admin views to list users/customers/subjects, invite a user,
+  grant/revoke a role, create/link a customer, and view subject merges by calling the live APIs.
+- Ship generated/hand-authored TypeScript clients (OpenAPI or minimal fetch wrappers) plus test fixtures so front-end
+  calls stay in sync with backend DTOs.
+- Add smoke tests (Playwright/component-level) that run a happy-path invite → activate → assign-role → create-customer
+  scenario end-to-end via the SPA proxy to prove Phase 1 is usable through the UI.
+
+**Acceptance**
+
+- Developers can run the host, execute user/customer flows end-to-end with domain events dispatching exactly once per
+  commit, and new modules can be scaffolded without manual fixing.
+- Running `dotnet run` on Holmes.App.Server launches the SPA proxy to `Holmes.Client`, and a tenant admin can complete
+  invite → activate → assign role → create customer strictly through the React UI with telemetry showing the emitted
+  domain events.
 
 ### Phase 2 — Intake & Workflow Launch
 

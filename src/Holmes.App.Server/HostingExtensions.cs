@@ -20,11 +20,11 @@ using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using Serilog;
@@ -125,41 +125,57 @@ internal static class HostingExtensions
 
     private static void ConfigureAuthentication(WebApplicationBuilder builder)
     {
-        var authority = builder.Configuration["Authentication:Authority"];
-        if (string.IsNullOrWhiteSpace(authority))
+        var isRunningInTestHost = string.Equals(
+            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"),
+            "1",
+            StringComparison.Ordinal);
+        if (builder.Environment.IsEnvironment("Testing") || isRunningInTestHost)
         {
             builder.Services
                 .AddAuthentication(options =>
                 {
-                    options.DefaultScheme = HeaderAuthenticationDefaults.Scheme;
-                    options.DefaultAuthenticateScheme = HeaderAuthenticationDefaults.Scheme;
-                    options.DefaultChallengeScheme = HeaderAuthenticationDefaults.Scheme;
+                    options.DefaultScheme = TestAuthenticationDefaults.Scheme;
+                    options.DefaultAuthenticateScheme = TestAuthenticationDefaults.Scheme;
+                    options.DefaultChallengeScheme = TestAuthenticationDefaults.Scheme;
                 })
-                .AddScheme<AuthenticationSchemeOptions, HeaderAuthenticationHandler>(
-                    HeaderAuthenticationDefaults.Scheme, _ => { });
+                .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                    TestAuthenticationDefaults.Scheme, _ => { });
+            return;
         }
-        else
+
+        var googleSection = builder.Configuration.GetSection("Authentication:Google");
+        var googleClientId = googleSection["ClientId"];
+        var googleClientSecret = googleSection["ClientSecret"];
+        if (string.IsNullOrWhiteSpace(googleClientId) ||
+            string.IsNullOrWhiteSpace(googleClientSecret))
         {
-            builder.Services
-                .AddAuthentication(options =>
-                {
-                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    var optionsAudience = builder.Configuration["Authentication:Audience"];
-                    options.Authority = authority;
-                    options.Audience = optionsAudience;
-                    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = !string.IsNullOrWhiteSpace(optionsAudience),
-                        ValidateLifetime = true
-                    };
-                });
+            throw new InvalidOperationException(
+                "Google authentication is required. Configure Authentication:Google:ClientId and ClientSecret.");
         }
+
+        builder.Services
+            .AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+            })
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/auth/login";
+                options.LogoutPath = "/auth/logout";
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = googleClientId;
+                options.ClientSecret = googleClientSecret;
+                options.SaveTokens = true;
+                options.ClaimActions.MapJsonKey("picture", "picture");
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.Scope.Add("email");
+            });
     }
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
@@ -178,6 +194,22 @@ internal static class HostingExtensions
         }
 
         app.UseHttpsRedirection();
+
+        app.Use(async (context, next) =>
+        {
+            if (!(context.User.Identity?.IsAuthenticated ?? false))
+            {
+                if (ShouldRedirectToAuthOptions(context.Request))
+                {
+                    var returnUrl = GetRequestedUrl(context.Request);
+                    context.Response.Redirect($"/auth/options?returnUrl={Uri.EscapeDataString(returnUrl)}");
+                    return;
+                }
+            }
+
+            await next();
+        });
+
         app.UseDefaultFiles();
         app.UseStaticFiles();
         app.UseRouting();
@@ -186,6 +218,81 @@ internal static class HostingExtensions
         app.UseAuthorization();
 
         app.MapControllers();
+
+        var auth = app.MapGroup("/auth");
+
+        auth.MapGet("/options", (HttpRequest request, string? returnUrl) =>
+            {
+                var destination = SanitizeReturnUrl(returnUrl, request);
+                var html = $@"<!DOCTYPE html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8"" />
+    <title>Holmes Sign In</title>
+    <style>
+      :root {{
+        font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", sans-serif;
+      }}
+      body {{
+        margin: 0;
+        background: #f5f5f5;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }}
+      .card {{
+        background: #fff;
+        padding: 2.5rem;
+        border-radius: 16px;
+        width: min(400px, 90vw);
+        text-align: center;
+        box-shadow: 0 25px 80px rgba(0,0,0,0.12);
+      }}
+      h1 {{ margin-top: 0; color: #1b2e5f; }}
+      p {{ color: #555; }}
+      .btn {{
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.85rem 1.2rem;
+        background: #1b2e5f;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+      }}
+      .btn:hover {{ background: #16244a; }}
+    </style>
+  </head>
+  <body>
+    <div class=""card"">
+      <h1>Sign in to Holmes</h1>
+      <p>Select an identity provider to continue.</p>
+      <a class=""btn"" href=""/auth/login?returnUrl={Uri.EscapeDataString(destination)}"">Continue with Google</a>
+    </div>
+  </body>
+</html>";
+                return Results.Content(html, "text/html");
+            })
+            .AllowAnonymous();
+
+        auth.MapGet("/login", (HttpRequest request, string? returnUrl) =>
+            {
+                var destination = SanitizeReturnUrl(returnUrl, request);
+                return Results.Challenge(
+                    new AuthenticationProperties { RedirectUri = destination },
+                    [GoogleDefaults.AuthenticationScheme]);
+            })
+            .AllowAnonymous();
+
+        auth.MapPost("/logout", async (HttpContext context, string? returnUrl) =>
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                var target = SanitizeReturnUrl(returnUrl, context.Request);
+                return Results.Redirect(target);
+            })
+            .RequireAuthorization();
         
         app.MapHealthChecks("/health")
             .AllowAnonymous();
@@ -217,6 +324,71 @@ internal static class HostingExtensions
             .AllowAnonymous();
 
         return app;
+    }
+
+    private static bool ShouldRedirectToAuthOptions(HttpRequest request)
+    {
+        if (!HttpMethods.IsGet(request.Method))
+        {
+            return false;
+        }
+
+        var path = request.Path;
+        if (path.StartsWithSegments("/auth") ||
+            path.StartsWithSegments("/signin-google") ||
+            path.StartsWithSegments("/api") ||
+            path.StartsWithSegments("/health") ||
+            path.StartsWithSegments("/swagger") ||
+            path.StartsWithSegments("/static") ||
+            path.StartsWithSegments("/assets"))
+        {
+            return false;
+        }
+
+        if (path.HasValue && path.Value.Contains('.', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (!request.Headers.TryGetValue("Accept", out var acceptHeader))
+        {
+            return false;
+        }
+
+        return acceptHeader.Any(value =>
+            value is not null &&
+            value.Contains("text/html", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string GetRequestedUrl(HttpRequest request)
+    {
+        var path = request.Path.HasValue ? request.Path.Value : "/";
+        var query = request.QueryString.HasValue ? request.QueryString.Value : string.Empty;
+        return string.Concat(path, query);
+    }
+
+    private static string SanitizeReturnUrl(string? returnUrl, HttpRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+        {
+            return "/";
+        }
+
+        if (Uri.TryCreate(returnUrl, UriKind.Absolute, out var absolute))
+        {
+            var requestHost = request.Host.HasValue ? request.Host.Host : string.Empty;
+            if (!string.Equals(
+                    absolute.Host,
+                    requestHost,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return "/";
+            }
+
+            return absolute.PathAndQuery;
+        }
+
+        return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/";
     }
 
     private static IServiceCollection AddInfrastructure(
