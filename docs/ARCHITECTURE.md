@@ -107,6 +107,41 @@ handlers consult the read models to enforce policies.
 - `global.json` and `nuget.config` pin the .NET SDK and package feeds.
 - `src/` is the single home for runtime hosts, modules, client, and supporting tests.
 
+#### Module Conventions
+
+Every bounded context ships the same three projects so dependencies remain predictable:
+
+| Project                                  | Responsibilities                                             | References                                      |
+|------------------------------------------|--------------------------------------------------------------|-------------------------------------------------|
+| `Holmes.<Feature>.Domain`                | Aggregates, domain events, `I<Feature>UnitOfWork`, policies  | `Holmes.Core.Domain`                            |
+| `Holmes.<Feature>.Application`           | Commands, queries, handlers, DTOs                            | `<Feature>.Domain`, `Holmes.Core.Application`   |
+| `Holmes.<Feature>.Infrastructure.Sql`    | DbContext, repositories, UnitOfWork, DI helpers              | `<Feature>.Domain`, `Holmes.Core.Infrastructure.Sql` |
+
+Additional infrastructure (e.g., caching, queues) follows the same naming pattern
+(`Infrastructure.Redis`, `Infrastructure.Search`, etc.) but **never** references the Application layer.
+
+Each Infrastructure project must expose a single `DependencyInjection` entry point:
+
+```csharp
+public static IServiceCollection Add<Feature>InfrastructureSql(
+    this IServiceCollection services,
+    string connectionString,
+    ServerVersion version)
+{
+    services.AddDbContext<<Feature>DbContext>(options =>
+        options.UseMySql(connectionString, version));
+
+    services.AddScoped<I<Feature>UnitOfWork, <Feature>UnitOfWork>();
+    services.AddScoped<I<Feature>Repository>(sp =>
+        sp.GetRequiredService<I<Feature>UnitOfWork>().<Feature>);
+    return services;
+}
+```
+
+The solution has a dedicated template in `docs/MODULE_TEMPLATE.md` that walks through the scaffolding steps
+(folder layout, project references, DI wiring, and unit-of-work expectations). New feature slices **must** follow that
+guide so they plug into `HostingExtensions.AddInfrastructure` without ad-hoc code.
+
 ### Unit of Work & Domain Events
 
 Aggregates that emit MediatR notifications implement `IHasDomainEvents`, exposing a read-only list of pending events
@@ -128,6 +163,10 @@ fails, nothing is published.
 When a command touches multiple aggregates, register each one before exiting the repository so every notification
 participates in the same transaction boundary. No separate `DomainEventQueue` is required; the unit of work guarantees
 exactly-once publication per successful commit.
+
+> See `Holmes.Core.Tests/UnitOfWorkDomainEventsTests` for integration coverage of
+> multi-aggregate commits and failure paths. Future modules should add similar
+> tests whenever they extend the UnitOfWork abstraction.
 
 ### Client Application (Holmes.Client)
 
