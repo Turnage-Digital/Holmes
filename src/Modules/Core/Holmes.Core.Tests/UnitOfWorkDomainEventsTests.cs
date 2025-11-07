@@ -34,10 +34,6 @@ public class UnitOfWorkDomainEventsTests
     private sealed class FakeUnitOfWork(FakeDbContext db, IMediator mediator)
         : UnitOfWork<FakeDbContext>(db, mediator)
     {
-        public void Register(FakeAggregate aggregate)
-        {
-            CollectDomainEvents(aggregate);
-        }
     }
 
     [Test]
@@ -59,7 +55,7 @@ public class UnitOfWorkDomainEventsTests
         aggregate.Add(new TestEvent());
 
         using var uow = new FakeUnitOfWork(ctx, mediator.Object);
-        uow.Register(aggregate);
+        uow.RegisterDomainEvents(aggregate);
 
         await uow.SaveChangesAsync(CancellationToken.None);
 

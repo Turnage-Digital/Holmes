@@ -1,34 +1,20 @@
-using Holmes.Core.Domain;
+using System;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Customers.Domain;
+using Holmes.Customers.Infrastructure.Sql.Repositories;
 using MediatR;
 
 namespace Holmes.Customers.Infrastructure.Sql;
 
 public sealed class CustomersUnitOfWork : UnitOfWork<CustomersDbContext>, ICustomersUnitOfWork
 {
+    private readonly Lazy<ICustomerRepository> _customers;
+
     public CustomersUnitOfWork(CustomersDbContext dbContext, IMediator mediator)
         : base(dbContext, mediator)
     {
+        _customers = new Lazy<ICustomerRepository>(() => new SqlCustomerRepository(dbContext, this));
     }
 
-    public void RegisterDomainEvents(IHasDomainEvents aggregate)
-    {
-        if (aggregate is null)
-        {
-            return;
-        }
-
-        CollectDomainEvents(aggregate);
-    }
-
-    public void RegisterDomainEvents(IEnumerable<IHasDomainEvents> aggregates)
-    {
-        if (aggregates is null)
-        {
-            return;
-        }
-
-        CollectDomainEvents(aggregates);
-    }
+    public ICustomerRepository Customers => _customers.Value;
 }

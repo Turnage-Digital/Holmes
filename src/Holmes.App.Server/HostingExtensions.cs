@@ -19,11 +19,12 @@ using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Repositories;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using Serilog;
@@ -69,11 +70,10 @@ internal static class HostingExtensions
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-                options.JsonSerializerOptions.Converters.Add(
-                    new JsonStringEnumConverter( /* JsonNamingPolicy.CamelCase */));
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
-        builder.Services.AddAuthentication();
+        ConfigureAuthentication(builder);
         builder.Services.AddScoped<IUserContext, HttpUserContext>();
 
         var isRunningInTestHost = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1",
@@ -123,6 +123,45 @@ internal static class HostingExtensions
         return retval;
     }
 
+    private static void ConfigureAuthentication(WebApplicationBuilder builder)
+    {
+        var authority = builder.Configuration["Authentication:Authority"];
+        if (string.IsNullOrWhiteSpace(authority))
+        {
+            builder.Services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultScheme = HeaderAuthenticationDefaults.Scheme;
+                    options.DefaultAuthenticateScheme = HeaderAuthenticationDefaults.Scheme;
+                    options.DefaultChallengeScheme = HeaderAuthenticationDefaults.Scheme;
+                })
+                .AddScheme<AuthenticationSchemeOptions, HeaderAuthenticationHandler>(
+                    HeaderAuthenticationDefaults.Scheme, _ => { });
+        }
+        else
+        {
+            builder.Services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    var optionsAudience = builder.Configuration["Authentication:Audience"];
+                    options.Authority = authority;
+                    options.Audience = optionsAudience;
+                    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = !string.IsNullOrWhiteSpace(optionsAudience),
+                        ValidateLifetime = true
+                    };
+                });
+        }
+    }
+
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
         app.UseSerilogRequestLogging();
@@ -147,20 +186,26 @@ internal static class HostingExtensions
         app.UseAuthorization();
 
         app.MapControllers();
-        app.MapHealthChecks("/health").AllowAnonymous();
+        
+        app.MapHealthChecks("/health")
+            .AllowAnonymous();
+        
         app.Map("/error", (HttpContext context, IHostEnvironment env, ILogger<Program> logger) =>
-        {
-            var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
-            if (exceptionFeature?.Error is not null)
             {
-                logger.LogError(exceptionFeature.Error, "Unhandled request error");
-            }
-            var detail = env.IsDevelopment() || env.IsEnvironment("Testing")
-                ? exceptionFeature?.Error.ToString()
-                : null;
+                var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+                if (exceptionFeature?.Error is not null)
+                {
+                    logger.LogError(exceptionFeature.Error, "Unhandled request error");
+                }
 
-            return Results.Problem(statusCode: StatusCodes.Status500InternalServerError, detail: detail);
-        }).AllowAnonymous();
+                var detail = env.IsDevelopment() || env.IsEnvironment("Testing")
+                    ? exceptionFeature?.Error?.ToString()
+                    : null;
+
+                return Results.Problem(statusCode: StatusCodes.Status500InternalServerError, detail: detail);
+            })
+            .AllowAnonymous();
+        
         app.MapGet("/_info", (IHostEnvironment env) =>
                 Results.Ok(new
                 {
@@ -190,8 +235,8 @@ internal static class HostingExtensions
         }
 
         /* Core */
-        services.AddDbContextWithMigrations<CoreDbContext>(connectionString, serverVersion);
-        services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
+        services.AddCoreInfrastructureSql(connectionString, serverVersion);
+        services.AddCoreInfrastructureSecurity();
 
         /* Users */
         services.AddUsersInfrastructureSql(connectionString, serverVersion);
@@ -212,22 +257,18 @@ internal static class HostingExtensions
         services.AddDbContext<CustomersDbContext>(options => options.UseInMemoryDatabase("holmes-customers"));
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
-        services.AddScoped<IUserRepository, SqlUserRepository>();
-        services.AddScoped<IUserDirectory, SqlUserDirectory>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
-        services.AddScoped<ICustomerRepository, SqlCustomerRepository>();
+        services.AddScoped<IUserRepository>(sp => sp.GetRequiredService<IUsersUnitOfWork>().Users);
+        services.AddScoped<IUserDirectory>(sp => sp.GetRequiredService<IUsersUnitOfWork>().UserDirectory);
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
-        services.AddScoped<ISubjectRepository, SqlSubjectRepository>();
+        services.AddScoped<ICustomerRepository>(sp => sp.GetRequiredService<ICustomersUnitOfWork>().Customers);
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
+        services.AddScoped<ISubjectRepository>(sp => sp.GetRequiredService<ISubjectsUnitOfWork>().Subjects);
         return services;
     }
 
     private static IServiceCollection AddDomain(this IServiceCollection services)
     {
-        // services.AddScoped<IValidateListItemBag<ListDb>, ListItemBagValidator<ListDb, ItemDb>>();
-        // services.AddScoped<ListsAggregate<ListDb, ItemDb>>();
-        // services.AddScoped<INotificationTriggerEvaluator, NotificationTriggerEvaluator>();
-        // services.AddScoped<NotificationAggregate<NotificationRuleDb, NotificationDb>>();
         return services;
     }
 
@@ -241,72 +282,8 @@ internal static class HostingExtensions
             config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
         });
 
-        // services.AddTransient(typeof(IPipelineBehavior<,>),
-        //     typeof(AssignUserBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>),
             typeof(LoggingBehavior<,>));
-
-        // services.AddScoped<IMigrationValidator, MigrationValidator>();
-        // services.AddScoped<ListMigrationJobRunner>();
-
-        // // Lists - close generic handlers in composition root
-        // services.AddScoped(typeof(IRequestHandler<ConvertTextToListItemCommand, ListItemDto>),
-        //     typeof(ConvertTextToListItemCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<CreateListCommand, ListItemDefinitionDto>),
-        //     typeof(CreateListCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<CreateListItemCommand, ListItemDto>),
-        //     typeof(CreateListItemCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<DeleteListCommand>),
-        //     typeof(DeleteListCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<DeleteListItemCommand>),
-        //     typeof(DeleteListItemCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<UpdateListItemCommand>),
-        //     typeof(UpdateListItemCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<RunMigrationCommand, MigrationResult>),
-        //     typeof(RunMigrationCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<GetStatusTransitionsQuery, StatusTransition[]>),
-        //     typeof(GetStatusTransitionsQueryHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<UpdateListCommand>),
-        //     typeof(UpdateListCommandHandler<ListDb, ItemDb>));
-        // services.AddScoped(typeof(IRequestHandler<UpdateListItemCommand>),
-        //     typeof(UpdateListItemCommandHandler<ListDb, ItemDb>));
-        //
-        // // Notifications - close generic handlers in composition root
-        // services.AddScoped(typeof(IRequestHandler<CreateNotificationRuleCommand, NotificationRuleDto>),
-        //     typeof(CreateNotificationRuleCommandHandler<NotificationRuleDb, NotificationDb>));
-        // services.AddScoped(typeof(IRequestHandler<UpdateNotificationRuleCommand>),
-        //     typeof(UpdateNotificationRuleCommandHandler<NotificationRuleDb, NotificationDb>));
-        // services.AddScoped(typeof(IRequestHandler<DeleteNotificationRuleCommand>),
-        //     typeof(DeleteNotificationRuleCommandHandler<NotificationRuleDb, NotificationDb>));
-        // services.AddScoped(typeof(IRequestHandler<MarkNotificationAsReadCommand>),
-        //     typeof(MarkNotificationAsReadCommandHandler<NotificationRuleDb, NotificationDb>));
-        // services.AddScoped(typeof(IRequestHandler<MarkAllNotificationsAsReadCommand>),
-        //     typeof(MarkAllNotificationsAsReadCommandHandler<NotificationRuleDb, NotificationDb>));
-        // services.AddScoped(typeof(IRequestHandler<GetNotificationDetailsQuery, NotificationDetailsDto?>),
-        //     typeof(GetNotificationDetailsQueryHandler<NotificationRuleDb, NotificationDb>));
-        // services.AddScoped(typeof(IRequestHandler<GetUserNotificationsQuery, NotificationListPageDto>),
-        //     typeof(GetUserNotificationsQueryHandler<NotificationRuleDb, NotificationDb>));
-        // services.AddScoped<IRequestHandler<GetUserNotificationRulesQuery, NotificationRuleDto[]>,
-        //     GetUserNotificationRulesQueryHandler>();
-        // services.AddScoped(typeof(IRequestHandler<GetUnreadNotificationCountQuery, int>),
-        //     typeof(GetUnreadNotificationCountQueryHandler<NotificationRuleDb, NotificationDb>));
-        //
-        // // Background workers
-        // services.AddHostedService<NotificationDeliveryService>();
-        // services.AddHostedService<OutboxDispatcherService>();
-        // services.AddHostedService<ListMigrationDispatcherService>();
-        return services;
-    }
-
-    private static IServiceCollection AddDbContextWithMigrations<TContext>(
-        this IServiceCollection services,
-        string connectionString,
-        ServerVersion serverVersion
-    ) where TContext : DbContext
-    {
-        var migrationsAssembly = typeof(TContext).Assembly.FullName!;
-        services.AddDbContext<TContext>(options => options.UseMySql(connectionString, serverVersion,
-            optionsBuilder => optionsBuilder.MigrationsAssembly(migrationsAssembly)));
         return services;
     }
 }

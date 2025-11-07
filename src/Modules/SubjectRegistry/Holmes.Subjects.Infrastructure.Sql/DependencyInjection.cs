@@ -17,8 +17,8 @@ public static class DependencyInjection
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(SubjectsDbContext).Assembly.FullName)));
 
-        services.AddScoped<ISubjectRepository, SqlSubjectRepository>();
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
+        services.AddScoped<ISubjectRepository>(sp => sp.GetRequiredService<ISubjectsUnitOfWork>().Subjects);
 
         return services;
     }

@@ -111,8 +111,10 @@ handlers consult the read models to enforce policies.
 ### Unit of Work & Domain Events
 
 - Aggregates implement `IHasDomainEvents` (exposes `DomainEvents` + `ClearDomainEvents()`).
-- Repositories register aggregates with their module-specific `*UnitOfWork` before returning so that the shared `UnitOfWork<TContext>` can emit collected events after a successful `SaveChangesAsync`.
-- No separate `DomainEventQueue` is needed; events are gathered directly from aggregates, ensuring each unit of work publishes exactly the notifications generated during that transaction.
+- Repositories register aggregates with their module-specific `*UnitOfWork` before returning so that the shared
+  `UnitOfWork<TContext>` can emit collected events after a successful `SaveChangesAsync`.
+- No separate `DomainEventQueue` is needed; events are gathered directly from aggregates, ensuring each unit of work
+  publishes exactly the notifications generated during that transaction.
 - See `docs/unit-of-work-domain-events.md` for a step-by-step reference.
 
 ```

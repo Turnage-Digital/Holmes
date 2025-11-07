@@ -63,7 +63,7 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
         _disposed = true;
     }
 
-    protected void CollectDomainEvents(IHasDomainEvents aggregate)
+    public void RegisterDomainEvents(IHasDomainEvents aggregate)
     {
         if (aggregate is null)
         {
@@ -79,11 +79,11 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
         aggregate.ClearDomainEvents();
     }
 
-    protected void CollectDomainEvents(IEnumerable<IHasDomainEvents> aggregates)
+    public void RegisterDomainEvents(IEnumerable<IHasDomainEvents> aggregates)
     {
         foreach (var aggregate in aggregates)
         {
-            CollectDomainEvents(aggregate);
+            RegisterDomainEvents(aggregate);
         }
     }
 

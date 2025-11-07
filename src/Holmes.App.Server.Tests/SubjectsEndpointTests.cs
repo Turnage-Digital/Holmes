@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Holmes.App.Server.Tests;
@@ -15,9 +14,13 @@ public class SubjectsEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "subject-tester");
-        client.DefaultRequestHeaders.Add("X-Test-Email", "tester@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
         var request = new RegisterSubjectRequest("Jane", "Doe", new DateOnly(1985, 6, 1), "jane.doe@example.com");
         var response = await client.PostAsJsonAsync("/subjects", request);
@@ -34,8 +37,9 @@ public class SubjectsEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "subject-tester");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
         var response = await client.GetAsync($"/subjects/{Ulid.NewUlid()}");
 
@@ -61,8 +65,9 @@ public class SubjectsEndpointTests
         await db.SaveChangesAsync();
 
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "subject-tester");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
         var response = await client.GetAsync($"/subjects/{subjectId}");
 
@@ -72,7 +77,12 @@ public class SubjectsEndpointTests
         Assert.That(summary!.GivenName, Is.EqualTo("John"));
     }
 
-    private sealed record RegisterSubjectRequest(string GivenName, string FamilyName, DateOnly? DateOfBirth, string? Email);
+    private sealed record RegisterSubjectRequest(
+        string GivenName,
+        string FamilyName,
+        DateOnly? DateOfBirth,
+        string? Email
+    );
 
     private sealed record SubjectSummaryResponse(
         string SubjectId,
@@ -82,5 +92,6 @@ public class SubjectsEndpointTests
         string? Email,
         bool IsMerged,
         int AliasCount,
-        DateTimeOffset CreatedAt);
+        DateTimeOffset CreatedAt
+    );
 }

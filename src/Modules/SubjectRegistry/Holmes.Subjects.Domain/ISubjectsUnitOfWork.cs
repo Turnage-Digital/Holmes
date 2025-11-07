@@ -4,7 +4,5 @@ namespace Holmes.Subjects.Domain;
 
 public interface ISubjectsUnitOfWork : IUnitOfWork
 {
-    void RegisterDomainEvents(IHasDomainEvents aggregate);
-
-    void RegisterDomainEvents(IEnumerable<IHasDomainEvents> aggregates);
+    ISubjectRepository Subjects { get; }
 }

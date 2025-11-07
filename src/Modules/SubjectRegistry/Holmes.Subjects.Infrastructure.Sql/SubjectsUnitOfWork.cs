@@ -1,34 +1,20 @@
-using Holmes.Core.Domain;
+using System;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Subjects.Domain;
+using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using MediatR;
 
 namespace Holmes.Subjects.Infrastructure.Sql;
 
 public sealed class SubjectsUnitOfWork : UnitOfWork<SubjectsDbContext>, ISubjectsUnitOfWork
 {
+    private readonly Lazy<ISubjectRepository> _subjects;
+
     public SubjectsUnitOfWork(SubjectsDbContext dbContext, IMediator mediator)
         : base(dbContext, mediator)
     {
+        _subjects = new Lazy<ISubjectRepository>(() => new SqlSubjectRepository(dbContext, this));
     }
 
-    public void RegisterDomainEvents(IHasDomainEvents aggregate)
-    {
-        if (aggregate is null)
-        {
-            return;
-        }
-
-        CollectDomainEvents(aggregate);
-    }
-
-    public void RegisterDomainEvents(IEnumerable<IHasDomainEvents> aggregates)
-    {
-        if (aggregates is null)
-        {
-            return;
-        }
-
-        CollectDomainEvents(aggregates);
-    }
+    public ISubjectRepository Subjects => _subjects.Value;
 }

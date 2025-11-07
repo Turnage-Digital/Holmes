@@ -4,12 +4,14 @@ using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.App.Server.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("users")]
 public class UsersController : ControllerBase
 {

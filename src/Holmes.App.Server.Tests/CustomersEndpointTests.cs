@@ -26,9 +26,9 @@ public class CustomersEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "user-no-admin");
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Email", "user@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "user-no-admin");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "user@holmes.dev");
 
         await client.GetAsync("/users/me");
 
@@ -42,9 +42,9 @@ public class CustomersEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "admin-user");
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Email", "admin@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "admin-user");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "admin@holmes.dev");
 
         var adminId = await PromoteCurrentUserToAdminAsync(factory);
 
@@ -53,6 +53,7 @@ public class CustomersEndpointTests
         {
             TestContext.WriteLine(await createResponse.Content.ReadAsStringAsync());
         }
+
         Assert.That(createResponse.StatusCode, Is.EqualTo(HttpStatusCode.Created));
 
         var summary = await createResponse.Content.ReadFromJsonAsync<CustomerSummaryResponse>(JsonOptions);

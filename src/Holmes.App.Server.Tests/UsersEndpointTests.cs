@@ -25,10 +25,10 @@ public class UsersEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "user-01");
-        client.DefaultRequestHeaders.Add("X-Test-Email", "user01@holmes.dev");
-        client.DefaultRequestHeaders.Add("X-Test-Name", "User One");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "user-01");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "user01@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Name", "User One");
 
         var response = await client.GetAsync("/users/me");
 
@@ -45,9 +45,9 @@ public class UsersEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "non-admin");
-        client.DefaultRequestHeaders.Add("X-Test-Email", "user@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "non-admin");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "user@holmes.dev");
 
         await client.GetAsync("/users/me");
 
@@ -64,10 +64,10 @@ public class UsersEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Issuer", "https://issuer.holmes.test");
-        client.DefaultRequestHeaders.Add("X-Test-Subject", "admin-user");
-        client.DefaultRequestHeaders.Add("X-Test-Email", "admin@holmes.dev");
-        client.DefaultRequestHeaders.Add("X-Test-Name", "Admin User");
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "admin-user");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "admin@holmes.dev");
+        client.DefaultRequestHeaders.Add("X-Auth-Name", "Admin User");
 
         var adminId = await PromoteCurrentUserToAdminAsync(factory);
 

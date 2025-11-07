@@ -4,7 +4,7 @@ namespace Holmes.Users.Domain;
 
 public interface IUsersUnitOfWork : IUnitOfWork
 {
-    void RegisterDomainEvents(IHasDomainEvents aggregate);
+    IUserRepository Users { get; }
 
-    void RegisterDomainEvents(IEnumerable<IHasDomainEvents> aggregates);
+    IUserDirectory UserDirectory { get; }
 }

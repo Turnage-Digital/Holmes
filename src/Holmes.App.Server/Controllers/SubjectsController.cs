@@ -13,8 +13,8 @@ namespace Holmes.App.Server.Controllers;
 [Authorize]
 public sealed class SubjectsController : ControllerBase
 {
-    private readonly IMediator _mediator;
     private readonly SubjectsDbContext _dbContext;
+    private readonly IMediator _mediator;
 
     public SubjectsController(IMediator mediator, SubjectsDbContext dbContext)
     {
@@ -25,7 +25,8 @@ public sealed class SubjectsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<SubjectSummaryResponse>> RegisterSubject(
         [FromBody] RegisterSubjectRequest request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var subjectId = await _mediator.Send(new RegisterSubjectCommand(
             request.GivenName,
@@ -41,7 +42,10 @@ public sealed class SubjectsController : ControllerBase
     }
 
     [HttpGet("{subjectId}")]
-    public async Task<ActionResult<SubjectSummaryResponse>> GetSubjectById(string subjectId, CancellationToken cancellationToken)
+    public async Task<ActionResult<SubjectSummaryResponse>> GetSubjectById(
+        string subjectId,
+        CancellationToken cancellationToken
+    )
     {
         if (!Ulid.TryParse(subjectId, out var parsed))
         {
@@ -59,14 +63,19 @@ public sealed class SubjectsController : ControllerBase
         return Ok(MapSummary(directory));
     }
 
-    private static SubjectSummaryResponse MapSummary(SubjectDirectoryDb directory) =>
-        new(directory.SubjectId, directory.GivenName, directory.FamilyName, directory.DateOfBirth, directory.Email, directory.IsMerged, directory.AliasCount, directory.CreatedAt);
+    private static SubjectSummaryResponse MapSummary(SubjectDirectoryDb directory)
+    {
+        return new SubjectSummaryResponse(directory.SubjectId, directory.GivenName, directory.FamilyName,
+            directory.DateOfBirth,
+            directory.Email, directory.IsMerged, directory.AliasCount, directory.CreatedAt);
+    }
 
     public sealed record RegisterSubjectRequest(
         string GivenName,
         string FamilyName,
         DateOnly? DateOfBirth,
-        string? Email);
+        string? Email
+    );
 
     public sealed record SubjectSummaryResponse(
         string SubjectId,
@@ -76,5 +85,6 @@ public sealed class SubjectsController : ControllerBase
         string? Email,
         bool IsMerged,
         int AliasCount,
-        DateTimeOffset CreatedAt);
+        DateTimeOffset CreatedAt
+    );
 }
