@@ -1,5 +1,4 @@
 using Holmes.Customers.Domain;
-using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

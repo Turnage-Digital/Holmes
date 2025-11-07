@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Holmes.Core.Domain;
 
 public interface IUnitOfWork : IDisposable

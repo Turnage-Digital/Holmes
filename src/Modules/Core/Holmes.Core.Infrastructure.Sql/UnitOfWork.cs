@@ -50,19 +50,6 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                dbContext.Dispose();
-            }
-        }
-
-        _disposed = true;
-    }
-
     public void RegisterDomainEvents(IHasDomainEvents aggregate)
     {
         if (aggregate is null)
@@ -85,6 +72,19 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
         {
             RegisterDomainEvents(aggregate);
         }
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                dbContext.Dispose();
+            }
+        }
+
+        _disposed = true;
     }
 
     private async Task DispatchDomainEventsAsync(IMediator mediator, CancellationToken cancellationToken)

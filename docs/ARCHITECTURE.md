@@ -39,7 +39,8 @@ Build a mobile-first **intake and workflow core** for background screening that 
 ## 3) Architecture Overview
 
 **Flow:**  
-ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stubs)** → **Data Normalization** → **Adjudication** → **Adverse Action/Disputes** → **Reporting/Billing**  
+ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stubs)** → **Data Normalization** → *
+*Adjudication** → **Adverse Action/Disputes** → **Reporting/Billing**  
 ↘ **Consent/IDV** ↙ ↘ **Ledger/Audit** ↙
 
 **Principles**
@@ -134,7 +135,8 @@ exactly-once publication per successful commit.
 - `Holmes.App.Server` references the SPA via `SpaRoot` + SpaProxy so `dotnet run` proxies to `https://localhost:3000`
   during development and serves the static build in production pipelines.
 - Phase 1.5 delivers an admin-focused shell that surfaces Subject, User, and Customer read models, plus flows to invite
-  and activate users, grant/revoke roles, create customers, and inspect deduped subjects—proving Phase 1 behavior via UI.
+  and activate users, grant/revoke roles, create customers, and inspect deduped subjects—proving Phase 1 behavior via
+  UI.
 - Shared API clients (OpenAPI-generated or typed fetch helpers) live beside the SPA to keep DTOs aligned with server
   contracts; basic Playwright/component tests exercise the invite → activate → assign role path end-to-end.
 

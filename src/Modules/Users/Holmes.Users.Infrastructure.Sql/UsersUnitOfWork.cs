@@ -1,4 +1,3 @@
-using System;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql.Repositories;
@@ -8,8 +7,8 @@ namespace Holmes.Users.Infrastructure.Sql;
 
 public sealed class UsersUnitOfWork : UnitOfWork<UsersDbContext>, IUsersUnitOfWork
 {
-    private readonly Lazy<IUserRepository> _users;
     private readonly Lazy<IUserDirectory> _directory;
+    private readonly Lazy<IUserRepository> _users;
 
     public UsersUnitOfWork(UsersDbContext dbContext, IMediator mediator)
         : base(dbContext, mediator)

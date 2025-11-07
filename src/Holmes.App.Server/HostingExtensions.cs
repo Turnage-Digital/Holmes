@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Security;
@@ -9,22 +10,20 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
-using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
-using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
-using Holmes.Users.Infrastructure.Sql.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using Serilog;
@@ -143,21 +142,23 @@ internal static class HostingExtensions
             return;
         }
 
-        var googleSection = builder.Configuration.GetSection("Authentication:Google");
-        var googleClientId = googleSection["ClientId"];
-        var googleClientSecret = googleSection["ClientSecret"];
-        if (string.IsNullOrWhiteSpace(googleClientId) ||
-            string.IsNullOrWhiteSpace(googleClientSecret))
+        var authority = builder.Configuration["Authentication:Authority"];
+        var clientId = builder.Configuration["Authentication:ClientId"];
+        var clientSecret = builder.Configuration["Authentication:ClientSecret"];
+
+        if (string.IsNullOrWhiteSpace(authority) ||
+            string.IsNullOrWhiteSpace(clientId) ||
+            string.IsNullOrWhiteSpace(clientSecret))
         {
             throw new InvalidOperationException(
-                "Google authentication is required. Configure Authentication:Google:ClientId and ClientSecret.");
+                "Interactive authentication requires Authentication:Authority, ClientId, and ClientSecret.");
         }
 
         builder.Services
             .AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
             .AddCookie(options =>
             {
@@ -166,15 +167,23 @@ internal static class HostingExtensions
                 options.ExpireTimeSpan = TimeSpan.FromHours(8);
                 options.SlidingExpiration = true;
             })
-            .AddGoogle(options =>
+            .AddOpenIdConnect(options =>
             {
-                options.ClientId = googleClientId;
-                options.ClientSecret = googleClientSecret;
+                options.Authority = authority;
+                options.ClientId = clientId;
+                options.ClientSecret = clientSecret;
+                options.ResponseType = "code";
                 options.SaveTokens = true;
-                options.ClaimActions.MapJsonKey("picture", "picture");
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.Scope.Clear();
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    NameClaimType = ClaimTypes.Name,
+                    RoleClaimType = ClaimTypes.Role
+                };
             });
     }
 
@@ -194,21 +203,7 @@ internal static class HostingExtensions
         }
 
         app.UseHttpsRedirection();
-
-        app.Use(async (context, next) =>
-        {
-            if (!(context.User.Identity?.IsAuthenticated ?? false))
-            {
-                if (ShouldRedirectToAuthOptions(context.Request))
-                {
-                    var returnUrl = GetRequestedUrl(context.Request);
-                    context.Response.Redirect($"/auth/options?returnUrl={Uri.EscapeDataString(returnUrl)}");
-                    return;
-                }
-            }
-
-            await next();
-        });
+        UseSpaAuthenticationRedirect(app);
 
         app.UseDefaultFiles();
         app.UseStaticFiles();
@@ -269,7 +264,7 @@ internal static class HostingExtensions
     <div class=""card"">
       <h1>Sign in to Holmes</h1>
       <p>Select an identity provider to continue.</p>
-      <a class=""btn"" href=""/auth/login?returnUrl={Uri.EscapeDataString(destination)}"">Continue with Google</a>
+      <a class=""btn"" href=""/auth/login?returnUrl={Uri.EscapeDataString(destination)}"">Continue with Holmes Identity</a>
     </div>
   </body>
 </html>";
@@ -282,7 +277,7 @@ internal static class HostingExtensions
                 var destination = SanitizeReturnUrl(returnUrl, request);
                 return Results.Challenge(
                     new AuthenticationProperties { RedirectUri = destination },
-                    [GoogleDefaults.AuthenticationScheme]);
+                    [OpenIdConnectDefaults.AuthenticationScheme]);
             })
             .AllowAnonymous();
 
@@ -293,10 +288,10 @@ internal static class HostingExtensions
                 return Results.Redirect(target);
             })
             .RequireAuthorization();
-        
+
         app.MapHealthChecks("/health")
             .AllowAnonymous();
-        
+
         app.Map("/error", (HttpContext context, IHostEnvironment env, ILogger<Program> logger) =>
             {
                 var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
@@ -312,7 +307,7 @@ internal static class HostingExtensions
                 return Results.Problem(statusCode: StatusCodes.Status500InternalServerError, detail: detail);
             })
             .AllowAnonymous();
-        
+
         app.MapGet("/_info", (IHostEnvironment env) =>
                 Results.Ok(new
                 {
@@ -324,6 +319,22 @@ internal static class HostingExtensions
             .AllowAnonymous();
 
         return app;
+    }
+
+    private static void UseSpaAuthenticationRedirect(IApplicationBuilder app)
+    {
+        app.Use(async (context, next) =>
+        {
+            if (!(context.User.Identity?.IsAuthenticated ?? false) &&
+                ShouldRedirectToAuthOptions(context.Request))
+            {
+                var returnUrl = GetRequestedUrl(context.Request);
+                context.Response.Redirect($"/auth/options?returnUrl={Uri.EscapeDataString(returnUrl)}");
+                return;
+            }
+
+            await next();
+        });
     }
 
     private static bool ShouldRedirectToAuthOptions(HttpRequest request)

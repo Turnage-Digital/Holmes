@@ -12,7 +12,7 @@ public static class DependencyInjection
     )
     {
         // services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
-        
+
         services.AddDbContext<CoreDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(CoreDbContext).Assembly.FullName)));

@@ -1,4 +1,3 @@
-using System;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql.Repositories;

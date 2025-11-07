@@ -12,6 +12,11 @@ public static class TestAuthenticationDefaults
 
 public sealed class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    private const string IssuerHeader = "X-Auth-Issuer";
+    private const string SubjectHeader = "X-Auth-Subject";
+    private const string EmailHeader = "X-Auth-Email";
+    private const string NameHeader = "X-Auth-Name";
+    private const string AmrHeader = "X-Auth-Amr";
 #pragma warning disable CS0618
     public TestAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -23,12 +28,6 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
     {
     }
 #pragma warning restore CS0618
-
-    private const string IssuerHeader = "X-Auth-Issuer";
-    private const string SubjectHeader = "X-Auth-Subject";
-    private const string EmailHeader = "X-Auth-Email";
-    private const string NameHeader = "X-Auth-Name";
-    private const string AmrHeader = "X-Auth-Amr";
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
