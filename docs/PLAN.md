@@ -144,6 +144,8 @@ Infrastructure to compose the runtime.
   transaction, rollback safety) and cross-module documentation.
 - Promote the identity/tenant read models into `Holmes.App.Server` (authorization helpers, policies, seeding) so Intake
   work can assume a consistent host surface.
+- Stand up `Holmes.Identity.Server` for dev-only OIDC plus a background seeder that mirrors the IdP user, grants Admin,
+  and creates a demo customer so invite/role/customer flows work out of the box.
 - Normalize module template conventions (namespace layout, dependency graph, base behaviors) so every new module copies
   the same scaffolding.
 - Expand baseline observability (structured logging, tracing correlation IDs, seed scripts, DB reset tooling) to make

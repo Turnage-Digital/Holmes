@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Holmes.App.Server.Infrastructure;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
@@ -91,7 +92,20 @@ internal static class HostingExtensions
         builder.Services.AddDomain();
         builder.Services.AddApplication();
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy(
+                AuthorizationPolicies.RequireAdmin,
+                policy => policy.RequireRole("Admin"));
+            options.AddPolicy(
+                AuthorizationPolicies.RequireOps,
+                policy => policy.RequireRole("Ops", "Admin"));
+        });
+
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddHostedService<DevelopmentDataSeeder>();
+        }
 
         var dataProtection = builder.Services.AddDataProtection()
             .SetApplicationName("Holmes");
@@ -219,55 +233,7 @@ internal static class HostingExtensions
         auth.MapGet("/options", (HttpRequest request, string? returnUrl) =>
             {
                 var destination = SanitizeReturnUrl(returnUrl, request);
-                var html = $@"<!DOCTYPE html>
-<html lang=""en"">
-  <head>
-    <meta charset=""utf-8"" />
-    <title>Holmes Sign In</title>
-    <style>
-      :root {{
-        font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", sans-serif;
-      }}
-      body {{
-        margin: 0;
-        background: #f5f5f5;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }}
-      .card {{
-        background: #fff;
-        padding: 2.5rem;
-        border-radius: 16px;
-        width: min(400px, 90vw);
-        text-align: center;
-        box-shadow: 0 25px 80px rgba(0,0,0,0.12);
-      }}
-      h1 {{ margin-top: 0; color: #1b2e5f; }}
-      p {{ color: #555; }}
-      .btn {{
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        padding: 0.85rem 1.2rem;
-        background: #1b2e5f;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 6px;
-        font-weight: 600;
-      }}
-      .btn:hover {{ background: #16244a; }}
-    </style>
-  </head>
-  <body>
-    <div class=""card"">
-      <h1>Sign in to Holmes</h1>
-      <p>Select an identity provider to continue.</p>
-      <a class=""btn"" href=""/auth/login?returnUrl={Uri.EscapeDataString(destination)}"">Continue with Holmes Identity</a>
-    </div>
-  </body>
-</html>";
+                var html = BuildAuthOptionsPage(destination);
                 return Results.Content(html, "text/html");
             })
             .AllowAnonymous();
@@ -346,7 +312,8 @@ internal static class HostingExtensions
 
         var path = request.Path;
         if (path.StartsWithSegments("/auth") ||
-            path.StartsWithSegments("/signin-google") ||
+            path.StartsWithSegments("/signin-oidc") ||
+            path.StartsWithSegments("/signout-callback-oidc") ||
             path.StartsWithSegments("/api") ||
             path.StartsWithSegments("/health") ||
             path.StartsWithSegments("/swagger") ||
@@ -388,10 +355,7 @@ internal static class HostingExtensions
         if (Uri.TryCreate(returnUrl, UriKind.Absolute, out var absolute))
         {
             var requestHost = request.Host.HasValue ? request.Host.Host : string.Empty;
-            if (!string.Equals(
-                    absolute.Host,
-                    requestHost,
-                    StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(absolute.Host, requestHost, StringComparison.OrdinalIgnoreCase))
             {
                 return "/";
             }
@@ -399,7 +363,7 @@ internal static class HostingExtensions
             return absolute.PathAndQuery;
         }
 
-        return returnUrl.StartsWith("/", StringComparison.Ordinal) ? returnUrl : "/";
+        return returnUrl.StartsWith('/') ? returnUrl : "/";
     }
 
     private static IServiceCollection AddInfrastructure(
@@ -448,6 +412,62 @@ internal static class HostingExtensions
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         services.AddScoped<ISubjectRepository>(sp => sp.GetRequiredService<ISubjectsUnitOfWork>().Subjects);
         return services;
+    }
+
+    private static string BuildAuthOptionsPage(string destination)
+    {
+        var encoded = Uri.EscapeDataString(destination);
+        return $$"""
+                 <!DOCTYPE html>
+                 <html lang="en">
+                   <head>
+                     <meta charset="utf-8" />
+                     <title>Holmes Sign In</title>
+                     <style>
+                       :root {
+                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                       }
+                       body {
+                         margin: 0;
+                         background: #f5f5f5;
+                         min-height: 100vh;
+                         display: flex;
+                         align-items: center;
+                         justify-content: center;
+                       }
+                       .card {
+                         background: #fff;
+                         padding: 2.5rem;
+                         border-radius: 16px;
+                         width: min(400px, 90vw);
+                         text-align: center;
+                         box-shadow: 0 25px 80px rgba(0,0,0,0.12);
+                       }
+                       h1 { margin-top: 0; color: #1b2e5f; }
+                       p { color: #555; }
+                       .btn {
+                         display: inline-flex;
+                         justify-content: center;
+                         align-items: center;
+                         padding: 0.85rem 1.2rem;
+                         background: #1b2e5f;
+                         color: #fff;
+                         text-decoration: none;
+                         border-radius: 6px;
+                         font-weight: 600;
+                       }
+                       .btn:hover { background: #16244a; }
+                     </style>
+                   </head>
+                   <body>
+                     <div class="card">
+                       <h1>Sign in to Holmes</h1>
+                       <p>Select an identity provider to continue.</p>
+                       <a class="btn" href="/auth/login?returnUrl={{encoded}}">Continue with Holmes Identity</a>
+                     </div>
+                   </body>
+                 </html>
+                 """;
     }
 
     private static IServiceCollection AddDomain(this IServiceCollection services)

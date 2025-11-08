@@ -32,11 +32,11 @@ internal static class Config
                 AllowOfflineAccess = true,
                 RedirectUris =
                 {
-                    "https://localhost:5001/signin-oidc"
+                    "https://localhost:3000/signin-oidc"
                 },
                 PostLogoutRedirectUris =
                 {
-                    "https://localhost:5001/signout-callback-oidc"
+                    "https://localhost:3000/signout-callback-oidc"
                 },
                 AllowedScopes =
                 {

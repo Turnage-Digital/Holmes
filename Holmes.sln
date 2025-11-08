@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -61,6 +61,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8
 	ProjectSection(SolutionItems) = preProject
 		docs\ARCHITECTURE.md = docs\ARCHITECTURE.md
 		docs\PLAN.md = docs\PLAN.md
+		docs\MODULE_TEMPLATE.md = docs\MODULE_TEMPLATE.md
 	EndProjectSection
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Client", "src\Holmes.Client\Holmes.Client.esproj", "{2A5F04DF-7FAB-4375-A39A-3C782F7226FD}"

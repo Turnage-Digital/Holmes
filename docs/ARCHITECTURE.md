@@ -179,6 +179,18 @@ exactly-once publication per successful commit.
 - Shared API clients (OpenAPI-generated or typed fetch helpers) live beside the SPA to keep DTOs aligned with server
   contracts; basic Playwright/component tests exercise the invite → activate → assign role path end-to-end.
 
+### Identity & Development Seeds
+
+- `Holmes.Identity.Server` hosts a minimal Duende IdentityServer for development. Run
+  `dotnet run --project src/Holmes.Identity.Server` (defaults to `https://localhost:6001`) before launching the main
+  host. Dev credentials: `admin` / `password`.
+- Holmes.App.Server registers two baseline policies:
+    - `AuthorizationPolicies.RequireAdmin` → requires the `Admin` role claim.
+    - `AuthorizationPolicies.RequireOps` → requires `Ops` or `Admin`.
+- A development-only hosted service (`DevelopmentDataSeeder`) mirrors the IdP user inside Holmes, grants the Admin role
+  via domain commands, and seeds a demo customer with that admin assigned. This keeps the invite/role/customer flows
+  runnable immediately after `dotnet run`.
+
 **Layering rules**
 
 - `Holmes.Core.*` is the kernel module; all feature modules depend on it for primitives, cross-cutting behaviors, and

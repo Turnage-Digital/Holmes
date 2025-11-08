@@ -57,9 +57,7 @@ export default defineConfig({
     server: {
         proxy: {
             "^/api": {target, secure: false},
-            "^/identity": {target, secure: false},
-            "^/auth": {target, secure: false},
-            "^/signin-google": {target, secure: false}
+            "^/auth": {target, secure: false}
         },
         port: 3000,
         https: {
