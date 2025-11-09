@@ -8,32 +8,25 @@ namespace Holmes.Customers.Application.Commands;
 
 public sealed record ReactivateCustomerCommand(
     UlidId TargetCustomerId,
-    UlidId PerformedBy,
     DateTimeOffset ReactivatedAt
 ) : RequestBase<Result>;
 
-public sealed class ReactivateCustomerCommandHandler : IRequestHandler<ReactivateCustomerCommand, Result>
+public sealed class ReactivateCustomerCommandHandler(ICustomersUnitOfWork unitOfWork)
+    : IRequestHandler<ReactivateCustomerCommand, Result>
 {
-    private readonly ICustomerRepository _repository;
-    private readonly ICustomersUnitOfWork _unitOfWork;
-
-    public ReactivateCustomerCommandHandler(ICustomerRepository repository, ICustomersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(ReactivateCustomerCommand request, CancellationToken cancellationToken)
     {
-        var customer = await _repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
+        var repository = unitOfWork.Customers;
+        var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
             return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
         }
 
-        customer.Reactivate(request.PerformedBy, request.ReactivatedAt);
-        await _repository.UpdateAsync(customer, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        var actor = request.GetUserUlid();
+        customer.Reactivate(actor, request.ReactivatedAt);
+        await repository.UpdateAsync(customer, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

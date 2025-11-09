@@ -119,12 +119,15 @@ public class UsersEndpointTests
             "pwd",
             DateTimeOffset.UtcNow));
 
-        await mediator.Send(new GrantUserRoleCommand(
+        var grant = new GrantUserRoleCommand(
             id,
             UserRole.Admin,
             null,
-            id,
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow)
+        {
+            UserId = id.ToString()
+        };
+        await mediator.Send(grant);
 
         return id;
     }

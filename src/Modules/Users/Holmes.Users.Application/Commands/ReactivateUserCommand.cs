@@ -8,32 +8,25 @@ namespace Holmes.Users.Application.Commands;
 
 public sealed record ReactivateUserCommand(
     UlidId TargetUserId,
-    UlidId PerformedBy,
     DateTimeOffset ReactivatedAt
 ) : RequestBase<Result>;
 
-public sealed class ReactivateUserCommandHandler : IRequestHandler<ReactivateUserCommand, Result>
+public sealed class ReactivateUserCommandHandler(IUsersUnitOfWork unitOfWork)
+    : IRequestHandler<ReactivateUserCommand, Result>
 {
-    private readonly IUserRepository _repository;
-    private readonly IUsersUnitOfWork _unitOfWork;
-
-    public ReactivateUserCommandHandler(IUserRepository repository, IUsersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(ReactivateUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await _repository.GetByIdAsync(request.TargetUserId, cancellationToken);
+        var repository = unitOfWork.Users;
+        var user = await repository.GetByIdAsync(request.TargetUserId, cancellationToken);
         if (user is null)
         {
             return Result.Fail($"User '{request.TargetUserId}' not found.");
         }
 
-        user.Reactivate(request.PerformedBy, request.ReactivatedAt);
-        await _repository.UpdateAsync(user, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        var actor = request.GetUserUlid();
+        user.Reactivate(actor, request.ReactivatedAt);
+        await repository.UpdateAsync(user, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

@@ -17,7 +17,6 @@ public static class DependencyInjection
                 builder.MigrationsAssembly(typeof(SubjectsDbContext).Assembly.FullName)));
 
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
-        services.AddScoped<ISubjectRepository>(sp => sp.GetRequiredService<ISubjectsUnitOfWork>().Subjects);
 
         return services;
     }

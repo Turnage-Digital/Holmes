@@ -10,45 +10,34 @@ namespace Holmes.Customers.Application.Commands;
 public sealed record AssignCustomerAdminCommand(
     UlidId TargetCustomerId,
     UlidId TargetUserId,
-    UlidId AssignedBy,
     DateTimeOffset AssignedAt
 ) : RequestBase<Result>;
 
-public sealed class AssignCustomerAdminCommandHandler : IRequestHandler<AssignCustomerAdminCommand, Result>
+public sealed class AssignCustomerAdminCommandHandler(
+    ICustomersUnitOfWork unitOfWork,
+    IUserDirectory userDirectory
+) : IRequestHandler<AssignCustomerAdminCommand, Result>
 {
-    private readonly ICustomerRepository _repository;
-    private readonly ICustomersUnitOfWork _unitOfWork;
-    private readonly IUserDirectory _userDirectory;
-
-    public AssignCustomerAdminCommandHandler(
-        ICustomerRepository repository,
-        ICustomersUnitOfWork unitOfWork,
-        IUserDirectory userDirectory
-    )
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-        _userDirectory = userDirectory;
-    }
-
     public async Task<Result> Handle(AssignCustomerAdminCommand request, CancellationToken cancellationToken)
     {
-        var customer = await _repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
+        var repository = unitOfWork.Customers;
+        var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
             return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
         }
 
-        var userExists = await _userDirectory.ExistsAsync(request.TargetUserId, cancellationToken);
+        var userExists = await userDirectory.ExistsAsync(request.TargetUserId, cancellationToken);
 
         if (!userExists)
         {
             return Result.Fail($"User '{request.TargetUserId}' not found.");
         }
 
-        customer.AssignAdmin(request.TargetUserId, request.AssignedBy, request.AssignedAt);
-        await _repository.UpdateAsync(customer, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        var actor = request.GetUserUlid();
+        customer.AssignAdmin(request.TargetUserId, actor, request.AssignedAt);
+        await repository.UpdateAsync(customer, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

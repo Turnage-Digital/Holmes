@@ -17,7 +17,6 @@ public static class DependencyInjection
                 builder.MigrationsAssembly(typeof(CustomersDbContext).Assembly.FullName)));
 
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
-        services.AddScoped<ICustomerRepository>(sp => sp.GetRequiredService<ICustomersUnitOfWork>().Customers);
 
         return services;
     }

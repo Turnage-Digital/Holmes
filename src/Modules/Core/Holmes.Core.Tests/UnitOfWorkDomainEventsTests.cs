@@ -23,21 +23,9 @@ public class UnitOfWorkDomainEventsTests
         }
     }
 
-    private sealed class FakeAggregate : IHasDomainEvents
+    private sealed class FakeAggregate : AggregateRoot
     {
-        private readonly List<INotification> _events = [];
-
-        public IReadOnlyCollection<INotification> DomainEvents => _events;
-
-        public void ClearDomainEvents()
-        {
-            _events.Clear();
-        }
-
-        public void Add(INotification @event)
-        {
-            _events.Add(@event);
-        }
+        public void Add(INotification @event) => AddDomainEvent(@event);
     }
 
     private sealed class FakeUnitOfWork(FakeDbContext db, IMediator mediator)
@@ -65,8 +53,6 @@ public class UnitOfWorkDomainEventsTests
         aggregate.Add(new TestEvent());
 
         using var uow = new FakeUnitOfWork(ctx, mediator.Object);
-        uow.RegisterDomainEvents(aggregate);
-
         await uow.SaveChangesAsync(CancellationToken.None);
 
         Assert.That(published, Has.Count.EqualTo(1));
@@ -95,8 +81,6 @@ public class UnitOfWorkDomainEventsTests
         aggregate2.Add(new TestEvent());
 
         using var uow = new FakeUnitOfWork(ctx, mediator.Object);
-        uow.RegisterDomainEvents(new[] { aggregate1, aggregate2 });
-
         await uow.SaveChangesAsync(CancellationToken.None);
 
         Assert.That(published, Has.Count.EqualTo(2));
@@ -116,7 +100,6 @@ public class UnitOfWorkDomainEventsTests
         using var uow = new ThrowingUnitOfWork(ctx, mediator.Object);
         var aggregate = new FakeAggregate();
         aggregate.Add(new TestEvent());
-        uow.RegisterDomainEvents(aggregate);
 
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await uow.SaveChangesAsync(CancellationToken.None));

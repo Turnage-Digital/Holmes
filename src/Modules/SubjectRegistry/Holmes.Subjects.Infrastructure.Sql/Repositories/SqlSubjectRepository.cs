@@ -8,12 +8,10 @@ namespace Holmes.Subjects.Infrastructure.Sql.Repositories;
 public class SqlSubjectRepository : ISubjectRepository
 {
     private readonly SubjectsDbContext _dbContext;
-    private readonly ISubjectsUnitOfWork _unitOfWork;
 
-    public SqlSubjectRepository(SubjectsDbContext dbContext, ISubjectsUnitOfWork unitOfWork)
+    public SqlSubjectRepository(SubjectsDbContext dbContext)
     {
         _dbContext = dbContext;
-        _unitOfWork = unitOfWork;
     }
 
     public Task AddAsync(Subject subject, CancellationToken cancellationToken)
@@ -21,7 +19,6 @@ public class SqlSubjectRepository : ISubjectRepository
         var entity = ToDb(subject);
         _dbContext.Subjects.Add(entity);
         UpsertDirectory(subject, entity);
-        _unitOfWork.RegisterDomainEvents(subject);
         return Task.CompletedTask;
     }
 
@@ -53,7 +50,6 @@ public class SqlSubjectRepository : ISubjectRepository
 
         ApplyState(subject, entity);
         UpsertDirectory(subject, entity);
-        _unitOfWork.RegisterDomainEvents(subject);
     }
 
     private static Subject Rehydrate(SubjectDb entity)

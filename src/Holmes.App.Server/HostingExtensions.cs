@@ -75,6 +75,7 @@ internal static class HostingExtensions
 
         ConfigureAuthentication(builder);
         builder.Services.AddScoped<IUserContext, HttpUserContext>();
+        builder.Services.AddScoped<ICurrentUserInitializer, MediatorCurrentUserInitializer>();
 
         var isRunningInTestHost = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1",
             StringComparison.Ordinal);
@@ -92,15 +93,9 @@ internal static class HostingExtensions
         builder.Services.AddDomain();
         builder.Services.AddApplication();
 
-        builder.Services.AddAuthorization(options =>
-        {
-            options.AddPolicy(
-                AuthorizationPolicies.RequireAdmin,
-                policy => policy.RequireRole("Admin"));
-            options.AddPolicy(
-                AuthorizationPolicies.RequireOps,
-                policy => policy.RequireRole("Ops", "Admin"));
-        });
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole("Admin"))
+            .AddPolicy(AuthorizationPolicies.RequireOps, policy => policy.RequireRole("Operations", "Admin"));
 
         if (builder.Environment.IsDevelopment())
         {
@@ -405,12 +400,9 @@ internal static class HostingExtensions
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
-        services.AddScoped<IUserRepository>(sp => sp.GetRequiredService<IUsersUnitOfWork>().Users);
         services.AddScoped<IUserDirectory>(sp => sp.GetRequiredService<IUsersUnitOfWork>().UserDirectory);
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
-        services.AddScoped<ICustomerRepository>(sp => sp.GetRequiredService<ICustomersUnitOfWork>().Customers);
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
-        services.AddScoped<ISubjectRepository>(sp => sp.GetRequiredService<ISubjectsUnitOfWork>().Subjects);
         return services;
     }
 
@@ -485,6 +477,7 @@ internal static class HostingExtensions
             config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
         });
 
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>),
             typeof(LoggingBehavior<,>));
         return services;

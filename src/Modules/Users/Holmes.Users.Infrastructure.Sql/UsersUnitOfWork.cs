@@ -13,7 +13,7 @@ public sealed class UsersUnitOfWork : UnitOfWork<UsersDbContext>, IUsersUnitOfWo
     public UsersUnitOfWork(UsersDbContext dbContext, IMediator mediator)
         : base(dbContext, mediator)
     {
-        _users = new Lazy<IUserRepository>(() => new SqlUserRepository(dbContext, this));
+        _users = new Lazy<IUserRepository>(() => new SqlUserRepository(dbContext));
         _directory = new Lazy<IUserDirectory>(() => new SqlUserDirectory(dbContext));
     }
 

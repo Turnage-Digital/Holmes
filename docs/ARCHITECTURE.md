@@ -132,8 +132,6 @@ public static IServiceCollection Add<Feature>InfrastructureSql(
         options.UseMySql(connectionString, version));
 
     services.AddScoped<I<Feature>UnitOfWork, <Feature>UnitOfWork>();
-    services.AddScoped<I<Feature>Repository>(sp =>
-        sp.GetRequiredService<I<Feature>UnitOfWork>().<Feature>);
     return services;
 }
 ```
@@ -142,27 +140,29 @@ The solution has a dedicated template in `docs/MODULE_TEMPLATE.md` that walks th
 (folder layout, project references, DI wiring, and unit-of-work expectations). New feature slices **must** follow that
 guide so they plug into `HostingExtensions.AddInfrastructure` without ad-hoc code.
 
+> **Repository access rule:** repository interfaces are intentionally not registered in DI. Application services must
+> request their module's unit of work (e.g., `IUsersUnitOfWork`) and reach repositories or directories through the
+> exposed properties (`unitOfWork.Users`). This keeps every mutation inside the transaction boundary enforced by the
+> unit of work and prevents stray repository usage.
+
 ### Unit of Work & Domain Events
 
-Aggregates that emit MediatR notifications implement `IHasDomainEvents`, exposing a read-only list of pending events
-plus `ClearDomainEvents()`. Repository methods must call their module-specific unit of work (e.g. `UsersUnitOfWork`) to
-register each aggregate before returning so the shared `UnitOfWork<TContext>` can collect the notifications.
-
-`UnitOfWork<TContext>` stores those events, executes `SaveChangesAsync`, and only when the transaction succeeds does it
-publish the captured notifications. This keeps domain events tightly coupled to the database transaction—if the commit
-fails, nothing is published.
+Aggregates inherit from `AggregateRoot`, which implements `IHasDomainEvents` and automatically registers itself with an
+ambient tracker whenever `AddDomainEvent` is invoked. The base `UnitOfWork<TContext>` drains that tracker immediately
+after a successful `SaveChangesAsync()` call, publishes each notification via MediatR, and only then clears the
+aggregate’s pending events. If the transaction fails, nothing is dispatched and the tracker retains the aggregate so a
+re-run will replay the events.
 
 **Usage pattern**
 
-1. Aggregate mutates state and records events internally.
-2. Repository persists the aggregate and calls `_unitOfWork.RegisterDomainEvents(aggregate)`.
-3. Command handler invokes `*UnitOfWork.SaveChangesAsync()` which commits and then dispatches the buffered events via
-   MediatR.
-4. `ClearDomainEvents()` runs automatically, so aggregates are ready for subsequent mutations.
+1. Aggregate mutates state and calls `AddDomainEvent(..)` (usually via a local `Emit` helper).
+2. Repository persists the aggregate as usual—no explicit registration step required.
+3. Command handler invokes `*UnitOfWork.SaveChangesAsync()`; when the commit succeeds the unit of work publishes the
+   captured events.
+4. `ClearDomainEvents()` runs automatically, resetting aggregates for subsequent mutations.
 
-When a command touches multiple aggregates, register each one before exiting the repository so every notification
-participates in the same transaction boundary. No separate `DomainEventQueue` is required; the unit of work guarantees
-exactly-once publication per successful commit.
+Because registration happens inside the aggregate base class, repositories cannot forget to participate in the event
+pipeline and no additional queueing infrastructure is necessary.
 
 > See `Holmes.Core.Tests/UnitOfWorkDomainEventsTests` for integration coverage of
 > multi-aggregate commits and failure paths. Future modules should add similar
@@ -723,3 +723,5 @@ deterministic adjudication + simulator.
 ```json
 { "evt":"Clock.Started","clock_id":"clk_01","kind":"adverse","order_id":"ord_01","deadline_at":"2025-11-12T10:30:00Z" }
 ```
+- Database reset (EF migrations + schema drop/create) is handled by `ef-reset.ps1` in the repo root. Running it
+  rebuilds the Core/Users/Customers/Subjects schemas, ensuring every dev starts from the same migrations baseline.

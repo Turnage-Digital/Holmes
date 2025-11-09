@@ -74,8 +74,6 @@ public static class DependencyInjection
             options.UseMySql(connectionString, version));
 
         services.AddScoped<I<Feature>UnitOfWork, <Feature>UnitOfWork>();
-        services.AddScoped<I<Feature>Repository>(sp =>
-            sp.GetRequiredService<I<Feature>UnitOfWork>().<Feature>);
 
         return services;
     }
@@ -83,7 +81,8 @@ public static class DependencyInjection
 ```
 
 This keeps composition centralized inside `Holmes.App.Server/HostingExtensions`
-and guarantees every module exports the same surface area.
+and guarantees every module exports the same surface area. Repositories are not registered directly; application code
+must request the unit of work and access repositories via its properties to honor the transaction boundary.
 
 ## Scaffolding Steps
 

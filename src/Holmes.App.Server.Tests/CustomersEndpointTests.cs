@@ -32,7 +32,7 @@ public class CustomersEndpointTests
 
         await client.GetAsync("/users/me");
 
-        var response = await client.PostAsJsonAsync("/customers", new CreateCustomerRequest("Acme"));
+        var response = await client.PostAsJsonAsync("/customers", BuildCreateCustomerRequest("Acme"));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
@@ -48,7 +48,7 @@ public class CustomersEndpointTests
 
         var adminId = await PromoteCurrentUserToAdminAsync(factory);
 
-        var createResponse = await client.PostAsJsonAsync("/customers", new CreateCustomerRequest("Acme Industries"));
+        var createResponse = await client.PostAsJsonAsync("/customers", BuildCreateCustomerRequest("Acme Industries"));
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             TestContext.WriteLine(await createResponse.Content.ReadAsStringAsync());
@@ -58,7 +58,7 @@ public class CustomersEndpointTests
 
         var summary = await createResponse.Content.ReadFromJsonAsync<CustomerSummaryResponse>(JsonOptions);
         Assert.That(summary, Is.Not.Null);
-        var customerId = summary!.CustomerId;
+        var customerId = summary!.Id;
 
         var targetUserId = await CreateUserAsync(factory, "customer-admin", "cust.admin@holmes.dev");
 
@@ -107,25 +107,64 @@ public class CustomersEndpointTests
             "pwd",
             DateTimeOffset.UtcNow));
 
-        await mediator.Send(new GrantUserRoleCommand(
+        var grant = new GrantUserRoleCommand(
             id,
             UserRole.Admin,
             null,
-            id,
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow)
+        {
+            UserId = id.ToString()
+        };
+        await mediator.Send(grant);
 
         return id;
     }
 
-    private sealed record CreateCustomerRequest(string Name);
+    private static CreateCustomerRequest BuildCreateCustomerRequest(string name)
+    {
+        return new CreateCustomerRequest(
+            name,
+            "policy-dev",
+            "billing@holmes.dev",
+            new[]
+            {
+                new CreateCustomerContactRequest("Ops Contact", "ops@holmes.dev", null, "Ops")
+            });
+    }
+
+    private sealed record CreateCustomerRequest(
+        string Name,
+        string PolicySnapshotId,
+        string? BillingEmail,
+        IReadOnlyCollection<CreateCustomerContactRequest>? Contacts
+    );
+
+    private sealed record CreateCustomerContactRequest(
+        string Name,
+        string Email,
+        string? Phone,
+        string? Role
+    );
 
     private sealed record ModifyCustomerAdminRequest(string UserId);
 
     private sealed record CustomerSummaryResponse(
-        string CustomerId,
+        string Id,
+        string TenantId,
         string Name,
         CustomerStatus Status,
+        string PolicySnapshotId,
+        string? BillingEmail,
         DateTimeOffset CreatedAt,
-        int AdminCount
+        DateTimeOffset UpdatedAt,
+        IReadOnlyCollection<CustomerContactResponse> Contacts
+    );
+
+    private sealed record CustomerContactResponse(
+        string Id,
+        string Name,
+        string Email,
+        string? Phone,
+        string? Role
     );
 }
