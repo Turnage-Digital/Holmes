@@ -13,6 +13,10 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
 
     public DbSet<CustomerDirectoryDb> CustomerDirectory { get; set; } = null!;
 
+    public DbSet<CustomerProfileDb> CustomerProfiles { get; set; } = null!;
+
+    public DbSet<CustomerContactDb> CustomerContacts { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -100,6 +104,72 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
 
             builder.Property(x => x.AdminCount)
                 .IsRequired();
+        });
+
+        modelBuilder.Entity<CustomerProfileDb>(builder =>
+        {
+            builder.ToTable("customer_profiles");
+            builder.HasKey(x => x.CustomerId);
+
+            builder.Property(x => x.CustomerId)
+                .HasMaxLength(26)
+                .IsRequired();
+
+            builder.Property(x => x.TenantId)
+                .HasMaxLength(26)
+                .IsRequired();
+
+            builder.Property(x => x.PolicySnapshotId)
+                .HasMaxLength(64)
+                .IsRequired();
+
+            builder.Property(x => x.BillingEmail)
+                .HasMaxLength(320);
+
+            builder.Property(x => x.CreatedAt)
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            builder.Property(x => x.UpdatedAt)
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        });
+
+        modelBuilder.Entity<CustomerContactDb>(builder =>
+        {
+            builder.ToTable("customer_contacts");
+            builder.HasKey(x => x.ContactId);
+
+            builder.Property(x => x.ContactId)
+                .HasMaxLength(26)
+                .IsRequired();
+
+            builder.Property(x => x.CustomerId)
+                .HasMaxLength(26)
+                .IsRequired();
+
+            builder.Property(x => x.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            builder.Property(x => x.Email)
+                .HasMaxLength(320)
+                .IsRequired();
+
+            builder.Property(x => x.Phone)
+                .HasMaxLength(64);
+
+            builder.Property(x => x.Role)
+                .HasMaxLength(128);
+
+            builder.Property(x => x.CreatedAt)
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            builder.HasOne(x => x.Customer)
+                .WithMany(x => x.Contacts)
+                .HasForeignKey(x => x.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

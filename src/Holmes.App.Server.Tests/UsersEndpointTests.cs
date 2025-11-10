@@ -30,7 +30,7 @@ public class UsersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Email", "user01@holmes.dev");
         client.DefaultRequestHeaders.Add("X-Auth-Name", "User One");
 
-        var response = await client.GetAsync("/users/me");
+        var response = await client.GetAsync("/api/users/me");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -49,11 +49,11 @@ public class UsersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Subject", "non-admin");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "user@holmes.dev");
 
-        await client.GetAsync("/users/me");
+        await client.GetAsync("/api/users/me");
 
         var targetId = await CreateUserAsync(factory, "target-user", "target@holmes.dev");
 
-        var result = await client.PostAsJsonAsync($"/users/{targetId}/roles",
+        var result = await client.PostAsJsonAsync($"/api/users/{targetId}/roles",
             new ModifyUserRoleRequest(UserRole.CustomerAdmin, null));
 
         Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
@@ -73,7 +73,7 @@ public class UsersEndpointTests
 
         var targetId = await CreateUserAsync(factory, "target-admin", "target.admin@holmes.dev");
 
-        var result = await client.PostAsJsonAsync($"/users/{targetId}/roles",
+        var result = await client.PostAsJsonAsync($"/api/users/{targetId}/roles",
             new ModifyUserRoleRequest(UserRole.CustomerAdmin, null));
 
         Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
@@ -84,7 +84,7 @@ public class UsersEndpointTests
             .SingleOrDefaultAsync(r => r.UserId == targetId && r.Role == UserRole.CustomerAdmin);
         Assert.That(membership, Is.Not.Null);
 
-        var revokeRequest = new HttpRequestMessage(HttpMethod.Delete, $"/users/{targetId}/roles")
+        var revokeRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/users/{targetId}/roles")
         {
             Content = JsonContent.Create(new ModifyUserRoleRequest(UserRole.CustomerAdmin, null))
         };

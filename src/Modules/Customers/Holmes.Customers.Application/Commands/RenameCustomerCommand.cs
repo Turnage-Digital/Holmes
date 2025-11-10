@@ -12,28 +12,21 @@ public sealed record RenameCustomerCommand(
     DateTimeOffset RenamedAt
 ) : RequestBase<Result>;
 
-public sealed class RenameCustomerCommandHandler : IRequestHandler<RenameCustomerCommand, Result>
+public sealed class RenameCustomerCommandHandler(ICustomersUnitOfWork unitOfWork)
+    : IRequestHandler<RenameCustomerCommand, Result>
 {
-    private readonly ICustomerRepository _repository;
-    private readonly ICustomersUnitOfWork _unitOfWork;
-
-    public RenameCustomerCommandHandler(ICustomerRepository repository, ICustomersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(RenameCustomerCommand request, CancellationToken cancellationToken)
     {
-        var customer = await _repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
+        var repository = unitOfWork.Customers;
+        var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
             return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
         }
 
         customer.Rename(request.Name, request.RenamedAt);
-        await _repository.UpdateAsync(customer, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await repository.UpdateAsync(customer, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

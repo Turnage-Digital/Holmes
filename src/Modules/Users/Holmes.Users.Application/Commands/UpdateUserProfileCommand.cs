@@ -13,28 +13,21 @@ public sealed record UpdateUserProfileCommand(
     DateTimeOffset UpdatedAt
 ) : RequestBase<Result>;
 
-public sealed class UpdateUserProfileCommandHandler : IRequestHandler<UpdateUserProfileCommand, Result>
+public sealed class UpdateUserProfileCommandHandler(IUsersUnitOfWork unitOfWork)
+    : IRequestHandler<UpdateUserProfileCommand, Result>
 {
-    private readonly IUserRepository _repository;
-    private readonly IUsersUnitOfWork _unitOfWork;
-
-    public UpdateUserProfileCommandHandler(IUserRepository repository, IUsersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
     {
-        var user = await _repository.GetByIdAsync(request.TargetUserId, cancellationToken);
+        var repository = unitOfWork.Users;
+        var user = await repository.GetByIdAsync(request.TargetUserId, cancellationToken);
         if (user is null)
         {
             return Result.Fail($"User '{request.TargetUserId}' not found.");
         }
 
         user.UpdateProfile(request.Email, request.DisplayName, request.UpdatedAt);
-        await _repository.UpdateAsync(user, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await repository.UpdateAsync(user, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

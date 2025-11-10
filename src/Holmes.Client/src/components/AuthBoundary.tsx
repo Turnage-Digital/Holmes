@@ -2,7 +2,7 @@ import React, {useEffect} from "react";
 
 import {Box, CircularProgress} from "@mui/material";
 import {useQuery} from "@tanstack/react-query";
-import {Outlet, useLocation, useNavigate} from "react-router-dom";
+import {Outlet, useLocation} from "react-router-dom";
 
 import {AuthProvider} from "@/context/AuthContext";
 import {ApiError, apiFetch} from "@/lib/api";
@@ -23,7 +23,6 @@ const FullScreenLoader = () => (
 
 const AuthBoundary = () => {
     const location = useLocation();
-    const navigate = useNavigate();
     const currentUserQuery = useQuery<CurrentUserDto, ApiError>({
         queryKey: ["currentUser"],
         queryFn: () => apiFetch<CurrentUserDto>("/users/me"),
@@ -33,17 +32,15 @@ const AuthBoundary = () => {
     useEffect(() => {
         if (currentUserQuery.error instanceof ApiError) {
             const status = currentUserQuery.error.status;
-            const shouldRedirect = status === 401 || status === 403 || status === 404;
+            const shouldRedirect =
+                status === 401 || status === 403 || status === 404;
             if (shouldRedirect) {
-                navigate("/auth/options", {
-                    replace: true,
-                    state: {
-                        returnUrl: location.pathname + location.search,
-                    },
-                });
+                const destination = `${location.pathname}${location.search}`;
+                const encoded = encodeURIComponent(destination);
+                window.location.assign(`/auth/options?returnUrl=${encoded}`);
             }
         }
-    }, [currentUserQuery.error, location.pathname, location.search, navigate]);
+    }, [currentUserQuery.error, location.pathname, location.search]);
 
     if (currentUserQuery.isPending) {
         return <FullScreenLoader/>;

@@ -27,7 +27,13 @@
         <PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10"/>
+        <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="8.14.0"/>
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.14.0"/>
+        <PackageReference Include="Microsoft.IdentityModel.Logging" Version="8.14.0"/>
+        <PackageReference Include="Microsoft.IdentityModel.Protocols" Version="8.14.0"/>
+        <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.14.0"/>
         <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0"/>
     </ItemGroup>
 
     <ItemGroup>

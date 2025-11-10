@@ -6,10 +6,9 @@ using MediatR;
 
 namespace Holmes.Subjects.Domain;
 
-public sealed class Subject : IHasDomainEvents
+public sealed class Subject : AggregateRoot
 {
     private readonly List<SubjectAlias> _aliases = [];
-    private readonly List<INotification> _events = [];
 
     private Subject()
     {
@@ -36,13 +35,6 @@ public sealed class Subject : IHasDomainEvents
     public DateTimeOffset? MergedAt { get; private set; }
 
     public IReadOnlyCollection<SubjectAlias> Aliases => new ReadOnlyCollection<SubjectAlias>(_aliases);
-
-    public IReadOnlyCollection<INotification> DomainEvents => new ReadOnlyCollection<INotification>(_events);
-
-    public void ClearDomainEvents()
-    {
-        _events.Clear();
-    }
 
     public static Subject Register(
         UlidId id,
@@ -163,8 +155,5 @@ public sealed class Subject : IHasDomainEvents
         Emit(@event);
     }
 
-    private void Emit(INotification @event)
-    {
-        _events.Add(@event);
-    }
+    private void Emit(INotification @event) => AddDomainEvent(@event);
 }

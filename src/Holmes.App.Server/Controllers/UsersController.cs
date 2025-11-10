@@ -15,7 +15,7 @@ namespace Holmes.App.Server.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("users")]
+[Route("api/users")]
 public class UsersController(
     IMediator mediator,
     UsersDbContext dbContext,

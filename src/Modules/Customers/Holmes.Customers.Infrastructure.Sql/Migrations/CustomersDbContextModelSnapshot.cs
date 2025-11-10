@@ -17,7 +17,7 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.19")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
@@ -57,6 +57,47 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                         .IsUnique();
 
                     b.ToTable("customer_admins", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerContactDb", b =>
+                {
+                    b.Property<string>("ContactId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("ContactId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("customer_contacts", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerDb", b =>
@@ -114,6 +155,41 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.ToTable("customer_directory", (string)null);
                 });
 
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileDb", b =>
+                {
+                    b.Property<string>("CustomerId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<string>("BillingEmail")
+                        .HasMaxLength(320)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("PolicySnapshotId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.HasKey("CustomerId");
+
+                    b.ToTable("customer_profiles", (string)null);
+                });
+
             modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerAdminDb", b =>
                 {
                     b.HasOne("Holmes.Customers.Infrastructure.Sql.Entities.CustomerDb", "Customer")
@@ -125,9 +201,25 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerContactDb", b =>
+                {
+                    b.HasOne("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileDb", "Customer")
+                        .WithMany("Contacts")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerDb", b =>
                 {
                     b.Navigation("Admins");
+                });
+
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileDb", b =>
+                {
+                    b.Navigation("Contacts");
                 });
 #pragma warning restore 612, 618
         }

@@ -30,9 +30,9 @@ public class CustomersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "user@holmes.dev");
 
-        await client.GetAsync("/users/me");
+        await client.GetAsync("/api/users/me");
 
-        var response = await client.PostAsJsonAsync("/customers", BuildCreateCustomerRequest("Acme"));
+        var response = await client.PostAsJsonAsync("/api/customers", BuildCreateCustomerRequest("Acme"));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
@@ -48,7 +48,7 @@ public class CustomersEndpointTests
 
         var adminId = await PromoteCurrentUserToAdminAsync(factory);
 
-        var createResponse = await client.PostAsJsonAsync("/customers", BuildCreateCustomerRequest("Acme Industries"));
+        var createResponse = await client.PostAsJsonAsync("/api/customers", BuildCreateCustomerRequest("Acme Industries"));
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             TestContext.WriteLine(await createResponse.Content.ReadAsStringAsync());
@@ -62,11 +62,11 @@ public class CustomersEndpointTests
 
         var targetUserId = await CreateUserAsync(factory, "customer-admin", "cust.admin@holmes.dev");
 
-        var assignResponse = await client.PostAsJsonAsync($"/customers/{customerId}/admins",
+        var assignResponse = await client.PostAsJsonAsync($"/api/customers/{customerId}/admins",
             new ModifyCustomerAdminRequest(targetUserId));
         Assert.That(assignResponse.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
-        var revokeRequest = new HttpRequestMessage(HttpMethod.Delete, $"/customers/{customerId}/admins")
+        var revokeRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/customers/{customerId}/admins")
         {
             Content = JsonContent.Create(new ModifyCustomerAdminRequest(targetUserId))
         };

@@ -90,7 +90,7 @@ tenant-scoped policies without ever persisting credentials.
 - **Integration points**
     - `IOidcProviderCatalog` – resolves customer-specific OIDC settings (issuer, audience) to validate tokens before
       commands execute.
-    - API endpoints: `/users/me` (introspect), `/admin/users`, `/customers/{id}/admins`.
+    - API endpoints: `/api/users/me` (introspect), `/api/admin/users`, `/api/customers/{id}/admins`.
 - **Testing**
     - Unit tests for aggregate invariants (prevent duplicate roles, protect last admin).
     - Integration tests asserting role-based authorization flows (e.g., CustomerAdmin cannot grant global Admin) via

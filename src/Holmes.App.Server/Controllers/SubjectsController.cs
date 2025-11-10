@@ -13,7 +13,7 @@ using System.Globalization;
 namespace Holmes.App.Server.Controllers;
 
 [ApiController]
-[Route("subjects")]
+[Route("api/subjects")]
 [Authorize]
 public sealed class SubjectsController(
     IMediator mediator,

@@ -1,18 +1,13 @@
 export type Ulid = string;
 
-export type UserStatus =
-    | "Invited"
-    | "PendingApproval"
-    | "Active"
-    | "Suspended"
-    | "Disabled";
+export type UserStatus = "PendingApproval" | "Active" | "Suspended";
 
 export type UserRole =
     | "Admin"
     | "CustomerAdmin"
-    | "Ops"
-    | "Auditor"
-    | "Support";
+    | "Compliance"
+    | "Operations"
+    | "Auditor";
 
 export interface RoleAssignmentDto {
     id: Ulid;

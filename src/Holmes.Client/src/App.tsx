@@ -17,7 +17,6 @@ import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 import {BrowserRouter, Link, Navigate, Outlet, Route, Routes, useLocation,} from "react-router-dom";
 
 import AuthBoundary from "./components/AuthBoundary";
-import AuthOptionsPage from "./pages/AuthOptionsPage";
 import CustomersPage from "./pages/CustomersPage";
 import SubjectsPage from "./pages/SubjectsPage";
 import UsersPage from "./pages/UsersPage";
@@ -99,7 +98,6 @@ const App = () => {
             <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
                     <Routes>
-                        <Route path="/auth/options" element={<AuthOptionsPage/>}/>
                         <Route element={<AuthBoundary/>}>
                             <Route path="/" element={<AppShell/>}>
                                 <Route index element={<Navigate to="/users" replace/>}/>

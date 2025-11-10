@@ -23,7 +23,7 @@ public class SubjectsEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
         var request = new RegisterSubjectRequest("Jane", "Doe", new DateOnly(1985, 6, 1), "jane.doe@example.com");
-        var response = await client.PostAsJsonAsync("/subjects", request);
+        var response = await client.PostAsJsonAsync("/api/subjects", request);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
         var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryResponse>();
@@ -41,7 +41,7 @@ public class SubjectsEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
-        var response = await client.GetAsync($"/subjects/{Ulid.NewUlid()}");
+        var response = await client.GetAsync($"/api/subjects/{Ulid.NewUlid()}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
     }
@@ -69,7 +69,7 @@ public class SubjectsEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
-        var response = await client.GetAsync($"/subjects/{subjectId}");
+        var response = await client.GetAsync($"/api/subjects/{subjectId}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryResponse>();

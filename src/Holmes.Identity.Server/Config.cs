@@ -51,7 +51,7 @@ internal static class Config
         new List<DevUser>
         {
             new("1001", "admin", "password", "Dev Admin", "admin@holmes.dev", "Admin"),
-            new("1002", "ops", "password", "Ops User", "ops@holmes.dev", "Ops")
+            new("1002", "ops", "password", "Ops User", "ops@holmes.dev", "Operations")
         };
 }
 

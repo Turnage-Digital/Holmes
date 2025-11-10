@@ -57,7 +57,8 @@ export default defineConfig({
     server: {
         proxy: {
             "^/api": {target, secure: false},
-            "^/auth": {target, secure: false}
+            "^/auth": {target, secure: false},
+            "^/signin-oidc": {target, secure: false}
         },
         port: 3000,
         https: {

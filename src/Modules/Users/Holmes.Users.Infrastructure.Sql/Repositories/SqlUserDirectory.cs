@@ -4,19 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Users.Infrastructure.Sql.Repositories;
 
-public sealed class SqlUserDirectory : IUserDirectory
+public sealed class SqlUserDirectory(UsersDbContext dbContext) : IUserDirectory
 {
-    private readonly UsersDbContext _dbContext;
-
-    public SqlUserDirectory(UsersDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public Task<bool> ExistsAsync(UlidId userId, CancellationToken cancellationToken)
     {
         var id = userId.ToString();
-        return _dbContext.UserDirectory
+        return dbContext.UserDirectory
             .AsNoTracking()
             .AnyAsync(x => x.UserId == id, cancellationToken);
     }

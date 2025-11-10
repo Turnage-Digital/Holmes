@@ -137,35 +137,38 @@ Infrastructure to compose the runtime.
 
 ### Phase 1.5 — Platform Cohesion & Event Plumbing
 
-**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, SubjectRegistry, Holmes.Client  
+**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, SubjectRegistry, Holmes.Identity.Server, Holmes.Client  
 **Outcomes**
 
-- Harden the shared `UnitOfWork<TContext>` and domain-event dispatch path with integration tests (multi-aggregate
-  transaction, rollback safety) and cross-module documentation.
-- Promote the identity/tenant read models into `Holmes.App.Server` (authorization helpers, policies, seeding) so Intake
-  work can assume a consistent host surface.
-- Stand up `Holmes.Identity.Server` for dev-only OIDC plus a background seeder that mirrors the IdP user, grants Admin,
-  and creates a demo customer so invite/role/customer flows work out of the box.
-- Normalize module template conventions (namespace layout, dependency graph, base behaviors) so every new module copies
-  the same scaffolding.
-- Expand baseline observability (structured logging, tracing correlation IDs, seed scripts, DB reset tooling) to make
-  future module debugging repeatable.
-- Land the React SPA scaffold (`Holmes.Client`) with Vite + SPA proxy wiring so the server can proxy to `npm run dev`
-  during local development and serve the static build in CI/CD.
-- Build “Phase 1 proof” UI flows: tenant switcher stub + admin views to list users/customers/subjects, invite a user,
-  grant/revoke a role, create/link a customer, and view subject merges by calling the live APIs.
-- Ship generated/hand-authored TypeScript clients (OpenAPI or minimal fetch wrappers) plus test fixtures so front-end
-  calls stay in sync with backend DTOs.
-- Add smoke tests (Playwright/component-level) that run a happy-path invite → activate → assign-role → create-customer
-  scenario end-to-end via the SPA proxy to prove Phase 1 is usable through the UI.
+- Shared infrastructure: integration specs in `Holmes.Core.Tests` guard the `UnitOfWork<TContext>` + domain-event
+  dispatch pipeline (multi-aggregate commit, rollback safety) and the pattern is documented in ARCHITECTURE so every
+  module copies the same transactional template.
+- Identity + tenancy plumbing:
+    - `Holmes.Identity.Server` runs as the dev IdP; `DevelopmentDataSeeder` mirrors the IdP admin, grants the Admin role,
+      and creates a seeded customer profile/contact so invite → activate → assign role works immediately.
+    - Authorization helpers back the new `GET /api/users`, `POST /api/users/invitations`, and role mutation endpoints; the React
+      role union (`Admin`, `CustomerAdmin`, `Compliance`, `Operations`, `Auditor`) matches the backend enums.
+- Customer contract alignment:
+    - Introduced `customer_profiles` + `customer_contacts` projections/migrations and exposed paginated
+      `CustomerListItemResponse` payloads from `GET/POST /api/customers`, so the React table/form consumes the real DTOs.
+    - `docs/DEV_SETUP.md` now walks through `pwsh ./ef-reset.ps1`, which *always* drops databases, deletes migration
+      folders, scaffolds initial migrations (plus `AddCustomerProfiles`), and reapplies them for Core/Users/Customers/
+      Subjects.
+- Subject registry readiness: `GET /api/subjects?page=&pageSize=` and `POST /api/subjects/merge` feed the UI proof screen with
+  actual data and wire through `MergeSubjectCommand`.
+- SPA proof surface: `Holmes.Client` runs under Vite + SPA proxy, hits the aforementioned APIs via TanStack Query,
+  redirects 401 responses to `/auth/options`, and proves Phase 1 flows (invite, grant/revoke role, create customer,
+  merge subject) without Postman.
+- Observability + docs: structured logging + correlation IDs are standard, and ARCHITECTURE + DEV_SETUP call out IdP
+  setup, seeding, reset instructions, and the SPA proxy steps so new devs can follow a deterministic recipe.
 
 **Acceptance**
 
-- Developers can run the host, execute user/customer flows end-to-end with domain events dispatching exactly once per
-  commit, and new modules can be scaffolded without manual fixing.
-- Running `dotnet run` on Holmes.App.Server launches the SPA proxy to `Holmes.Client`, and a tenant admin can complete
-  invite → activate → assign role → create customer strictly through the React UI with telemetry showing the emitted
-  domain events.
+- `pwsh ./ef-reset.ps1` rebuilds every schema (Core, Users, Customers, SubjectRegistry) and reapplies the Initial +
+  `AddCustomerProfiles` migrations without manual cleanup or selective skipping.
+- Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.Client) allows a tenant admin to complete
+  invite → activate → grant/revoke role → create customer → merge subject entirely through the UI, with a single
+  domain-event batch per transaction and green `dotnet test` / `npm run build` pipelines.
 
 ### Phase 2 — Intake & Workflow Launch
 

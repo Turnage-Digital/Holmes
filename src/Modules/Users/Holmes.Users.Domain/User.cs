@@ -7,9 +7,8 @@ using MediatR;
 
 namespace Holmes.Users.Domain;
 
-public sealed class User : IHasDomainEvents
+public sealed class User : AggregateRoot
 {
-    private readonly List<INotification> _events = [];
     private readonly List<ExternalIdentity> _externalIdentities = [];
     private readonly List<RoleAssignment> _roles = [];
 
@@ -31,14 +30,6 @@ public sealed class User : IHasDomainEvents
 
     public IReadOnlyCollection<ExternalIdentity> ExternalIdentities =>
         new ReadOnlyCollection<ExternalIdentity>(_externalIdentities);
-
-    [JsonIgnore]
-    public IReadOnlyCollection<INotification> DomainEvents => new ReadOnlyCollection<INotification>(_events);
-
-    public void ClearDomainEvents()
-    {
-        _events.Clear();
-    }
 
     public static User Rehydrate(
         UlidId id,
@@ -78,6 +69,20 @@ public sealed class User : IHasDomainEvents
         var user = new User();
         user.Apply(new UserRegistered(id, identity.Issuer, identity.Subject, email, displayName,
             identity.AuthenticationMethod, registeredAt));
+        return user;
+    }
+
+    public static User Invite(
+        UlidId id,
+        string email,
+        string? displayName,
+        DateTimeOffset invitedAt
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+        var user = new User();
+        user.Apply(new UserInvited(id, email, displayName, invitedAt));
         return user;
     }
 
@@ -171,6 +176,21 @@ public sealed class User : IHasDomainEvents
         Status = UserStatus.Active;
     }
 
+    public void ActivatePendingInvitation(DateTimeOffset activatedAt)
+    {
+        if (Status == UserStatus.Active)
+        {
+            return;
+        }
+
+        if (Status != UserStatus.PendingApproval)
+        {
+            throw new InvalidOperationException("Only pending invitations can be activated.");
+        }
+
+        Status = UserStatus.Active;
+    }
+
     private void Apply(UserRegistered @event)
     {
         Id = @event.UserId;
@@ -184,8 +204,15 @@ public sealed class User : IHasDomainEvents
         Emit(@event);
     }
 
-    private void Emit(INotification @event)
+    private void Apply(UserInvited @event)
     {
-        _events.Add(@event);
+        Id = @event.UserId;
+        Email = @event.Email;
+        DisplayName = @event.DisplayName;
+        Status = UserStatus.PendingApproval;
+        CreatedAt = @event.InvitedAt;
+        Emit(@event);
     }
+
+    private void Emit(INotification @event) => AddDomainEvent(@event);
 }

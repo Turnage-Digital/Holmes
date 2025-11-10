@@ -42,9 +42,9 @@ import {getErrorMessage} from "@/utils/errorMessage";
 const roleOptions: UserRole[] = [
     "Admin",
     "CustomerAdmin",
-    "Ops",
+    "Compliance",
+    "Operations",
     "Auditor",
-    "Support",
 ];
 
 const defaultInviteForm: InviteUserRequest = {
@@ -104,14 +104,13 @@ const revokeRole = ({
     userId: Ulid;
     assignment: RoleAssignmentDto;
 }) =>
-    apiFetch<UserDto>(
-        `/users/${userId}/roles/${encodeURIComponent(assignment.role)}${toQueryString(
-            {
-                customerId: assignment.customerId ?? undefined,
-            },
-        )}`,
-        {method: "DELETE"},
-    );
+    apiFetch<UserDto>(`/users/${userId}/roles`, {
+        method: "DELETE",
+        body: {
+            role: assignment.role,
+            customerId: assignment.customerId ?? undefined,
+        },
+    });
 
 const UsersPage = () => {
     const [paginationModel, setPaginationModel] = useState({

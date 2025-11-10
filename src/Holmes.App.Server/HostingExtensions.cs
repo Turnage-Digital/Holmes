@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -23,6 +24,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -90,8 +93,19 @@ internal static class HostingExtensions
             builder.Services.AddInfrastructure(connectionString);
         }
 
-        builder.Services.AddDomain();
-        builder.Services.AddApplication();
+        IServiceCollection temp1 = builder.Services;
+        builder.Services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssemblyContaining<RequestBase>();
+            config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
+        });
+
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>),
+            typeof(LoggingBehavior<,>));
+        IServiceCollection temp = builder.Services;
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole("Admin"))
@@ -163,6 +177,8 @@ internal static class HostingExtensions
                 "Interactive authentication requires Authentication:Authority, ClientId, and ClientSecret.");
         }
 
+        JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
         builder.Services
             .AddAuthentication(options =>
             {
@@ -175,6 +191,9 @@ internal static class HostingExtensions
                 options.LogoutPath = "/auth/logout";
                 options.ExpireTimeSpan = TimeSpan.FromHours(8);
                 options.SlidingExpiration = true;
+                options.Cookie.Name = "holmes.auth";
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.None;
             })
             .AddOpenIdConnect(options =>
             {
@@ -184,14 +203,32 @@ internal static class HostingExtensions
                 options.ResponseType = "code";
                 options.SaveTokens = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
+                options.MapInboundClaims = false;
                 options.Scope.Clear();
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+                options.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Role, "role");
+                options.ClaimActions.MapJsonKey("preferred_username", "preferred_username");
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     NameClaimType = ClaimTypes.Name,
                     RoleClaimType = ClaimTypes.Role
+                };
+                options.Events ??= new OpenIdConnectEvents();
+                options.Events.OnRedirectToIdentityProvider = context =>
+                {
+                    if (IsApiRequest(context.Request))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.HandleResponse();
+                    }
+                    return Task.CompletedTask;
                 };
             });
     }
@@ -212,7 +249,18 @@ internal static class HostingExtensions
         }
 
         app.UseHttpsRedirection();
-        UseSpaAuthenticationRedirect(app);
+        app.Use(async (context, next) =>
+        {
+            if (!(context.User.Identity?.IsAuthenticated ?? false) &&
+                ShouldRedirectToAuthOptions(context.Request))
+            {
+                var returnUrl1 = GetRequestedUrl(context.Request);
+                context.Response.Redirect($"/auth/options?returnUrl={Uri.EscapeDataString(returnUrl1)}");
+                return;
+            }
+
+            await next();
+        });
 
         app.UseDefaultFiles();
         app.UseStaticFiles();
@@ -282,20 +330,30 @@ internal static class HostingExtensions
         return app;
     }
 
-    private static void UseSpaAuthenticationRedirect(IApplicationBuilder app)
+    private static bool IsApiRequest(HttpRequest request)
     {
-        app.Use(async (context, next) =>
+        if (request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
         {
-            if (!(context.User.Identity?.IsAuthenticated ?? false) &&
-                ShouldRedirectToAuthOptions(context.Request))
-            {
-                var returnUrl = GetRequestedUrl(context.Request);
-                context.Response.Redirect($"/auth/options?returnUrl={Uri.EscapeDataString(returnUrl)}");
-                return;
-            }
+            return true;
+        }
 
-            await next();
-        });
+        if (request.Headers.TryGetValue("Accept", out var acceptHeader) &&
+            acceptHeader.Any(value =>
+                value is not null &&
+                value.Contains("application/json", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        if (request.Headers.TryGetValue("X-Requested-With", out var requestedWith) &&
+            requestedWith.Any(value =>
+                value is not null &&
+                value.Equals("XMLHttpRequest", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static bool ShouldRedirectToAuthOptions(HttpRequest request)
@@ -460,26 +518,5 @@ internal static class HostingExtensions
                    </body>
                  </html>
                  """;
-    }
-
-    private static IServiceCollection AddDomain(this IServiceCollection services)
-    {
-        return services;
-    }
-
-    private static IServiceCollection AddApplication(this IServiceCollection services)
-    {
-        services.AddMediatR(config =>
-        {
-            config.RegisterServicesFromAssemblyContaining<RequestBase>();
-            config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
-            config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
-            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
-        });
-
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>),
-            typeof(LoggingBehavior<,>));
-        return services;
     }
 }

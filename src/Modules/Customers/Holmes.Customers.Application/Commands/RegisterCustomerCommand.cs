@@ -10,23 +10,16 @@ public sealed record RegisterCustomerCommand(
     DateTimeOffset RegisteredAt
 ) : RequestBase<UlidId>;
 
-public sealed class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCommand, UlidId>
+public sealed class RegisterCustomerCommandHandler(ICustomersUnitOfWork unitOfWork)
+    : IRequestHandler<RegisterCustomerCommand, UlidId>
 {
-    private readonly ICustomerRepository _repository;
-    private readonly ICustomersUnitOfWork _unitOfWork;
-
-    public RegisterCustomerCommandHandler(ICustomerRepository repository, ICustomersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<UlidId> Handle(RegisterCustomerCommand request, CancellationToken cancellationToken)
     {
+        var repository = unitOfWork.Customers;
         var id = UlidId.NewUlid();
         var customer = Customer.Register(id, request.Name, request.RegisteredAt);
-        await _repository.AddAsync(customer, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await repository.AddAsync(customer, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return id;
     }
 }
