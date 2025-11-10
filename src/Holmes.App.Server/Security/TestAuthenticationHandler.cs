@@ -16,6 +16,7 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
     private const string SubjectHeader = "X-Auth-Subject";
     private const string EmailHeader = "X-Auth-Email";
     private const string NameHeader = "X-Auth-Name";
+    private const string RolesHeader = "X-Auth-Roles";
     private const string AmrHeader = "X-Auth-Amr";
 #pragma warning disable CS0618
     public TestAuthenticationHandler(
@@ -37,6 +38,11 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
         var name = GetHeader(NameHeader) ?? subject;
         var amr = GetHeader(AmrHeader) ?? "test";
 
+        var roleHeader = GetHeader(RolesHeader);
+        var roles = string.IsNullOrWhiteSpace(roleHeader)
+            ? new[] { "Admin" }
+            : roleHeader.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         var claims = new List<Claim>
         {
             new("iss", issuer),
@@ -46,6 +52,11 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
             new(ClaimTypes.Name, name),
             new("amr", amr)
         };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
         var identity = new ClaimsIdentity(claims, TestAuthenticationDefaults.Scheme);
         var principal = new ClaimsPrincipal(identity);

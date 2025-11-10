@@ -1,4 +1,5 @@
 using Holmes.App.Server.Contracts;
+using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Commands;
@@ -22,6 +23,7 @@ public class UsersController(
 ) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
     public async Task<ActionResult<PaginatedResponse<UserListItemResponse>>> GetUsers(
         [FromQuery] PaginationQuery query,
         CancellationToken cancellationToken
@@ -92,6 +94,7 @@ public class UsersController(
     }
 
     [HttpPost("invitations")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
     public async Task<ActionResult<UserListItemResponse>> InviteUser(
         [FromBody] InviteUserRequest request,
         CancellationToken cancellationToken
@@ -134,6 +137,7 @@ public class UsersController(
     }
 
     [HttpPost("{userId}/roles")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
     public async Task<IActionResult> GrantRole(
         string userId,
         [FromBody] ModifyUserRoleRequest request,
@@ -161,6 +165,7 @@ public class UsersController(
     }
 
     [HttpDelete("{userId}/roles")]
+    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
     public async Task<IActionResult> RevokeRole(
         string userId,
         [FromBody] ModifyUserRoleRequest request,

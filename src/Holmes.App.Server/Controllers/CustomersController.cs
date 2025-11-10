@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Holmes.App.Server.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/customers")]
 public class CustomersController(
     IMediator mediator,

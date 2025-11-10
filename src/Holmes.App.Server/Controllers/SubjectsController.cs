@@ -1,5 +1,6 @@
 using System.Globalization;
 using Holmes.App.Server.Contracts;
+using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Application.Commands;
@@ -14,7 +15,7 @@ namespace Holmes.App.Server.Controllers;
 
 [ApiController]
 [Route("api/subjects")]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.RequireOps)]
 public sealed class SubjectsController(
     IMediator mediator,
     SubjectsDbContext dbContext,

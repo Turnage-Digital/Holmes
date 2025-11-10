@@ -101,9 +101,7 @@ internal static class HostingExtensions
         });
 
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
-        builder.Services.AddTransient(typeof(IPipelineBehavior<,>),
-            typeof(LoggingBehavior<,>));
-        var temp = builder.Services;
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole("Admin"))
