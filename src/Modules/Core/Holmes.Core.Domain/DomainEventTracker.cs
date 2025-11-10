@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace Holmes.Core.Domain;
 
 public static class DomainEventTracker

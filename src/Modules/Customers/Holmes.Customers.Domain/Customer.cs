@@ -127,5 +127,8 @@ public sealed class Customer : AggregateRoot
         Emit(@event);
     }
 
-    private void Emit(INotification @event) => AddDomainEvent(@event);
+    private void Emit(INotification @event)
+    {
+        AddDomainEvent(@event);
+    }
 }

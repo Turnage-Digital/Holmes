@@ -3,7 +3,7 @@ using System.Security.Claims;
 
 namespace Holmes.App.Server.Security;
 
-public class HttpUserContext(IHttpContextAccessor accessor) 
+public class HttpUserContext(IHttpContextAccessor accessor)
     : IUserContext
 {
     public ClaimsPrincipal Principal =>

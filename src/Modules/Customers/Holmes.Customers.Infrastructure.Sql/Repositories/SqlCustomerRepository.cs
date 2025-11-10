@@ -117,7 +117,7 @@ public class SqlCustomerRepository(CustomersDbContext dbContext)
     {
         var directory = dbContext.CustomerDirectory
             .SingleOrDefault(c => c.CustomerId == entity.CustomerId);
-        
+
         if (directory is null)
         {
             directory = new CustomerDirectoryDb

@@ -31,7 +31,10 @@ public sealed class DevelopmentDataSeeder(
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 
     private async Task SeedAsync(CancellationToken cancellationToken)
     {
@@ -55,7 +58,8 @@ public sealed class DevelopmentDataSeeder(
     private static async Task<UlidId> EnsureAdminUserAsync(
         IMediator mediator,
         DateTimeOffset timestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var command = new RegisterExternalUserCommand(
             DefaultIssuer,
@@ -71,7 +75,8 @@ public sealed class DevelopmentDataSeeder(
         IMediator mediator,
         UlidId adminUserId,
         DateTimeOffset timestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var grant = new GrantUserRoleCommand(
             adminUserId,
@@ -89,7 +94,8 @@ public sealed class DevelopmentDataSeeder(
         CustomersDbContext customersDb,
         UlidId adminUserId,
         DateTimeOffset timestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         const string demoCustomerName = "Holmes Demo Customer";
         var directory = await customersDb.CustomerDirectory
@@ -121,7 +127,8 @@ public sealed class DevelopmentDataSeeder(
         CustomersDbContext customersDb,
         string customerId,
         DateTimeOffset timestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var exists = await customersDb.CustomerProfiles
             .AnyAsync(p => p.CustomerId == customerId, cancellationToken);

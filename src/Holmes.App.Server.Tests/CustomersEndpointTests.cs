@@ -48,7 +48,8 @@ public class CustomersEndpointTests
 
         var adminId = await PromoteCurrentUserToAdminAsync(factory);
 
-        var createResponse = await client.PostAsJsonAsync("/api/customers", BuildCreateCustomerRequest("Acme Industries"));
+        var createResponse =
+            await client.PostAsJsonAsync("/api/customers", BuildCreateCustomerRequest("Acme Industries"));
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             TestContext.WriteLine(await createResponse.Content.ReadAsStringAsync());

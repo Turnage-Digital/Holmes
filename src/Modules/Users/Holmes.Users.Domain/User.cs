@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Domain.Events;
@@ -214,5 +213,8 @@ public sealed class User : AggregateRoot
         Emit(@event);
     }
 
-    private void Emit(INotification @event) => AddDomainEvent(@event);
+    private void Emit(INotification @event)
+    {
+        AddDomainEvent(@event);
+    }
 }

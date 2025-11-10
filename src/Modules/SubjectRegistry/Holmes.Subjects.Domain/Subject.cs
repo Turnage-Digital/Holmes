@@ -155,5 +155,8 @@ public sealed class Subject : AggregateRoot
         Emit(@event);
     }
 
-    private void Emit(INotification @event) => AddDomainEvent(@event);
+    private void Emit(INotification @event)
+    {
+        AddDomainEvent(@event);
+    }
 }

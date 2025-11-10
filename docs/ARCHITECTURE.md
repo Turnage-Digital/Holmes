@@ -49,6 +49,18 @@ ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stu
 - **Events** are the source of truth; read models provide instant visibility.
 - **PII minimization** & field-level encryption; immutable WORM artifacts.
 
+### Security · Audit · Compliance Doctrine
+
+- Every aggregate mutation **must** emit an `EventRecord` (
+  `src/Modules/Core/Holmes.Core.Infrastructure.Sql/Entities/EventRecord.cs`). The ledger cannot have gaps, alternate
+  pathways, or mutable history.
+- Tenant isolation is absolute: event payloads, snapshots, read models, and caches never blend customer data, and
+  processors can only operate inside the tenant context carried by the initiating command.
+- PII is minimized and encrypted at rest (field-level when possible) and is only exposed through authorized read models;
+  ephemeral caches stay PII-free.
+- Compliance is a product feature: flows must remain explainable, time-stamped, and reproducible so Holmes sustains *
+  *100%** audit readiness for FCRA/EEOC/ICRAA plus customer overlays.
+
 ### Users Module (Phase 1 preview)
 
 **Bounded context goal:** project external OIDC identities into Holmes, capture authorization roles, and expose
@@ -111,11 +123,11 @@ handlers consult the read models to enforce policies.
 
 Every bounded context ships the same three projects so dependencies remain predictable:
 
-| Project                                  | Responsibilities                                             | References                                      |
-|------------------------------------------|--------------------------------------------------------------|-------------------------------------------------|
-| `Holmes.<Feature>.Domain`                | Aggregates, domain events, `I<Feature>UnitOfWork`, policies  | `Holmes.Core.Domain`                            |
-| `Holmes.<Feature>.Application`           | Commands, queries, handlers, DTOs                            | `<Feature>.Domain`, `Holmes.Core.Application`   |
-| `Holmes.<Feature>.Infrastructure.Sql`    | DbContext, repositories, UnitOfWork, DI helpers              | `<Feature>.Domain`, `Holmes.Core.Infrastructure.Sql` |
+| Project                               | Responsibilities                                            | References                                           |
+|---------------------------------------|-------------------------------------------------------------|------------------------------------------------------|
+| `Holmes.<Feature>.Domain`             | Aggregates, domain events, `I<Feature>UnitOfWork`, policies | `Holmes.Core.Domain`                                 |
+| `Holmes.<Feature>.Application`        | Commands, queries, handlers, DTOs                           | `<Feature>.Domain`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql` | DbContext, repositories, UnitOfWork, DI helpers             | `<Feature>.Domain`, `Holmes.Core.Infrastructure.Sql` |
 
 Additional infrastructure (e.g., caching, queues) follows the same naming pattern
 (`Infrastructure.Redis`, `Infrastructure.Search`, etc.) but **never** references the Application layer.
@@ -183,7 +195,16 @@ pipeline and no additional queueing infrastructure is necessary.
 
 - `Holmes.Identity.Server` hosts a minimal Duende IdentityServer for development. Run
   `dotnet run --project src/Holmes.Identity.Server` (defaults to `https://localhost:6001`) before launching the main
-  host. Dev credentials: `admin` / `password`.
+  host. Dev credentials: `admin` / `password`. This project is explicitly local-only and never deployed past a
+  developer workstation; production/staging environments point the Holmes host at real customer IdPs.
+- Holmes.App.Server intercepts any unauthenticated HTML navigation and redirects to `/auth/options`, which renders the
+  provider list directly on the server (including sanitized `returnUrl` handling) before handing off to the configured
+  OpenID Connect challenge.
+- The React app no longer duplicates that UI: `AuthBoundary` verifies `/users/me` once, and on any 401/403/404 it
+  performs
+  a full-page navigation back to `/auth/options?returnUrl=…`, ensuring session refreshes follow the same hardened flow
+  as
+  first-time sign-ins.
 - Holmes.App.Server registers two baseline policies:
     - `AuthorizationPolicies.RequireAdmin` → requires the `Admin` role claim.
     - `AuthorizationPolicies.RequireOps` → requires `Ops` or `Admin`.
@@ -723,5 +744,6 @@ deterministic adjudication + simulator.
 ```json
 { "evt":"Clock.Started","clock_id":"clk_01","kind":"adverse","order_id":"ord_01","deadline_at":"2025-11-12T10:30:00Z" }
 ```
+
 - Database reset (EF migrations + schema drop/create) is handled by `ef-reset.ps1` in the repo root. Running it
   rebuilds the Core/Users/Customers/Subjects schemas, ensuring every dev starts from the same migrations baseline.

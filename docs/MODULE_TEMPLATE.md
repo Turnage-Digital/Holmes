@@ -32,11 +32,11 @@ src/Modules/<Feature>/
 
 ## Project References
 
-| Project                             | References                                                                             |
-|-------------------------------------|----------------------------------------------------------------------------------------|
-| `Holmes.<Feature>.Domain`           | `Holmes.Core.Domain` only.                                                             |
-| `Holmes.<Feature>.Application`      | `Holmes.<Feature>.Domain`, `Holmes.Core.Application`                                   |
-| `Holmes.<Feature>.Infrastructure.*` | `Holmes.<Feature>.Domain`, `Holmes.Core.Infrastructure.*` (never reference Application)|
+| Project                             | References                                                                              |
+|-------------------------------------|-----------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`           | `Holmes.Core.Domain` only.                                                              |
+| `Holmes.<Feature>.Application`      | `Holmes.<Feature>.Domain`, `Holmes.Core.Application`                                    |
+| `Holmes.<Feature>.Infrastructure.*` | `Holmes.<Feature>.Domain`, `Holmes.Core.Infrastructure.*` (never reference Application) |
 
 `Holmes.App.Server` references the Application + Infrastructure projects only.
 Tests reference the Application layer (for handlers) plus Infrastructure for
@@ -88,8 +88,8 @@ must request the unit of work and access repositories via its properties to hono
 
 1. Copy the folder skeleton above into `src/Modules/<Feature>/`.
 2. Create project files by cloning an existing module and updating:
-   - `<RootNamespace>` and `<AssemblyName>`
-   - `ProjectReference` blocks following the table above
+    - `<RootNamespace>` and `<AssemblyName>`
+    - `ProjectReference` blocks following the table above
 3. Add `I<Feature>UnitOfWork` to Domain and a `DependencyInjection` helper to
    Infrastructure (see template snippet).
 4. Register the module in `HostingExtensions.AddInfrastructure` and add its

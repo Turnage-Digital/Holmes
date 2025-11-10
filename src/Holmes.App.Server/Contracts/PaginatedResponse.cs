@@ -1,5 +1,3 @@
-using System;
-
 namespace Holmes.App.Server.Contracts;
 
 public sealed record PaginatedResponse<T>(

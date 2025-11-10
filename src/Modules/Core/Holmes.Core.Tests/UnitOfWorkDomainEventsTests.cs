@@ -25,7 +25,10 @@ public class UnitOfWorkDomainEventsTests
 
     private sealed class FakeAggregate : AggregateRoot
     {
-        public void Add(INotification @event) => AddDomainEvent(@event);
+        public void Add(INotification @event)
+        {
+            AddDomainEvent(@event);
+        }
     }
 
     private sealed class FakeUnitOfWork(FakeDbContext db, IMediator mediator)

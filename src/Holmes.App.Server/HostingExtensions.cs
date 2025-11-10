@@ -24,8 +24,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -93,7 +91,7 @@ internal static class HostingExtensions
             builder.Services.AddInfrastructure(connectionString);
         }
 
-        IServiceCollection temp1 = builder.Services;
+        var temp1 = builder.Services;
         builder.Services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssemblyContaining<RequestBase>();
@@ -105,7 +103,7 @@ internal static class HostingExtensions
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>),
             typeof(LoggingBehavior<,>));
-        IServiceCollection temp = builder.Services;
+        var temp = builder.Services;
 
         builder.Services.AddAuthorizationBuilder()
             .AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole("Admin"))
@@ -220,7 +218,6 @@ internal static class HostingExtensions
                     NameClaimType = ClaimTypes.Name,
                     RoleClaimType = ClaimTypes.Role
                 };
-                options.Events ??= new OpenIdConnectEvents();
                 options.Events.OnRedirectToIdentityProvider = context =>
                 {
                     if (IsApiRequest(context.Request))
@@ -228,6 +225,7 @@ internal static class HostingExtensions
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.HandleResponse();
                     }
+
                     return Task.CompletedTask;
                 };
             });

@@ -1,7 +1,6 @@
 using Holmes.Core.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace Holmes.Core.Infrastructure.Sql;
 

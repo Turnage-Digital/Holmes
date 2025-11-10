@@ -1,3 +1,4 @@
+using System.Globalization;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
@@ -8,7 +9,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 
 namespace Holmes.App.Server.Controllers;
 
