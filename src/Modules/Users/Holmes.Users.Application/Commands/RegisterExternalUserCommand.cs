@@ -1,6 +1,8 @@
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
+using Holmes.Users.Domain.Events;
 using MediatR;
 
 namespace Holmes.Users.Application.Commands;
@@ -11,10 +13,11 @@ public sealed record RegisterExternalUserCommand(
     string Email,
     string? DisplayName,
     string? AuthenticationMethod,
-    DateTimeOffset AuthenticatedAt
+    DateTimeOffset AuthenticatedAt,
+    bool AllowAutoProvision = false
 ) : RequestBase<UlidId>, ISkipUserAssignment;
 
-public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWork)
+public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWork, IPublisher publisher)
     : IRequestHandler<RegisterExternalUserCommand, UlidId>
 {
     public async Task<UlidId> Handle(RegisterExternalUserCommand request, CancellationToken cancellationToken)
@@ -28,6 +31,16 @@ public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWo
             existing = await repository.GetByEmailAsync(request.Email, cancellationToken);
             if (existing is null)
             {
+                if (!request.AllowAutoProvision)
+                {
+                    await publisher.Publish(new UninvitedExternalLoginAttempted(
+                        request.Issuer,
+                        request.Subject,
+                        request.Email,
+                        request.AuthenticatedAt), cancellationToken);
+                    throw new UserInvitationRequiredException(request.Email, request.Issuer, request.Subject);
+                }
+
                 var user = User.Register(UlidId.NewUlid(), identity, request.Email, request.DisplayName,
                     request.AuthenticatedAt);
                 await repository.AddAsync(user, cancellationToken);
@@ -36,16 +49,15 @@ public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWo
             }
 
             existing.LinkExternalIdentity(identity);
-            existing.ActivatePendingInvitation(request.AuthenticatedAt);
-            existing.MarkIdentitySeen(request.Issuer, request.Subject, request.AuthenticatedAt);
-            existing.UpdateProfile(request.Email, request.DisplayName, request.AuthenticatedAt);
-            await repository.UpdateAsync(existing, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            return existing.Id;
         }
 
         existing.MarkIdentitySeen(request.Issuer, request.Subject, request.AuthenticatedAt);
         existing.UpdateProfile(request.Email, request.DisplayName, request.AuthenticatedAt);
+        if (existing.Status == UserStatus.Invited)
+        {
+            existing.ActivatePendingInvitation(request.AuthenticatedAt);
+        }
+
         await repository.UpdateAsync(existing, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return existing.Id;

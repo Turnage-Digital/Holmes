@@ -60,6 +60,11 @@ ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stu
   ephemeral caches stay PII-free.
 - Compliance is a product feature: flows must remain explainable, time-stamped, and reproducible so Holmes sustains *
   *100%** audit readiness for FCRA/EEOC/ICRAA plus customer overlays.
+- Authentication remains invite-only. First authenticated requests invoke `RegisterExternalUserCommand` via
+  `ICurrentUserInitializer`; if no Holmes user exists for the email, a `UninvitedExternalLoginAttempted` domain event is
+  published, the attempt is logged, and middleware clears the cookie + redirects to `/auth/access-denied`.
+- Invited users move directly from `Invited` to `Active` on their first successful login. There is
+  no manual approval queue—either you were invited and can sign in, or the attempt is rejected and recorded.
 
 ### Users Module (Phase 1 preview)
 
@@ -68,7 +73,7 @@ tenant-scoped policies without ever persisting credentials.
 
 - **Aggregates**
     - `UserAggregate`: canonical record keyed by `UlidId` with external identity tuple `(issuer, subject)`, profile (
-      email, name), status (`Active`, `Suspended`, `PendingApproval`), and `RoleAssignments`.
+      email, name), status (`Invited`, `Active`, `Suspended`), and `RoleAssignments`.
     - `RoleAssignment` value object: `Role` (`Admin`, `CustomerAdmin`, `Ops`, `Auditor`, etc.), optional `CustomerId`,
       `GrantedBy`, `GrantedAt`.
     - `ExternalIdentity` value object: `Issuer`, `Subject`, `AuthenticationMethod`, `LinkedAt`, `LastSeenAt`.

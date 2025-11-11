@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Holmes.App.Server.Security;
 
-public sealed class MediatorCurrentUserInitializer(
+public sealed class CurrentUserInitializer(
     IMediator mediator,
     IUserContext userContext
 ) : ICurrentUserInitializer
@@ -14,9 +14,9 @@ public sealed class MediatorCurrentUserInitializer(
 
     public async Task<UlidId> EnsureCurrentUserIdAsync(CancellationToken cancellationToken)
     {
-        if (_cachedUserId is { } resolved)
+        if (_cachedUserId is not null)
         {
-            return resolved;
+            return _cachedUserId.Value;
         }
 
         var command = new RegisterExternalUserCommand(

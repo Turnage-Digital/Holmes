@@ -30,6 +30,7 @@ public class CustomersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "user@holmes.dev");
 
+        await CreateUserAsync(factory, "user-no-admin", "user@holmes.dev");
         await client.GetAsync("/api/users/me");
 
         var response = await client.PostAsJsonAsync("/api/customers", BuildCreateCustomerRequest("Acme"));
@@ -91,7 +92,8 @@ public class CustomersEndpointTests
             email,
             subject,
             "pwd",
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow,
+            true));
         return id.ToString();
     }
 
@@ -106,7 +108,8 @@ public class CustomersEndpointTests
             "admin@holmes.dev",
             "Admin User",
             "pwd",
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow,
+            true));
 
         var grant = new GrantUserRoleCommand(
             id,
@@ -127,10 +130,9 @@ public class CustomersEndpointTests
             name,
             "policy-dev",
             "billing@holmes.dev",
-            new[]
-            {
+            [
                 new CreateCustomerContactRequest("Ops Contact", "ops@holmes.dev", null, "Ops")
-            });
+            ]);
     }
 
     private sealed record CreateCustomerRequest(

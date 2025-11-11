@@ -40,7 +40,7 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
 
         var roleHeader = GetHeader(RolesHeader);
         var roles = string.IsNullOrWhiteSpace(roleHeader)
-            ? new[] { "Admin" }
+            ? ["Admin"]
             : roleHeader.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         var claims = new List<Claim>

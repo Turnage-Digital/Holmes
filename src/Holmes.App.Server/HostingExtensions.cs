@@ -16,6 +16,7 @@ using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
+using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using MediatR;
@@ -76,7 +77,7 @@ internal static class HostingExtensions
 
         ConfigureAuthentication(builder);
         builder.Services.AddScoped<IUserContext, HttpUserContext>();
-        builder.Services.AddScoped<ICurrentUserInitializer, MediatorCurrentUserInitializer>();
+        builder.Services.AddScoped<ICurrentUserInitializer, CurrentUserInitializer>();
 
         var isRunningInTestHost = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1",
             StringComparison.Ordinal);
@@ -97,6 +98,7 @@ internal static class HostingExtensions
             config.RegisterServicesFromAssemblyContaining<RequestBase>();
             config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
             config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
             config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
         });
 
@@ -216,6 +218,7 @@ internal static class HostingExtensions
                     NameClaimType = ClaimTypes.Name,
                     RoleClaimType = ClaimTypes.Role
                 };
+                options.Events ??= new OpenIdConnectEvents();
                 options.Events.OnRedirectToIdentityProvider = context =>
                 {
                     if (IsApiRequest(context.Request))
@@ -263,6 +266,33 @@ internal static class HostingExtensions
         app.UseRouting();
 
         app.UseAuthentication();
+        app.Use(async (context, next) =>
+        {
+            if (context.User.Identity?.IsAuthenticated == true && RequiresUserInitialization(context.Request))
+            {
+                var initializer = context.RequestServices.GetRequiredService<ICurrentUserInitializer>();
+                try
+                {
+                    await initializer.EnsureCurrentUserIdAsync(context.RequestAborted);
+                }
+                catch (UserInvitationRequiredException ex)
+                {
+                    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                    logger.LogWarning(ex, "Uninvited login attempt for {Email} ({Issuer}/{Subject})", ex.Email,
+                        ex.Issuer, ex.Subject);
+                    if (!string.Equals(context.User.Identity?.AuthenticationType,
+                            TestAuthenticationDefaults.Scheme, StringComparison.Ordinal))
+                    {
+                        await context.SignOutAsync();
+                    }
+
+                    context.Response.Redirect("/auth/access-denied?reason=uninvited");
+                    return;
+                }
+            }
+
+            await next();
+        });
         app.UseAuthorization();
 
         app.MapControllers();
@@ -283,6 +313,13 @@ internal static class HostingExtensions
                 return Results.Challenge(
                     new AuthenticationProperties { RedirectUri = destination },
                     [OpenIdConnectDefaults.AuthenticationScheme]);
+            })
+            .AllowAnonymous();
+
+        auth.MapGet("/access-denied", (string? reason) =>
+            {
+                var html = BuildAccessDeniedPage(reason);
+                return Results.Content(html, "text/html");
             })
             .AllowAnonymous();
 
@@ -350,6 +387,26 @@ internal static class HostingExtensions
         }
 
         return false;
+    }
+
+    private static bool RequiresUserInitialization(HttpRequest request)
+    {
+        var path = request.Path;
+        if (!HttpMethods.IsGet(request.Method) && !HttpMethods.IsPost(request.Method))
+        {
+            return true;
+        }
+
+        if (path.StartsWithSegments("/signin-oidc", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/signout-callback-oidc", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/auth/access-denied", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/auth/login", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/auth/options", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static bool ShouldRedirectToAuthOptions(HttpRequest request)
@@ -510,6 +567,67 @@ internal static class HostingExtensions
                        <h1>Sign in to Holmes</h1>
                        <p>Select an identity provider to continue.</p>
                        <a class="btn" href="/auth/login?returnUrl={{encoded}}">Continue with Holmes Identity</a>
+                     </div>
+                   </body>
+                 </html>
+                 """;
+    }
+
+    private static string BuildAccessDeniedPage(string? reason)
+    {
+        var (title, message) = reason switch
+        {
+            "uninvited" => ("Invitation Required",
+                "You must be invited to Holmes before you can sign in. Please contact your administrator."),
+            "suspended" => ("Account Suspended",
+                "Your Holmes account has been suspended. Reach out to your administrator for assistance."),
+            _ => ("Access Denied",
+                "We could not grant you access to Holmes. Please verify your invitation or contact support.")
+        };
+
+        return $$"""
+                 <!DOCTYPE html>
+                 <html lang="en">
+                   <head>
+                     <meta charset="utf-8" />
+                     <title>{{title}}</title>
+                     <style>
+                       :root {
+                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                       }
+                       body {
+                         margin: 0;
+                         background: #f5f5f5;
+                         min-height: 100vh;
+                         display: flex;
+                         align-items: center;
+                         justify-content: center;
+                         color: #1b2e5f;
+                       }
+                       .card {
+                         background: #fff;
+                         padding: 2.5rem;
+                         border-radius: 16px;
+                         width: min(420px, 90vw);
+                         text-align: center;
+                         box-shadow: 0 25px 80px rgba(0,0,0,0.12);
+                       }
+                       h1 { margin-top: 0; }
+                       p { color: #555; line-height: 1.5; }
+                       a {
+                         display: inline-block;
+                         margin-top: 2rem;
+                         color: #1b2e5f;
+                         text-decoration: none;
+                         font-weight: 600;
+                       }
+                     </style>
+                   </head>
+                   <body>
+                     <div class="card">
+                       <h1>{{title}}</h1>
+                       <p>{{message}}</p>
+                       <a href="/auth/options">Return to sign in</a>
                      </div>
                    </body>
                  </html>

@@ -13,22 +13,19 @@ public sealed class DevelopmentDataSeeder(
     IServiceProvider services,
     IHostEnvironment environment,
     ILogger<DevelopmentDataSeeder> logger
-)
-    : IHostedService
+) : IHostedService
 {
     private const string DefaultIssuer = "https://localhost:6001";
     private const string DefaultSubject = "admin";
     private const string DefaultEmail = "admin@holmes.dev";
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         if (!environment.IsDevelopment())
         {
-            return Task.CompletedTask;
+            return;
         }
-
-        _ = SeedAsync(cancellationToken);
-        return Task.CompletedTask;
+        await SeedAsync(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -47,6 +44,7 @@ public sealed class DevelopmentDataSeeder(
             var now = DateTimeOffset.UtcNow;
             var adminUserId = await EnsureAdminUserAsync(mediator, now, cancellationToken);
             await EnsureAdminRoleAsync(mediator, adminUserId, now, cancellationToken);
+            await EnsureAdminApprovedAsync(mediator, adminUserId, now, cancellationToken);
             await EnsureDemoCustomerAsync(mediator, customersDb, adminUserId, now, cancellationToken);
         }
         catch (Exception ex)
@@ -67,7 +65,8 @@ public sealed class DevelopmentDataSeeder(
             DefaultEmail,
             "Dev Admin",
             "pwd",
-            timestamp);
+            timestamp,
+            true);
         return await mediator.Send(command, cancellationToken);
     }
 
@@ -87,6 +86,20 @@ public sealed class DevelopmentDataSeeder(
             UserId = adminUserId.ToString()
         };
         await mediator.Send(grant, cancellationToken);
+    }
+
+    private static async Task EnsureAdminApprovedAsync(
+        IMediator mediator,
+        UlidId adminUserId,
+        DateTimeOffset timestamp,
+        CancellationToken cancellationToken
+    )
+    {
+        var approve = new ReactivateUserCommand(adminUserId, timestamp)
+        {
+            UserId = adminUserId.ToString()
+        };
+        await mediator.Send(approve, cancellationToken);
     }
 
     private static async Task EnsureDemoCustomerAsync(

@@ -187,6 +187,11 @@ Holmes.Client
   `/auth/options`, which renders the provider list server-side (sanitized `returnUrl`, no SPA boot required).
 - `Holmes.Client`'s `AuthBoundary` simply retries `/users/me`; if it ever receives 401/403/404, it performs a full-page
   navigation back through `/auth/options?returnUrl=…`, keeping provider choice and cookie issuance on the server.
+- OpenID Connect logins now rely on middleware + `RegisterExternalUserCommand` to ensure the Holmes user already exists.
+  Uninvited attempts publish `UninvitedExternalLoginAttempted`, are logged, and the session is cleared + redirected to
+  `/auth/access-denied`.
+- Invited users flow straight from `Invited` to `Active` on successful login; no manual approval
+  endpoints or pending lists are exposed.
 - Added integration coverage that asserts `/users` (HTML) produces a 302 to `/auth/options`, so regressions in the
   middleware are caught alongside the existing API tests.
 - `Holmes.Identity.Server` stays a local-only Duende stub; the docs now flag it as dev-only plumbing so it never makes

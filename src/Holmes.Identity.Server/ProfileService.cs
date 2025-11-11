@@ -30,10 +30,7 @@ internal sealed class ProfileService : IProfileService
             new(JwtClaimTypes.Role, user.Role)
         };
 
-        var requested = claims
-            .Where(claim => context.RequestedClaimTypes.Contains(claim.Type, StringComparer.OrdinalIgnoreCase));
-
-        context.IssuedClaims.AddRange(requested);
+        context.IssuedClaims.AddRange(claims);
         return Task.CompletedTask;
     }
 

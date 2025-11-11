@@ -182,12 +182,12 @@ public sealed class User : AggregateRoot
             return;
         }
 
-        if (Status != UserStatus.PendingApproval)
+        if (Status != UserStatus.Invited)
         {
             throw new InvalidOperationException("Only pending invitations can be activated.");
         }
 
-        Status = UserStatus.Active;
+        Reactivate(Id, activatedAt);
     }
 
     private void Apply(UserRegistered @event)
@@ -208,7 +208,7 @@ public sealed class User : AggregateRoot
         Id = @event.UserId;
         Email = @event.Email;
         DisplayName = @event.DisplayName;
-        Status = UserStatus.PendingApproval;
+        Status = UserStatus.Invited;
         CreatedAt = @event.InvitedAt;
         Emit(@event);
     }

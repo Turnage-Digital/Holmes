@@ -20,6 +20,16 @@ public class UserTests
     }
 
     [Test]
+    public void ActivatePendingInvitation_Sets_User_To_Active()
+    {
+        var user = User.Invite(UlidId.NewUlid(), "user@example.com", "Example User", DateTimeOffset.UtcNow);
+
+        user.ActivatePendingInvitation(DateTimeOffset.UtcNow);
+
+        Assert.That(user.Status, Is.EqualTo(UserStatus.Active));
+    }
+
+    [Test]
     public void RevokeRole_Prevents_Removing_Last_Admin()
     {
         var identity = new ExternalIdentity("https://issuer", "subject", "pwd", DateTimeOffset.UtcNow);

@@ -26,7 +26,7 @@ public static class DomainEventTracker
         var set = Aggregates.Value;
         if (set is null || set.Count == 0)
         {
-            return Array.Empty<IHasDomainEvents>();
+            return [];
         }
 
         var aggregates = set.ToArray();
