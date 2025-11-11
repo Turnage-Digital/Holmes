@@ -5,30 +5,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Users.Infrastructure.Sql.Repositories;
 
-public class SqlUserRepository : IUserRepository
+public class SqlUserRepository(UsersDbContext dbContext) : IUserRepository
 {
-    private readonly UsersDbContext _dbContext;
-    private readonly IUsersUnitOfWork _unitOfWork;
-
-    public SqlUserRepository(UsersDbContext dbContext, IUsersUnitOfWork unitOfWork)
-    {
-        _dbContext = dbContext;
-        _unitOfWork = unitOfWork;
-    }
-
     public Task AddAsync(User user, CancellationToken cancellationToken)
     {
         var record = ToDb(user);
-        _dbContext.Users.Add(record);
+        dbContext.Users.Add(record);
         UpsertDirectory(user, record);
-        _unitOfWork.RegisterDomainEvents(user);
         return Task.CompletedTask;
     }
 
     public async Task<User?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
     {
         var userId = id.ToString();
-        var record = await _dbContext.Users
+        var record = await dbContext.Users
             .Include(x => x.ExternalIdentities)
             .Include(x => x.RoleMemberships)
             .FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
@@ -47,24 +37,29 @@ public class SqlUserRepository : IUserRepository
         CancellationToken cancellationToken
     )
     {
-        var identity = await _dbContext.UserExternalIdentities
+        var identity = await dbContext.UserExternalIdentities
             .Include(x => x.User)
             .ThenInclude(u => u!.ExternalIdentities)
             .Include(x => x.User)
             .ThenInclude(u => u!.RoleMemberships)
             .FirstOrDefaultAsync(x => x.Issuer == issuer && x.Subject == subject, cancellationToken);
 
-        if (identity is null || identity.User is null)
-        {
-            return null;
-        }
+        return identity is null ? null : Rehydrate(identity.User);
+    }
 
-        return Rehydrate(identity.User);
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        var record = await dbContext.Users
+            .Include(x => x.ExternalIdentities)
+            .Include(x => x.RoleMemberships)
+            .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+
+        return record is null ? null : Rehydrate(record);
     }
 
     public async Task UpdateAsync(User user, CancellationToken cancellationToken)
     {
-        var record = await _dbContext.Users
+        var record = await dbContext.Users
             .Include(x => x.ExternalIdentities)
             .Include(x => x.RoleMemberships)
             .FirstOrDefaultAsync(x => x.UserId == user.Id.ToString(), cancellationToken);
@@ -76,7 +71,6 @@ public class SqlUserRepository : IUserRepository
 
         ApplyState(user, record);
         UpsertDirectory(user, record);
-        _unitOfWork.RegisterDomainEvents(user);
     }
 
     private static User Rehydrate(UserDb record)
@@ -215,11 +209,13 @@ public class SqlUserRepository : IUserRepository
 
     private void UpsertDirectory(User user, UserDb record)
     {
-        var entry = _dbContext.UserDirectory.SingleOrDefault(x => x.UserId == record.UserId);
+        var entry = dbContext.UserDirectory.SingleOrDefault(x => x.UserId == record.UserId);
         var lastSeen = user.ExternalIdentities.Any()
             ? user.ExternalIdentities.Max(x => x.LastSeenAt)
             : user.CreatedAt;
         var primaryIdentity = user.ExternalIdentities.FirstOrDefault();
+        var issuer = primaryIdentity?.Issuer ?? "urn:holmes:invite";
+        var subject = primaryIdentity?.Subject ?? record.UserId;
 
         if (entry is null)
         {
@@ -228,23 +224,20 @@ public class SqlUserRepository : IUserRepository
                 UserId = record.UserId,
                 Email = user.Email,
                 DisplayName = user.DisplayName,
-                Issuer = primaryIdentity?.Issuer ?? string.Empty,
-                Subject = primaryIdentity?.Subject ?? string.Empty,
+                Issuer = issuer,
+                Subject = subject,
                 LastAuthenticatedAt = lastSeen,
                 Status = user.Status
             };
-            _dbContext.UserDirectory.Add(entry);
+            dbContext.UserDirectory.Add(entry);
         }
         else
         {
             entry.Email = user.Email;
             entry.DisplayName = user.DisplayName;
             entry.Status = user.Status;
-            if (primaryIdentity is not null)
-            {
-                entry.Issuer = primaryIdentity.Issuer;
-                entry.Subject = primaryIdentity.Subject;
-            }
+            entry.Issuer = primaryIdentity?.Issuer ?? issuer;
+            entry.Subject = primaryIdentity?.Subject ?? subject;
 
             entry.LastAuthenticatedAt = lastSeen;
         }

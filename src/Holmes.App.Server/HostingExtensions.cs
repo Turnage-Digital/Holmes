@@ -1,5 +1,8 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Holmes.App.Server.Infrastructure;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
@@ -9,18 +12,17 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
-using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
-using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using Holmes.Users.Application.Commands;
+using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
-using Holmes.Users.Infrastructure.Sql.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -75,6 +77,7 @@ internal static class HostingExtensions
 
         ConfigureAuthentication(builder);
         builder.Services.AddScoped<IUserContext, HttpUserContext>();
+        builder.Services.AddScoped<ICurrentUserInitializer, CurrentUserInitializer>();
 
         var isRunningInTestHost = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1",
             StringComparison.Ordinal);
@@ -89,10 +92,27 @@ internal static class HostingExtensions
             builder.Services.AddInfrastructure(connectionString);
         }
 
-        builder.Services.AddDomain();
-        builder.Services.AddApplication();
+        var temp1 = builder.Services;
+        builder.Services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssemblyContaining<RequestBase>();
+            config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
+            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
+        });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
+        builder.Services.AddAuthorizationBuilder()
+            .AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole("Admin"))
+            .AddPolicy(AuthorizationPolicies.RequireOps, policy => policy.RequireRole("Operations", "Admin"));
+
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddHostedService<DevelopmentDataSeeder>();
+        }
 
         var dataProtection = builder.Services.AddDataProtection()
             .SetApplicationName("Holmes");
@@ -125,41 +145,91 @@ internal static class HostingExtensions
 
     private static void ConfigureAuthentication(WebApplicationBuilder builder)
     {
+        var isRunningInTestHost = string.Equals(
+            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"),
+            "1",
+            StringComparison.Ordinal);
+        if (builder.Environment.IsEnvironment("Testing") || isRunningInTestHost)
+        {
+            builder.Services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultScheme = TestAuthenticationDefaults.Scheme;
+                    options.DefaultAuthenticateScheme = TestAuthenticationDefaults.Scheme;
+                    options.DefaultChallengeScheme = TestAuthenticationDefaults.Scheme;
+                })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                    TestAuthenticationDefaults.Scheme, _ => { });
+            return;
+        }
+
         var authority = builder.Configuration["Authentication:Authority"];
-        if (string.IsNullOrWhiteSpace(authority))
+        var clientId = builder.Configuration["Authentication:ClientId"];
+        var clientSecret = builder.Configuration["Authentication:ClientSecret"];
+
+        if (string.IsNullOrWhiteSpace(authority) ||
+            string.IsNullOrWhiteSpace(clientId) ||
+            string.IsNullOrWhiteSpace(clientSecret))
         {
-            builder.Services
-                .AddAuthentication(options =>
-                {
-                    options.DefaultScheme = HeaderAuthenticationDefaults.Scheme;
-                    options.DefaultAuthenticateScheme = HeaderAuthenticationDefaults.Scheme;
-                    options.DefaultChallengeScheme = HeaderAuthenticationDefaults.Scheme;
-                })
-                .AddScheme<AuthenticationSchemeOptions, HeaderAuthenticationHandler>(
-                    HeaderAuthenticationDefaults.Scheme, _ => { });
+            throw new InvalidOperationException(
+                "Interactive authentication requires Authentication:Authority, ClientId, and ClientSecret.");
         }
-        else
-        {
-            builder.Services
-                .AddAuthentication(options =>
+
+        JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+        builder.Services
+            .AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/auth/login";
+                options.LogoutPath = "/auth/logout";
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+                options.Cookie.Name = "holmes.auth";
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.None;
+            })
+            .AddOpenIdConnect(options =>
+            {
+                options.Authority = authority;
+                options.ClientId = clientId;
+                options.ClientSecret = clientSecret;
+                options.ResponseType = "code";
+                options.SaveTokens = true;
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.MapInboundClaims = false;
+                options.Scope.Clear();
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.Scope.Add("email");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+                options.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Role, "role");
+                options.ClaimActions.MapJsonKey("preferred_username", "preferred_username");
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
+                    NameClaimType = ClaimTypes.Name,
+                    RoleClaimType = ClaimTypes.Role
+                };
+                options.Events ??= new OpenIdConnectEvents();
+                options.Events.OnRedirectToIdentityProvider = context =>
                 {
-                    var optionsAudience = builder.Configuration["Authentication:Audience"];
-                    options.Authority = authority;
-                    options.Audience = optionsAudience;
-                    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-                    options.TokenValidationParameters = new TokenValidationParameters
+                    if (IsApiRequest(context.Request))
                     {
-                        ValidateIssuer = true,
-                        ValidateAudience = !string.IsNullOrWhiteSpace(optionsAudience),
-                        ValidateLifetime = true
-                    };
-                });
-        }
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.HandleResponse();
+                    }
+
+                    return Task.CompletedTask;
+                };
+            });
     }
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
@@ -178,18 +248,92 @@ internal static class HostingExtensions
         }
 
         app.UseHttpsRedirection();
+        app.Use(async (context, next) =>
+        {
+            if (!(context.User.Identity?.IsAuthenticated ?? false) &&
+                ShouldRedirectToAuthOptions(context.Request))
+            {
+                var returnUrl1 = GetRequestedUrl(context.Request);
+                context.Response.Redirect($"/auth/options?returnUrl={Uri.EscapeDataString(returnUrl1)}");
+                return;
+            }
+
+            await next();
+        });
+
         app.UseDefaultFiles();
         app.UseStaticFiles();
         app.UseRouting();
 
         app.UseAuthentication();
+        app.Use(async (context, next) =>
+        {
+            if (context.User.Identity?.IsAuthenticated == true && RequiresUserInitialization(context.Request))
+            {
+                var initializer = context.RequestServices.GetRequiredService<ICurrentUserInitializer>();
+                try
+                {
+                    await initializer.EnsureCurrentUserIdAsync(context.RequestAborted);
+                }
+                catch (UserInvitationRequiredException ex)
+                {
+                    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                    logger.LogWarning(ex, "Uninvited login attempt for {Email} ({Issuer}/{Subject})", ex.Email,
+                        ex.Issuer, ex.Subject);
+                    if (!string.Equals(context.User.Identity?.AuthenticationType,
+                            TestAuthenticationDefaults.Scheme, StringComparison.Ordinal))
+                    {
+                        await context.SignOutAsync();
+                    }
+
+                    context.Response.Redirect("/auth/access-denied?reason=uninvited");
+                    return;
+                }
+            }
+
+            await next();
+        });
         app.UseAuthorization();
 
         app.MapControllers();
-        
+
+        var auth = app.MapGroup("/auth");
+
+        auth.MapGet("/options", (HttpRequest request, string? returnUrl) =>
+            {
+                var destination = SanitizeReturnUrl(returnUrl, request);
+                var html = BuildAuthOptionsPage(destination);
+                return Results.Content(html, "text/html");
+            })
+            .AllowAnonymous();
+
+        auth.MapGet("/login", (HttpRequest request, string? returnUrl) =>
+            {
+                var destination = SanitizeReturnUrl(returnUrl, request);
+                return Results.Challenge(
+                    new AuthenticationProperties { RedirectUri = destination },
+                    [OpenIdConnectDefaults.AuthenticationScheme]);
+            })
+            .AllowAnonymous();
+
+        auth.MapGet("/access-denied", (string? reason) =>
+            {
+                var html = BuildAccessDeniedPage(reason);
+                return Results.Content(html, "text/html");
+            })
+            .AllowAnonymous();
+
+        auth.MapPost("/logout", async (HttpContext context, string? returnUrl) =>
+            {
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                var target = SanitizeReturnUrl(returnUrl, context.Request);
+                return Results.Redirect(target);
+            })
+            .RequireAuthorization();
+
         app.MapHealthChecks("/health")
             .AllowAnonymous();
-        
+
         app.Map("/error", (HttpContext context, IHostEnvironment env, ILogger<Program> logger) =>
             {
                 var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
@@ -205,7 +349,7 @@ internal static class HostingExtensions
                 return Results.Problem(statusCode: StatusCodes.Status500InternalServerError, detail: detail);
             })
             .AllowAnonymous();
-        
+
         app.MapGet("/_info", (IHostEnvironment env) =>
                 Results.Ok(new
                 {
@@ -217,6 +361,115 @@ internal static class HostingExtensions
             .AllowAnonymous();
 
         return app;
+    }
+
+    private static bool IsApiRequest(HttpRequest request)
+    {
+        if (request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (request.Headers.TryGetValue("Accept", out var acceptHeader) &&
+            acceptHeader.Any(value =>
+                value is not null &&
+                value.Contains("application/json", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        if (request.Headers.TryGetValue("X-Requested-With", out var requestedWith) &&
+            requestedWith.Any(value =>
+                value is not null &&
+                value.Equals("XMLHttpRequest", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool RequiresUserInitialization(HttpRequest request)
+    {
+        var path = request.Path;
+        if (!HttpMethods.IsGet(request.Method) && !HttpMethods.IsPost(request.Method))
+        {
+            return true;
+        }
+
+        if (path.StartsWithSegments("/signin-oidc", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/signout-callback-oidc", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/auth/access-denied", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/auth/login", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/auth/options", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool ShouldRedirectToAuthOptions(HttpRequest request)
+    {
+        if (!HttpMethods.IsGet(request.Method))
+        {
+            return false;
+        }
+
+        var path = request.Path;
+        if (path.StartsWithSegments("/auth") ||
+            path.StartsWithSegments("/signin-oidc") ||
+            path.StartsWithSegments("/signout-callback-oidc") ||
+            path.StartsWithSegments("/api") ||
+            path.StartsWithSegments("/health") ||
+            path.StartsWithSegments("/swagger") ||
+            path.StartsWithSegments("/static") ||
+            path.StartsWithSegments("/assets"))
+        {
+            return false;
+        }
+
+        if (path.HasValue && path.Value.Contains('.', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (!request.Headers.TryGetValue("Accept", out var acceptHeader))
+        {
+            return false;
+        }
+
+        return acceptHeader.Any(value =>
+            value is not null &&
+            value.Contains("text/html", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string GetRequestedUrl(HttpRequest request)
+    {
+        var path = request.Path.HasValue ? request.Path.Value : "/";
+        var query = request.QueryString.HasValue ? request.QueryString.Value : string.Empty;
+        return string.Concat(path, query);
+    }
+
+    private static string SanitizeReturnUrl(string? returnUrl, HttpRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl))
+        {
+            return "/";
+        }
+
+        if (Uri.TryCreate(returnUrl, UriKind.Absolute, out var absolute))
+        {
+            var requestHost = request.Host.HasValue ? request.Host.Host : string.Empty;
+            if (!string.Equals(absolute.Host, requestHost, StringComparison.OrdinalIgnoreCase))
+            {
+                return "/";
+            }
+
+            return absolute.PathAndQuery;
+        }
+
+        return returnUrl.StartsWith('/') ? returnUrl : "/";
     }
 
     private static IServiceCollection AddInfrastructure(
@@ -258,32 +511,126 @@ internal static class HostingExtensions
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
-        services.AddScoped<IUserRepository>(sp => sp.GetRequiredService<IUsersUnitOfWork>().Users);
         services.AddScoped<IUserDirectory>(sp => sp.GetRequiredService<IUsersUnitOfWork>().UserDirectory);
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
-        services.AddScoped<ICustomerRepository>(sp => sp.GetRequiredService<ICustomersUnitOfWork>().Customers);
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
-        services.AddScoped<ISubjectRepository>(sp => sp.GetRequiredService<ISubjectsUnitOfWork>().Subjects);
         return services;
     }
 
-    private static IServiceCollection AddDomain(this IServiceCollection services)
+    private static string BuildAuthOptionsPage(string destination)
     {
-        return services;
+        var encoded = Uri.EscapeDataString(destination);
+        return $$"""
+                 <!DOCTYPE html>
+                 <html lang="en">
+                   <head>
+                     <meta charset="utf-8" />
+                     <title>Holmes Sign In</title>
+                     <style>
+                       :root {
+                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                       }
+                       body {
+                         margin: 0;
+                         background: #f5f5f5;
+                         min-height: 100vh;
+                         display: flex;
+                         align-items: center;
+                         justify-content: center;
+                       }
+                       .card {
+                         background: #fff;
+                         padding: 2.5rem;
+                         border-radius: 16px;
+                         width: min(400px, 90vw);
+                         text-align: center;
+                         box-shadow: 0 25px 80px rgba(0,0,0,0.12);
+                       }
+                       h1 { margin-top: 0; color: #1b2e5f; }
+                       p { color: #555; }
+                       .btn {
+                         display: inline-flex;
+                         justify-content: center;
+                         align-items: center;
+                         padding: 0.85rem 1.2rem;
+                         background: #1b2e5f;
+                         color: #fff;
+                         text-decoration: none;
+                         border-radius: 6px;
+                         font-weight: 600;
+                       }
+                       .btn:hover { background: #16244a; }
+                     </style>
+                   </head>
+                   <body>
+                     <div class="card">
+                       <h1>Sign in to Holmes</h1>
+                       <p>Select an identity provider to continue.</p>
+                       <a class="btn" href="/auth/login?returnUrl={{encoded}}">Continue with Holmes Identity</a>
+                     </div>
+                   </body>
+                 </html>
+                 """;
     }
 
-    private static IServiceCollection AddApplication(this IServiceCollection services)
+    private static string BuildAccessDeniedPage(string? reason)
     {
-        services.AddMediatR(config =>
+        var (title, message) = reason switch
         {
-            config.RegisterServicesFromAssemblyContaining<RequestBase>();
-            config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
-            config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
-            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
-        });
+            "uninvited" => ("Invitation Required",
+                "You must be invited to Holmes before you can sign in. Please contact your administrator."),
+            "suspended" => ("Account Suspended",
+                "Your Holmes account has been suspended. Reach out to your administrator for assistance."),
+            _ => ("Access Denied",
+                "We could not grant you access to Holmes. Please verify your invitation or contact support.")
+        };
 
-        services.AddTransient(typeof(IPipelineBehavior<,>),
-            typeof(LoggingBehavior<,>));
-        return services;
+        return $$"""
+                 <!DOCTYPE html>
+                 <html lang="en">
+                   <head>
+                     <meta charset="utf-8" />
+                     <title>{{title}}</title>
+                     <style>
+                       :root {
+                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                       }
+                       body {
+                         margin: 0;
+                         background: #f5f5f5;
+                         min-height: 100vh;
+                         display: flex;
+                         align-items: center;
+                         justify-content: center;
+                         color: #1b2e5f;
+                       }
+                       .card {
+                         background: #fff;
+                         padding: 2.5rem;
+                         border-radius: 16px;
+                         width: min(420px, 90vw);
+                         text-align: center;
+                         box-shadow: 0 25px 80px rgba(0,0,0,0.12);
+                       }
+                       h1 { margin-top: 0; }
+                       p { color: #555; line-height: 1.5; }
+                       a {
+                         display: inline-block;
+                         margin-top: 2rem;
+                         color: #1b2e5f;
+                         text-decoration: none;
+                         font-weight: 600;
+                       }
+                     </style>
+                   </head>
+                   <body>
+                     <div class="card">
+                       <h1>{{title}}</h1>
+                       <p>{{message}}</p>
+                       <a href="/auth/options">Return to sign in</a>
+                     </div>
+                   </body>
+                 </html>
+                 """;
     }
 }

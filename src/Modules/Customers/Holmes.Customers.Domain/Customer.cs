@@ -6,10 +6,9 @@ using MediatR;
 
 namespace Holmes.Customers.Domain;
 
-public sealed class Customer : IHasDomainEvents
+public sealed class Customer : AggregateRoot
 {
     private readonly List<CustomerAdmin> _admins = [];
-    private readonly List<INotification> _events = [];
 
     private Customer()
     {
@@ -24,13 +23,6 @@ public sealed class Customer : IHasDomainEvents
     public DateTimeOffset CreatedAt { get; private set; }
 
     public IReadOnlyCollection<CustomerAdmin> Admins => new ReadOnlyCollection<CustomerAdmin>(_admins);
-
-    public IReadOnlyCollection<INotification> DomainEvents => new ReadOnlyCollection<INotification>(_events);
-
-    public void ClearDomainEvents()
-    {
-        _events.Clear();
-    }
 
     public static Customer Register(UlidId id, string name, DateTimeOffset registeredAt)
     {
@@ -137,6 +129,6 @@ public sealed class Customer : IHasDomainEvents
 
     private void Emit(INotification @event)
     {
-        _events.Add(@event);
+        AddDomainEvent(@event);
     }
 }

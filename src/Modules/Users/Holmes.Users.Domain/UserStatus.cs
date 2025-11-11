@@ -2,7 +2,7 @@ namespace Holmes.Users.Domain;
 
 public enum UserStatus
 {
-    PendingApproval = 0,
+    Invited = 0,
     Active = 1,
     Suspended = 2
 }

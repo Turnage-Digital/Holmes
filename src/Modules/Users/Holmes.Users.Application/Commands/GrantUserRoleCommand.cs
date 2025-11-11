@@ -10,32 +10,25 @@ public sealed record GrantUserRoleCommand(
     UlidId TargetUserId,
     UserRole Role,
     string? CustomerId,
-    UlidId GrantedBy,
     DateTimeOffset GrantedAt
 ) : RequestBase<Result>;
 
-public sealed class GrantUserRoleCommandHandler : IRequestHandler<GrantUserRoleCommand, Result>
+public sealed class GrantUserRoleCommandHandler(IUsersUnitOfWork unitOfWork)
+    : IRequestHandler<GrantUserRoleCommand, Result>
 {
-    private readonly IUserRepository _repository;
-    private readonly IUsersUnitOfWork _unitOfWork;
-
-    public GrantUserRoleCommandHandler(IUserRepository repository, IUsersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(GrantUserRoleCommand request, CancellationToken cancellationToken)
     {
-        var user = await _repository.GetByIdAsync(request.TargetUserId, cancellationToken);
+        var repository = unitOfWork.Users;
+        var user = await repository.GetByIdAsync(request.TargetUserId, cancellationToken);
         if (user is null)
         {
             return Result.Fail($"User '{request.TargetUserId}' not found.");
         }
 
-        user.GrantRole(request.Role, request.CustomerId, request.GrantedBy, request.GrantedAt);
-        await _repository.UpdateAsync(user, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        var actor = request.GetUserUlid();
+        user.GrantRole(request.Role, request.CustomerId, actor, request.GrantedAt);
+        await repository.UpdateAsync(user, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

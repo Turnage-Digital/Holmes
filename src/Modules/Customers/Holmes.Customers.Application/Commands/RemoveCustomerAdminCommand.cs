@@ -9,40 +9,33 @@ namespace Holmes.Customers.Application.Commands;
 public sealed record RemoveCustomerAdminCommand(
     UlidId TargetCustomerId,
     UlidId TargetUserId,
-    UlidId RemovedBy,
     DateTimeOffset RemovedAt
 ) : RequestBase<Result>;
 
-public sealed class RemoveCustomerAdminCommandHandler : IRequestHandler<RemoveCustomerAdminCommand, Result>
+public sealed class RemoveCustomerAdminCommandHandler(ICustomersUnitOfWork unitOfWork)
+    : IRequestHandler<RemoveCustomerAdminCommand, Result>
 {
-    private readonly ICustomerRepository _repository;
-    private readonly ICustomersUnitOfWork _unitOfWork;
-
-    public RemoveCustomerAdminCommandHandler(ICustomerRepository repository, ICustomersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(RemoveCustomerAdminCommand request, CancellationToken cancellationToken)
     {
-        var customer = await _repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
+        var repository = unitOfWork.Customers;
+        var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
             return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
         }
 
+        var actor = request.GetUserUlid();
         try
         {
-            customer.RemoveAdmin(request.TargetUserId, request.RemovedBy, request.RemovedAt);
+            customer.RemoveAdmin(request.TargetUserId, actor, request.RemovedAt);
         }
         catch (InvalidOperationException ex)
         {
             return Result.Fail(ex.Message);
         }
 
-        await _repository.UpdateAsync(customer, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await repository.UpdateAsync(customer, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

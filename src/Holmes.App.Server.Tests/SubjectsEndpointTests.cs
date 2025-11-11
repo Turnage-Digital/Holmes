@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
+using Holmes.Users.Application.Commands;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Holmes.App.Server.Tests;
@@ -17,13 +19,10 @@ public class SubjectsEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
         client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
-        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
-        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
-        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
-        client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
+        await EnsureTestUserAsync(factory);
         var request = new RegisterSubjectRequest("Jane", "Doe", new DateOnly(1985, 6, 1), "jane.doe@example.com");
-        var response = await client.PostAsJsonAsync("/subjects", request);
+        var response = await client.PostAsJsonAsync("/api/subjects", request);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
         var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryResponse>();
@@ -41,7 +40,8 @@ public class SubjectsEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
-        var response = await client.GetAsync($"/subjects/{Ulid.NewUlid()}");
+        await EnsureTestUserAsync(factory);
+        var response = await client.GetAsync($"/api/subjects/{Ulid.NewUlid()}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
     }
@@ -69,7 +69,8 @@ public class SubjectsEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Subject", "subject-tester");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "tester@holmes.dev");
 
-        var response = await client.GetAsync($"/subjects/{subjectId}");
+        await EnsureTestUserAsync(factory);
+        var response = await client.GetAsync($"/api/subjects/{subjectId}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryResponse>();
@@ -94,4 +95,18 @@ public class SubjectsEndpointTests
         int AliasCount,
         DateTimeOffset CreatedAt
     );
+
+    private static async Task EnsureTestUserAsync(HolmesWebApplicationFactory factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        await mediator.Send(new RegisterExternalUserCommand(
+            "https://issuer.holmes.test",
+            "subject-tester",
+            "tester@holmes.dev",
+            "Subject Tester",
+            "pwd",
+            DateTimeOffset.UtcNow,
+            true));
+    }
 }

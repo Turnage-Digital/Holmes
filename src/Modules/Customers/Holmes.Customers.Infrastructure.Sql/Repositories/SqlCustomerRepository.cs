@@ -5,29 +5,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Customers.Infrastructure.Sql.Repositories;
 
-public class SqlCustomerRepository : ICustomerRepository
+public class SqlCustomerRepository(CustomersDbContext dbContext)
+    : ICustomerRepository
 {
-    private readonly CustomersDbContext _dbContext;
-    private readonly ICustomersUnitOfWork _unitOfWork;
-
-    public SqlCustomerRepository(CustomersDbContext dbContext, ICustomersUnitOfWork unitOfWork)
-    {
-        _dbContext = dbContext;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task AddAsync(Customer customer, CancellationToken cancellationToken)
     {
         var entity = ToDb(customer);
-        _dbContext.Customers.Add(entity);
-        UpsertDirectory(customer, entity);
-        _unitOfWork.RegisterDomainEvents(customer);
+        dbContext.Customers.Add(entity);
+        UpsertDirectory(entity);
         await Task.CompletedTask;
     }
 
     public async Task<Customer?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
     {
-        var entity = await _dbContext.Customers
+        var entity = await dbContext.Customers
             .Include(c => c.Admins)
             .FirstOrDefaultAsync(c => c.CustomerId == id.ToString(), cancellationToken);
 
@@ -41,7 +32,7 @@ public class SqlCustomerRepository : ICustomerRepository
 
     public async Task UpdateAsync(Customer customer, CancellationToken cancellationToken)
     {
-        var entity = await _dbContext.Customers
+        var entity = await dbContext.Customers
             .Include(c => c.Admins)
             .FirstOrDefaultAsync(c => c.CustomerId == customer.Id.ToString(), cancellationToken);
 
@@ -51,8 +42,7 @@ public class SqlCustomerRepository : ICustomerRepository
         }
 
         ApplyState(customer, entity);
-        UpsertDirectory(customer, entity);
-        _unitOfWork.RegisterDomainEvents(customer);
+        UpsertDirectory(entity);
     }
 
     private static Customer Rehydrate(CustomerDb entity)
@@ -62,11 +52,8 @@ public class SqlCustomerRepository : ICustomerRepository
             entity.Name,
             entity.Status,
             entity.CreatedAt,
-            entity.Admins.Select(a =>
-                new CustomerAdmin(
-                    UlidId.Parse(a.UserId),
-                    a.AssignedBy,
-                    a.AssignedAt)));
+            entity.Admins
+                .Select(a => new CustomerAdmin(UlidId.Parse(a.UserId), a.AssignedBy, a.AssignedAt)));
     }
 
     private static void ApplyState(Customer customer, CustomerDb entity)
@@ -126,9 +113,11 @@ public class SqlCustomerRepository : ICustomerRepository
         return entity;
     }
 
-    private void UpsertDirectory(Customer customer, CustomerDb entity)
+    private void UpsertDirectory(CustomerDb entity)
     {
-        var directory = _dbContext.CustomerDirectory.SingleOrDefault(c => c.CustomerId == entity.CustomerId);
+        var directory = dbContext.CustomerDirectory
+            .SingleOrDefault(c => c.CustomerId == entity.CustomerId);
+
         if (directory is null)
         {
             directory = new CustomerDirectoryDb
@@ -139,7 +128,7 @@ public class SqlCustomerRepository : ICustomerRepository
                 CreatedAt = entity.CreatedAt,
                 AdminCount = entity.Admins.Count
             };
-            _dbContext.CustomerDirectory.Add(directory);
+            dbContext.CustomerDirectory.Add(directory);
         }
         else
         {

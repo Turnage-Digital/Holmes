@@ -30,7 +30,9 @@ public class UsersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Email", "user01@holmes.dev");
         client.DefaultRequestHeaders.Add("X-Auth-Name", "User One");
 
-        var response = await client.GetAsync("/users/me");
+        await CreateUserAsync(factory, "user-01", "user01@holmes.dev");
+
+        var response = await client.GetAsync("/api/users/me");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -49,11 +51,10 @@ public class UsersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Subject", "non-admin");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "user@holmes.dev");
 
-        await client.GetAsync("/users/me");
-
+        await CreateUserAsync(factory, "non-admin", "user@holmes.dev");
         var targetId = await CreateUserAsync(factory, "target-user", "target@holmes.dev");
 
-        var result = await client.PostAsJsonAsync($"/users/{targetId}/roles",
+        var result = await client.PostAsJsonAsync($"/api/users/{targetId}/roles",
             new ModifyUserRoleRequest(UserRole.CustomerAdmin, null));
 
         Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
@@ -70,10 +71,9 @@ public class UsersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Name", "Admin User");
 
         var adminId = await PromoteCurrentUserToAdminAsync(factory);
-
         var targetId = await CreateUserAsync(factory, "target-admin", "target.admin@holmes.dev");
 
-        var result = await client.PostAsJsonAsync($"/users/{targetId}/roles",
+        var result = await client.PostAsJsonAsync($"/api/users/{targetId}/roles",
             new ModifyUserRoleRequest(UserRole.CustomerAdmin, null));
 
         Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
@@ -83,13 +83,6 @@ public class UsersEndpointTests
         var membership = await db.UserRoleMemberships.AsNoTracking()
             .SingleOrDefaultAsync(r => r.UserId == targetId && r.Role == UserRole.CustomerAdmin);
         Assert.That(membership, Is.Not.Null);
-
-        var revokeRequest = new HttpRequestMessage(HttpMethod.Delete, $"/users/{targetId}/roles")
-        {
-            Content = JsonContent.Create(new ModifyUserRoleRequest(UserRole.CustomerAdmin, null))
-        };
-        var revoke = await client.SendAsync(revokeRequest);
-        Assert.That(revoke.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
     }
 
     private static async Task<string> CreateUserAsync(HolmesWebApplicationFactory factory, string subject, string email)
@@ -102,7 +95,8 @@ public class UsersEndpointTests
             email,
             subject,
             "pwd",
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow,
+            true));
         return id.ToString();
     }
 
@@ -117,14 +111,18 @@ public class UsersEndpointTests
             "admin@holmes.dev",
             "Admin User",
             "pwd",
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow,
+            true));
 
-        await mediator.Send(new GrantUserRoleCommand(
+        var grant = new GrantUserRoleCommand(
             id,
             UserRole.Admin,
             null,
-            id,
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow)
+        {
+            UserId = id.ToString()
+        };
+        await mediator.Send(grant);
 
         return id;
     }

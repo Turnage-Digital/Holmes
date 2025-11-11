@@ -14,7 +14,10 @@ value, expands observability, and keeps the event-sourced backbone intact.
 - **Identifiers:** ULID per aggregate; global `events.position` as `BIGINT`.
 - **Event Store:** Append-only `events` table + optional snapshots; projections checkpointed.
 - **Streaming:** Server-Sent Events `/changes` with tenant + stream filters.
-- **Security:** JWT auth, tenant isolation, AES-GCM for PII, secrets via user-secrets/env vars.
+- **Security/Audit/Compliance:** JWT auth, tenant isolation, AES-GCM for PII, secrets via user-secrets/env vars. Every
+  aggregate mutation writes an immutable `EventRecord` (
+  `src/Modules/Core/Holmes.Core.Infrastructure.Sql/Entities/EventRecord.cs`) so regulators can replay history, and no
+  customer data ever crosses tenant boundaries—FCRA/EEOC/ICRAA readiness is a 100% requirement.
 - **Tooling:** `dotnet format`, GitHub Actions (later), Docker Compose for dev MySQL.
 - **Module layering:** `Holmes.Core.*` supplies shared primitives; each feature module is split into `*.Domain`,
   `*.Application`, `*.Infrastructure` with `*.Application` → `*.Domain` dependencies only and `*.Infrastructure` wiring
@@ -130,10 +133,70 @@ Infrastructure to compose the runtime.
 - Integration tests for user activation, subject merge, customer assignment flows.
 - Observability: structured logging, request tracing, basic metrics.
 
-**Follow-ups**
+**Follow-ups (rolled into Phase 1.5)**
 
-- Circle back and align `Holmes.Core` module conventions with the finalized Users & Customers modules post Phase 1.
+- Align `Holmes.Core` module conventions with the finalized Users & Customers modules.
 - Capture a concise UnitOfWork/domain-event dispatch overview so future modules follow the shared pattern.
+
+### Phase 1.5 — Platform Cohesion & Event Plumbing
+
+**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, SubjectRegistry, Holmes.Identity.Server,
+Holmes.Client  
+**Outcomes**
+
+- Shared infrastructure: integration specs in `Holmes.Core.Tests` guard the `UnitOfWork<TContext>` + domain-event
+  dispatch pipeline (multi-aggregate commit, rollback safety) and the pattern is documented in ARCHITECTURE so every
+  module copies the same transactional template.
+- Identity + tenancy plumbing:
+    - `Holmes.Identity.Server` runs as the dev IdP; `DevelopmentDataSeeder` mirrors the IdP admin, grants the Admin
+      role,
+      and creates a seeded customer profile/contact so invite → activate → assign role works immediately.
+    - Authorization helpers back the new `GET /api/users`, `POST /api/users/invitations`, and role mutation endpoints;
+      the React
+      role union (`Admin`, `CustomerAdmin`, `Compliance`, `Operations`, `Auditor`) matches the backend enums.
+- Customer contract alignment:
+    - Introduced `customer_profiles` + `customer_contacts` projections/migrations and exposed paginated
+      `CustomerListItemResponse` payloads from `GET/POST /api/customers`, so the React table/form consumes the real
+      DTOs.
+    - `docs/DEV_SETUP.md` now walks through `pwsh ./ef-reset.ps1`, which *always* drops databases, deletes migration
+      folders, scaffolds initial migrations (plus `AddCustomerProfiles`), and reapplies them for Core/Users/Customers/
+      Subjects.
+- Subject registry readiness: `GET /api/subjects?page=&pageSize=` and `POST /api/subjects/merge` feed the UI proof
+  screen with
+  actual data and wire through `MergeSubjectCommand`.
+- SPA proof surface: `Holmes.Client` runs under Vite + SPA proxy, hits the aforementioned APIs via TanStack Query,
+  redirects 401 responses to `/auth/options`, and proves Phase 1 flows (invite, grant/revoke role, create customer,
+  merge subject) without Postman.
+- Observability + docs: structured logging + correlation IDs are standard, and ARCHITECTURE + DEV_SETUP call out IdP
+  setup, seeding, reset instructions, and the SPA proxy steps so new devs can follow a deterministic recipe.
+
+**Acceptance**
+
+- `pwsh ./ef-reset.ps1` rebuilds every schema (Core, Users, Customers, SubjectRegistry) and reapplies the Initial +
+  `AddCustomerProfiles` migrations without manual cleanup or selective skipping.
+- Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.Client) allows a tenant admin to complete
+  invite → activate → grant/revoke role → create customer → merge subject entirely through the UI, with a single
+  domain-event batch per transaction and green `dotnet test` / `npm run build` pipelines.
+
+### Phase 1.8 — Auth Flow Cleanup & Hardening
+
+**Modules delivered:** Holmes.App.Server, Holmes.Client, Holmes.Identity.Server  
+**Outcomes**
+
+- Holmes.App.Server owns the entire auth challenge experience: unauthenticated HTML requests short-circuit to
+  `/auth/options`, which renders the provider list server-side (sanitized `returnUrl`, no SPA boot required).
+- `Holmes.Client`'s `AuthBoundary` simply retries `/users/me`; if it ever receives 401/403/404, it performs a full-page
+  navigation back through `/auth/options?returnUrl=…`, keeping provider choice and cookie issuance on the server.
+- OpenID Connect logins now rely on middleware + `RegisterExternalUserCommand` to ensure the Holmes user already exists.
+  Uninvited attempts publish `UninvitedExternalLoginAttempted`, are logged, and the session is cleared + redirected to
+  `/auth/access-denied`.
+- Invited users flow straight from `Invited` to `Active` on successful login; no manual approval
+  endpoints or pending lists are exposed.
+- Added integration coverage that asserts `/users` (HTML) produces a 302 to `/auth/options`, so regressions in the
+  middleware are caught alongside the existing API tests.
+- `Holmes.Identity.Server` stays a local-only Duende stub; the docs now flag it as dev-only plumbing so it never makes
+  it
+  into CI/CD environments.
 
 ### Phase 2 — Intake & Workflow Launch
 

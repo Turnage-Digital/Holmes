@@ -1,5 +1,4 @@
 using Holmes.Subjects.Domain;
-using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +17,6 @@ public static class DependencyInjection
                 builder.MigrationsAssembly(typeof(SubjectsDbContext).Assembly.FullName)));
 
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
-        services.AddScoped<ISubjectRepository>(sp => sp.GetRequiredService<ISubjectsUnitOfWork>().Subjects);
 
         return services;
     }

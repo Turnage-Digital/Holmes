@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Domain.Events;
@@ -7,9 +6,8 @@ using MediatR;
 
 namespace Holmes.Users.Domain;
 
-public sealed class User : IHasDomainEvents
+public sealed class User : AggregateRoot
 {
-    private readonly List<INotification> _events = [];
     private readonly List<ExternalIdentity> _externalIdentities = [];
     private readonly List<RoleAssignment> _roles = [];
 
@@ -31,14 +29,6 @@ public sealed class User : IHasDomainEvents
 
     public IReadOnlyCollection<ExternalIdentity> ExternalIdentities =>
         new ReadOnlyCollection<ExternalIdentity>(_externalIdentities);
-
-    [JsonIgnore]
-    public IReadOnlyCollection<INotification> DomainEvents => new ReadOnlyCollection<INotification>(_events);
-
-    public void ClearDomainEvents()
-    {
-        _events.Clear();
-    }
 
     public static User Rehydrate(
         UlidId id,
@@ -78,6 +68,20 @@ public sealed class User : IHasDomainEvents
         var user = new User();
         user.Apply(new UserRegistered(id, identity.Issuer, identity.Subject, email, displayName,
             identity.AuthenticationMethod, registeredAt));
+        return user;
+    }
+
+    public static User Invite(
+        UlidId id,
+        string email,
+        string? displayName,
+        DateTimeOffset invitedAt
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+
+        var user = new User();
+        user.Apply(new UserInvited(id, email, displayName, invitedAt));
         return user;
     }
 
@@ -171,6 +175,21 @@ public sealed class User : IHasDomainEvents
         Status = UserStatus.Active;
     }
 
+    public void ActivatePendingInvitation(DateTimeOffset activatedAt)
+    {
+        if (Status == UserStatus.Active)
+        {
+            return;
+        }
+
+        if (Status != UserStatus.Invited)
+        {
+            throw new InvalidOperationException("Only pending invitations can be activated.");
+        }
+
+        Reactivate(Id, activatedAt);
+    }
+
     private void Apply(UserRegistered @event)
     {
         Id = @event.UserId;
@@ -184,8 +203,18 @@ public sealed class User : IHasDomainEvents
         Emit(@event);
     }
 
+    private void Apply(UserInvited @event)
+    {
+        Id = @event.UserId;
+        Email = @event.Email;
+        DisplayName = @event.DisplayName;
+        Status = UserStatus.Invited;
+        CreatedAt = @event.InvitedAt;
+        Emit(@event);
+    }
+
     private void Emit(INotification @event)
     {
-        _events.Add(@event);
+        AddDomainEvent(@event);
     }
 }

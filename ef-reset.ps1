@@ -79,20 +79,6 @@ function Ensure-ModuleMigrations
         return
     }
 
-    $migrationDir = Join-Path (Split-Path $Module.Project) $migrationOutputDir
-    $existingMigrations = @()
-    if (Test-Path -Path $migrationDir)
-    {
-        $existingMigrations = Get-ChildItem -Path $migrationDir -Filter "*.cs" `
-            | Where-Object { $_.Name -notlike "*.Designer.cs" -and $_.Name -ne ".gitkeep" }
-    }
-
-    if ($existingMigrations.Count -gt 0)
-    {
-        Write-Host "Skipping migration scaffolding for $( $Module.Name ) – existing migrations detected." -ForegroundColor Yellow
-        return
-    }
-
     $commonArgs = Get-EfCommonArgs -Module $Module
     $name = if ($Module.ContainsKey("MigrationName") -and $Module.MigrationName)
     {
@@ -142,21 +128,55 @@ function Remove-ModuleDatabase
     Invoke-DotNetEf -Arguments $dropArgs
 }
 
-$coreModule = $modules | Where-Object { $_.Name -eq "Core" }
-
-if (-not $coreModule)
+function Reset-ModuleMigrations
 {
-    throw "Core module configuration not found."
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$Module
+    )
+
+    if (-not (Test-Path -Path $Module.Project))
+    {
+        Write-Warning "Skipping $( $Module.Name ) – project '$( $Module.Project )' not found."
+        return
+    }
+
+    $migrationDir = Join-Path (Split-Path $Module.Project) $migrationOutputDir
+    if (Test-Path -Path $migrationDir)
+    {
+        Write-Host "Removing existing migrations for $( $Module.Name )..." -ForegroundColor Yellow
+        Remove-Item -Path $migrationDir -Recurse -Force
+    }
 }
 
-Remove-ModuleDatabase -Module $coreModule
+$databaseDropped = $false
+$processedModules = @()
 
 foreach ($module in $modules)
 {
+    if (-not (Test-Path -Path $module.Project))
+    {
+        Write-Warning "Skipping $( $module.Name ) – project '$( $module.Project )' not found."
+        continue
+    }
+
+    if (-not $databaseDropped)
+    {
+        Remove-ModuleDatabase -Module $module
+        $databaseDropped = $true
+    }
+    else
+    {
+        Write-Host "Database already dropped – skipping drop for $( $module.Name )." -ForegroundColor Yellow
+    }
+
+    Reset-ModuleMigrations -Module $module
     Ensure-ModuleMigrations -Module $module
+    Update-ModuleDatabase -Module $module
+    $processedModules += $module.Name
 }
 
-foreach ($module in $modules)
+if (-not $processedModules)
 {
-    Update-ModuleDatabase -Module $module
+    Write-Warning "No modules were processed. Ensure module project paths are correct."
 }

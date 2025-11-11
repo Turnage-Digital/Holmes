@@ -49,6 +49,23 @@ ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stu
 - **Events** are the source of truth; read models provide instant visibility.
 - **PII minimization** & field-level encryption; immutable WORM artifacts.
 
+### Security · Audit · Compliance Doctrine
+
+- Every aggregate mutation **must** emit an `EventRecord` (
+  `src/Modules/Core/Holmes.Core.Infrastructure.Sql/Entities/EventRecord.cs`). The ledger cannot have gaps, alternate
+  pathways, or mutable history.
+- Tenant isolation is absolute: event payloads, snapshots, read models, and caches never blend customer data, and
+  processors can only operate inside the tenant context carried by the initiating command.
+- PII is minimized and encrypted at rest (field-level when possible) and is only exposed through authorized read models;
+  ephemeral caches stay PII-free.
+- Compliance is a product feature: flows must remain explainable, time-stamped, and reproducible so Holmes sustains *
+  *100%** audit readiness for FCRA/EEOC/ICRAA plus customer overlays.
+- Authentication remains invite-only. First authenticated requests invoke `RegisterExternalUserCommand` via
+  `ICurrentUserInitializer`; if no Holmes user exists for the email, a `UninvitedExternalLoginAttempted` domain event is
+  published, the attempt is logged, and middleware clears the cookie + redirects to `/auth/access-denied`.
+- Invited users move directly from `Invited` to `Active` on their first successful login. There is
+  no manual approval queue—either you were invited and can sign in, or the attempt is rejected and recorded.
+
 ### Users Module (Phase 1 preview)
 
 **Bounded context goal:** project external OIDC identities into Holmes, capture authorization roles, and expose
@@ -56,7 +73,7 @@ tenant-scoped policies without ever persisting credentials.
 
 - **Aggregates**
     - `UserAggregate`: canonical record keyed by `UlidId` with external identity tuple `(issuer, subject)`, profile (
-      email, name), status (`Active`, `Suspended`, `PendingApproval`), and `RoleAssignments`.
+      email, name), status (`Invited`, `Active`, `Suspended`), and `RoleAssignments`.
     - `RoleAssignment` value object: `Role` (`Admin`, `CustomerAdmin`, `Ops`, `Auditor`, etc.), optional `CustomerId`,
       `GrantedBy`, `GrantedAt`.
     - `ExternalIdentity` value object: `Issuer`, `Subject`, `AuthenticationMethod`, `LinkedAt`, `LastSeenAt`.
@@ -90,7 +107,7 @@ tenant-scoped policies without ever persisting credentials.
 - **Integration points**
     - `IOidcProviderCatalog` – resolves customer-specific OIDC settings (issuer, audience) to validate tokens before
       commands execute.
-    - API endpoints: `/users/me` (introspect), `/admin/users`, `/customers/{id}/admins`.
+    - API endpoints: `/api/users/me` (introspect), `/api/admin/users`, `/api/customers/{id}/admins`.
 - **Testing**
     - Unit tests for aggregate invariants (prevent duplicate roles, protect last admin).
     - Integration tests asserting role-based authorization flows (e.g., CustomerAdmin cannot grant global Admin) via
@@ -103,94 +120,102 @@ handlers consult the read models to enforce policies.
 ### Solution Layout & Layering
 
 - `Holmes.sln` ties all .NET projects (hosts, modules, tooling) into one solution.
-- `ARCHITECTURE.md` will remain the canonical explainer for layering, events, and DI conventions.
 - `docker-compose.yml` + scripts (e.g. `ef-reset.ps1`) support local infra and database resets.
 - `global.json` and `nuget.config` pin the .NET SDK and package feeds.
 - `src/` is the single home for runtime hosts, modules, client, and supporting tests.
 
+#### Module Conventions
+
+Every bounded context ships the same three projects so dependencies remain predictable:
+
+| Project                               | Responsibilities                                            | References                                           |
+|---------------------------------------|-------------------------------------------------------------|------------------------------------------------------|
+| `Holmes.<Feature>.Domain`             | Aggregates, domain events, `I<Feature>UnitOfWork`, policies | `Holmes.Core.Domain`                                 |
+| `Holmes.<Feature>.Application`        | Commands, queries, handlers, DTOs                           | `<Feature>.Domain`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql` | DbContext, repositories, UnitOfWork, DI helpers             | `<Feature>.Domain`, `Holmes.Core.Infrastructure.Sql` |
+
+Additional infrastructure (e.g., caching, queues) follows the same naming pattern
+(`Infrastructure.Redis`, `Infrastructure.Search`, etc.) but **never** references the Application layer.
+
+Each Infrastructure project must expose a single `DependencyInjection` entry point:
+
+```csharp
+public static IServiceCollection Add<Feature>InfrastructureSql(
+    this IServiceCollection services,
+    string connectionString,
+    ServerVersion version)
+{
+    services.AddDbContext<<Feature>DbContext>(options =>
+        options.UseMySql(connectionString, version));
+
+    services.AddScoped<I<Feature>UnitOfWork, <Feature>UnitOfWork>();
+    return services;
+}
+```
+
+The solution has a dedicated template in `docs/MODULE_TEMPLATE.md` that walks through the scaffolding steps
+(folder layout, project references, DI wiring, and unit-of-work expectations). New feature slices **must** follow that
+guide so they plug into `HostingExtensions.AddInfrastructure` without ad-hoc code.
+
+> **Repository access rule:** repository interfaces are intentionally not registered in DI. Application services must
+> request their module's unit of work (e.g., `IUsersUnitOfWork`) and reach repositories or directories through the
+> exposed properties (`unitOfWork.Users`). This keeps every mutation inside the transaction boundary enforced by the
+> unit of work and prevents stray repository usage.
+
 ### Unit of Work & Domain Events
 
-- Aggregates implement `IHasDomainEvents` (exposes `DomainEvents` + `ClearDomainEvents()`).
-- Repositories register aggregates with their module-specific `*UnitOfWork` before returning so that the shared
-  `UnitOfWork<TContext>` can emit collected events after a successful `SaveChangesAsync`.
-- No separate `DomainEventQueue` is needed; events are gathered directly from aggregates, ensuring each unit of work
-  publishes exactly the notifications generated during that transaction.
-- See `docs/unit-of-work-domain-events.md` for a step-by-step reference.
+Aggregates inherit from `AggregateRoot`, which implements `IHasDomainEvents` and automatically registers itself with an
+ambient tracker whenever `AddDomainEvent` is invoked. The base `UnitOfWork<TContext>` drains that tracker immediately
+after a successful `SaveChangesAsync()` call, publishes each notification via MediatR, and only then clears the
+aggregate’s pending events. If the transaction fails, nothing is dispatched and the tracker retains the aggregate so a
+re-run will replay the events.
 
-```
-src/
-├── Holmes.App.Server/
-│   ├── Controllers/
-│   ├── Integration/
-│   ├── Services/
-│   └── Tools/
-├── Holmes.App.Server.Tests/
-├── Holmes.Client/
-│   ├── public/
-│   └── src/
-│       ├── components/
-│       ├── lib/
-│       ├── models/
-│       └── pages/
-├── Holmes.Mcp.Server/
-│   ├── Properties/
-│   ├── Services/
-│   └── Tools/
-└── Modules/
-    ├── Core/
-    │   ├── Holmes.Core.Domain/{IntegrationEvents,Services,ValueObjects}/
-    │   ├── Holmes.Core.Application/Behaviors/
-    │   ├── Holmes.Core.Infrastructure.OpenAi/Services/
-    │   ├── Holmes.Core.Infrastructure.Sql/{Entities,Migrations}/
-    │   └── Holmes.Core.Tests/
-    ├── Intake/
-    │   ├── Holmes.Intake.Domain/{Entities,Events,ValueObjects}/
-    │   ├── Holmes.Intake.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Intake.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Intake.Tests/
-    ├── Workflow/
-    │   ├── Holmes.Workflow.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.Workflow.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Workflow.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Workflow.Tests/
-    ├── SlaClocks/
-    │   ├── Holmes.SlaClocks.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.SlaClocks.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.SlaClocks.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.SlaClocks.Tests/
-    ├── Compliance/
-    │   ├── Holmes.Compliance.Domain/{Entities,Events,ValueObjects}/
-    │   ├── Holmes.Compliance.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Compliance.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Compliance.Tests/
-    ├── Notifications/
-    │   ├── Holmes.Notifications.Domain/{Entities,Events,ValueObjects}/
-    │   ├── Holmes.Notifications.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Notifications.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Notifications.Tests/
-    ├── AdverseAction/
-    │   ├── Holmes.AdverseAction.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.AdverseAction.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.AdverseAction.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.AdverseAction.Tests/
-    ├── Adjudication/
-    │   ├── Holmes.Adjudication.Domain/{Aggregates,Events,ValueObjects}/
-    │   ├── Holmes.Adjudication.Application/{Commands,Queries,EventHandlers}/
-    │   ├── Holmes.Adjudication.Infrastructure.Sql/{Entities,Services,Migrations}/
-    │   └── Holmes.Adjudication.Tests/
-    ├── ChargeTaxonomy/
-    │   ├── Holmes.ChargeTaxonomy.Domain/{Entities,Events}/
-    │   ├── Holmes.ChargeTaxonomy.Application/{Commands,Queries}/
-    │   └── Holmes.ChargeTaxonomy.Infrastructure.Sql/{Entities,Migrations}/
-    ├── Users/
-    │   ├── Holmes.Users.Domain/{Entities,Services}/
-    │   ├── Holmes.Users.Application/{Commands,Queries,EventHandlers}/
-    │   └── Holmes.Users.Infrastructure.Sql/Migrations/
-    └── Customers/
-        ├── Holmes.Customers.Domain/{Entities,Events,ValueObjects}/
-        ├── Holmes.Customers.Application/{Commands,Queries,EventHandlers}/
-        └── Holmes.Customers.Infrastructure.Sql/Migrations/
-```
+**Usage pattern**
+
+1. Aggregate mutates state and calls `AddDomainEvent(..)` (usually via a local `Emit` helper).
+2. Repository persists the aggregate as usual—no explicit registration step required.
+3. Command handler invokes `*UnitOfWork.SaveChangesAsync()`; when the commit succeeds the unit of work publishes the
+   captured events.
+4. `ClearDomainEvents()` runs automatically, resetting aggregates for subsequent mutations.
+
+Because registration happens inside the aggregate base class, repositories cannot forget to participate in the event
+pipeline and no additional queueing infrastructure is necessary.
+
+> See `Holmes.Core.Tests/UnitOfWorkDomainEventsTests` for integration coverage of
+> multi-aggregate commits and failure paths. Future modules should add similar
+> tests whenever they extend the UnitOfWork abstraction.
+
+### Client Application (Holmes.Client)
+
+- React + Vite (TypeScript) solution tracked via `Holmes.Client.esproj`, launched with `npm run dev`.
+- `Holmes.App.Server` references the SPA via `SpaRoot` + SpaProxy so `dotnet run` proxies to `https://localhost:3000`
+  during development and serves the static build in production pipelines.
+- Phase 1.5 delivers an admin-focused shell that surfaces Subject, User, and Customer read models, plus flows to invite
+  and activate users, grant/revoke roles, create customers, and inspect deduped subjects—proving Phase 1 behavior via
+  UI.
+- Shared API clients (OpenAPI-generated or typed fetch helpers) live beside the SPA to keep DTOs aligned with server
+  contracts; basic Playwright/component tests exercise the invite → activate → assign role path end-to-end.
+
+### Identity & Development Seeds
+
+- `Holmes.Identity.Server` hosts a minimal Duende IdentityServer for development. Run
+  `dotnet run --project src/Holmes.Identity.Server` (defaults to `https://localhost:6001`) before launching the main
+  host. Dev credentials: `admin` / `password`. This project is explicitly local-only and never deployed past a
+  developer workstation; production/staging environments point the Holmes host at real customer IdPs.
+- Holmes.App.Server intercepts any unauthenticated HTML navigation and redirects to `/auth/options`, which renders the
+  provider list directly on the server (including sanitized `returnUrl` handling) before handing off to the configured
+  OpenID Connect challenge.
+- The React app no longer duplicates that UI: `AuthBoundary` verifies `/users/me` once, and on any 401/403/404 it
+  performs
+  a full-page navigation back to `/auth/options?returnUrl=…`, ensuring session refreshes follow the same hardened flow
+  as
+  first-time sign-ins.
+- Holmes.App.Server registers two baseline policies:
+    - `AuthorizationPolicies.RequireAdmin` → requires the `Admin` role claim.
+    - `AuthorizationPolicies.RequireOps` → requires `Ops` or `Admin`.
+- A development-only hosted service (`DevelopmentDataSeeder`) mirrors the IdP user inside Holmes, grants the Admin role
+  via domain commands, and seeds a demo customer with that admin assigned. This keeps the invite/role/customer flows
+  runnable immediately after `dotnet run`.
 
 **Layering rules**
 
@@ -634,7 +659,21 @@ create table adverse_action_clocks(
 
 **Acceptance**: Tenant admin can invite a user, activate, assign roles, and create a customer bound to policy snapshot.
 
-### Phase 2 (Weeks 3–6): Intake & Workflow Launch
+### Phase 1.5 (Weeks 3–4): Platform Cohesion & Event Plumbing
+
+- Align `Holmes.Core` conventions, base behaviors, and dependency rules with what the Users/Customers modules actually
+  needed during Phase 1 so new feature slices inherit a consistent template.
+- Lock down the shared `UnitOfWork<TContext>` + domain-event dispatch pipeline with integration tests (multi-aggregate
+  commits, failure rollbacks), and document the usage inside this architecture guide.
+- Wire the identity/tenant read models into `Holmes.App.Server` (auth middleware, authorization helpers, seed scripts)
+  so the host is ready for Intake flows without code churn.
+- Expand base observability (structured logs, correlation IDs, baseline metrics) and add dev ergonomics like database
+  reset scripts and fixture seeds.
+
+**Acceptance**: A developer can run the host, exercise user/customer flows end-to-end with domain events firing once per
+transaction, and new modules can copy the hardened templates without manual tweaks.
+
+### Phase 2 (Weeks 4–7): Intake & Workflow Launch
 
 - Intake sessions + order workflow aggregates with subject/customer linkage.
 - REST + SSE endpoints for invite → submit, and order state transitions.
@@ -644,7 +683,7 @@ create table adverse_action_clocks(
 **Acceptance**: End-to-end intake completes, order advances to `ready_for_routing`, and SSE streams events with
 Last-Event-ID resume.
 
-### Phase 3 (Weeks 6–8): SLA, Compliance & Notifications
+### Phase 3 (Weeks 7–9): SLA, Compliance & Notifications
 
 - Business calendar service, SLA watchdog, regulatory/adverse clock aggregates.
 - Compliance policy gating (PP grants, disclosure acceptance, fair-chance overlays).
@@ -654,7 +693,7 @@ Last-Event-ID resume.
 **Acceptance**: Intake SLA flips to at_risk/breached, compliance gates block unauthorized progression, notifications
 fire with idempotent delivery.
 
-### Phase 4 (Weeks 8–9): Adverse Action & Evidence Packs
+### Phase 4 (Weeks 9–10): Adverse Action & Evidence Packs
 
 - Adverse action state machine with pause/resume + dispute linkage.
 - WORM artifact store + evidence pack bundler (zip + manifest).
@@ -662,7 +701,7 @@ fire with idempotent delivery.
 
 **Acceptance**: Pre/final adverse timelines recompute after pause, evidence pack download verifies hash manifest.
 
-### Phase 5 (Weeks 9–11): Adjudication Engine
+### Phase 5 (Weeks 10–12): Adjudication Engine
 
 - Charge taxonomy ingestion + normalization for assessments.
 - RuleSet authoring + publish workflow; deterministic recommendation engine.
@@ -671,7 +710,7 @@ fire with idempotent delivery.
 **Acceptance**: Assessment recommendations return consistent reason codes, overrides require justification and emit
 audit trail.
 
-### Phase 6 (Weeks 11–12): Hardening & Pilot
+### Phase 6 (Weeks 12–13): Hardening & Pilot
 
 - Tenant branding + locale hooks; policy snapshot UI contract finalized.
 - SLA/adverse/adjudication dashboards; audit export; SLO tracking.
@@ -710,3 +749,6 @@ deterministic adjudication + simulator.
 ```json
 { "evt":"Clock.Started","clock_id":"clk_01","kind":"adverse","order_id":"ord_01","deadline_at":"2025-11-12T10:30:00Z" }
 ```
+
+- Database reset (EF migrations + schema drop/create) is handled by `ef-reset.ps1` in the repo root. Running it
+  rebuilds the Core/Users/Customers/Subjects schemas, ensuring every dev starts from the same migrations baseline.

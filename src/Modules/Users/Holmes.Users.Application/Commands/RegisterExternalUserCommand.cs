@@ -1,6 +1,8 @@
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
+using Holmes.Users.Domain.Events;
 using MediatR;
 
 namespace Holmes.Users.Application.Commands;
@@ -11,38 +13,53 @@ public sealed record RegisterExternalUserCommand(
     string Email,
     string? DisplayName,
     string? AuthenticationMethod,
-    DateTimeOffset AuthenticatedAt
-) : RequestBase<UlidId>;
+    DateTimeOffset AuthenticatedAt,
+    bool AllowAutoProvision = false
+) : RequestBase<UlidId>, ISkipUserAssignment;
 
-public sealed class RegisterExternalUserCommandHandler : IRequestHandler<RegisterExternalUserCommand, UlidId>
+public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWork, IPublisher publisher)
+    : IRequestHandler<RegisterExternalUserCommand, UlidId>
 {
-    private readonly IUserRepository _repository;
-    private readonly IUsersUnitOfWork _unitOfWork;
-
-    public RegisterExternalUserCommandHandler(IUserRepository repository, IUsersUnitOfWork unitOfWork)
-    {
-        _repository = repository;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<UlidId> Handle(RegisterExternalUserCommand request, CancellationToken cancellationToken)
     {
-        var existing = await _repository.GetByExternalIdentityAsync(request.Issuer, request.Subject, cancellationToken);
+        var repository = unitOfWork.Users;
+        var identity = new ExternalIdentity(request.Issuer, request.Subject, request.AuthenticationMethod,
+            request.AuthenticatedAt);
+        var existing = await repository.GetByExternalIdentityAsync(request.Issuer, request.Subject, cancellationToken);
         if (existing is null)
         {
-            var identity = new ExternalIdentity(request.Issuer, request.Subject, request.AuthenticationMethod,
-                request.AuthenticatedAt);
-            var user = User.Register(UlidId.NewUlid(), identity, request.Email, request.DisplayName,
-                request.AuthenticatedAt);
-            await _repository.AddAsync(user, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            return user.Id;
+            existing = await repository.GetByEmailAsync(request.Email, cancellationToken);
+            if (existing is null)
+            {
+                if (!request.AllowAutoProvision)
+                {
+                    await publisher.Publish(new UninvitedExternalLoginAttempted(
+                        request.Issuer,
+                        request.Subject,
+                        request.Email,
+                        request.AuthenticatedAt), cancellationToken);
+                    throw new UserInvitationRequiredException(request.Email, request.Issuer, request.Subject);
+                }
+
+                var user = User.Register(UlidId.NewUlid(), identity, request.Email, request.DisplayName,
+                    request.AuthenticatedAt);
+                await repository.AddAsync(user, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                return user.Id;
+            }
+
+            existing.LinkExternalIdentity(identity);
         }
 
         existing.MarkIdentitySeen(request.Issuer, request.Subject, request.AuthenticatedAt);
         existing.UpdateProfile(request.Email, request.DisplayName, request.AuthenticatedAt);
-        await _repository.UpdateAsync(existing, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (existing.Status == UserStatus.Invited)
+        {
+            existing.ActivatePendingInvitation(request.AuthenticatedAt);
+        }
+
+        await repository.UpdateAsync(existing, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return existing.Id;
     }
 }

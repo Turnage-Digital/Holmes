@@ -30,9 +30,10 @@ public class CustomersEndpointTests
         client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
         client.DefaultRequestHeaders.Add("X-Auth-Email", "user@holmes.dev");
 
-        await client.GetAsync("/users/me");
+        await CreateUserAsync(factory, "user-no-admin", "user@holmes.dev");
+        await client.GetAsync("/api/users/me");
 
-        var response = await client.PostAsJsonAsync("/customers", new CreateCustomerRequest("Acme"));
+        var response = await client.PostAsJsonAsync("/api/customers", BuildCreateCustomerRequest("Acme"));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
@@ -48,7 +49,8 @@ public class CustomersEndpointTests
 
         var adminId = await PromoteCurrentUserToAdminAsync(factory);
 
-        var createResponse = await client.PostAsJsonAsync("/customers", new CreateCustomerRequest("Acme Industries"));
+        var createResponse =
+            await client.PostAsJsonAsync("/api/customers", BuildCreateCustomerRequest("Acme Industries"));
         if (createResponse.StatusCode != HttpStatusCode.Created)
         {
             TestContext.WriteLine(await createResponse.Content.ReadAsStringAsync());
@@ -58,15 +60,15 @@ public class CustomersEndpointTests
 
         var summary = await createResponse.Content.ReadFromJsonAsync<CustomerSummaryResponse>(JsonOptions);
         Assert.That(summary, Is.Not.Null);
-        var customerId = summary!.CustomerId;
+        var customerId = summary!.Id;
 
         var targetUserId = await CreateUserAsync(factory, "customer-admin", "cust.admin@holmes.dev");
 
-        var assignResponse = await client.PostAsJsonAsync($"/customers/{customerId}/admins",
+        var assignResponse = await client.PostAsJsonAsync($"/api/customers/{customerId}/admins",
             new ModifyCustomerAdminRequest(targetUserId));
         Assert.That(assignResponse.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
-        var revokeRequest = new HttpRequestMessage(HttpMethod.Delete, $"/customers/{customerId}/admins")
+        var revokeRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/customers/{customerId}/admins")
         {
             Content = JsonContent.Create(new ModifyCustomerAdminRequest(targetUserId))
         };
@@ -90,7 +92,8 @@ public class CustomersEndpointTests
             email,
             subject,
             "pwd",
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow,
+            true));
         return id.ToString();
     }
 
@@ -105,27 +108,66 @@ public class CustomersEndpointTests
             "admin@holmes.dev",
             "Admin User",
             "pwd",
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow,
+            true));
 
-        await mediator.Send(new GrantUserRoleCommand(
+        var grant = new GrantUserRoleCommand(
             id,
             UserRole.Admin,
             null,
-            id,
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow)
+        {
+            UserId = id.ToString()
+        };
+        await mediator.Send(grant);
 
         return id;
     }
 
-    private sealed record CreateCustomerRequest(string Name);
+    private static CreateCustomerRequest BuildCreateCustomerRequest(string name)
+    {
+        return new CreateCustomerRequest(
+            name,
+            "policy-dev",
+            "billing@holmes.dev",
+            [
+                new CreateCustomerContactRequest("Ops Contact", "ops@holmes.dev", null, "Ops")
+            ]);
+    }
+
+    private sealed record CreateCustomerRequest(
+        string Name,
+        string PolicySnapshotId,
+        string? BillingEmail,
+        IReadOnlyCollection<CreateCustomerContactRequest>? Contacts
+    );
+
+    private sealed record CreateCustomerContactRequest(
+        string Name,
+        string Email,
+        string? Phone,
+        string? Role
+    );
 
     private sealed record ModifyCustomerAdminRequest(string UserId);
 
     private sealed record CustomerSummaryResponse(
-        string CustomerId,
+        string Id,
+        string TenantId,
         string Name,
         CustomerStatus Status,
+        string PolicySnapshotId,
+        string? BillingEmail,
         DateTimeOffset CreatedAt,
-        int AdminCount
+        DateTimeOffset UpdatedAt,
+        IReadOnlyCollection<CustomerContactResponse> Contacts
+    );
+
+    private sealed record CustomerContactResponse(
+        string Id,
+        string Name,
+        string Email,
+        string? Phone,
+        string? Role
     );
 }
