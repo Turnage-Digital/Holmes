@@ -23,7 +23,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Holmes.Users.Domain\Holmes.Users.Domain.csproj"/>
         <ProjectReference Include="..\Holmes.Users.Application\Holmes.Users.Application.csproj"/>
     </ItemGroup>
 

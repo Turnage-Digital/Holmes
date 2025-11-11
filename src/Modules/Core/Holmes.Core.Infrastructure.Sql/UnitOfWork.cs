@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Holmes.Core.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,32 +13,67 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
-        int retval;
-
-        // Only wrap in a transaction for relational providers
-        if (dbContext.Database.IsRelational())
+        using var activity = UnitOfWorkTelemetry.ActivitySource.StartActivity(
+            "UnitOfWork.SaveChanges",
+            ActivityKind.Internal);
+        var tags = new TagList
         {
-            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-            try
+            { "db.context", typeof(TContext).Name },
+            { "db.provider", dbContext.Database.ProviderName ?? "unknown" },
+            { "db.transactional", dbContext.Database.IsRelational() }
+        };
+        activity?.SetTag("db.system", dbContext.Database.ProviderName);
+        activity?.SetTag("holmes.unit_of_work.context", typeof(TContext).Name);
+
+        var startTimestamp = Stopwatch.GetTimestamp();
+
+        try
+        {
+            int retval;
+
+            // Only wrap in a transaction for relational providers
+            if (dbContext.Database.IsRelational())
             {
+                await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    retval = await dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken)!;
+                    throw;
+                }
+            }
+            else
+            {
+                // InMemory and other non-relational providers: no transaction
                 retval = await dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
             }
-            catch
-            {
-                await transaction.RollbackAsync(cancellationToken)!;
-                throw;
-            }
+
+            await DispatchDomainEventsAsync(cancellationToken);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            activity?.SetTag("holmes.unit_of_work.result", "success");
+
+            return retval;
         }
-        else
+        catch (Exception ex)
         {
-            // InMemory and other non-relational providers: no transaction
-            retval = await dbContext.SaveChangesAsync(cancellationToken);
+            UnitOfWorkTelemetry.SaveChangesFailures.Add(1, tags);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.SetTag("exception.type", ex.GetType().FullName);
+            activity?.SetTag("exception.message", ex.Message);
+            activity?.SetTag("exception.stacktrace", ex.StackTrace);
+            activity?.SetTag("holmes.unit_of_work.result", "failure");
+            throw;
         }
-
-        await DispatchDomainEventsAsync(cancellationToken);
-
-        return retval;
+        finally
+        {
+            var duration = Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
+            UnitOfWorkTelemetry.SaveChangesDuration.Record(duration, tags);
+            activity?.SetTag("holmes.unit_of_work.duration_ms", duration);
+        }
     }
 
     public void Dispose()
