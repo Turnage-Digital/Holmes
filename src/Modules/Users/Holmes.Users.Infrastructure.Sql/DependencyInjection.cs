@@ -1,4 +1,5 @@
 using Holmes.Users.Domain;
+using Holmes.Users.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,7 +18,7 @@ public static class DependencyInjection
                 builder.MigrationsAssembly(typeof(UsersDbContext).Assembly.FullName)));
 
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
-        services.AddScoped<IUserDirectory>(sp => sp.GetRequiredService<IUsersUnitOfWork>().UserDirectory);
+        services.AddScoped<IUserDirectory, SqlUserDirectory>();
 
         return services;
     }

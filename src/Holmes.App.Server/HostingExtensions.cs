@@ -19,6 +19,7 @@ using Holmes.Users.Application.Commands;
 using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
+using Holmes.Users.Infrastructure.Sql.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -511,7 +512,7 @@ internal static class HostingExtensions
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
-        services.AddScoped<IUserDirectory>(sp => sp.GetRequiredService<IUsersUnitOfWork>().UserDirectory);
+        services.AddScoped<IUserDirectory, SqlUserDirectory>();
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         return services;

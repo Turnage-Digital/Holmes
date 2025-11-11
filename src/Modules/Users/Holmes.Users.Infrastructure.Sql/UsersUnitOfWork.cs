@@ -5,19 +5,10 @@ using MediatR;
 
 namespace Holmes.Users.Infrastructure.Sql;
 
-public sealed class UsersUnitOfWork : UnitOfWork<UsersDbContext>, IUsersUnitOfWork
+public sealed class UsersUnitOfWork(UsersDbContext dbContext, IMediator mediator)
+    : UnitOfWork<UsersDbContext>(dbContext, mediator), IUsersUnitOfWork
 {
-    private readonly Lazy<IUserDirectory> _directory;
-    private readonly Lazy<IUserRepository> _users;
-
-    public UsersUnitOfWork(UsersDbContext dbContext, IMediator mediator)
-        : base(dbContext, mediator)
-    {
-        _users = new Lazy<IUserRepository>(() => new SqlUserRepository(dbContext));
-        _directory = new Lazy<IUserDirectory>(() => new SqlUserDirectory(dbContext));
-    }
+    private readonly Lazy<IUserRepository> _users = new(() => new SqlUserRepository(dbContext));
 
     public IUserRepository Users => _users.Value;
-
-    public IUserDirectory UserDirectory => _directory.Value;
 }

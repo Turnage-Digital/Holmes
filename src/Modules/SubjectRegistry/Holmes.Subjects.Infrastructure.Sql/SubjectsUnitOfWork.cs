@@ -5,15 +5,10 @@ using MediatR;
 
 namespace Holmes.Subjects.Infrastructure.Sql;
 
-public sealed class SubjectsUnitOfWork : UnitOfWork<SubjectsDbContext>, ISubjectsUnitOfWork
+public sealed class SubjectsUnitOfWork(SubjectsDbContext dbContext, IMediator mediator)
+    : UnitOfWork<SubjectsDbContext>(dbContext, mediator), ISubjectsUnitOfWork
 {
-    private readonly Lazy<ISubjectRepository> _subjects;
-
-    public SubjectsUnitOfWork(SubjectsDbContext dbContext, IMediator mediator)
-        : base(dbContext, mediator)
-    {
-        _subjects = new Lazy<ISubjectRepository>(() => new SqlSubjectRepository(dbContext));
-    }
+    private readonly Lazy<ISubjectRepository> _subjects = new(() => new SqlSubjectRepository(dbContext));
 
     public ISubjectRepository Subjects => _subjects.Value;
 }
