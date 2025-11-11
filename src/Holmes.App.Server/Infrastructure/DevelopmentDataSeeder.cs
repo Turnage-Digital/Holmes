@@ -25,6 +25,7 @@ public sealed class DevelopmentDataSeeder(
         {
             return;
         }
+
         await SeedAsync(cancellationToken);
     }
 
