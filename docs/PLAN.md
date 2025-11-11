@@ -40,7 +40,7 @@ value, expands observability, and keeps the event-sourced backbone intact.
       Holmes.Core.Infrastructure.Sql/ # EF Core base context, migrations
       Holmes.Core.Infrastructure.OpenAi/
       Holmes.Core.Tests/
-    SubjectRegistry/
+    Subjects/
       Holmes.Subjects.Domain/
       Holmes.Subjects.Application/
       Holmes.Subjects.Infrastructure.Sql/
@@ -117,7 +117,7 @@ Infrastructure to compose the runtime.
 
 ### Phase 1 — Identity & Tenancy Foundations
 
-**Modules delivered:** Holmes.Core (domain/app), SubjectRegistry, Users, Customers  
+**Modules delivered:** Holmes.Core (domain/app), Subjects, Users, Customers  
 **Outcomes**
 
 - Aggregates + handlers for `Subject`, `User`, `Customer`.
@@ -140,7 +140,7 @@ Infrastructure to compose the runtime.
 
 ### Phase 1.5 — Platform Cohesion & Event Plumbing
 
-**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, SubjectRegistry, Holmes.Identity.Server,
+**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, Subjects, Holmes.Identity.Server,
 Holmes.Client  
 **Outcomes**
 
@@ -172,7 +172,7 @@ Holmes.Client
 
 **Acceptance**
 
-- `pwsh ./ef-reset.ps1` rebuilds every schema (Core, Users, Customers, SubjectRegistry) and reapplies the Initial +
+- `pwsh ./ef-reset.ps1` rebuilds every schema (Core, Users, Customers, Subjects) and reapplies the Initial +
   `AddCustomerProfiles` migrations without manual cleanup or selective skipping.
 - Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.Client) allows a tenant admin to complete
   invite → activate → grant/revoke role → create customer → merge subject entirely through the UI, with a single
@@ -200,7 +200,7 @@ Holmes.Client
 
 ### Phase 2 — Intake & Workflow Launch
 
-**Modules delivered:** Intake, Workflow, SubjectRegistry enhancements  
+**Modules delivered:** Intake, Workflow, Subjects enhancements  
 **Outcomes**
 
 - Aggregates + handlers for `IntakeSession`, `Order` workflow states.

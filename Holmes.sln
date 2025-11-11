@@ -49,13 +49,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Infrastruc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Tests", "src\Modules\Customers\Holmes.Customers.Tests\Holmes.Customers.Tests.csproj", "{CC2EB1DE-9AC5-4812-9A89-A0DAFCE67E50}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubjectRegistry", "SubjectRegistry", "{DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Subjects", "Subjects", "{DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Domain", "src\Modules\SubjectRegistry\Holmes.Subjects.Domain\Holmes.Subjects.Domain.csproj", "{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Domain", "src\Modules\Subjects\Holmes.Subjects.Domain\Holmes.Subjects.Domain.csproj", "{58C4FD3B-B8E7-41E0-83C4-8E2315232AB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Application", "src\Modules\SubjectRegistry\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj", "{8477540C-5E5C-47C0-B29D-F3EF981734AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Application", "src\Modules\Subjects\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj", "{8477540C-5E5C-47C0-B29D-F3EF981734AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Infrastructure.Sql", "src\Modules\SubjectRegistry\Holmes.Subjects.Infrastructure.Sql\Holmes.Subjects.Infrastructure.Sql.csproj", "{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Infrastructure.Sql", "src\Modules\Subjects\Holmes.Subjects.Infrastructure.Sql\Holmes.Subjects.Infrastructure.Sql.csproj", "{32DDCCB8-6C25-4894-9AD1-01B51E5ADA1A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8C26-4FC5-8448-F3247DFEDD62}"
 	ProjectSection(SolutionItems) = preProject

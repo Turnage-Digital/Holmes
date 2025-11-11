@@ -45,8 +45,8 @@
         <ProjectReference Include="..\Modules\Users\Holmes.Users.Infrastructure.Sql\Holmes.Users.Infrastructure.Sql.csproj"/>
         <ProjectReference Include="..\Modules\Customers\Holmes.Customers.Application\Holmes.Customers.Application.csproj"/>
         <ProjectReference Include="..\Modules\Customers\Holmes.Customers.Infrastructure.Sql\Holmes.Customers.Infrastructure.Sql.csproj"/>
-        <ProjectReference Include="..\Modules\SubjectRegistry\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj"/>
-        <ProjectReference Include="..\Modules\SubjectRegistry\Holmes.Subjects.Infrastructure.Sql\Holmes.Subjects.Infrastructure.Sql.csproj"/>
+        <ProjectReference Include="..\Modules\Subjects\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj"/>
+        <ProjectReference Include="..\Modules\Subjects\Holmes.Subjects.Infrastructure.Sql\Holmes.Subjects.Infrastructure.Sql.csproj"/>
     </ItemGroup>
 
 </Project>
