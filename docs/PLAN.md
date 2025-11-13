@@ -40,7 +40,7 @@ value, expands observability, and keeps the event-sourced backbone intact.
       Holmes.Core.Infrastructure.Sql/ # EF Core base context, migrations
       Holmes.Core.Infrastructure.OpenAi/
       Holmes.Core.Tests/
-    SubjectRegistry/
+    Subjects/
       Holmes.Subjects.Domain/
       Holmes.Subjects.Application/
       Holmes.Subjects.Infrastructure.Sql/
@@ -117,7 +117,7 @@ Infrastructure to compose the runtime.
 
 ### Phase 1 — Identity & Tenancy Foundations
 
-**Modules delivered:** Holmes.Core (domain/app), SubjectRegistry, Users, Customers  
+**Modules delivered:** Holmes.Core (domain/app), Subjects, Users, Customers  
 **Outcomes**
 
 - Aggregates + handlers for `Subject`, `User`, `Customer`.
@@ -140,7 +140,7 @@ Infrastructure to compose the runtime.
 
 ### Phase 1.5 — Platform Cohesion & Event Plumbing
 
-**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, SubjectRegistry, Holmes.Identity.Server,
+**Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, Subjects, Holmes.Identity.Server,
 Holmes.Client  
 **Outcomes**
 
@@ -172,7 +172,7 @@ Holmes.Client
 
 **Acceptance**
 
-- `pwsh ./ef-reset.ps1` rebuilds every schema (Core, Users, Customers, SubjectRegistry) and reapplies the Initial +
+- `pwsh ./ef-reset.ps1` rebuilds every schema (Core, Users, Customers, Subjects) and reapplies the Initial +
   `AddCustomerProfiles` migrations without manual cleanup or selective skipping.
 - Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.Client) allows a tenant admin to complete
   invite → activate → grant/revoke role → create customer → merge subject entirely through the UI, with a single
@@ -198,9 +198,33 @@ Holmes.Client
   it
   into CI/CD environments.
 
+### Phase 1.9 — Foundation Hardening & UX Architecture
+
+**Modules delivered:** Holmes.App.Server, Holmes.Client, Holmes.Core, Users, Customers, Subjects  
+**Objectives**
+
+- **Deferred MCP scope:** explicitly move the developer MCP sidecar into the backlog so Phase 2 can start without
+  pretending the feature exists. Track it (with requirements) in the backlog board for a later phase.
+- **Observability debt paydown:** add projection/unit-of-work metrics, tracing, and dashboards/alerts so event replay
+  health is visible before adding new bounded contexts.
+- **Automated coverage:** stand up `Holmes.Subjects.Tests`, `Holmes.Customers.Tests`, and expand `Holmes.Users.Tests` to
+  cover aggregate invariants plus EF integration slices. CI must run them alongside `dotnet test`.
+- **Read-model verification:** ensure subjects/customers directories, admin assignments, and SLA-ready projections match
+  the documented behaviors; document verification steps in DEV_SETUP.
+- **Operational runbooks:** author deterministic guides for `ef-reset`, Dockerized MySQL resets, and projection replays.
+  See `docs/RUNBOOKS.md` for the shared playbook covering resets, projection verification, and observability hookup.
+- **Holmes.Client architecture pass:** working within the current stack (`react`, `react-router-dom`, `@mui/*`,
+  `@tanstack/react-query`), define design tokens, layout primitives, route conventions, and query hooks so future flows
+  drop in without re-plumbing. Documented in `docs/Holmes.Client.UI.md`.
+- **UX refresh:** partner with Rebecca Wirfs-Brock’s recommended UX collaborators to replace placeholder CRUD layouts
+  with domain-first surfaces (subject timeline, SLA badges, audit panels, role badges). Capture their component library
+  guidelines in docs.
+- **Readiness review:** only when the above items are closed can Phase 2 begin; the review is documented with links to
+  metrics dashboards, test reports, and updated UI architecture notes.
+
 ### Phase 2 — Intake & Workflow Launch
 
-**Modules delivered:** Intake, Workflow, SubjectRegistry enhancements  
+**Modules delivered:** Intake, Workflow, Subjects enhancements  
 **Outcomes**
 
 - Aggregates + handlers for `IntakeSession`, `Order` workflow states.
@@ -218,6 +242,12 @@ Holmes.Client
 - Business calendar service + EF models for calendars/holidays.
 - Aggregates: `SlaClock`, `CompliancePolicy`, `PermissiblePurposeGrant`, `DisclosurePack`.
 - Guards wired into order workflow (PP grant, disclosure acceptance, customer policy overlays).
+
+### Backlog / Deferred Items
+
+- **Developer MCP Sidecar:** Originally scoped for Phase 0; explicitly deferred until after Phase 2 so we can ship core
+  intake/workflow value first. Requirements (tool discovery, auth, local orchestration) stay in the backlog column and
+  will be re-estimated once Phase 2 lands.
 - Watchdog background worker flipping clock states; read model `sla_clocks`.
 - Notification rules v1 (email/SMS/webhook stubs) firing on domain events, stored in `notifications_history`.
 - Dashboard-ready metrics: SLA status counts, notification success/failure.

@@ -43,6 +43,11 @@ ATS/HRIS/PM → **Intake API** → **Orchestrator** → **Provider Adapters (stu
 *Adjudication** → **Adverse Action/Disputes** → **Reporting/Billing**  
 ↘ **Consent/IDV** ↙ ↘ **Ledger/Audit** ↙
 
+> **Note on the MCP dev sidecar:** The original v1 plan called for a developer-only MCP host that exposes tooling
+> endpoints. That effort is now explicitly deferred to the backlog while Phase 1.9 hardening and Phase 2 workflow
+> features take priority. Requirements (tool discovery, auth, orchestration) are preserved but the executable project is
+> not expected to exist until after Phase 2.
+
 **Principles**
 
 - **DDD** with bounded contexts; **CQRS + Event Sourcing**.
@@ -195,6 +200,20 @@ pipeline and no additional queueing infrastructure is necessary.
   UI.
 - Shared API clients (OpenAPI-generated or typed fetch helpers) live beside the SPA to keep DTOs aligned with server
   contracts; basic Playwright/component tests exercise the invite → activate → assign role path end-to-end.
+- **UI architecture guardrails (Phase 1.9):**
+    - Stay within the existing stack: React 19, React Router 6, MUI 7, Emotion, and `@tanstack/react-query` for data
+      access. New dependencies require justification (e.g., accessibility tooling) and should be rare.
+    - Establish design tokens (spacing, typography, semantic colors) and feed them through MUI's theme so shared
+      components (app shell, SLA chips, role badges) remain consistent.
+    - Route layout per bounded context (`/users`, `/customers`, `/subjects`) with shared scaffolds for navigation,
+      filters, and audit panels; each layout owns its glossary-driven copy so terminology never drifts.
+    - React Query hooks encapsulate server contracts (`useSubjectsDirectory`, `useCustomerAdmins`, etc.) and expose typed
+      DTOs. Mutations centralize optimistic updates + toast/audit behaviors rather than duplicating `fetch`.
+    - Interaction primitives (timeline, SLA badge, subject identity card) are built once in `src/components` and reused
+      so UX partners can restyle them without chasing bespoke implementations.
+    - Documented workshop outputs with Luis Mendoza + Rebecca’s UX partners specify IA diagrams, component inventories,
+      and testing expectations (lint/format, `npm run build`, visual regression hooks) before Phase 2 features begin.
+- Deliverables and conventions live in `docs/Holmes.Client.UI.md`.
 
 ### Identity & Development Seeds
 
@@ -250,7 +269,7 @@ pipeline and no additional queueing infrastructure is necessary.
 ## 5) Bounded Contexts
 
 1) **Core Kernel** — Shared primitives, integration events, pipeline behaviors, crypto helpers.
-2) **Subject Registry** — Canonical identity, aliases, merges, lineage.
+2) **Subjects** — Canonical identity, aliases, merges, lineage.
 3) **Users** — Operator accounts, roles, audit actors, tenant membership.
 4) **Customers** — CRA client organizations, policy mapping, billing profile, contacts.
 5) **Intake** — Invites, OTP verification, consents, PII capture, optional IDV.
@@ -603,6 +622,13 @@ create table adverse_action_clocks(
 - **Tracing**: command→events→projections (OpenTelemetry-style activity IDs).
 - **Dashboards**: At-Risk Clocks, Breaches by Client, Intake Funnel, Assessment Queue.
 - **Alerts**: SLA breaches, adverse-action deadline proximity, notification failure spikes.
+- **Phase 1.9 action**: Projection + UnitOfWork instrumentation (latency, error rate, replay lag) and Grafana dashboards
+  are mandatory exit criteria before Phase 2. Document the endpoints + dashboard URLs in DEV_SETUP.
+- **Implementation**: `Holmes.App.Server` exposes a Prometheus scrape endpoint at `https://localhost:5001/metrics` and
+  publishes OTLP traces when `OpenTelemetry:Exporter:Endpoint` (or `OpenTelemetry__Exporter__Endpoint` env var) is set.
+  Metrics include runtime, ASP.NET Core, HttpClient, and `Holmes.UnitOfWork` histograms/counters.
+- **Runbooks**: operational recipes (database reset, projection verification, observability hookup) live in
+  `docs/RUNBOOKS.md` so onboarding devs and SREs have executable guidance.
 
 ---
 
@@ -672,6 +698,24 @@ create table adverse_action_clocks(
 
 **Acceptance**: A developer can run the host, exercise user/customer flows end-to-end with domain events firing once per
 transaction, and new modules can copy the hardened templates without manual tweaks.
+
+### Phase 1.9 (Weeks 4–5): Foundation Hardening & UX Architecture
+
+- Explicitly move the developer MCP sidecar into the backlog; Phase 2 planning assumes it is deferred until after
+  workflow launch.
+- Instrument projections + UnitOfWork with metrics/tracing and publish Grafana dashboards + alerts documenting
+  projection lag, failure counts, and command latency.
+- Stand up Subjects and Customers automated tests (unit + EF integration) and expand Users coverage; wire them into the
+  CI `dotnet test` pipeline.
+- Verify Subjects/Customers read models against the documented behaviors and capture the verification steps in
+  DEV_SETUP; add runbooks for `ef-reset`, Dockerized MySQL resets, and projection replays.
+- Run the Holmes.Client architecture workshop with Luis Mendoza (design tokens, layout shells, React Query conventions)
+  staying inside the current dependency set (React Router, MUI, React Query, Emotion).
+- Engage Rebecca’s UX collaborators to produce the reusable UI primitives (timeline, SLA badge, audit panel, role badges
+  and action rails) so CRUD placeholders are replaced before Workflow stories land.
+
+**Acceptance**: Green `dotnet build`, `dotnet test`, `npm run lint:fix`, and `npm run build`; observability dashboards
+shareable; UI architecture notes checked into `/docs`; readiness review signed off for Phase 2 go/no-go.
 
 ### Phase 2 (Weeks 4–7): Intake & Workflow Launch
 

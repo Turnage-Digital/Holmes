@@ -19,6 +19,7 @@ using Holmes.Users.Application.Commands;
 using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
+using Holmes.Users.Infrastructure.Sql.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -29,6 +30,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
 
@@ -66,6 +71,37 @@ internal static class HostingExtensions
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddDistributedMemoryCache();
         builder.Services.AddHealthChecks();
+        builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddService(
+                serviceName: "Holmes.App.Server",
+                serviceVersion: typeof(HostingExtensions).Assembly.GetName().Version?.ToString()))
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddMeter(UnitOfWorkTelemetry.MeterName)
+                    .AddPrometheusExporter();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddSource(UnitOfWorkTelemetry.ActivitySourceName);
+
+                var otlpEndpoint = builder.Configuration["OpenTelemetry:Exporter:Endpoint"];
+                tracing.AddOtlpExporter(options =>
+                {
+                    if (!string.IsNullOrWhiteSpace(otlpEndpoint) &&
+                        Uri.TryCreate(otlpEndpoint, UriKind.Absolute, out var endpoint))
+                    {
+                        options.Endpoint = endpoint;
+                    }
+                    // otherwise rely on OTEL_EXPORTER_OTLP_ENDPOINT env var (e.g., Rider)
+                });
+            });
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
@@ -334,6 +370,9 @@ internal static class HostingExtensions
         app.MapHealthChecks("/health")
             .AllowAnonymous();
 
+        app.MapPrometheusScrapingEndpoint()
+            .AllowAnonymous();
+
         app.Map("/error", (HttpContext context, IHostEnvironment env, ILogger<Program> logger) =>
             {
                 var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
@@ -511,7 +550,7 @@ internal static class HostingExtensions
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
-        services.AddScoped<IUserDirectory>(sp => sp.GetRequiredService<IUsersUnitOfWork>().UserDirectory);
+        services.AddScoped<IUserDirectory, SqlUserDirectory>();
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         return services;

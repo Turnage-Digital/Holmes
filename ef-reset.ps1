@@ -28,7 +28,7 @@ $modules = @(
     },
     @{
         Name = "Subjects"
-        Project = "src/Modules/SubjectRegistry/Holmes.Subjects.Infrastructure.Sql/Holmes.Subjects.Infrastructure.Sql.csproj"
+        Project = "src/Modules/Subjects/Holmes.Subjects.Infrastructure.Sql/Holmes.Subjects.Infrastructure.Sql.csproj"
         Context = "Holmes.Subjects.Infrastructure.Sql.SubjectsDbContext"
         MigrationName = "InitialSubjects"
     }

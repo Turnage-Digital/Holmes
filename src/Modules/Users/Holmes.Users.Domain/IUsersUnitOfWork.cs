@@ -5,6 +5,4 @@ namespace Holmes.Users.Domain;
 public interface IUsersUnitOfWork : IUnitOfWork
 {
     IUserRepository Users { get; }
-
-    IUserDirectory UserDirectory { get; }
 }

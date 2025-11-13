@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10"/>
         <PackageReference Include="NUnit" Version="4.4.0"/>
         <PackageReference Include="NUnit3TestAdapter" Version="5.2.0"/>
         <PackageReference Include="coverlet.collector" Version="6.0.4">
@@ -23,12 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.10"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Holmes.Customers.Application\Holmes.Customers.Application.csproj"/>
-        <ProjectReference Include="..\Holmes.Customers.Infrastructure.Sql\Holmes.Customers.Infrastructure.Sql.csproj"/>
+        <ProjectReference Include="..\Holmes.Subjects.Infrastructure.Sql\Holmes.Subjects.Infrastructure.Sql.csproj"/>
     </ItemGroup>
 
 </Project>
