@@ -5,19 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Subjects.Infrastructure.Sql.Repositories;
 
-public class SqlSubjectRepository : ISubjectRepository
+public class SqlSubjectRepository(SubjectsDbContext dbContext) : ISubjectRepository
 {
-    private readonly SubjectsDbContext _dbContext;
-
-    public SqlSubjectRepository(SubjectsDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public Task AddAsync(Subject subject, CancellationToken cancellationToken)
     {
         var entity = ToDb(subject);
-        _dbContext.Subjects.Add(entity);
+        dbContext.Subjects.Add(entity);
         UpsertDirectory(subject, entity);
         return Task.CompletedTask;
     }
@@ -25,7 +18,7 @@ public class SqlSubjectRepository : ISubjectRepository
     public async Task<Subject?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
     {
         var subjectId = id.ToString();
-        var entity = await _dbContext.Subjects
+        var entity = await dbContext.Subjects
             .Include(s => s.Aliases)
             .FirstOrDefaultAsync(s => s.SubjectId == subjectId, cancellationToken);
 
@@ -39,7 +32,7 @@ public class SqlSubjectRepository : ISubjectRepository
 
     public async Task UpdateAsync(Subject subject, CancellationToken cancellationToken)
     {
-        var entity = await _dbContext.Subjects
+        var entity = await dbContext.Subjects
             .Include(s => s.Aliases)
             .FirstOrDefaultAsync(s => s.SubjectId == subject.Id.ToString(), cancellationToken);
 
@@ -143,7 +136,7 @@ public class SqlSubjectRepository : ISubjectRepository
 
     private void UpsertDirectory(Subject subject, SubjectDb entity)
     {
-        var record = _dbContext.SubjectDirectory.SingleOrDefault(x => x.SubjectId == entity.SubjectId);
+        var record = dbContext.SubjectDirectory.SingleOrDefault(x => x.SubjectId == entity.SubjectId);
         if (record is null)
         {
             record = new SubjectDirectoryDb
@@ -157,7 +150,7 @@ public class SqlSubjectRepository : ISubjectRepository
                 IsMerged = subject.IsMerged,
                 AliasCount = entity.Aliases.Count
             };
-            _dbContext.SubjectDirectory.Add(record);
+            dbContext.SubjectDirectory.Add(record);
         }
         else
         {

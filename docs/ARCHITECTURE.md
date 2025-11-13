@@ -213,6 +213,7 @@ pipeline and no additional queueing infrastructure is necessary.
       so UX partners can restyle them without chasing bespoke implementations.
     - Documented workshop outputs with Luis Mendoza + Rebecca’s UX partners specify IA diagrams, component inventories,
       and testing expectations (lint/format, `npm run build`, visual regression hooks) before Phase 2 features begin.
+- Deliverables and conventions live in `docs/Holmes.Client.UI.md`.
 
 ### Identity & Development Seeds
 

@@ -6,13 +6,9 @@ import {
   Alert,
   Box,
   Button,
-  Card,
   CardContent,
-  CardHeader,
-  Divider,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import {
@@ -22,6 +18,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import { PageHeader } from "@/components/layout";
+import {
+  DataGridNoRowsOverlay,
+  SectionCard,
+  SlaBadge,
+} from "@/components/patterns";
 import { apiFetch, toQueryString } from "@/lib/api";
 import {
   CreateCustomerRequest,
@@ -155,115 +157,115 @@ const CustomersPage = () => {
 
   return (
     <Stack spacing={3}>
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Typography variant="h4" component="h1">
-          Customers
-        </Typography>
-        <Button
-          startIcon={<RefreshIcon />}
-          disabled={isRefreshing}
-          onClick={() => customersQuery.refetch()}
-        >
-          Refresh
-        </Button>
-      </Stack>
+      <PageHeader
+        title="Customers"
+        subtitle="CRA clients, policy snapshots, and contact rosters."
+        meta={<SlaBadge status="at_risk" deadlineLabel="Billing lock in 6h" />}
+        actions={
+          <Button
+            startIcon={<RefreshIcon />}
+            disabled={isRefreshing}
+            onClick={() => customersQuery.refetch()}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
       {combinedError && <Alert severity="error">{combinedError}</Alert>}
       {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
-      <Card component="form" onSubmit={handleCreateCustomer}>
-        <CardHeader
+      <Box component="form" onSubmit={handleCreateCustomer}>
+        <SectionCard
           title="Create customer"
-          subheader="Bind policy snapshots and optional billing contacts."
-        />
-        <Divider />
-        <CardContent>
-          <Stack spacing={2}>
-            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-              <TextField
-                required
-                label="Customer name"
-                value={formState.name}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    name: event.target.value,
-                  }))
-                }
-                fullWidth
-              />
-              <TextField
-                required
-                label="Policy snapshot ID"
-                value={formState.policySnapshotId}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    policySnapshotId: event.target.value,
-                  }))
-                }
-                fullWidth
-              />
-              <TextField
-                label="Billing email"
-                type="email"
-                value={formState.billingEmail}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    billingEmail: event.target.value,
-                  }))
-                }
-                fullWidth
-              />
+          subtitle="Bind policy snapshots and optional billing contacts."
+        >
+          <CardContent>
+            <Stack spacing={2}>
+              <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                <TextField
+                  required
+                  label="Customer name"
+                  value={formState.name}
+                  onChange={(event) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      name: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <TextField
+                  required
+                  label="Policy snapshot ID"
+                  value={formState.policySnapshotId}
+                  onChange={(event) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      policySnapshotId: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label="Billing email"
+                  type="email"
+                  value={formState.billingEmail}
+                  onChange={(event) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      billingEmail: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+              </Stack>
+              <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                <TextField
+                  label="Primary contact name"
+                  value={formState.contactName}
+                  onChange={(event) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      contactName: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label="Primary contact email"
+                  type="email"
+                  value={formState.contactEmail}
+                  onChange={(event) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      contactEmail: event.target.value,
+                    }))
+                  }
+                  fullWidth
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  startIcon={<AddBusinessIcon />}
+                  sx={{
+                    alignSelf: { xs: "stretch", md: "flex-end" },
+                    minHeight: 56,
+                  }}
+                  disabled={isCreatingCustomer}
+                >
+                  {createButtonLabel}
+                </Button>
+              </Stack>
             </Stack>
-            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-              <TextField
-                label="Primary contact name"
-                value={formState.contactName}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    contactName: event.target.value,
-                  }))
-                }
-                fullWidth
-              />
-              <TextField
-                label="Primary contact email"
-                type="email"
-                value={formState.contactEmail}
-                onChange={(event) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    contactEmail: event.target.value,
-                  }))
-                }
-                fullWidth
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                startIcon={<AddBusinessIcon />}
-                sx={{
-                  alignSelf: { xs: "stretch", md: "flex-end" },
-                  minHeight: 56,
-                }}
-                disabled={isCreatingCustomer}
-              >
-                {createButtonLabel}
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </SectionCard>
+      </Box>
 
-      <Card>
-        <CardHeader
-          title="Registry"
-          subheader="Customers tied to the current tenant."
-        />
-        <Divider />
+      <SectionCard
+        title="Registry"
+        subtitle="Customers tied to the current tenant."
+      >
         <CardContent>
           <Box sx={{ height: 520, width: "100%" }}>
             <DataGrid
@@ -276,10 +278,15 @@ const CustomersPage = () => {
               rowCount={customersResult?.totalItems ?? 0}
               paginationMode="server"
               loading={tableLoading}
+              slots={{
+                noRowsOverlay: () => (
+                  <DataGridNoRowsOverlay message="No customers found yet." />
+                ),
+              }}
             />
           </Box>
         </CardContent>
-      </Card>
+      </SectionCard>
     </Stack>
   );
 };

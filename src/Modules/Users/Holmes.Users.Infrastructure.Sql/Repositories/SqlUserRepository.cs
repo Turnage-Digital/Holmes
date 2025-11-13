@@ -23,12 +23,7 @@ public class SqlUserRepository(UsersDbContext dbContext) : IUserRepository
             .Include(x => x.RoleMemberships)
             .FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
 
-        if (record is null)
-        {
-            return null;
-        }
-
-        return Rehydrate(record);
+        return record is null ? null : Rehydrate(record);
     }
 
     public async Task<User?> GetByExternalIdentityAsync(

@@ -92,14 +92,15 @@ internal static class HostingExtensions
                     .AddSource(UnitOfWorkTelemetry.ActivitySourceName);
 
                 var otlpEndpoint = builder.Configuration["OpenTelemetry:Exporter:Endpoint"];
-                if (!string.IsNullOrWhiteSpace(otlpEndpoint) &&
-                    Uri.TryCreate(otlpEndpoint, UriKind.Absolute, out var endpoint))
+                tracing.AddOtlpExporter(options =>
                 {
-                    tracing.AddOtlpExporter(options =>
+                    if (!string.IsNullOrWhiteSpace(otlpEndpoint) &&
+                        Uri.TryCreate(otlpEndpoint, UriKind.Absolute, out var endpoint))
                     {
                         options.Endpoint = endpoint;
-                    });
-                }
+                    }
+                    // otherwise rely on OTEL_EXPORTER_OTLP_ENDPOINT env var (e.g., Rider)
+                });
             });
 
         builder.Services.AddControllers()

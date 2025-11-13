@@ -12,15 +12,12 @@ import {
   Alert,
   Box,
   Button,
-  Card,
   CardContent,
-  CardHeader,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   FormControl,
   InputLabel,
   MenuItem,
@@ -37,7 +34,16 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 
+import { PageHeader } from "@/components/layout";
+import {
+  AuditPanel,
+  DataGridNoRowsOverlay,
+  SectionCard,
+  SlaBadge,
+  TimelineCard,
+} from "@/components/patterns";
 import { apiFetch, toQueryString } from "@/lib/api";
 import {
   GrantUserRoleRequest,
@@ -266,107 +272,179 @@ const UsersPage = () => {
     : undefined;
   const combinedError = clientError ?? fetchErrorMessage;
   const usersResult = usersQuery.data;
+  const auditMetrics = useMemo(() => {
+    const items = usersResult?.items ?? [];
+    const total = usersResult?.totalItems ?? items.length;
+    const invited = items.filter((user) => user.status === "Invited").length;
+    const active = items.filter((user) => user.status === "Active").length;
+    const suspended = items.filter(
+      (user) => user.status === "Suspended",
+    ).length;
+    return [
+      {
+        label: "Total users",
+        value: total.toString(),
+        helperText: `${active} active`,
+      },
+      {
+        label: "Invited",
+        value: invited.toString(),
+        helperText: "Awaiting first login",
+      },
+      {
+        label: "Suspended",
+        value: suspended.toString(),
+        helperText: "Temporarily blocked",
+      },
+    ];
+  }, [usersResult]);
+
+  const timelineItems = useMemo(() => {
+    const items = usersResult?.items ?? [];
+    return items
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      .slice(0, 5)
+      .map((user) => ({
+        id: user.id,
+        title: user.displayName ?? user.email,
+        description:
+          user.roleAssignments.length > 0
+            ? user.roleAssignments
+                .map((assignment) =>
+                  assignment.customerId
+                    ? `${assignment.role} (${assignment.customerId})`
+                    : assignment.role,
+                )
+                .join(", ")
+            : "No roles granted yet",
+        timestamp: formatDistanceToNow(new Date(user.createdAt), {
+          addSuffix: true,
+        }),
+        meta: user.status,
+      }));
+  }, [usersResult]);
 
   return (
     <Stack spacing={3}>
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Typography variant="h4" component="h1">
-          Users
-        </Typography>
-        <Button
-          startIcon={<RefreshIcon />}
-          onClick={() => usersQuery.refetch()}
-          disabled={usersQuery.isFetching}
-        >
-          Refresh
-        </Button>
-      </Stack>
+      <PageHeader
+        title="Users"
+        subtitle="Invite operators, manage access, and prove role audits."
+        meta={
+          <SlaBadge status="on_track" deadlineLabel="Policy sync due in 2h" />
+        }
+        actions={
+          <Button
+            startIcon={<RefreshIcon />}
+            onClick={() => usersQuery.refetch()}
+            disabled={usersQuery.isFetching}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
       {combinedError && <Alert severity="error">{combinedError}</Alert>}
       {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
-      <Card component="form" onSubmit={handleInviteSubmit}>
-        <CardHeader
-          title="Invite user"
-          subheader="Send an invite email and assign at least one role."
-        />
-        <Divider />
-        <CardContent>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-            <TextField
-              required
-              label="Email"
-              type="email"
-              value={inviteForm.email}
-              onChange={(event) =>
-                setInviteForm((prev) => ({
-                  ...prev,
-                  email: event.target.value,
-                }))
-              }
-              fullWidth
+      {auditMetrics.length > 0 && (
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={3}>
+          <Box sx={{ flex: 1, width: "100%" }}>
+            <AuditPanel metrics={auditMetrics} />
+          </Box>
+          <Box sx={{ flex: 1, width: "100%" }}>
+            <TimelineCard
+              title="Recent changes"
+              subtitle="Latest invites and updates"
+              items={timelineItems}
             />
-            <TextField
-              label="Display name"
-              value={inviteForm.displayName ?? ""}
-              onChange={(event) =>
-                setInviteForm((prev) => ({
-                  ...prev,
-                  displayName: event.target.value,
-                }))
-              }
-              fullWidth
-            />
-            <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel id="invite-role-label">Role</InputLabel>
-              <Select
-                labelId="invite-role-label"
-                label="Role"
-                value={inviteForm.roles[0]?.role ?? "Admin"}
-                onChange={(event) =>
-                  setInviteForm((prev) => ({
-                    ...prev,
-                    roles: [{ role: event.target.value as UserRole }],
-                  }))
-                }
-              >
-                {roleOptions.map((role) => (
-                  <MenuItem key={role} value={role}>
-                    {role}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Switch
-                checked={sendEmailEnabled}
-                onChange={(event) =>
-                  setInviteForm((prev) => ({
-                    ...prev,
-                    sendInviteEmail: event.target.checked,
-                  }))
-                }
-              />
-              <Typography variant="body2">Send email</Typography>
-            </Stack>
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<AddIcon />}
-              disabled={inviteUserMutation.isPending}
-            >
-              {inviteButtonLabel}
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
+          </Box>
+        </Stack>
+      )}
 
-      <Card>
-        <CardHeader
-          title="Directory"
-          subheader="Live projection of the user_directory read model."
-        />
-        <Divider />
+      <Box component="form" onSubmit={handleInviteSubmit}>
+        <SectionCard
+          title="Invite user"
+          subtitle="Send an invite email and assign at least one role."
+        >
+          <CardContent>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+              <TextField
+                required
+                label="Email"
+                type="email"
+                value={inviteForm.email}
+                onChange={(event) =>
+                  setInviteForm((prev) => ({
+                    ...prev,
+                    email: event.target.value,
+                  }))
+                }
+                fullWidth
+              />
+              <TextField
+                label="Display name"
+                value={inviteForm.displayName ?? ""}
+                onChange={(event) =>
+                  setInviteForm((prev) => ({
+                    ...prev,
+                    displayName: event.target.value,
+                  }))
+                }
+                fullWidth
+              />
+              <FormControl sx={{ minWidth: 200 }}>
+                <InputLabel id="invite-role-label">Role</InputLabel>
+                <Select
+                  labelId="invite-role-label"
+                  label="Role"
+                  value={inviteForm.roles[0]?.role ?? "Admin"}
+                  onChange={(event) =>
+                    setInviteForm((prev) => ({
+                      ...prev,
+                      roles: [{ role: event.target.value as UserRole }],
+                    }))
+                  }
+                >
+                  {roleOptions.map((role) => (
+                    <MenuItem key={role} value={role}>
+                      {role}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Switch
+                  checked={sendEmailEnabled}
+                  onChange={(event) =>
+                    setInviteForm((prev) => ({
+                      ...prev,
+                      sendInviteEmail: event.target.checked,
+                    }))
+                  }
+                />
+                <Typography variant="body2">Send email</Typography>
+              </Stack>
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<AddIcon />}
+                disabled={inviteUserMutation.isPending}
+              >
+                {inviteButtonLabel}
+              </Button>
+            </Stack>
+          </CardContent>
+        </SectionCard>
+      </Box>
+
+      <SectionCard
+        title="Directory"
+        subtitle="Live projection of the user_directory read model."
+      >
         <CardContent>
           <Box sx={{ height: 520, width: "100%" }}>
             <DataGrid
@@ -380,10 +458,15 @@ const UsersPage = () => {
               onPaginationModelChange={(model) => setPaginationModel(model)}
               loading={tableLoading}
               density="comfortable"
+              slots={{
+                noRowsOverlay: () => (
+                  <DataGridNoRowsOverlay message="No users found yet." />
+                ),
+              }}
             />
           </Box>
         </CardContent>
-      </Card>
+      </SectionCard>
 
       <GrantRoleDialog
         dialogState={grantDialog}

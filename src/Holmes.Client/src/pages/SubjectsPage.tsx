@@ -6,13 +6,9 @@ import {
   Alert,
   Box,
   Button,
-  Card,
   CardContent,
-  CardHeader,
-  Divider,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import {
@@ -22,6 +18,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import { PageHeader } from "@/components/layout";
+import {
+  DataGridNoRowsOverlay,
+  SectionCard,
+  SlaBadge,
+} from "@/components/patterns";
 import { apiFetch, toQueryString } from "@/lib/api";
 import { MergeSubjectsRequest, PaginatedResult, SubjectDto } from "@/types/api";
 import { getErrorMessage } from "@/utils/errorMessage";
@@ -143,81 +145,81 @@ const SubjectsPage = () => {
 
   return (
     <Stack spacing={3}>
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Typography variant="h4" component="h1">
-          Subjects
-        </Typography>
-        <Button
-          startIcon={<RefreshIcon />}
-          disabled={isRefreshing}
-          onClick={() => subjectsQuery.refetch()}
-        >
-          Refresh
-        </Button>
-      </Stack>
+      <PageHeader
+        title="Subjects"
+        subtitle="Registry visibility, merges, and lineage checks."
+        meta={<SlaBadge status="breached" deadlineLabel="Investigate dedupe" />}
+        actions={
+          <Button
+            startIcon={<RefreshIcon />}
+            disabled={isRefreshing}
+            onClick={() => subjectsQuery.refetch()}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
       {combinedError && <Alert severity="error">{combinedError}</Alert>}
       {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
-      <Card component="form" onSubmit={handleMerge}>
-        <CardHeader
+      <Box component="form" onSubmit={handleMerge}>
+        <SectionCard
           title="Merge subjects"
-          subheader="Prove dedupe + lineage flows."
-        />
-        <Divider />
-        <CardContent>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-            <TextField
-              required
-              label="Winner subject ID"
-              value={mergeForm.winnerSubjectId}
-              onChange={(event) =>
-                setMergeForm((prev) => ({
-                  ...prev,
-                  winnerSubjectId: event.target.value,
-                }))
-              }
-              fullWidth
-            />
-            <TextField
-              required
-              label="Merged subject ID"
-              value={mergeForm.mergedSubjectId}
-              onChange={(event) =>
-                setMergeForm((prev) => ({
-                  ...prev,
-                  mergedSubjectId: event.target.value,
-                }))
-              }
-              fullWidth
-            />
-            <TextField
-              label="Reason"
-              value={mergeForm.reason ?? ""}
-              onChange={(event) =>
-                setMergeForm((prev) => ({
-                  ...prev,
-                  reason: event.target.value,
-                }))
-              }
-              fullWidth
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<MergeIcon />}
-              disabled={isMerging}
-              sx={{ minHeight: 56 }}
-            >
-              {mergeButtonLabel}
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
+          subtitle="Prove dedupe + lineage flows."
+        >
+          <CardContent>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+              <TextField
+                required
+                label="Winner subject ID"
+                value={mergeForm.winnerSubjectId}
+                onChange={(event) =>
+                  setMergeForm((prev) => ({
+                    ...prev,
+                    winnerSubjectId: event.target.value,
+                  }))
+                }
+                fullWidth
+              />
+              <TextField
+                required
+                label="Merged subject ID"
+                value={mergeForm.mergedSubjectId}
+                onChange={(event) =>
+                  setMergeForm((prev) => ({
+                    ...prev,
+                    mergedSubjectId: event.target.value,
+                  }))
+                }
+                fullWidth
+              />
+              <TextField
+                label="Reason"
+                value={mergeForm.reason ?? ""}
+                onChange={(event) =>
+                  setMergeForm((prev) => ({
+                    ...prev,
+                    reason: event.target.value,
+                  }))
+                }
+                fullWidth
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<MergeIcon />}
+                disabled={isMerging}
+                sx={{ minHeight: 56 }}
+              >
+                {mergeButtonLabel}
+              </Button>
+            </Stack>
+          </CardContent>
+        </SectionCard>
+      </Box>
 
-      <Card>
-        <CardHeader title="Registry" subheader="Subject registry projection." />
-        <Divider />
+      <SectionCard title="Registry" subtitle="Subject registry projection.">
         <CardContent>
           <Box sx={{ height: 520, width: "100%" }}>
             <DataGrid
@@ -230,10 +232,15 @@ const SubjectsPage = () => {
               rowCount={subjectsResult?.totalItems ?? 0}
               paginationMode="server"
               loading={tableLoading}
+              slots={{
+                noRowsOverlay: () => (
+                  <DataGridNoRowsOverlay message="No subjects found yet." />
+                ),
+              }}
             />
           </Box>
         </CardContent>
-      </Card>
+      </SectionCard>
     </Stack>
   );
 };

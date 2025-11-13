@@ -215,7 +215,7 @@ Holmes.Client
   See `docs/RUNBOOKS.md` for the shared playbook covering resets, projection verification, and observability hookup.
 - **Holmes.Client architecture pass:** working within the current stack (`react`, `react-router-dom`, `@mui/*`,
   `@tanstack/react-query`), define design tokens, layout primitives, route conventions, and query hooks so future flows
-  drop in without re-plumbing.
+  drop in without re-plumbing. Documented in `docs/Holmes.Client.UI.md`.
 - **UX refresh:** partner with Rebecca Wirfs-Brock’s recommended UX collaborators to replace placeholder CRUD layouts
   with domain-first surfaces (subject timeline, SLA badges, audit panels, role badges). Capture their component library
   guidelines in docs.

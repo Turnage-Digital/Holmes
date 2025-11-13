@@ -2,8 +2,11 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Subjects.Application.Commands;
+using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
+using Holmes.Users.Infrastructure.Sql;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,17 +44,36 @@ public sealed class DevelopmentDataSeeder(
             using var scope = services.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
+            var subjectsDb = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
+            var usersDb = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+
+            if (await HasExistingSeedAsync(usersDb, cancellationToken))
+            {
+                logger.LogInformation("Development data already present; skipping seed.");
+                return;
+            }
 
             var now = DateTimeOffset.UtcNow;
             var adminUserId = await EnsureAdminUserAsync(mediator, now, cancellationToken);
             await EnsureAdminRoleAsync(mediator, adminUserId, now, cancellationToken);
             await EnsureAdminApprovedAsync(mediator, adminUserId, now, cancellationToken);
             await EnsureDemoCustomerAsync(mediator, customersDb, adminUserId, now, cancellationToken);
+            await EnsureDemoSubjectAsync(mediator, subjectsDb, adminUserId, now, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed seeding development data");
         }
+    }
+
+    private static async Task<bool> HasExistingSeedAsync(
+        UsersDbContext usersDb,
+        CancellationToken cancellationToken
+    )
+    {
+        return await usersDb.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.Email == DefaultEmail, cancellationToken);
     }
 
     private static async Task<UlidId> EnsureAdminUserAsync(
@@ -119,9 +141,11 @@ public sealed class DevelopmentDataSeeder(
         UlidId customerId;
         if (directory is null)
         {
-            customerId = await mediator.Send(
-                new RegisterCustomerCommand(demoCustomerName, timestamp),
-                cancellationToken);
+            var create = new RegisterCustomerCommand(demoCustomerName, timestamp)
+            {
+                UserId = adminUserId.ToString()
+            };
+            customerId = await mediator.Send(create, cancellationToken);
 
             var assign = new AssignCustomerAdminCommand(customerId, adminUserId, timestamp)
             {
@@ -175,5 +199,36 @@ public sealed class DevelopmentDataSeeder(
         customersDb.CustomerProfiles.Add(profile);
         customersDb.CustomerContacts.Add(contact);
         await customersDb.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task EnsureDemoSubjectAsync(
+        IMediator mediator,
+        SubjectsDbContext subjectsDb,
+        UlidId adminUserId,
+        DateTimeOffset timestamp,
+        CancellationToken cancellationToken
+    )
+    {
+        const string demoGivenName = "Casey";
+        const string demoFamilyName = "Holmes";
+        var existing = await subjectsDb.SubjectDirectory
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.GivenName == demoGivenName && s.FamilyName == demoFamilyName, cancellationToken);
+
+        if (existing is not null)
+        {
+            return;
+        }
+
+        var createSubject = new RegisterSubjectCommand(
+            demoGivenName,
+            demoFamilyName,
+            new DateOnly(1994, 4, 12),
+            "casey@holmes.dev",
+            timestamp)
+        {
+            UserId = adminUserId.ToString()
+        };
+        await mediator.Send(createSubject, cancellationToken);
     }
 }
