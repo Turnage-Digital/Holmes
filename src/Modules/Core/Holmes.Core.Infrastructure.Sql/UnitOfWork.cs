@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using Holmes.Core.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -14,8 +13,7 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
         using var activity = UnitOfWorkTelemetry.ActivitySource.StartActivity(
-            "UnitOfWork.SaveChanges",
-            ActivityKind.Internal);
+            "UnitOfWork.SaveChanges");
         var tags = new TagList
         {
             { "db.context", typeof(TContext).Name },

@@ -1,5 +1,4 @@
 using Holmes.Core.Domain.ValueObjects;
-using System.Linq;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Repositories;

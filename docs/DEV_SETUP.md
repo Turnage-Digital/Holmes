@@ -16,7 +16,8 @@
     - Visit https://localhost:5001 and follow the “Continue with Holmes Identity” flow
     - Credentials: `admin` / `password`
 
-The `DevelopmentDataSeeder` hosted service ensures an Admin user and demo customer exist whenever you run in Development.***
+The `DevelopmentDataSeeder` hosted service ensures an Admin user and demo customer exist whenever you run in
+Development.***
 
 5. **Observability**
     - Metrics: Prometheus-compatible scrape endpoint lives at `https://localhost:5001/metrics`. Point Grafana Agent (or

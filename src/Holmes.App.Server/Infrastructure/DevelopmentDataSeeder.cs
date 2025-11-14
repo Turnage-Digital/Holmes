@@ -213,7 +213,8 @@ public sealed class DevelopmentDataSeeder(
         const string demoFamilyName = "Holmes";
         var existing = await subjectsDb.SubjectDirectory
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.GivenName == demoGivenName && s.FamilyName == demoFamilyName, cancellationToken);
+            .FirstOrDefaultAsync(s => s.GivenName == demoGivenName && s.FamilyName == demoFamilyName,
+                cancellationToken);
 
         if (existing is not null)
         {

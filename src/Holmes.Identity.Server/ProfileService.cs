@@ -9,7 +9,7 @@ internal sealed class ProfileService : IProfileService
 {
     public Task GetProfileDataAsync(ProfileDataRequestContext context)
     {
-        var subjectId = context.Subject?.FindFirst(JwtClaimTypes.Subject)?.Value;
+        var subjectId = context.Subject.FindFirst(JwtClaimTypes.Subject)?.Value;
         if (string.IsNullOrWhiteSpace(subjectId))
         {
             return Task.CompletedTask;

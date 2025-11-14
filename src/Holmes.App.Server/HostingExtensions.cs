@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Infrastructure;
 using Holmes.App.Server.Security;
+using Holmes.App.Server.Workflow;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Domain.Security;
@@ -12,6 +13,9 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Intake.Application.Gateways;
+using Holmes.Intake.Domain;
+using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
@@ -20,6 +24,8 @@ using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Repositories;
+using Holmes.Workflow.Domain;
+using Holmes.Workflow.Infrastructure.Sql;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -30,7 +36,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -73,7 +78,7 @@ internal static class HostingExtensions
         builder.Services.AddHealthChecks();
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource => resource.AddService(
-                serviceName: "Holmes.App.Server",
+                "Holmes.App.Server",
                 serviceVersion: typeof(HostingExtensions).Assembly.GetName().Version?.ToString()))
             .WithMetrics(metrics =>
             {
@@ -539,6 +544,13 @@ internal static class HostingExtensions
         /* Subjects */
         services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
 
+        /* Intake */
+        services.AddIntakeInfrastructureSql(connectionString, serverVersion);
+        services.AddScoped<IOrderWorkflowGateway, OrderWorkflowGateway>();
+
+        /* Workflow */
+        services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
+
         return services;
     }
 
@@ -548,11 +560,16 @@ internal static class HostingExtensions
         services.AddDbContext<UsersDbContext>(options => options.UseInMemoryDatabase("holmes-users"));
         services.AddDbContext<CustomersDbContext>(options => options.UseInMemoryDatabase("holmes-customers"));
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
+        services.AddDbContext<IntakeDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
+        services.AddDbContext<WorkflowDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
+        services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
+        services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
+        services.AddScoped<IOrderWorkflowGateway, OrderWorkflowGateway>();
         return services;
     }
 
