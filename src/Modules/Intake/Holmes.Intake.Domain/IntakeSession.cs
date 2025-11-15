@@ -227,7 +227,7 @@ public sealed class IntakeSession : AggregateRoot
         Status = IntakeSessionStatus.Abandoned;
         LastTouchedAt = supersededAt;
 
-        AddDomainEvent(new IntakeSessionSuperseded(Id, supersededBySessionId, supersededAt));
+        AddDomainEvent(new IntakeSessionSuperseded(Id, OrderId, supersededBySessionId, supersededAt));
     }
 
     private void EnsureNotExpired(DateTimeOffset observedAt)

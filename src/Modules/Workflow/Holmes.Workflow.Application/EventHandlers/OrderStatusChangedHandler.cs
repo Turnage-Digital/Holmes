@@ -1,6 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Application.Notifications;
 using Holmes.Workflow.Application.Projections;
+using Holmes.Workflow.Application.Timeline;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Domain.Events;
 using MediatR;
@@ -10,7 +11,8 @@ namespace Holmes.Workflow.Application.EventHandlers;
 public sealed class OrderStatusChangedHandler(
     IWorkflowUnitOfWork unitOfWork,
     IOrderSummaryWriter summaryWriter,
-    IOrderChangeBroadcaster broadcaster
+    IOrderChangeBroadcaster broadcaster,
+    IOrderTimelineWriter timelineWriter
 ) : INotificationHandler<OrderStatusChanged>
 {
     public async Task Handle(OrderStatusChanged notification, CancellationToken cancellationToken)
@@ -22,6 +24,13 @@ public sealed class OrderStatusChangedHandler(
         }
 
         await summaryWriter.UpsertAsync(order, cancellationToken);
+        await timelineWriter.WriteAsync(new OrderTimelineEntry(
+            order.Id,
+            "order.status_changed",
+            notification.Reason,
+            "workflow",
+            notification.ChangedAt,
+            new { status = order.Status.ToString() }), cancellationToken);
         await broadcaster.PublishAsync(new OrderChange(
             UlidId.NewUlid(),
             order.Id,

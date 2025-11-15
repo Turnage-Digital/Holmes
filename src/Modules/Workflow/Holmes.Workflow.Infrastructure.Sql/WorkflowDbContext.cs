@@ -9,12 +9,14 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
 {
     public DbSet<OrderDb> Orders => Set<OrderDb>();
     public DbSet<OrderSummaryDb> OrderSummaries => Set<OrderSummaryDb>();
+    public DbSet<OrderTimelineEventDb> OrderTimelineEvents => Set<OrderTimelineEventDb>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         ConfigureOrders(modelBuilder.Entity<OrderDb>());
         ConfigureOrderSummaries(modelBuilder.Entity<OrderSummaryDb>());
+        ConfigureOrderTimeline(modelBuilder.Entity<OrderTimelineEventDb>());
     }
 
     private static void ConfigureOrders(EntityTypeBuilder<OrderDb> builder)
@@ -88,5 +90,31 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
 
         builder.HasIndex(x => x.CustomerId);
         builder.HasIndex(x => x.Status);
+    }
+
+    private static void ConfigureOrderTimeline(EntityTypeBuilder<OrderTimelineEventDb> builder)
+    {
+        builder.ToTable("order_timeline_events");
+        builder.HasKey(x => x.EventId);
+        builder.Property(x => x.EventId)
+            .HasMaxLength(26)
+            .ValueGeneratedNever();
+        builder.Property(x => x.OrderId)
+            .HasMaxLength(26)
+            .IsRequired();
+        builder.Property(x => x.EventType)
+            .HasMaxLength(64)
+            .IsRequired();
+        builder.Property(x => x.Source)
+            .HasMaxLength(64)
+            .IsRequired();
+        builder.Property(x => x.Description)
+            .HasMaxLength(512)
+            .IsRequired();
+        builder.Property(x => x.MetadataJson)
+            .HasColumnType("json");
+
+        builder.HasIndex(x => x.OrderId);
+        builder.HasIndex(x => x.OccurredAt);
     }
 }

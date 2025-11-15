@@ -4,19 +4,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Holmes.Intake.Infrastructure.Sql;
 
-public class IntakeDbContext(DbContextOptions<IntakeDbContext> options)
-    : DbContext(options)
-{
-    public DbSet<ConsentArtifactDb> ConsentArtifacts => Set<ConsentArtifactDb>();
-    public DbSet<IntakeSessionDb> IntakeSessions => Set<IntakeSessionDb>();
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public class IntakeDbContext(DbContextOptions<IntakeDbContext> options)
+        : DbContext(options)
     {
-        base.OnModelCreating(modelBuilder);
-        ConfigureConsentArtifacts(modelBuilder.Entity<ConsentArtifactDb>());
-        ConfigureIntakeSessions(modelBuilder.Entity<IntakeSessionDb>());
-        // Phase 2 will configure aggregates (IntakeSession, Order workflow projections, etc.).
-    }
+        public DbSet<ConsentArtifactDb> ConsentArtifacts => Set<ConsentArtifactDb>();
+        public DbSet<IntakeSessionDb> IntakeSessions => Set<IntakeSessionDb>();
+        public DbSet<IntakeSessionProjectionDb> IntakeSessionProjections => Set<IntakeSessionProjectionDb>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            ConfigureConsentArtifacts(modelBuilder.Entity<ConsentArtifactDb>());
+            ConfigureIntakeSessions(modelBuilder.Entity<IntakeSessionDb>());
+            ConfigureIntakeSessionProjections(modelBuilder.Entity<IntakeSessionProjectionDb>());
+        }
 
     private static void ConfigureConsentArtifacts(EntityTypeBuilder<ConsentArtifactDb> builder)
     {
@@ -89,5 +90,27 @@ public class IntakeDbContext(DbContextOptions<IntakeDbContext> options)
         builder.HasIndex(x => x.OrderId);
         builder.HasIndex(x => x.SubjectId);
         builder.HasIndex(x => x.CustomerId);
+    }
+
+    private static void ConfigureIntakeSessionProjections(EntityTypeBuilder<IntakeSessionProjectionDb> builder)
+    {
+        builder.ToTable("intake_sessions_projection");
+        builder.HasKey(x => x.IntakeSessionId);
+        builder.Property(x => x.IntakeSessionId)
+            .HasMaxLength(26)
+            .ValueGeneratedNever();
+        builder.Property(x => x.OrderId).HasMaxLength(26).IsRequired();
+        builder.Property(x => x.SubjectId).HasMaxLength(26).IsRequired();
+        builder.Property(x => x.CustomerId).HasMaxLength(26).IsRequired();
+        builder.Property(x => x.PolicySnapshotId).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.PolicySnapshotSchemaVersion).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.Status).HasMaxLength(32).IsRequired();
+        builder.Property(x => x.CancellationReason).HasMaxLength(256);
+        builder.Property(x => x.SupersededBySessionId).HasMaxLength(26);
+
+        builder.HasIndex(x => x.OrderId);
+        builder.HasIndex(x => x.SubjectId);
+        builder.HasIndex(x => x.CustomerId);
+        builder.HasIndex(x => x.Status);
     }
 }

@@ -1,4 +1,6 @@
+using Holmes.Workflow.Application.Timeline;
 using Holmes.Workflow.Domain;
+using Holmes.Workflow.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +19,7 @@ public static class DependencyInjection
                 builder.MigrationsAssembly(typeof(WorkflowDbContext).Assembly.FullName)));
 
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
+        services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         return services;
     }
 }

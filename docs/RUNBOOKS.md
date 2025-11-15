@@ -40,6 +40,32 @@ Holmes v1 stores read models directly in the module DbContexts. To verify or reb
 When dedicated projection runners arrive, add their replay commands here (e.g.,
 `dotnet run --project Holmes.Projections.Runner --projection user_directory`).
 
+## Intake Session Projection & Order Timeline Verification
+
+1. After running any intake flow (invite → submit → accept), query the projection tables to ensure the read models are
+   synchronized:
+
+   ```sql
+   SELECT intake_session_id, status, submitted_at, accepted_at
+   FROM intake.intake_sessions_projection
+   ORDER BY last_touched_at DESC
+   LIMIT 5;
+   ```
+
+   ```sql
+   SELECT order_id, event_type, description, occurred_at
+   FROM workflow.order_timeline_events
+   ORDER BY occurred_at DESC
+   LIMIT 10;
+   ```
+
+2. If projections drift, run the application again and replay the events via MediatR (`dotnet test Holmes.sln` exercises
+   the handlers) or truncate the tables and re-run the happy path; the handlers will rebuild the projections on the next
+   event dispatch.
+3. Watch the metrics exposed at `/metrics` — new counters `holmes.intake_sessions.projection_updates` and
+   `holmes.timeline.events_written` confirm the handlers are executing. Wire them into Grafana alongside the existing
+   UnitOfWork histograms.
+
 ---
 
 ## Observability Hooks
