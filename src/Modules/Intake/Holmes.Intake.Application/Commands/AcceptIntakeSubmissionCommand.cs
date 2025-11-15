@@ -42,7 +42,7 @@ public sealed class AcceptIntakeSubmissionCommandHandler(
         session.AcceptSubmission(request.AcceptedAt);
         await repository.UpdateAsync(session, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        await orderWorkflowGateway.NotifyIntakeAcceptedAsync(submission, cancellationToken);
+        await orderWorkflowGateway.NotifyIntakeAcceptedAsync(submission, request.AcceptedAt, cancellationToken);
 
         return Result.Success();
     }

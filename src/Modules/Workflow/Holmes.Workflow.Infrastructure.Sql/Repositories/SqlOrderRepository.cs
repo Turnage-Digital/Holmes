@@ -60,7 +60,8 @@ public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepo
             record.IntakeStartedAt,
             record.IntakeCompletedAt,
             record.ReadyForRoutingAt,
-            record.ClosedAt);
+            record.ClosedAt,
+            record.CanceledAt);
     }
 
     private static OrderDb ToEntity(Order order)
@@ -89,5 +90,6 @@ public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepo
         record.IntakeCompletedAt = order.IntakeCompletedAt;
         record.ReadyForRoutingAt = order.ReadyForRoutingAt;
         record.ClosedAt = order.ClosedAt;
+        record.CanceledAt = order.CanceledAt;
     }
 }

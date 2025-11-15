@@ -15,6 +15,36 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "order_summary",
+                columns: table => new
+                {
+                    OrderId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SubjectId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PolicySnapshotId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PackageCode = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LastStatusReason = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LastUpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    ReadyForRoutingAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
+                    ClosedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
+                    CanceledAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_order_summary", x => x.OrderId);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "workflow_orders",
                 columns: table => new
                 {
@@ -44,13 +74,24 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                     IntakeStartedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     IntakeCompletedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     ReadyForRoutingAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
-                    ClosedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true)
+                    ClosedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
+                    CanceledAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_workflow_orders", x => x.OrderId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_order_summary_CustomerId",
+                table: "order_summary",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_order_summary_Status",
+                table: "order_summary",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_workflow_orders_CustomerId",
@@ -71,6 +112,9 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "order_summary");
+
             migrationBuilder.DropTable(
                 name: "workflow_orders");
         }

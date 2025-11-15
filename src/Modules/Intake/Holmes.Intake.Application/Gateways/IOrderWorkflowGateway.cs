@@ -10,8 +10,15 @@ public interface IOrderWorkflowGateway
         CancellationToken cancellationToken
     );
 
+    Task NotifyIntakeSubmittedAsync(
+        OrderIntakeSubmission submission,
+        DateTimeOffset submittedAt,
+        CancellationToken cancellationToken
+    );
+
     Task NotifyIntakeAcceptedAsync(
         OrderIntakeSubmission submission,
+        DateTimeOffset acceptedAt,
         CancellationToken cancellationToken
     );
 }

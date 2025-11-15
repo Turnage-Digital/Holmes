@@ -24,8 +24,13 @@ using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Repositories;
+using Holmes.Workflow.Application.Commands;
+using Holmes.Workflow.Application.Notifications;
+using Holmes.Workflow.Application.Projections;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
+using Holmes.Workflow.Infrastructure.Sql.Notifications;
+using Holmes.Workflow.Infrastructure.Sql.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -140,7 +145,7 @@ internal static class HostingExtensions
             config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
             config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
             config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
-            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
+            config.RegisterServicesFromAssemblyContaining<CreateOrderCommand>();
         });
 
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
@@ -309,9 +314,10 @@ internal static class HostingExtensions
         app.UseAuthentication();
         app.Use(async (context, next) =>
         {
-            if (context.User.Identity?.IsAuthenticated == true && RequiresUserInitialization(context.Request))
+            if (context.User.Identity?.IsAuthenticated is true && RequiresUserInitialization(context.Request))
             {
-                var initializer = context.RequestServices.GetRequiredService<ICurrentUserInitializer>();
+                var initializer = context.RequestServices
+                    .GetRequiredService<ICurrentUserInitializer>();
                 try
                 {
                     await initializer.EnsureCurrentUserIdAsync(context.RequestAborted);
@@ -334,8 +340,8 @@ internal static class HostingExtensions
 
             await next();
         });
-        app.UseAuthorization();
 
+        app.UseAuthorization();
         app.MapControllers();
 
         var auth = app.MapGroup("/auth");
@@ -550,6 +556,8 @@ internal static class HostingExtensions
 
         /* Workflow */
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
+        services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
+        services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
 
         return services;
     }
@@ -569,6 +577,8 @@ internal static class HostingExtensions
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
+        services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
+        services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
         services.AddScoped<IOrderWorkflowGateway, OrderWorkflowGateway>();
         return services;
     }

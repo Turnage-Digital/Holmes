@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Domain;
+using Holmes.Workflow.Domain.Events;
 using Xunit;
 
 namespace Holmes.Workflow.Tests;
@@ -22,8 +23,10 @@ public class OrderTests
         order.CustomerId.Should().Be(customerId);
         order.PolicySnapshotId.Should().Be("policy-v1");
         order.Status.Should().Be(OrderStatus.Created);
-        order.DomainEvents.Should().ContainSingle()
-            .Which.Should().BeOfType<Holmes.Workflow.Domain.Events.OrderStatusChanged>();
+        order.DomainEvents.Should()
+            .ContainSingle()
+            .Which.Should()
+            .BeOfType<OrderStatusChanged>();
     }
 
     [Fact]
@@ -100,6 +103,20 @@ public class OrderTests
 
         order.ResumeFromBlock("gate cleared", DateTimeOffset.UtcNow);
         order.Status.Should().Be(OrderStatus.IntakeInProgress);
+    }
+
+    [Fact]
+    public void CancelStopsOrder()
+    {
+        var order = CreateOrder();
+        var canceledAt = DateTimeOffset.UtcNow;
+
+        order.Cancel("duplicate request", canceledAt);
+
+        order.Status.Should().Be(OrderStatus.Canceled);
+        order.CanceledAt.Should().Be(canceledAt);
+        Assert.Throws<InvalidOperationException>(() =>
+            order.RecordInvite(UlidId.NewUlid(), DateTimeOffset.UtcNow));
     }
 
     private static Order CreateOrder()

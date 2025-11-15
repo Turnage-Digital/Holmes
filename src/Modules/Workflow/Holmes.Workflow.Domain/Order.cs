@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Domain.Events;
@@ -11,15 +9,16 @@ public sealed class Order : AggregateRoot
     private static readonly IReadOnlyDictionary<OrderStatus, OrderStatus[]> AllowedTransitions =
         new Dictionary<OrderStatus, OrderStatus[]>
         {
-            { OrderStatus.Created, new[] { OrderStatus.Invited } },
-            { OrderStatus.Invited, new[] { OrderStatus.IntakeInProgress } },
-            { OrderStatus.IntakeInProgress, new[] { OrderStatus.IntakeComplete } },
-            { OrderStatus.IntakeComplete, new[] { OrderStatus.ReadyForRouting } },
-            { OrderStatus.ReadyForRouting, new[] { OrderStatus.RoutingInProgress } },
-            { OrderStatus.RoutingInProgress, new[] { OrderStatus.ReadyForReport } },
-            { OrderStatus.ReadyForReport, new[] { OrderStatus.Closed } },
-            { OrderStatus.Closed, Array.Empty<OrderStatus>() },
-            { OrderStatus.Blocked, Array.Empty<OrderStatus>() }
+            { OrderStatus.Created, [OrderStatus.Invited] },
+            { OrderStatus.Invited, [OrderStatus.IntakeInProgress] },
+            { OrderStatus.IntakeInProgress, [OrderStatus.IntakeComplete] },
+            { OrderStatus.IntakeComplete, [OrderStatus.ReadyForRouting] },
+            { OrderStatus.ReadyForRouting, [OrderStatus.RoutingInProgress] },
+            { OrderStatus.RoutingInProgress, [OrderStatus.ReadyForReport] },
+            { OrderStatus.ReadyForReport, [OrderStatus.Closed] },
+            { OrderStatus.Closed, [] },
+            { OrderStatus.Blocked, [] },
+            { OrderStatus.Canceled, [] }
         };
 
     private Order()
@@ -43,6 +42,7 @@ public sealed class Order : AggregateRoot
     public DateTimeOffset? IntakeCompletedAt { get; private set; }
     public DateTimeOffset? ReadyForRoutingAt { get; private set; }
     public DateTimeOffset? ClosedAt { get; private set; }
+    public DateTimeOffset? CanceledAt { get; private set; }
 
     public static Order Create(
         UlidId orderId,
@@ -88,7 +88,8 @@ public sealed class Order : AggregateRoot
         DateTimeOffset? intakeStartedAt,
         DateTimeOffset? intakeCompletedAt,
         DateTimeOffset? readyForRoutingAt,
-        DateTimeOffset? closedAt
+        DateTimeOffset? closedAt,
+        DateTimeOffset? canceledAt
     )
     {
         return new Order
@@ -109,13 +110,14 @@ public sealed class Order : AggregateRoot
             IntakeStartedAt = intakeStartedAt,
             IntakeCompletedAt = intakeCompletedAt,
             ReadyForRoutingAt = readyForRoutingAt,
-            ClosedAt = closedAt
+            ClosedAt = closedAt,
+            CanceledAt = canceledAt
         };
     }
 
     public void RecordInvite(UlidId intakeSessionId, DateTimeOffset invitedAt, string? reason = null)
     {
-        EnsureNotClosed();
+        EnsureNotFinalized();
         reason ??= "Invite issued";
         ActiveIntakeSessionId = intakeSessionId;
         InvitedAt = invitedAt;
@@ -145,7 +147,7 @@ public sealed class Order : AggregateRoot
 
     public void MarkReadyForRouting(DateTimeOffset readyAt, string? reason = null)
     {
-        EnsureNotClosed();
+        EnsureNotFinalized();
         if (Status != OrderStatus.IntakeComplete)
         {
             throw new InvalidOperationException("Order must be intake complete before it can be routed.");
@@ -163,7 +165,7 @@ public sealed class Order : AggregateRoot
 
     public void BeginRouting(DateTimeOffset startedAt, string? reason = null)
     {
-        EnsureNotClosed();
+        EnsureNotFinalized();
         if (Status != OrderStatus.ReadyForRouting)
         {
             throw new InvalidOperationException("Routing can only begin from the ready for routing state.");
@@ -175,7 +177,7 @@ public sealed class Order : AggregateRoot
 
     public void MarkReadyForReport(DateTimeOffset readyAt, string? reason = null)
     {
-        EnsureNotClosed();
+        EnsureNotFinalized();
         if (Status != OrderStatus.RoutingInProgress)
         {
             throw new InvalidOperationException("Order must be routing in progress before it can be ready for report.");
@@ -210,6 +212,11 @@ public sealed class Order : AggregateRoot
             throw new InvalidOperationException("Closed orders cannot be blocked.");
         }
 
+        if (Status == OrderStatus.Canceled)
+        {
+            throw new InvalidOperationException("Canceled orders cannot be blocked.");
+        }
+
         if (Status == OrderStatus.Blocked)
         {
             LastStatusReason = reason;
@@ -239,7 +246,26 @@ public sealed class Order : AggregateRoot
 
         var target = BlockedFromStatus.Value;
         BlockedFromStatus = null;
-        TransitionTo(target, reason, timestamp, allowAnyTransition: true);
+        TransitionTo(target, reason, timestamp, true);
+    }
+
+    public void Cancel(string reason, DateTimeOffset canceledAt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+
+        if (Status == OrderStatus.Canceled)
+        {
+            return;
+        }
+
+        if (Status == OrderStatus.Closed)
+        {
+            throw new InvalidOperationException("Closed orders cannot be canceled.");
+        }
+
+        CanceledAt = canceledAt;
+        BlockedFromStatus = null;
+        TransitionTo(OrderStatus.Canceled, reason, canceledAt, true);
     }
 
     private void TransitionTo(
@@ -277,7 +303,7 @@ public sealed class Order : AggregateRoot
 
     private void EnsureActiveSession(UlidId sessionId)
     {
-        EnsureNotClosed();
+        EnsureNotFinalized();
 
         if (Status == OrderStatus.Blocked)
         {
@@ -295,11 +321,11 @@ public sealed class Order : AggregateRoot
         }
     }
 
-    private void EnsureNotClosed()
+    private void EnsureNotFinalized()
     {
-        if (Status == OrderStatus.Closed)
+        if (Status is OrderStatus.Closed or OrderStatus.Canceled)
         {
-            throw new InvalidOperationException("Order is already closed.");
+            throw new InvalidOperationException("Order is no longer active.");
         }
     }
 }

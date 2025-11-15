@@ -36,6 +36,9 @@ public class SubmitIntakeCommandTests
         result.Error.Should().Be("policy");
         session.Status.Should().Be(IntakeSessionStatus.InProgress);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _gateway.DidNotReceive()
+            .NotifyIntakeSubmittedAsync(Arg.Any<OrderIntakeSubmission>(), Arg.Any<DateTimeOffset>(),
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -45,13 +48,18 @@ public class SubmitIntakeCommandTests
         _gateway.ValidateSubmissionAsync(Arg.Any<OrderIntakeSubmission>(), Arg.Any<CancellationToken>())
             .Returns(OrderPolicyCheckResult.Allowed());
         var handler = new SubmitIntakeCommandHandler(_gateway, _unitOfWork);
+        var submittedAt = DateTimeOffset.UtcNow;
 
-        var result = await handler.Handle(new SubmitIntakeCommand(session.Id, DateTimeOffset.UtcNow),
+        var result = await handler.Handle(new SubmitIntakeCommand(session.Id, submittedAt),
             CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         session.Status.Should().Be(IntakeSessionStatus.AwaitingReview);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _gateway.Received(1)
+            .NotifyIntakeSubmittedAsync(Arg.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
+                submittedAt,
+                Arg.Any<CancellationToken>());
     }
 
     private async Task<IntakeSession> SeedReadySessionAsync()

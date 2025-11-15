@@ -139,3 +139,29 @@ export interface PaginatedResult<TItem> {
     totalItems: number;
     totalPages: number;
 }
+
+export type OrderStatus =
+    | "Created"
+    | "Invited"
+    | "IntakeInProgress"
+    | "IntakeComplete"
+    | "ReadyForRouting"
+    | "RoutingInProgress"
+    | "ReadyForReport"
+    | "Closed"
+    | "Blocked"
+    | "Canceled";
+
+export interface OrderSummary {
+    orderId: Ulid;
+    subjectId: Ulid;
+    customerId: Ulid;
+    policySnapshotId: string;
+    packageCode?: string | null;
+    status: OrderStatus;
+    lastStatusReason?: string | null;
+    lastUpdatedAt: string;
+    readyForRoutingAt?: string | null;
+    closedAt?: string | null;
+    canceledAt?: string | null;
+}

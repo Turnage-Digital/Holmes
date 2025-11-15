@@ -10,5 +10,6 @@ public enum OrderStatus
     RoutingInProgress = 5,
     ReadyForReport = 6,
     Closed = 7,
-    Blocked = 8
+    Blocked = 8,
+    Canceled = 9
 }

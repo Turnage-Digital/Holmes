@@ -17,6 +17,11 @@ const navItems: PrimaryNavItem[] = [
         path: "/subjects",
         description: "Registry, merges, and lineage",
     },
+    {
+        label: "Orders",
+        path: "/orders",
+        description: "Intake + workflow monitoring",
+    },
 ];
 
 const AppLayout = () => {

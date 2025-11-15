@@ -36,6 +36,9 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
 
+                    b.Property<DateTimeOffset?>("CanceledAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("datetime(6)");
 
@@ -98,6 +101,64 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                     b.HasIndex("SubjectId");
 
                     b.ToTable("workflow_orders", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Workflow.Infrastructure.Sql.Entities.OrderSummaryDb", b =>
+                {
+                    b.Property<string>("OrderId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateTimeOffset?>("CanceledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<string>("LastStatusReason")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateTimeOffset>("LastUpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PackageCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("PolicySnapshotId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTimeOffset?>("ReadyForRoutingAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("SubjectId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("order_summary", (string)null);
                 });
 #pragma warning restore 612, 618
         }

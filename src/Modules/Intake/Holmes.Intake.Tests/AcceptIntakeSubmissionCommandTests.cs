@@ -26,8 +26,9 @@ public class AcceptIntakeSubmissionCommandTests
     {
         var session = await SeedAwaitingReviewAsync();
         var handler = new AcceptIntakeSubmissionCommandHandler(_gateway, _unitOfWork);
+        var acceptedAt = DateTimeOffset.UtcNow;
 
-        var result = await handler.Handle(new AcceptIntakeSubmissionCommand(session.Id, DateTimeOffset.UtcNow),
+        var result = await handler.Handle(new AcceptIntakeSubmissionCommand(session.Id, acceptedAt),
             CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -35,6 +36,7 @@ public class AcceptIntakeSubmissionCommandTests
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
         await _gateway.Received(1)
             .NotifyIntakeAcceptedAsync(Arg.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
+                acceptedAt,
                 Arg.Any<CancellationToken>());
     }
 
