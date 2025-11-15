@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Application.Gateways;
@@ -31,8 +30,8 @@ public class AcceptIntakeSubmissionCommandTests
         var result = await handler.Handle(new AcceptIntakeSubmissionCommand(session.Id, acceptedAt),
             CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        session.Status.Should().Be(IntakeSessionStatus.Submitted);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(IntakeSessionStatus.Submitted, session.Status);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
         await _gateway.Received(1)
             .NotifyIntakeAcceptedAsync(Arg.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),

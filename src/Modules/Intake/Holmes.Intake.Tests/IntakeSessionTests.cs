@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.Events;
@@ -23,9 +22,9 @@ public class IntakeSessionTests
             DateTimeOffset.UtcNow,
             TimeSpan.FromDays(3));
 
-        session.Status.Should().Be(IntakeSessionStatus.Invited);
-        session.PolicySnapshot.Should().Be(snapshot);
-        session.DomainEvents.Should().ContainSingle(e => e is IntakeSessionInvited);
+        Assert.Equal(IntakeSessionStatus.Invited, session.Status);
+        Assert.Equal(snapshot, session.PolicySnapshot);
+        Assert.Single(session.DomainEvents, e => e is IntakeSessionInvited);
     }
 
     [Fact]
@@ -35,8 +34,8 @@ public class IntakeSessionTests
 
         session.Start(DateTimeOffset.UtcNow, "ios-17");
 
-        session.Status.Should().Be(IntakeSessionStatus.InProgress);
-        session.DomainEvents.Should().Contain(e => e is IntakeSessionStarted);
+        Assert.Equal(IntakeSessionStatus.InProgress, session.Status);
+        Assert.Contains(session.DomainEvents, e => e is IntakeSessionStarted);
     }
 
     [Fact]
@@ -46,21 +45,18 @@ public class IntakeSessionTests
         session.Start(DateTimeOffset.UtcNow, null);
         var answers = IntakeAnswersSnapshot.Create("schema", "hash", "cipher", DateTimeOffset.UtcNow);
 
-        session.Invoking(s => s.Submit(DateTimeOffset.UtcNow))
-            .Should()
-            .Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(() => session.Submit(DateTimeOffset.UtcNow));
 
         session.SaveProgress(answers);
-        session.Invoking(s => s.Submit(DateTimeOffset.UtcNow))
-            .Should()
-            .Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(() => session.Submit(DateTimeOffset.UtcNow));
 
         var artifact = ConsentArtifactPointer.Create(UlidId.NewUlid(), "application/pdf", 1024, "hash", "SHA256",
             "schema", DateTimeOffset.UtcNow);
         session.CaptureConsent(artifact);
 
-        session.Invoking(s => s.Submit(DateTimeOffset.UtcNow)).Should().NotThrow();
-        session.Status.Should().Be(IntakeSessionStatus.AwaitingReview);
+        var exception = Record.Exception(() => session.Submit(DateTimeOffset.UtcNow));
+        Assert.Null(exception);
+        Assert.Equal(IntakeSessionStatus.AwaitingReview, session.Status);
     }
 
     [Fact]
@@ -70,8 +66,8 @@ public class IntakeSessionTests
 
         session.AcceptSubmission(DateTimeOffset.UtcNow);
 
-        session.Status.Should().Be(IntakeSessionStatus.Submitted);
-        session.DomainEvents.Should().Contain(e => e is IntakeSubmissionAccepted);
+        Assert.Equal(IntakeSessionStatus.Submitted, session.Status);
+        Assert.Contains(session.DomainEvents, e => e is IntakeSubmissionAccepted);
     }
 
     [Fact]
@@ -80,9 +76,8 @@ public class IntakeSessionTests
         var session = CreateSubmittedSession();
         session.AcceptSubmission(DateTimeOffset.UtcNow);
 
-        session.Invoking(s => s.Supersede(UlidId.NewUlid(), DateTimeOffset.UtcNow))
-            .Should()
-            .Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(() =>
+            session.Supersede(UlidId.NewUlid(), DateTimeOffset.UtcNow));
     }
 
     private static IntakeSession CreateInvitedSession()

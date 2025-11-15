@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Text.Json;
+using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Application.Notifications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +13,7 @@ namespace Holmes.App.Server.Controllers;
 public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) : ControllerBase
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(10);
 
     [HttpGet]
     public async Task GetAsync(CancellationToken cancellationToken)
@@ -18,9 +21,16 @@ public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) 
         Response.Headers.CacheControl = "no-store";
         Response.Headers.ContentType = "text/event-stream";
 
-        var subscription = broadcaster.Subscribe();
+        var orderFilter = ParseOrderFilter();
+        var lastEventId = ParseLastEventId();
+
+        var subscription = broadcaster.Subscribe(orderFilter, lastEventId, cancellationToken);
+
         try
         {
+            using var heartbeatCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var heartbeatTask = SendHeartbeatsAsync(heartbeatCts.Token);
+
             await foreach (var change in subscription.Reader.ReadAllAsync(cancellationToken))
             {
                 var payload = JsonSerializer.Serialize(new
@@ -31,13 +41,67 @@ public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) 
                     changedAt = change.ChangedAt
                 }, SerializerOptions);
 
+                await Response.WriteAsync($"id: {change.ChangeId}\n", cancellationToken);
+                await Response.WriteAsync("event: order.change\n", cancellationToken);
                 await Response.WriteAsync($"data: {payload}\n\n", cancellationToken);
                 await Response.Body.FlushAsync(cancellationToken);
             }
+
+            heartbeatCts.Cancel();
+            await heartbeatTask;
         }
         finally
         {
             broadcaster.Unsubscribe(subscription.SubscriptionId);
+        }
+    }
+
+    private IReadOnlyCollection<UlidId>? ParseOrderFilter()
+    {
+        var values = Request.Query["orderId"];
+        if (values.Count == 0)
+        {
+            return null;
+        }
+
+        var list = new List<UlidId>(values.Count);
+        foreach (var value in values)
+        {
+            if (Ulid.TryParse(value, out var parsed))
+            {
+                list.Add(UlidId.FromUlid(parsed));
+            }
+        }
+
+        return list;
+    }
+
+    private UlidId? ParseLastEventId()
+    {
+        var candidate = Request.Headers["Last-Event-ID"].FirstOrDefault()
+            ?? Request.Query["lastEventId"].FirstOrDefault();
+
+        if (candidate is null)
+        {
+            return null;
+        }
+
+        return Ulid.TryParse(candidate, out var parsed) ? UlidId.FromUlid(parsed) : null;
+    }
+
+    private async Task SendHeartbeatsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(HeartbeatInterval, cancellationToken);
+                await Response.WriteAsync(": heartbeat\n\n", cancellationToken);
+                await Response.Body.FlushAsync(cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
     }
 }

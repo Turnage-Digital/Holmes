@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
@@ -48,9 +47,9 @@ public class CaptureConsentArtifactCommandTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(descriptor);
-        session.ConsentArtifact.Should().NotBeNull();
+        Assert.True(result.IsSuccess);
+        Assert.Equal(descriptor, result.Value);
+        Assert.NotNull(session.ConsentArtifact);
         await _store.Received(1)
             .SaveAsync(Arg.Any<ConsentArtifactWriteRequest>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());

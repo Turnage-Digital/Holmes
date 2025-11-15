@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Application.Gateways;
@@ -32,9 +31,9 @@ public class SubmitIntakeCommandTests
         var result = await handler.Handle(new SubmitIntakeCommand(session.Id, DateTimeOffset.UtcNow),
             CancellationToken.None);
 
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Be("policy");
-        session.Status.Should().Be(IntakeSessionStatus.InProgress);
+        Assert.False(result.IsSuccess);
+        Assert.Equal("policy", result.Error);
+        Assert.Equal(IntakeSessionStatus.InProgress, session.Status);
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
         await _gateway.DidNotReceive()
             .NotifyIntakeSubmittedAsync(Arg.Any<OrderIntakeSubmission>(), Arg.Any<DateTimeOffset>(),
@@ -53,8 +52,8 @@ public class SubmitIntakeCommandTests
         var result = await handler.Handle(new SubmitIntakeCommand(session.Id, submittedAt),
             CancellationToken.None);
 
-        result.IsSuccess.Should().BeTrue();
-        session.Status.Should().Be(IntakeSessionStatus.AwaitingReview);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(IntakeSessionStatus.AwaitingReview, session.Status);
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
         await _gateway.Received(1)
             .NotifyIntakeSubmittedAsync(Arg.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),

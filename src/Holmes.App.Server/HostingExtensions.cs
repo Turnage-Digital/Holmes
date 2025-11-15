@@ -13,6 +13,7 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Application.Gateways;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
@@ -146,6 +147,7 @@ internal static class HostingExtensions
             config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
             config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
             config.RegisterServicesFromAssemblyContaining<CreateOrderCommand>();
+            config.RegisterServicesFromAssemblyContaining<IssueIntakeInviteCommand>();
         });
 
         builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));

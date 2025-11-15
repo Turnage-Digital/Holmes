@@ -117,5 +117,20 @@ Standing ceremonies:
 2. Create `docs/domain/` for diagrams and copy template from `docs/MODULE_TEMPLATE.md`.
 3. Update `docs/RUNBOOKS.md` with Phase 2 rehearsal steps once first dry-run completes.
 
+## 8. Current Status Snapshot
+
+- Workflow orders now have a full lifecycle: the aggregate gained states/guards to progress from invite through ready-for-routing,
+  block/resume, and cancellation. These transitions are surfaced via MediatR commands in the workflow application layer, and intake
+  commands feed the gateway hooks (submission + acceptance) so orders advance as soon as intake sessions finish.
+- Workflow persistence expanded with EF infrastructure: DbContext, repositories, and migrations back the aggregates while an
+  `order_summary` projection and real-time broadcaster keep clients updated. The host registers the infrastructure, exposes REST +
+  SSE endpoints, and the client Orders page now listens to `/orders/changes` for live status updates.
+- Consent storage + intake APIs are wired together end to end, and cancellation support with matching migrations ensures the
+  database mirrors the new domain state. Backend/component tests reflect the new behaviors, and the suite stays green after the
+  FluentAssertions removal.
+- Introduced Specification pattern support (shared `ISpecification`/`SpecificationEvaluator`) and refactored Users/Customers controllers
+  to compose queries via module-specific specifications instead of ad-hoc LINQ. This keeps filtering, inclusion, and paging logic inside
+  the domain/application layers and prepares us to split Workflow’s ACL behind a dedicated adapter in a follow-up slice.
+
 This document is the authoritative reference for Phase 2 delivery; update it at each checkpoint to reflect decisions,
 scope changes, and readiness status.

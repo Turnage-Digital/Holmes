@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentAssertions" Version="6.12.0"/>
         <PackageReference Include="NSubstitute" Version="5.1.0"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1"/>
         <PackageReference Include="xunit" Version="2.8.1"/>
@@ -20,6 +19,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Holmes.Intake.Domain\Holmes.Intake.Domain.csproj"/>
         <ProjectReference Include="..\Holmes.Intake.Application\Holmes.Intake.Application.csproj"/>
+        <ProjectReference Include="..\..\Workflow\Holmes.Workflow.Application\Holmes.Workflow.Application.csproj"/>
         <ProjectReference Include="..\..\Core\Holmes.Core.Domain\Holmes.Core.Domain.csproj"/>
     </ItemGroup>
 

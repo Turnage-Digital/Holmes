@@ -1,34 +1,83 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Channels;
+using System.Linq;
+using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Application.Notifications;
 
 namespace Holmes.Workflow.Infrastructure.Sql.Notifications;
 
 public sealed class OrderChangeBroadcaster : IOrderChangeBroadcaster
 {
-    private readonly ConcurrentDictionary<Guid, Channel<OrderChange>> _subscribers = new();
+    private const int HistoryLimit = 512;
+
+    private readonly ConcurrentDictionary<Guid, Subscription> _subscribers = new();
+    private readonly ConcurrentQueue<OrderChange> _history = new();
 
     public async Task PublishAsync(OrderChange change, CancellationToken cancellationToken)
     {
-        foreach (var channel in _subscribers.Values)
+        _history.Enqueue(change);
+        while (_history.Count > HistoryLimit && _history.TryDequeue(out _))
         {
-            await channel.Writer.WriteAsync(change, cancellationToken);
+        }
+
+        foreach (var subscription in _subscribers.Values)
+        {
+            if (!subscription.ShouldReceive(change))
+            {
+                continue;
+            }
+
+            await subscription.Channel.Writer.WriteAsync(change, cancellationToken);
         }
     }
 
-    public OrderChangeSubscription Subscribe()
+    public OrderChangeSubscription Subscribe(
+        IReadOnlyCollection<UlidId>? orderFilter,
+        UlidId? lastEventId,
+        CancellationToken cancellationToken)
     {
         var channel = Channel.CreateUnbounded<OrderChange>();
         var id = Guid.NewGuid();
-        _subscribers[id] = channel;
+        var subscription = new Subscription(orderFilter, channel);
+        _subscribers[id] = subscription;
+
+        if (lastEventId is not null)
+        {
+            var backlog = _history.Where(change =>
+                subscription.ShouldReceive(change) &&
+                change.ChangeId.Value.CompareTo(lastEventId.Value) > 0);
+
+            foreach (var change in backlog)
+            {
+                channel.Writer.TryWrite(change);
+            }
+        }
+
+        cancellationToken.Register(() => Unsubscribe(id));
         return new OrderChangeSubscription(id, channel.Reader);
     }
 
     public void Unsubscribe(Guid subscriptionId)
     {
-        if (_subscribers.TryRemove(subscriptionId, out var channel))
+        if (_subscribers.TryRemove(subscriptionId, out var subscription))
         {
-            channel.Writer.TryComplete();
+            subscription.Channel.Writer.TryComplete();
+        }
+    }
+
+    private sealed record Subscription(
+        IReadOnlyCollection<UlidId>? OrderFilter,
+        Channel<OrderChange> Channel
+    )
+    {
+        private readonly HashSet<UlidId>? _filterSet = OrderFilter is null
+            ? null
+            : new HashSet<UlidId>(OrderFilter);
+
+        public bool ShouldReceive(OrderChange change)
+        {
+            return _filterSet is null || _filterSet.Count == 0 || _filterSet.Contains(change.OrderId);
         }
     }
 }

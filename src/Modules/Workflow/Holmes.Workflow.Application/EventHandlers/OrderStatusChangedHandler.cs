@@ -1,3 +1,4 @@
+using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Application.Notifications;
 using Holmes.Workflow.Application.Projections;
 using Holmes.Workflow.Domain;
@@ -22,6 +23,7 @@ public sealed class OrderStatusChangedHandler(
 
         await summaryWriter.UpsertAsync(order, cancellationToken);
         await broadcaster.PublishAsync(new OrderChange(
+            UlidId.NewUlid(),
             order.Id,
             order.Status,
             notification.Reason,
