@@ -1,11 +1,13 @@
 using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
+using Holmes.Core.Application.Specifications;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Entities;
+using Holmes.Users.Infrastructure.Sql.Specifications;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +21,8 @@ namespace Holmes.App.Server.Controllers;
 public class UsersController(
     IMediator mediator,
     UsersDbContext dbContext,
-    ICurrentUserInitializer currentUserInitializer
+    ICurrentUserInitializer currentUserInitializer,
+    ISpecificationQueryExecutor specificationExecutor
 ) : ControllerBase
 {
     [HttpGet]
@@ -36,24 +39,21 @@ public class UsersController(
         }
 
         var (page, pageSize) = NormalizePagination(query);
+        var countSpec = new UsersWithDetailsSpecification();
+        var totalItems = await specificationExecutor
+            .Apply(dbContext.Users.AsNoTracking(), countSpec)
+            .CountAsync(cancellationToken);
 
-        var baseQuery = dbContext.Users
-            .AsNoTracking()
-            .Include(x => x.ExternalIdentities)
-            .Include(x => x.RoleMemberships)
-            .OrderBy(x => x.Email);
-
-        var totalItems = await baseQuery.CountAsync(cancellationToken);
-        var users = await baseQuery
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+        var usersSpec = new UsersWithDetailsSpecification(page, pageSize);
+        var users = await specificationExecutor
+            .Apply(dbContext.Users.AsNoTracking(), usersSpec)
             .ToListAsync(cancellationToken);
 
         var userIds = users.Select(u => u.UserId).ToList();
 
-        var directoryEntries = await dbContext.UserDirectory
-            .AsNoTracking()
-            .Where(x => userIds.Contains(x.UserId))
+        var directorySpec = new UserDirectoryByIdsSpecification(userIds);
+        var directoryEntries = await specificationExecutor
+            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
 
         var items = users
@@ -67,9 +67,10 @@ public class UsersController(
     public async Task<ActionResult<UserResponse>> GetMe(CancellationToken cancellationToken)
     {
         var currentUserId = await GetCurrentUserAsync(cancellationToken);
-        var projection = await dbContext.UserDirectory
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.UserId == currentUserId.ToString(), cancellationToken);
+        var directorySpec = new UserDirectoryByIdsSpecification([currentUserId.ToString()]);
+        var projection = await specificationExecutor
+            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+            .SingleOrDefaultAsync(cancellationToken);
 
         if (projection is null)
         {
@@ -123,15 +124,15 @@ public class UsersController(
         }
 
         var invitedUserId = result.Value.ToString();
-        var user = await dbContext.Users
-            .AsNoTracking()
-            .Include(x => x.ExternalIdentities)
-            .Include(x => x.RoleMemberships)
-            .SingleAsync(x => x.UserId == invitedUserId, cancellationToken);
+        var userSpec = new UserWithDetailsByIdSpecification(invitedUserId);
+        var user = await specificationExecutor
+            .Apply(dbContext.Users.AsNoTracking(), userSpec)
+            .SingleAsync(cancellationToken);
 
-        var directory = await dbContext.UserDirectory
-            .AsNoTracking()
-            .SingleAsync(x => x.UserId == invitedUserId, cancellationToken);
+        var directorySpec = new UserDirectoryByIdsSpecification([invitedUserId]);
+        var directory = await specificationExecutor
+            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+            .SingleAsync(cancellationToken);
 
         return Created(string.Empty, MapUser(user, directory));
     }

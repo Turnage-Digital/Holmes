@@ -207,7 +207,8 @@ pipeline and no additional queueing infrastructure is necessary.
       components (app shell, SLA chips, role badges) remain consistent.
     - Route layout per bounded context (`/users`, `/customers`, `/subjects`) with shared scaffolds for navigation,
       filters, and audit panels; each layout owns its glossary-driven copy so terminology never drifts.
-    - React Query hooks encapsulate server contracts (`useSubjectsDirectory`, `useCustomerAdmins`, etc.) and expose typed
+    - React Query hooks encapsulate server contracts (`useSubjectsDirectory`, `useCustomerAdmins`, etc.) and expose
+      typed
       DTOs. Mutations centralize optimistic updates + toast/audit behaviors rather than duplicating `fetch`.
     - Interaction primitives (timeline, SLA badge, subject identity card) are built once in `src/components` and reused
       so UX partners can restyle them without chasing bespoke implementations.

@@ -6,11 +6,6 @@ public static class DomainEventTracker
 
     public static void Register(IHasDomainEvents aggregate)
     {
-        if (aggregate is null)
-        {
-            return;
-        }
-
         var set = Aggregates.Value;
         if (set is null)
         {

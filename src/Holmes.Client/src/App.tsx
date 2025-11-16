@@ -8,6 +8,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AuthBoundary from "./components/AuthBoundary";
 import { queryClient } from "./lib/queryClient";
 import CustomersPage from "./pages/CustomersPage";
+import OrdersPage from "./pages/OrdersPage";
 import SubjectsPage from "./pages/SubjectsPage";
 import UsersPage from "./pages/UsersPage";
 import { appTheme } from "./theme";
@@ -31,6 +32,7 @@ const App = () => {
                 <Route path="users" element={<UsersPage />} />
                 <Route path="customers" element={<CustomersPage />} />
                 <Route path="subjects" element={<SubjectsPage />} />
+                <Route path="orders" element={<OrdersPage />} />
               </Route>
             </Route>
           </Routes>

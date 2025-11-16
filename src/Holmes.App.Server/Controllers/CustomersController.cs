@@ -1,10 +1,12 @@
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application;
+using Holmes.Core.Application.Specifications;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Customers.Infrastructure.Sql.Specifications;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using MediatR;
@@ -21,9 +23,9 @@ public class CustomersController(
     IMediator mediator,
     CustomersDbContext customersDbContext,
     UsersDbContext usersDbContext,
-    ICurrentUserInitializer currentUserInitializer
-)
-    : ControllerBase
+    ICurrentUserInitializer currentUserInitializer,
+    ISpecificationQueryExecutor specificationExecutor
+) : ControllerBase
 {
     [HttpGet]
     [Authorize]
@@ -34,26 +36,26 @@ public class CustomersController(
     {
         var caller = await EnsureUserAsync(cancellationToken);
 
-        var directoryQuery = customersDbContext.CustomerDirectory.AsNoTracking();
-
+        var (page, pageSize) = NormalizePagination(query);
+        IList<string>? allowedCustomerIds = null;
         if (!await IsGlobalAdminAsync(caller, cancellationToken))
         {
-            var customerIds = await customersDbContext.CustomerAdmins
+            allowedCustomerIds = await customersDbContext.CustomerAdmins
                 .AsNoTracking()
                 .Where(a => a.UserId == caller.ToString())
                 .Select(a => a.CustomerId)
                 .ToListAsync(cancellationToken);
-
-            directoryQuery = directoryQuery.Where(c => customerIds.Contains(c.CustomerId));
         }
 
-        var (page, pageSize) = NormalizePagination(query);
+        var listingSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds, page, pageSize);
+        var countSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds);
 
-        var totalItems = await directoryQuery.CountAsync(cancellationToken);
-        var directories = await directoryQuery
-            .OrderBy(c => c.Name)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+        var totalItems = await specificationExecutor
+            .Apply(customersDbContext.CustomerDirectory.AsNoTracking(), countSpec)
+            .CountAsync(cancellationToken);
+
+        var directories = await specificationExecutor
+            .Apply(customersDbContext.CustomerDirectory.AsNoTracking(), listingSpec)
             .ToListAsync(cancellationToken);
 
         var customerIdsPage = directories.Select(c => c.CustomerId).ToList();
@@ -69,7 +71,7 @@ public class CustomersController(
             .GroupBy(c => c.CustomerId)
             .ToDictionaryAsync(
                 g => g.Key,
-                g => (IReadOnlyCollection<CustomerContactDb>)g.ToList(),
+                IReadOnlyCollection<CustomerContactDb> (g) => g.ToList(),
                 cancellationToken);
 
         var items = directories

@@ -16,7 +16,8 @@ public class SubjectTests
         var id = UlidId.NewUlid();
         var registeredAt = DateTimeOffset.UtcNow;
 
-        var subject = Subject.Register(id, "Avery", "Nguyen", new DateOnly(1993, 7, 4), "avery@example.com", registeredAt);
+        var subject = Subject.Register(id, "Avery", "Nguyen", new DateOnly(1993, 7, 4), "avery@example.com",
+            registeredAt);
 
         Assert.Multiple(() =>
         {
@@ -99,7 +100,8 @@ public class SubjectTests
     {
         await using var context = CreateSubjectsDbContext();
         var repository = new SqlSubjectRepository(context);
-        var subject = Subject.Register(UlidId.NewUlid(), "Avery", "Nguyen", null, "avery@example.com", DateTimeOffset.UtcNow);
+        var subject = Subject.Register(UlidId.NewUlid(), "Avery", "Nguyen", null, "avery@example.com",
+            DateTimeOffset.UtcNow);
         subject.AddAlias(new SubjectAlias("Ava", "Nguyen", null), DateTimeOffset.UtcNow, UlidId.NewUlid());
 
         await repository.AddAsync(subject, CancellationToken.None);

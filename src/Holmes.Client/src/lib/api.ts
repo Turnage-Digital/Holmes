@@ -171,3 +171,8 @@ export const apiFetch = async <TResponse>(
 
   return (await response.arrayBuffer()) as unknown as TResponse;
 };
+
+export const createEventSource = (path: string): EventSource => {
+  const target = `${API_BASE_URL}${ensureLeadingSlash(path)}`;
+  return new EventSource(target, { withCredentials: true });
+};

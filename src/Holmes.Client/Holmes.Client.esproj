@@ -6,6 +6,8 @@
         <ShouldRunBuildScript>false</ShouldRunBuildScript>
         <!-- Folder where production build objects will be placed -->
         <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
+        <Configurations>Debug</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
