@@ -216,7 +216,7 @@ public class UsersController(
         return (page, size);
     }
 
-    private static UserListItemResponse MapUser(UserDb user, UserDirectoryProjectionDb? directory)
+    private static UserListItemResponse MapUser(UserDb user, UserDirectoryDb? directory)
     {
         var primaryIdentity = user.ExternalIdentities
             .OrderByDescending(x => x.LastSeenAt)

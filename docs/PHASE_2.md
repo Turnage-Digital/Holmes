@@ -53,6 +53,9 @@ Standing ceremonies:
 - Add SSE `/changes` route exposing filtered event frames (tenant + subject/order filters) with heartbeat pulses every
   10s and Last-Event-ID resume tokens persisted per client.
 - Author integration tests simulating invite→submit, SSE reconnect, and concurrent updates (409 handling).
+- REST surface now exposes `GET /api/orders/summary` (paginated, filterable by order/subject/customer/status with customer ACL
+  enforcement) and `GET /api/orders/{order_id}/timeline` for the audit feed. The SPA consumes the paginated response and keeps
+  live updates via `/orders/changes`.
 
 ### 3.3 Read Models & Projections
 
@@ -144,6 +147,9 @@ Standing ceremonies:
   / `ReadyForRoutingAt` timestamps. Intake session and order timeline read models now have the same replay story
   (`intake-sessions` + `order-timeline` switches), and `docs/RUNBOOKS.md` carries the commands + SQL verification for
   each.
+- Ops and UI now consume the read models via REST: `GET /api/orders/summary` provides paginated filtering scoped by customer
+  access, and `GET /api/orders/{order_id}/timeline` returns the replayable audit feed (also ACL enforced). Orders grid in the
+  SPA switched to the paginated API while still listening to `/orders/changes` SSE.
 - Introduced Specification pattern support (shared `ISpecification`/`SpecificationEvaluator`) and refactored
   Users/Customers controllers
   to compose queries via module-specific specifications instead of ad-hoc LINQ. This keeps filtering, inclusion, and

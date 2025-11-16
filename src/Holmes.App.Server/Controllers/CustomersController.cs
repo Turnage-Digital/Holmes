@@ -71,7 +71,7 @@ public class CustomersController(
             .GroupBy(c => c.CustomerId)
             .ToDictionaryAsync(
                 g => g.Key,
-                IReadOnlyCollection<CustomerContactProjectionDb> (g) => g.ToList(),
+                IReadOnlyCollection<CustomerContactDb> (g) => g.ToList(),
                 cancellationToken);
 
         var items = directories
@@ -259,7 +259,7 @@ public class CustomersController(
             return;
         }
 
-        var profile = new CustomerProfileProjectionDb
+        var profile = new CustomerProfileDb
         {
             CustomerId = customerId,
             TenantId = Ulid.NewUlid().ToString(),
@@ -275,7 +275,7 @@ public class CustomersController(
 
         var contacts = (request.Contacts ?? [])
             .Where(c => !string.IsNullOrWhiteSpace(c.Name) && !string.IsNullOrWhiteSpace(c.Email))
-            .Select(c => new CustomerContactProjectionDb
+            .Select(c => new CustomerContactDb
             {
                 ContactId = Ulid.NewUlid().ToString(),
                 CustomerId = customerId,
@@ -325,9 +325,9 @@ public class CustomersController(
     }
 
     private static CustomerListItemResponse MapCustomer(
-        CustomerDirectoryProjectionDb directory,
-        CustomerProfileProjectionDb? profile,
-        IReadOnlyCollection<CustomerContactProjectionDb> contacts
+        CustomerDirectoryDb directory,
+        CustomerProfileDb? profile,
+        IReadOnlyCollection<CustomerContactDb> contacts
     )
     {
         var policySnapshotId = string.IsNullOrWhiteSpace(profile?.PolicySnapshotId)

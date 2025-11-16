@@ -104,7 +104,7 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                     b.ToTable("subjects", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDirectoryProjectionDb", b =>
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDirectoryDb", b =>
                 {
                     b.Property<string>("SubjectId")
                         .HasMaxLength(26)

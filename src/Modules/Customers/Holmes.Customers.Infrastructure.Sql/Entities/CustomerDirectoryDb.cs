@@ -2,7 +2,7 @@ using Holmes.Customers.Domain;
 
 namespace Holmes.Customers.Infrastructure.Sql.Entities;
 
-public class CustomerDirectoryProjectionDb
+public class CustomerDirectoryDb
 {
     public string CustomerId { get; set; } = null!;
 

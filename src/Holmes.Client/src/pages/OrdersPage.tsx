@@ -8,9 +8,10 @@ import {formatDistanceToNow} from "date-fns";
 import {PageHeader} from "@/components/layout";
 import {DataGridNoRowsOverlay, SectionCard} from "@/components/patterns";
 import {apiFetch, createEventSource} from "@/lib/api";
-import {OrderSummary} from "@/types/api";
+import {OrderSummary, PaginatedResult} from "@/types/api";
 
-const fetchOrderSummary = () => apiFetch<OrderSummary[]>("/orders/summary");
+const fetchOrderSummary = () =>
+    apiFetch<PaginatedResult<OrderSummary>>("/orders/summary");
 
 interface OrderChangePayload {
     orderId: string;
@@ -30,33 +31,36 @@ const OrdersPage = () => {
         const source = createEventSource("/orders/changes");
         source.onmessage = (event) => {
             const payload: OrderChangePayload = JSON.parse(event.data);
-            queryClient.setQueryData<OrderSummary[]>(
-                ["orders", "summary"],
-                (current) => {
-                    if (!current) {
-                        return current;
-                    }
-
-                    const existing = current.find(
-                        (order) => order.orderId === payload.orderId,
-                    );
-
-                    if (!existing) {
-                        return current;
-                    }
-
-                    return current.map((order) =>
-                        order.orderId === payload.orderId
-                            ? {
-                                ...order,
-                                status: payload.status as OrderSummary["status"],
-                                lastStatusReason: payload.reason,
-                                lastUpdatedAt: payload.changedAt,
+                    queryClient.setQueryData<PaginatedResult<OrderSummary>>(
+                        ["orders", "summary"],
+                        (current) => {
+                            if (!current) {
+                                return current;
                             }
-                            : order,
+
+                            const existing = current.items.find(
+                                (order) => order.orderId === payload.orderId,
+                            );
+
+                            if (!existing) {
+                                return current;
+                            }
+
+                            return {
+                                ...current,
+                                items: current.items.map((order) =>
+                                    order.orderId === payload.orderId
+                                        ? {
+                                            ...order,
+                                            status: payload.status as OrderSummary["status"],
+                                            lastStatusReason: payload.reason,
+                                            lastUpdatedAt: payload.changedAt,
+                                        }
+                                        : order,
+                                ),
+                            };
+                        },
                     );
-                },
-            );
         };
 
         return () => {
@@ -119,7 +123,7 @@ const OrdersPage = () => {
                 <Box sx={{height: 520, width: "100%"}}>
                     <DataGrid
                         loading={ordersQuery.isLoading}
-                        rows={ordersQuery.data ?? []}
+                        rows={ordersQuery.data?.items ?? []}
                         getRowId={(row) => row.orderId}
                         columns={columns}
                         disableRowSelectionOnClick

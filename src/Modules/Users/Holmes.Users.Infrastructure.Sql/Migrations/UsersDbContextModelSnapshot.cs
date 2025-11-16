@@ -53,7 +53,7 @@ namespace Holmes.Users.Infrastructure.Sql.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Users.Infrastructure.Sql.Entities.UserDirectoryProjectionDb", b =>
+            modelBuilder.Entity("Holmes.Users.Infrastructure.Sql.Entities.UserDirectoryDb", b =>
                 {
                     b.Property<string>("UserId")
                         .HasMaxLength(26)

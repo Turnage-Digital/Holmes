@@ -11,11 +11,11 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
 
     public DbSet<CustomerAdminDb> CustomerAdmins { get; set; } = null!;
 
-    public DbSet<CustomerDirectoryProjectionDb> CustomerDirectory { get; set; } = null!;
+    public DbSet<CustomerDirectoryDb> CustomerDirectory { get; set; } = null!;
 
-    public DbSet<CustomerProfileProjectionDb> CustomerProfiles { get; set; } = null!;
+    public DbSet<CustomerProfileDb> CustomerProfiles { get; set; } = null!;
 
-    public DbSet<CustomerContactProjectionDb> CustomerContacts { get; set; } = null!;
+    public DbSet<CustomerContactDb> CustomerContacts { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,7 +80,7 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
                 .IsUnique();
         });
 
-        modelBuilder.Entity<CustomerDirectoryProjectionDb>(builder =>
+        modelBuilder.Entity<CustomerDirectoryDb>(builder =>
         {
             builder.ToTable("customer_directory");
             builder.HasKey(x => x.CustomerId);
@@ -106,7 +106,7 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
                 .IsRequired();
         });
 
-        modelBuilder.Entity<CustomerProfileProjectionDb>(builder =>
+        modelBuilder.Entity<CustomerProfileDb>(builder =>
         {
             builder.ToTable("customer_profiles");
             builder.HasKey(x => x.CustomerId);
@@ -135,7 +135,7 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
         });
 
-        modelBuilder.Entity<CustomerContactProjectionDb>(builder =>
+        modelBuilder.Entity<CustomerContactDb>(builder =>
         {
             builder.ToTable("customer_contacts");
             builder.HasKey(x => x.ContactId);

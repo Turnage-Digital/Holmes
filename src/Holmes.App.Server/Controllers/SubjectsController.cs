@@ -119,7 +119,7 @@ public sealed class SubjectsController(
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
     }
 
-    private static SubjectSummaryResponse MapSummary(SubjectDirectoryProjectionDb directory)
+    private static SubjectSummaryResponse MapSummary(SubjectDirectoryDb directory)
     {
         return new SubjectSummaryResponse(directory.SubjectId, directory.GivenName, directory.FamilyName,
             directory.DateOfBirth,

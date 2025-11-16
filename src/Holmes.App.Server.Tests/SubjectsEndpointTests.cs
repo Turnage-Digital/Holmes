@@ -53,7 +53,7 @@ public class SubjectsEndpointTests
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
         var subjectId = Ulid.NewUlid().ToString();
-        db.SubjectDirectory.Add(new SubjectDirectoryProjectionDb
+        db.SubjectDirectory.Add(new SubjectDirectoryDb
         {
             SubjectId = subjectId,
             GivenName = "John",

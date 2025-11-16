@@ -176,7 +176,7 @@ public sealed class DevelopmentDataSeeder(
             return;
         }
 
-        var profile = new CustomerProfileProjectionDb
+        var profile = new CustomerProfileDb
         {
             CustomerId = customerId,
             TenantId = Ulid.NewUlid().ToString(),
@@ -186,7 +186,7 @@ public sealed class DevelopmentDataSeeder(
             UpdatedAt = timestamp
         };
 
-        var contact = new CustomerContactProjectionDb
+        var contact = new CustomerContactDb
         {
             ContactId = Ulid.NewUlid().ToString(),
             CustomerId = customerId,

@@ -3,7 +3,7 @@ using Holmes.Users.Infrastructure.Sql.Entities;
 
 namespace Holmes.Users.Infrastructure.Sql.Specifications;
 
-public sealed class UserDirectoryByIdsSpecification : Specification<UserDirectoryProjectionDb>
+public sealed class UserDirectoryByIdsSpecification : Specification<UserDirectoryDb>
 {
     public UserDirectoryByIdsSpecification(IEnumerable<string> userIds)
     {
