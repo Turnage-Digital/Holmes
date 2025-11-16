@@ -107,6 +107,8 @@ catch (Exception ex)
     Environment.ExitCode = 1;
 }
 
+return;
+
 static CancellationToken CreateCancellationToken()
 {
     var cts = new CancellationTokenSource();

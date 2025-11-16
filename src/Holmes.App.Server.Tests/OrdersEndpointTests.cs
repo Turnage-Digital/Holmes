@@ -151,7 +151,10 @@ public class OrdersEndpointTests
             DateTimeOffset.UtcNow,
             true));
 
-        var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow);
+        var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow)
+        {
+            UserId = id.ToString()
+        };
         await mediator.Send(grant);
         return id;
     }
