@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -36,8 +35,10 @@ public class OrdersEndpointTests
         SetDefaultAuth(client, "orders-admin", "admin@holmes.dev");
 
         await PromoteCurrentUserToAdminAsync(factory, "orders-admin", "admin@holmes.dev");
-        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(), OrderStatus.Invited);
-        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(), OrderStatus.ReadyForRouting);
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(),
+            Ulid.NewUlid().ToString(), OrderStatus.Invited);
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(),
+            Ulid.NewUlid().ToString(), OrderStatus.ReadyForRouting);
 
         var response = await client.GetAsync("/api/orders/summary?page=1&pageSize=1");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -67,7 +68,8 @@ public class OrdersEndpointTests
 
         var orderA = Ulid.NewUlid().ToString();
         await SeedOrderSummaryAsync(factory, orderA, customerA, Ulid.NewUlid().ToString(), OrderStatus.Invited);
-        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), customerB, Ulid.NewUlid().ToString(), OrderStatus.ReadyForRouting);
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), customerB, Ulid.NewUlid().ToString(),
+            OrderStatus.ReadyForRouting);
 
         var response = await client.GetAsync("/api/orders/summary");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -96,8 +98,10 @@ public class OrdersEndpointTests
         await SeedCustomerAsync(factory, customerDenied, "tenant-denied");
         await AssignCustomerAdminAsync(factory, customerAllowed, userId, adminId);
 
-        await SeedOrderSummaryAsync(factory, allowedOrder, customerAllowed, Ulid.NewUlid().ToString(), OrderStatus.IntakeComplete);
-        await SeedOrderSummaryAsync(factory, deniedOrder, customerDenied, Ulid.NewUlid().ToString(), OrderStatus.IntakeComplete);
+        await SeedOrderSummaryAsync(factory, allowedOrder, customerAllowed, Ulid.NewUlid().ToString(),
+            OrderStatus.IntakeComplete);
+        await SeedOrderSummaryAsync(factory, deniedOrder, customerDenied, Ulid.NewUlid().ToString(),
+            OrderStatus.IntakeComplete);
 
         await SeedTimelineEventAsync(factory, allowedOrder, "intake.submission_received");
         await SeedTimelineEventAsync(factory, deniedOrder, "intake.submission_received");

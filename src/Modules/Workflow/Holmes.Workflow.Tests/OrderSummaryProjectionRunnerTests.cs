@@ -11,9 +11,9 @@ namespace Holmes.Workflow.Tests;
 
 public sealed class OrderSummaryProjectionRunnerTests : IDisposable
 {
-    private readonly WorkflowDbContext _workflowDbContext;
     private readonly CoreDbContext _coreDbContext;
     private readonly OrderSummaryProjectionRunner _runner;
+    private readonly WorkflowDbContext _workflowDbContext;
 
     public OrderSummaryProjectionRunnerTests()
     {
@@ -36,6 +36,12 @@ public sealed class OrderSummaryProjectionRunnerTests : IDisposable
             NullLogger<OrderSummaryProjectionRunner>.Instance);
     }
 
+    public void Dispose()
+    {
+        _workflowDbContext.Dispose();
+        _coreDbContext.Dispose();
+    }
+
     [Fact]
     public async Task Replay_WritesCanceledOrderSummary()
     {
@@ -43,7 +49,7 @@ public sealed class OrderSummaryProjectionRunnerTests : IDisposable
         _workflowDbContext.Orders.Add(OrderEntityMapper.ToEntity(order));
         await _workflowDbContext.SaveChangesAsync();
 
-        var result = await _runner.RunAsync(reset: true, CancellationToken.None);
+        var result = await _runner.RunAsync(true, CancellationToken.None);
 
         Assert.Equal(1, result.Processed);
         var summary = Assert.Single(_workflowDbContext.OrderSummaries);
@@ -63,23 +69,17 @@ public sealed class OrderSummaryProjectionRunnerTests : IDisposable
         var firstOrder = BuildCanceledOrder(DateTimeOffset.UtcNow);
         _workflowDbContext.Orders.Add(OrderEntityMapper.ToEntity(firstOrder));
         await _workflowDbContext.SaveChangesAsync();
-        await _runner.RunAsync(reset: true, CancellationToken.None);
+        await _runner.RunAsync(true, CancellationToken.None);
 
         var secondOrder = BuildCanceledOrder(DateTimeOffset.UtcNow.AddHours(1));
         _workflowDbContext.Orders.Add(OrderEntityMapper.ToEntity(secondOrder));
         await _workflowDbContext.SaveChangesAsync();
 
-        var result = await _runner.RunAsync(reset: false, CancellationToken.None);
+        var result = await _runner.RunAsync(false, CancellationToken.None);
 
         Assert.Equal(1, result.Processed);
         Assert.Equal(secondOrder.Id.ToString(), result.LastEntityId);
         Assert.Equal(2, _coreDbContext.ProjectionCheckpoints.Single().Position);
-    }
-
-    public void Dispose()
-    {
-        _workflowDbContext.Dispose();
-        _coreDbContext.Dispose();
     }
 
     private static Order BuildCanceledOrder(DateTimeOffset baseTime)

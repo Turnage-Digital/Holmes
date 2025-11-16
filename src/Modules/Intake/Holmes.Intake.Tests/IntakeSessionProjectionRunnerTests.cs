@@ -1,7 +1,5 @@
 using System.Text.Json;
-using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Core.Infrastructure.Sql.Entities;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Entities;
@@ -14,8 +12,8 @@ namespace Holmes.Intake.Tests;
 
 public sealed class IntakeSessionProjectionRunnerTests : IDisposable
 {
-    private readonly IntakeDbContext _intakeDbContext;
     private readonly CoreDbContext _coreDbContext;
+    private readonly IntakeDbContext _intakeDbContext;
     private readonly IntakeSessionProjectionRunner _runner;
 
     public IntakeSessionProjectionRunnerTests()
@@ -42,6 +40,12 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
             NullLogger<IntakeSessionProjectionRunner>.Instance);
     }
 
+    public void Dispose()
+    {
+        _intakeDbContext.Dispose();
+        _coreDbContext.Dispose();
+    }
+
     [Fact]
     public async Task RunAsync_RebuildsProjectionFromCanonicalTable()
     {
@@ -49,7 +53,7 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
         _intakeDbContext.IntakeSessions.Add(session);
         await _intakeDbContext.SaveChangesAsync();
 
-        var result = await _runner.RunAsync(reset: true, CancellationToken.None);
+        var result = await _runner.RunAsync(true, CancellationToken.None);
 
         Assert.Equal(1, result.Processed);
         var projection = Assert.Single(_intakeDbContext.IntakeSessionProjections);
@@ -67,7 +71,7 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
         _intakeDbContext.IntakeSessions.Add(session);
         await _intakeDbContext.SaveChangesAsync();
 
-        await _runner.RunAsync(reset: true, CancellationToken.None);
+        await _runner.RunAsync(true, CancellationToken.None);
 
         var submittedAt = session.CreatedAt.AddMinutes(10);
         var entity = await _intakeDbContext.IntakeSessions.SingleAsync();
@@ -76,7 +80,7 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
         entity.LastTouchedAt = submittedAt;
         await _intakeDbContext.SaveChangesAsync();
 
-        var result = await _runner.RunAsync(reset: false, CancellationToken.None);
+        var result = await _runner.RunAsync(false, CancellationToken.None);
 
         Assert.Equal(1, result.Processed);
         var projection = await _intakeDbContext.IntakeSessionProjections.SingleAsync();
@@ -117,10 +121,4 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
         DateTimeOffset CapturedAt,
         IReadOnlyDictionary<string, string> Metadata
     );
-
-    public void Dispose()
-    {
-        _intakeDbContext.Dispose();
-        _coreDbContext.Dispose();
-    }
 }

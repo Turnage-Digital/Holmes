@@ -103,7 +103,7 @@ public sealed class IntakeSessionProjectionRunner(
         CancellationToken cancellationToken
     )
     {
-        IQueryable<IntakeSessionDb> query = intakeDbContext.IntakeSessions.AsNoTracking();
+        var query = intakeDbContext.IntakeSessions.AsNoTracking();
 
         if (cursor is not null)
         {

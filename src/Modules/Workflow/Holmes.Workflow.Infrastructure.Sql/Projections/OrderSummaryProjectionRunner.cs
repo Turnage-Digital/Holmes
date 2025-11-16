@@ -93,7 +93,7 @@ public sealed class OrderSummaryProjectionRunner(
 
     private async Task<List<OrderDb>> LoadBatchAsync(CursorState? cursor, CancellationToken cancellationToken)
     {
-        IQueryable<OrderDb> query = workflowDbContext.Orders.AsNoTracking();
+        var query = workflowDbContext.Orders.AsNoTracking();
 
         if (cursor is not null)
         {

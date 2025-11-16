@@ -88,7 +88,8 @@ Holmes v1 stores read models directly in the module DbContexts. To verify or reb
   LIMIT 15;
   ```
 
-- Expect a corresponding checkpoint row in `core.projection_checkpoints` with `projection_name = 'workflow.order_timeline'`.
+- Expect a corresponding checkpoint row in `core.projection_checkpoints` with
+  `projection_name = 'workflow.order_timeline'`.
 
 ## Intake Session Projection & Order Timeline Verification
 

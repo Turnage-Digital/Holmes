@@ -7,7 +7,6 @@ using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
-using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -75,7 +74,7 @@ public sealed class OrdersController(
             }
 
             var customerId = parsedCustomer.ToString();
-            if (!access.AllowsAll && (access.AllowedCustomerIds?.Contains(customerId) ?? false) == false)
+            if (!access.AllowsAll && !(access.AllowedCustomerIds?.Contains(customerId) ?? false))
             {
                 return Forbid();
             }
@@ -143,7 +142,7 @@ public sealed class OrdersController(
             return NotFound();
         }
 
-        if (!access.AllowsAll && (access.AllowedCustomerIds?.Contains(orderSummary.CustomerId) ?? false) == false)
+        if (!access.AllowsAll && !(access.AllowedCustomerIds?.Contains(orderSummary.CustomerId) ?? false))
         {
             return Forbid();
         }
@@ -173,7 +172,7 @@ public sealed class OrdersController(
                 DeserializeMetadata(e.MetadataJson)))
             .ToListAsync(cancellationToken);
 
-    	return Ok(events);
+        return Ok(events);
     }
 
     private async Task<UlidId> EnsureCurrentUserAsync(CancellationToken cancellationToken)

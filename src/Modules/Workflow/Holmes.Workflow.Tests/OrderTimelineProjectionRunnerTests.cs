@@ -15,10 +15,10 @@ namespace Holmes.Workflow.Tests;
 
 public sealed class OrderTimelineProjectionRunnerTests : IDisposable
 {
-    private readonly WorkflowDbContext _workflowDbContext;
-    private readonly IntakeDbContext _intakeDbContext;
     private readonly CoreDbContext _coreDbContext;
+    private readonly IntakeDbContext _intakeDbContext;
     private readonly OrderTimelineProjectionRunner _runner;
+    private readonly WorkflowDbContext _workflowDbContext;
 
     public OrderTimelineProjectionRunnerTests()
     {
@@ -48,6 +48,13 @@ public sealed class OrderTimelineProjectionRunnerTests : IDisposable
             _coreDbContext,
             timelineWriter,
             NullLogger<OrderTimelineProjectionRunner>.Instance);
+    }
+
+    public void Dispose()
+    {
+        _workflowDbContext.Dispose();
+        _intakeDbContext.Dispose();
+        _coreDbContext.Dispose();
     }
 
     [Fact]
@@ -101,7 +108,7 @@ public sealed class OrderTimelineProjectionRunnerTests : IDisposable
         await _workflowDbContext.SaveChangesAsync();
         await _intakeDbContext.SaveChangesAsync();
 
-        var result = await _runner.RunAsync(reset: true, CancellationToken.None);
+        var result = await _runner.RunAsync(true, CancellationToken.None);
 
         Assert.True(result.Processed >= 5);
         var events = await _workflowDbContext.OrderTimelineEvents
@@ -113,13 +120,6 @@ public sealed class OrderTimelineProjectionRunnerTests : IDisposable
 
         var checkpoint = Assert.Single(_coreDbContext.ProjectionCheckpoints);
         Assert.Equal("workflow.order_timeline", checkpoint.ProjectionName);
-    }
-
-    public void Dispose()
-    {
-        _workflowDbContext.Dispose();
-        _intakeDbContext.Dispose();
-        _coreDbContext.Dispose();
     }
 
     private sealed record PolicySnapshotRecord(

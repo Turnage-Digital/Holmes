@@ -1,6 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Domain;
-using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Workflow.Infrastructure.Sql.Repositories;
