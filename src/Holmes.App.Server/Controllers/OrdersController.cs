@@ -278,3 +278,25 @@ public sealed record OrderTimelineEntryResponse(
     DateTimeOffset RecordedAt,
     JsonElement? Metadata
 );
+
+public sealed record OrderSummaryQuery
+{
+    public int Page { get; init; } = 1;
+
+    public int PageSize { get; init; } = 25;
+
+    public string? CustomerId { get; init; }
+
+    public string? SubjectId { get; init; }
+
+    public string? OrderId { get; init; }
+
+    public IReadOnlyCollection<string>? Status { get; init; }
+}
+
+public sealed record OrderTimelineQuery
+{
+    public DateTimeOffset? Before { get; init; }
+
+    public int Limit { get; init; } = 50;
+}
