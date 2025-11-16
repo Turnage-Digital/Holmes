@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Channels;
-using System.Linq;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Application.Notifications;
 
@@ -10,9 +8,9 @@ namespace Holmes.Workflow.Infrastructure.Sql.Notifications;
 public sealed class OrderChangeBroadcaster : IOrderChangeBroadcaster
 {
     private const int HistoryLimit = 512;
+    private readonly ConcurrentQueue<OrderChange> _history = new();
 
     private readonly ConcurrentDictionary<Guid, Subscription> _subscribers = new();
-    private readonly ConcurrentQueue<OrderChange> _history = new();
 
     public async Task PublishAsync(OrderChange change, CancellationToken cancellationToken)
     {
@@ -35,7 +33,8 @@ public sealed class OrderChangeBroadcaster : IOrderChangeBroadcaster
     public OrderChangeSubscription Subscribe(
         IReadOnlyCollection<UlidId>? orderFilter,
         UlidId? lastEventId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var channel = Channel.CreateUnbounded<OrderChange>();
         var id = Guid.NewGuid();

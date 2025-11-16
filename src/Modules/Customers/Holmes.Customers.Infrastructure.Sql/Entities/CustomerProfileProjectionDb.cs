@@ -1,6 +1,6 @@
 namespace Holmes.Customers.Infrastructure.Sql.Entities;
 
-public class CustomerProfileDb
+public class CustomerProfileProjectionDb
 {
     public string CustomerId { get; set; } = null!;
 
@@ -14,5 +14,5 @@ public class CustomerProfileDb
 
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public ICollection<CustomerContactDb> Contacts { get; set; } = new List<CustomerContactDb>();
+    public ICollection<CustomerContactProjectionDb> Contacts { get; set; } = new List<CustomerContactProjectionDb>();
 }

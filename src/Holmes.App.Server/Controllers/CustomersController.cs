@@ -1,8 +1,7 @@
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application;
-using Holmes.Core.Domain.Specifications;
+using Holmes.Core.Application.Specifications;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
@@ -24,9 +23,9 @@ public class CustomersController(
     IMediator mediator,
     CustomersDbContext customersDbContext,
     UsersDbContext usersDbContext,
-    ICurrentUserInitializer currentUserInitializer
-)
-    : ControllerBase
+    ICurrentUserInitializer currentUserInitializer,
+    ISpecificationQueryExecutor specificationExecutor
+) : ControllerBase
 {
     [HttpGet]
     [Authorize]
@@ -51,10 +50,12 @@ public class CustomersController(
         var listingSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds, page, pageSize);
         var countSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds);
 
-        var totalItems = await ApplySpecification(customersDbContext.CustomerDirectory.AsNoTracking(), countSpec)
+        var totalItems = await specificationExecutor
+            .Apply(customersDbContext.CustomerDirectory.AsNoTracking(), countSpec)
             .CountAsync(cancellationToken);
 
-        var directories = await ApplySpecification(customersDbContext.CustomerDirectory.AsNoTracking(), listingSpec)
+        var directories = await specificationExecutor
+            .Apply(customersDbContext.CustomerDirectory.AsNoTracking(), listingSpec)
             .ToListAsync(cancellationToken);
 
         var customerIdsPage = directories.Select(c => c.CustomerId).ToList();
@@ -70,7 +71,7 @@ public class CustomersController(
             .GroupBy(c => c.CustomerId)
             .ToDictionaryAsync(
                 g => g.Key,
-                g => (IReadOnlyCollection<CustomerContactDb>)g.ToList(),
+                IReadOnlyCollection<CustomerContactProjectionDb> (g) => g.ToList(),
                 cancellationToken);
 
         var items = directories
@@ -258,7 +259,7 @@ public class CustomersController(
             return;
         }
 
-        var profile = new CustomerProfileDb
+        var profile = new CustomerProfileProjectionDb
         {
             CustomerId = customerId,
             TenantId = Ulid.NewUlid().ToString(),
@@ -274,7 +275,7 @@ public class CustomersController(
 
         var contacts = (request.Contacts ?? [])
             .Where(c => !string.IsNullOrWhiteSpace(c.Name) && !string.IsNullOrWhiteSpace(c.Email))
-            .Select(c => new CustomerContactDb
+            .Select(c => new CustomerContactProjectionDb
             {
                 ContactId = Ulid.NewUlid().ToString(),
                 CustomerId = customerId,
@@ -324,9 +325,9 @@ public class CustomersController(
     }
 
     private static CustomerListItemResponse MapCustomer(
-        CustomerDirectoryDb directory,
-        CustomerProfileDb? profile,
-        IReadOnlyCollection<CustomerContactDb> contacts
+        CustomerDirectoryProjectionDb directory,
+        CustomerProfileProjectionDb? profile,
+        IReadOnlyCollection<CustomerContactProjectionDb> contacts
     )
     {
         var policySnapshotId = string.IsNullOrWhiteSpace(profile?.PolicySnapshotId)
@@ -411,9 +412,4 @@ public class CustomersController(
         IReadOnlyCollection<CustomerContactResponse> Contacts,
         IReadOnlyCollection<CustomerAdminResponse> Admins
     );
-
-    private static IQueryable<T> ApplySpecification<T>(IQueryable<T> query, ISpecification<T> specification) where T : class
-    {
-        return SpecificationEvaluator.GetQuery(query, specification);
-    }
 }

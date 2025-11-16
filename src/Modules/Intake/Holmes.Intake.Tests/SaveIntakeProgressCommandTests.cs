@@ -1,4 +1,3 @@
-using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Tests.TestHelpers;
@@ -9,8 +8,8 @@ namespace Holmes.Intake.Tests;
 
 public class SaveIntakeProgressCommandTests
 {
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
     private readonly IIntakeSessionRepository _repository = Substitute.For<IIntakeSessionRepository>();
+    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
 
     public SaveIntakeProgressCommandTests()
     {

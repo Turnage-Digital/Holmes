@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Projections;
 using Holmes.Intake.Domain;
@@ -20,6 +19,32 @@ public sealed class IntakeSessionProjectionHandler(
     INotificationHandler<IntakeSessionExpired>,
     INotificationHandler<IntakeSessionSuperseded>
 {
+    public async Task Handle(ConsentCaptured notification, CancellationToken cancellationToken)
+    {
+        await UpdateAsync(notification.IntakeSessionId, projection =>
+            projection with { LastTouchedAt = notification.Artifact.CapturedAt }, cancellationToken);
+        RecordMetric("consent_captured");
+    }
+
+    public async Task Handle(IntakeProgressSaved notification, CancellationToken cancellationToken)
+    {
+        await UpdateAsync(notification.IntakeSessionId, projection =>
+            projection with { LastTouchedAt = notification.AnswersSnapshot.UpdatedAt }, cancellationToken);
+        RecordMetric("progress_saved");
+    }
+
+    public async Task Handle(IntakeSessionExpired notification, CancellationToken cancellationToken)
+    {
+        await UpdateAsync(notification.IntakeSessionId, projection =>
+            projection with
+            {
+                Status = IntakeSessionStatus.Abandoned,
+                LastTouchedAt = notification.ExpiredAt,
+                CancellationReason = notification.Reason
+            }, cancellationToken);
+        RecordMetric("expired");
+    }
+
     public async Task Handle(IntakeSessionInvited notification, CancellationToken cancellationToken)
     {
         var model = new IntakeSessionProjectionModel(
@@ -45,63 +70,13 @@ public sealed class IntakeSessionProjectionHandler(
     public async Task Handle(IntakeSessionStarted notification, CancellationToken cancellationToken)
     {
         await UpdateAsync(notification.IntakeSessionId, projection =>
-            projection with
-            {
-                Status = IntakeSessionStatus.InProgress,
-                LastTouchedAt = notification.StartedAt
-            },
+                projection with
+                {
+                    Status = IntakeSessionStatus.InProgress,
+                    LastTouchedAt = notification.StartedAt
+                },
             cancellationToken);
         RecordMetric("started");
-    }
-
-    public async Task Handle(IntakeProgressSaved notification, CancellationToken cancellationToken)
-    {
-        await UpdateAsync(notification.IntakeSessionId, projection =>
-            projection with { LastTouchedAt = notification.AnswersSnapshot.UpdatedAt }, cancellationToken);
-        RecordMetric("progress_saved");
-    }
-
-    public async Task Handle(ConsentCaptured notification, CancellationToken cancellationToken)
-    {
-        await UpdateAsync(notification.IntakeSessionId, projection =>
-            projection with { LastTouchedAt = notification.Artifact.CapturedAt }, cancellationToken);
-        RecordMetric("consent_captured");
-    }
-
-    public async Task Handle(IntakeSubmissionReceived notification, CancellationToken cancellationToken)
-    {
-        await UpdateAsync(notification.IntakeSessionId, projection =>
-            projection with
-            {
-                Status = IntakeSessionStatus.AwaitingReview,
-                LastTouchedAt = notification.SubmittedAt,
-                SubmittedAt = notification.SubmittedAt
-            }, cancellationToken);
-        RecordMetric("submission_received");
-    }
-
-    public async Task Handle(IntakeSubmissionAccepted notification, CancellationToken cancellationToken)
-    {
-        await UpdateAsync(notification.IntakeSessionId, projection =>
-            projection with
-            {
-                Status = IntakeSessionStatus.Submitted,
-                LastTouchedAt = notification.AcceptedAt,
-                AcceptedAt = notification.AcceptedAt
-            }, cancellationToken);
-        RecordMetric("submission_accepted");
-    }
-
-    public async Task Handle(IntakeSessionExpired notification, CancellationToken cancellationToken)
-    {
-        await UpdateAsync(notification.IntakeSessionId, projection =>
-            projection with
-            {
-                Status = IntakeSessionStatus.Abandoned,
-                LastTouchedAt = notification.ExpiredAt,
-                CancellationReason = notification.Reason
-            }, cancellationToken);
-        RecordMetric("expired");
     }
 
     public async Task Handle(IntakeSessionSuperseded notification, CancellationToken cancellationToken)
@@ -116,10 +91,35 @@ public sealed class IntakeSessionProjectionHandler(
         RecordMetric("superseded");
     }
 
+    public async Task Handle(IntakeSubmissionAccepted notification, CancellationToken cancellationToken)
+    {
+        await UpdateAsync(notification.IntakeSessionId, projection =>
+            projection with
+            {
+                Status = IntakeSessionStatus.Submitted,
+                LastTouchedAt = notification.AcceptedAt,
+                AcceptedAt = notification.AcceptedAt
+            }, cancellationToken);
+        RecordMetric("submission_accepted");
+    }
+
+    public async Task Handle(IntakeSubmissionReceived notification, CancellationToken cancellationToken)
+    {
+        await UpdateAsync(notification.IntakeSessionId, projection =>
+            projection with
+            {
+                Status = IntakeSessionStatus.AwaitingReview,
+                LastTouchedAt = notification.SubmittedAt,
+                SubmittedAt = notification.SubmittedAt
+            }, cancellationToken);
+        RecordMetric("submission_received");
+    }
+
     private async Task UpdateAsync(
         UlidId intakeSessionId,
         Func<IntakeSessionProjectionModel, IntakeSessionProjectionModel> updater,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var updated = await writer.UpdateAsync(intakeSessionId, updater, cancellationToken);
         if (!updated)

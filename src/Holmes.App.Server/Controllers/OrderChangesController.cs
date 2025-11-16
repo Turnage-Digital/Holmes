@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Text.Json;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Application.Notifications;
@@ -31,7 +30,7 @@ public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) 
             using var heartbeatCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var heartbeatTask = SendHeartbeatsAsync(heartbeatCts.Token);
 
-            await foreach (var change in subscription.Reader.ReadAllAsync(cancellationToken))
+            await foreach (var change in subscription.Reader.ReadAllAsync(heartbeatCts.Token))
             {
                 var payload = JsonSerializer.Serialize(new
                 {
@@ -41,13 +40,13 @@ public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) 
                     changedAt = change.ChangedAt
                 }, SerializerOptions);
 
-                await Response.WriteAsync($"id: {change.ChangeId}\n", cancellationToken);
-                await Response.WriteAsync("event: order.change\n", cancellationToken);
-                await Response.WriteAsync($"data: {payload}\n\n", cancellationToken);
-                await Response.Body.FlushAsync(cancellationToken);
+                await Response.WriteAsync($"id: {change.ChangeId}\n", heartbeatCts.Token);
+                await Response.WriteAsync("event: order.change\n", heartbeatCts.Token);
+                await Response.WriteAsync($"data: {payload}\n\n", heartbeatCts.Token);
+                await Response.Body.FlushAsync(heartbeatCts.Token);
             }
 
-            heartbeatCts.Cancel();
+            await heartbeatCts.CancelAsync();
             await heartbeatTask;
         }
         finally
@@ -79,7 +78,7 @@ public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) 
     private UlidId? ParseLastEventId()
     {
         var candidate = Request.Headers["Last-Event-ID"].FirstOrDefault()
-            ?? Request.Query["lastEventId"].FirstOrDefault();
+                        ?? Request.Query["lastEventId"].FirstOrDefault();
 
         if (candidate is null)
         {

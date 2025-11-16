@@ -7,7 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Holmes.Intake.Infrastructure.Sql.Projections;
 
-public sealed class SqlIntakeSessionProjectionWriter(IntakeDbContext dbContext, ILogger<SqlIntakeSessionProjectionWriter> logger)
+public sealed class SqlIntakeSessionProjectionWriter(
+    IntakeDbContext dbContext,
+    ILogger<SqlIntakeSessionProjectionWriter> logger
+)
     : IIntakeSessionProjectionWriter
 {
     public async Task CreateAsync(IntakeSessionProjectionModel model, CancellationToken cancellationToken)
@@ -20,7 +23,8 @@ public sealed class SqlIntakeSessionProjectionWriter(IntakeDbContext dbContext, 
     public async Task<bool> UpdateAsync(
         UlidId intakeSessionId,
         Func<IntakeSessionProjectionModel, IntakeSessionProjectionModel> updater,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var entity = await dbContext.IntakeSessionProjections
             .FirstOrDefaultAsync(x => x.IntakeSessionId == intakeSessionId.ToString(), cancellationToken);

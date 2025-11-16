@@ -112,8 +112,7 @@ const OrdersPage = () => {
             />
             {ordersQuery.error ? (
                 <Alert severity="error">
-                    {(ordersQuery.error as Error).message ??
-                        "Unable to load orders."}
+                    {(ordersQuery.error as Error).message ?? "Unable to load orders."}
                 </Alert>
             ) : null}
             <SectionCard title="Order Summary">

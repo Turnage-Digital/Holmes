@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Text.Json;
-using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Application.Timeline;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Microsoft.Extensions.Logging;
@@ -16,7 +14,7 @@ public sealed class SqlOrderTimelineWriter(
 
     public async Task WriteAsync(OrderTimelineEntry entry, CancellationToken cancellationToken)
     {
-        var entity = new OrderTimelineEventDb
+        var entity = new OrderTimelineEventProjectionDb
         {
             EventId = Ulid.NewUlid().ToString(),
             OrderId = entry.OrderId.ToString(),

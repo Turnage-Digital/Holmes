@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
-using Holmes.Intake.Domain.ValueObjects;
 using Holmes.Workflow.Application.Commands;
 using MediatR;
 using NSubstitute;
@@ -12,9 +10,9 @@ namespace Holmes.Intake.Tests;
 
 public class IssueIntakeInviteCommandTests
 {
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
     private readonly IIntakeSessionRepository _repository = Substitute.For<IIntakeSessionRepository>();
     private readonly ISender _sender = Substitute.For<ISender>();
+    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
 
     public IssueIntakeInviteCommandTests()
     {
@@ -42,7 +40,8 @@ public class IssueIntakeInviteCommandTests
         Assert.True(result.IsSuccess);
         await _repository.Received(1).AddAsync(Arg.Any<IntakeSession>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        await _sender.Received(1).Send(Arg.Is<RecordOrderInviteCommand>(c => c.OrderId == command.OrderId),
-            Arg.Any<CancellationToken>());
+        await _sender.Received(1)
+            .Send(Arg.Is<RecordOrderInviteCommand>(c => c.OrderId == command.OrderId),
+                Arg.Any<CancellationToken>());
     }
 }

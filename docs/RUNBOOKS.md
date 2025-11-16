@@ -37,8 +37,58 @@ Holmes v1 stores read models directly in the module DbContexts. To verify or reb
 4. For automated coverage, run `dotnet test Holmes.sln`; the Subjects test suite now asserts registration/alias/merge
    invariants, and Customers/Users suites guard their aggregate logic.
 
-When dedicated projection runners arrive, add their replay commands here (e.g.,
-`dotnet run --project Holmes.Projections.Runner --projection user_directory`).
+### Order Summary Projection Replay
+
+- `dotnet run --project src/Tools/Holmes.Projections.Runner --projection order-summary --reset true`
+  truncates `workflow.order_summary`, clears the checkpoint row in `core.projection_checkpoints`, and replays every
+  workflow order ordered by `LastUpdatedAt`/`OrderId`. Drop the `--reset true` flag to resume from the recorded cursor.
+- Verification queries:
+
+  ```sql
+  SELECT order_id, status, last_updated_at, ready_for_routing_at, canceled_at
+  FROM workflow.order_summary
+  ORDER BY last_updated_at DESC
+  LIMIT 10;
+  ```
+
+  ```sql
+  SELECT projection_name, position, cursor
+  FROM core.projection_checkpoints
+  WHERE projection_name = 'workflow.order_summary';
+  ```
+
+- Metrics: the replay piggybacks on the `holmes.unit_of_work.*` histograms; Grafana dashboards should alert if
+  the cursor stops advancing once the runner is wired into Ops automation.
+
+### Intake Sessions Projection Replay
+
+- `dotnet run --project src/Tools/Holmes.Projections.Runner --projection intake-sessions --reset true`
+  rebuilds `intake.intake_sessions_projection` from the canonical `intake_sessions` table and records its cursor in
+  `core.projection_checkpoints`. Subsequent runs without `--reset` will resume from the stored cursor.
+- Verification query:
+
+  ```sql
+  SELECT intake_session_id, status, submitted_at, accepted_at, last_touched_at
+  FROM intake.intake_sessions_projection
+  ORDER BY last_touched_at DESC
+  LIMIT 10;
+  ```
+
+### Order Timeline Replay
+
+- `dotnet run --project src/Tools/Holmes.Projections.Runner --projection order-timeline --reset true`
+  resets `workflow.order_timeline_events` and repopulates it by rehydrating workflow orders + intake sessions. This
+  runner always requires `--reset true` so it can deterministically rebuild the timeline before re-emitting events.
+- Verification query:
+
+  ```sql
+  SELECT order_id, event_type, description, occurred_at
+  FROM workflow.order_timeline_events
+  ORDER BY occurred_at DESC
+  LIMIT 15;
+  ```
+
+- Expect a corresponding checkpoint row in `core.projection_checkpoints` with `projection_name = 'workflow.order_timeline'`.
 
 ## Intake Session Projection & Order Timeline Verification
 

@@ -139,7 +139,7 @@ public class SqlSubjectRepository(SubjectsDbContext dbContext) : ISubjectReposit
         var record = dbContext.SubjectDirectory.SingleOrDefault(x => x.SubjectId == entity.SubjectId);
         if (record is null)
         {
-            record = new SubjectDirectoryDb
+            record = new SubjectDirectoryProjectionDb
             {
                 SubjectId = entity.SubjectId,
                 GivenName = entity.GivenName,

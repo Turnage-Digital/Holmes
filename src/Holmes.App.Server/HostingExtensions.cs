@@ -2,14 +2,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.App.Server.Infrastructure;
+using Holmes.App.Server.Gateways;
 using Holmes.App.Server.Security;
-using Holmes.App.Server.Workflow;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
+using Holmes.Core.Application.Specifications;
 using Holmes.Core.Domain.Security;
 using Holmes.Core.Infrastructure.Security;
 using Holmes.Core.Infrastructure.Sql;
+using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
@@ -17,8 +18,10 @@ using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Application.Gateways;
 using Holmes.Intake.Application.Projections;
 using Holmes.Intake.Domain;
+using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
+using Holmes.Intake.Infrastructure.Sql.Storage;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
@@ -561,7 +564,6 @@ internal static class HostingExtensions
 
         /* Workflow */
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
-        services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
 
         return services;
@@ -576,12 +578,14 @@ internal static class HostingExtensions
         services.AddDbContext<IntakeDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
         services.AddDbContext<WorkflowDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
+        services.AddSingleton<ISpecificationQueryExecutor, EfSpecificationQueryExecutor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
+        services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();

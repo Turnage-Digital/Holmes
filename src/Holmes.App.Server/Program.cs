@@ -29,4 +29,7 @@ finally
     Log.CloseAndFlush();
 }
 
-public partial class Program;
+namespace Holmes.App.Server
+{
+    public class Program;
+}

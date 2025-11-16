@@ -1,8 +1,8 @@
 using Holmes.Intake.Application.Projections;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.Storage;
-using Holmes.Intake.Infrastructure.Sql.Storage;
 using Holmes.Intake.Infrastructure.Sql.Projections;
+using Holmes.Intake.Infrastructure.Sql.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
+        services.AddScoped<IntakeSessionProjectionRunner>();
 
         return services;
     }

@@ -1,6 +1,6 @@
 namespace Holmes.Workflow.Infrastructure.Sql.Entities;
 
-public sealed class OrderTimelineEventDb
+public sealed class OrderTimelineEventProjectionDb
 {
     public string EventId { get; set; } = null!;
     public string OrderId { get; set; } = null!;

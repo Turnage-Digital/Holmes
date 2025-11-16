@@ -60,6 +60,11 @@ Standing ceremonies:
   checkpoint tables.
 - Extend runbooks with replay/reset steps and SQL snippets for verification.
 - Instrument projection lag metrics and expose health endpoints so Ops can monitor readiness.
+- The `Holmes.Projections.Runner` CLI now replays the `order_summary` projection via
+  `dotnet run --project src/Tools/Holmes.Projections.Runner --projection order-summary [--reset true]`, storing its cursor
+  in `core.projection_checkpoints`. Runbooks document the verification queries + reset flow, and the same CLI now exposes
+  `intake-sessions` (rebuilds `intake_sessions_projection`) and `order-timeline` (rebuilds the SSE timeline by combining
+  workflow orders + intake sessions; requires `--reset true`).
 
 ### 3.4 Client Experience & UX
 
@@ -119,18 +124,46 @@ Standing ceremonies:
 
 ## 8. Current Status Snapshot
 
-- Workflow orders now have a full lifecycle: the aggregate gained states/guards to progress from invite through ready-for-routing,
-  block/resume, and cancellation. These transitions are surfaced via MediatR commands in the workflow application layer, and intake
+- Workflow orders now have a full lifecycle: the aggregate gained states/guards to progress from invite through
+  ready-for-routing,
+  block/resume, and cancellation. These transitions are surfaced via MediatR commands in the workflow application layer,
+  and intake
   commands feed the gateway hooks (submission + acceptance) so orders advance as soon as intake sessions finish.
-- Workflow persistence expanded with EF infrastructure: DbContext, repositories, and migrations back the aggregates while an
-  `order_summary` projection and real-time broadcaster keep clients updated. The host registers the infrastructure, exposes REST +
+- Workflow persistence expanded with EF infrastructure: DbContext, repositories, and migrations back the aggregates
+  while an
+  `order_summary` projection and real-time broadcaster keep clients updated. The host registers the infrastructure,
+  exposes REST +
   SSE endpoints, and the client Orders page now listens to `/orders/changes` for live status updates.
-- Consent storage + intake APIs are wired together end to end, and cancellation support with matching migrations ensures the
-  database mirrors the new domain state. Backend/component tests reflect the new behaviors, and the suite stays green after the
+- Consent storage + intake APIs are wired together end to end, and cancellation support with matching migrations ensures
+  the
+  database mirrors the new domain state. Backend/component tests reflect the new behaviors, and the suite stays green
+  after the
   FluentAssertions removal.
-- Introduced Specification pattern support (shared `ISpecification`/`SpecificationEvaluator`) and refactored Users/Customers controllers
-  to compose queries via module-specific specifications instead of ad-hoc LINQ. This keeps filtering, inclusion, and paging logic inside
+- `workflow.order_summary` is now replayable via the CLI runner; checkpointing + reset paths live in
+  `Holmes.Projections.Runner`. Tests cover invite → ready-for-routing → cancel to ensure summaries capture `CanceledAt`
+  / `ReadyForRoutingAt` timestamps. Intake session and order timeline read models now have the same replay story
+  (`intake-sessions` + `order-timeline` switches), and `docs/RUNBOOKS.md` carries the commands + SQL verification for
+  each.
+- Introduced Specification pattern support (shared `ISpecification`/`SpecificationEvaluator`) and refactored
+  Users/Customers controllers
+  to compose queries via module-specific specifications instead of ad-hoc LINQ. This keeps filtering, inclusion, and
+  paging logic inside
   the domain/application layers and prepares us to split Workflow’s ACL behind a dedicated adapter in a follow-up slice.
+
+## 9. Plan Status (Pause Snapshot)
+
+- **Domain & Application:** Intake + Workflow aggregates, commands, and the cross-bounded-context gateway are complete,
+  covering the invite → accept paths with consent artifacts, policy enforcement, and `/orders/changes` SSE delivery. The
+  new `Canceled` status is exercised via tests so order lifecycles match the expanded domain contract.
+- **Read Models:** Intake session projection and workflow timeline writer now run with EF storage + metrics, and the
+  projection verification steps live in `docs/RUNBOOKS.md`. Remaining backend scope is focused on rounding out the
+  remaining projection runners/read models (order summaries, timeline consumers, ops tooling), exposing read-model/timeline
+  queries, and wiring the final observability hooks.
+- **Front-End:** Intake PWA work stays on hold per the original plan until backend projections and ops tooling are fully
+  landed.
+
+Documentation status: both `docs/PHASE_2.md` and `docs/RUNBOOKS.md` are current with the projection/timeline additions and
+next steps, so the program paused here with no further edits required until work resumes.
 
 This document is the authoritative reference for Phase 2 delivery; update it at each checkpoint to reflect decisions,
 scope changes, and readiness status.

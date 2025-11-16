@@ -120,7 +120,7 @@ public class SqlCustomerRepository(CustomersDbContext dbContext)
 
         if (directory is null)
         {
-            directory = new CustomerDirectoryDb
+            directory = new CustomerDirectoryProjectionDb
             {
                 CustomerId = entity.CustomerId,
                 Name = entity.Name,

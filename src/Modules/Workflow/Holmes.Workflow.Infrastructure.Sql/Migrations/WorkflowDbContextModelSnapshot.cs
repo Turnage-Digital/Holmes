@@ -103,7 +103,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                     b.ToTable("workflow_orders", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Workflow.Infrastructure.Sql.Entities.OrderSummaryDb", b =>
+            modelBuilder.Entity("Holmes.Workflow.Infrastructure.Sql.Entities.OrderSummaryProjectionDb", b =>
                 {
                     b.Property<string>("OrderId")
                         .HasMaxLength(26)
@@ -161,7 +161,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                     b.ToTable("order_summary", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Workflow.Infrastructure.Sql.Entities.OrderTimelineEventDb", b =>
+            modelBuilder.Entity("Holmes.Workflow.Infrastructure.Sql.Entities.OrderTimelineEventProjectionDb", b =>
                 {
                     b.Property<string>("EventId")
                         .HasMaxLength(26)

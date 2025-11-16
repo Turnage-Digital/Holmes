@@ -1,12 +1,15 @@
-using System.Linq;
 using Holmes.Core.Domain.Specifications;
 using Holmes.Customers.Infrastructure.Sql.Entities;
 
 namespace Holmes.Customers.Infrastructure.Sql.Specifications;
 
-public sealed class CustomersVisibleToUserSpecification : Specification<CustomerDirectoryDb>
+public sealed class CustomersVisibleToUserSpecification : Specification<CustomerDirectoryProjectionDb>
 {
-    public CustomersVisibleToUserSpecification(IEnumerable<string>? allowedCustomerIds, int? page = null, int? pageSize = null)
+    public CustomersVisibleToUserSpecification(
+        IEnumerable<string>? allowedCustomerIds,
+        int? page = null,
+        int? pageSize = null
+    )
     {
         if (allowedCustomerIds is not null)
         {

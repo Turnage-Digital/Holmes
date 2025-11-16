@@ -1,9 +1,8 @@
 using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
-using Holmes.Core.Domain.Specifications;
+using Holmes.Core.Application.Specifications;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
@@ -22,7 +21,8 @@ namespace Holmes.App.Server.Controllers;
 public class UsersController(
     IMediator mediator,
     UsersDbContext dbContext,
-    ICurrentUserInitializer currentUserInitializer
+    ICurrentUserInitializer currentUserInitializer,
+    ISpecificationQueryExecutor specificationExecutor
 ) : ControllerBase
 {
     [HttpGet]
@@ -39,16 +39,21 @@ public class UsersController(
         }
 
         var (page, pageSize) = NormalizePagination(query);
-        var totalItems = await dbContext.Users.CountAsync(cancellationToken);
+        var countSpec = new UsersWithDetailsSpecification();
+        var totalItems = await specificationExecutor
+            .Apply(dbContext.Users.AsNoTracking(), countSpec)
+            .CountAsync(cancellationToken);
 
         var usersSpec = new UsersWithDetailsSpecification(page, pageSize);
-        var users = await ApplySpecification(dbContext.Users.AsNoTracking(), usersSpec)
+        var users = await specificationExecutor
+            .Apply(dbContext.Users.AsNoTracking(), usersSpec)
             .ToListAsync(cancellationToken);
 
         var userIds = users.Select(u => u.UserId).ToList();
 
         var directorySpec = new UserDirectoryByIdsSpecification(userIds);
-        var directoryEntries = await ApplySpecification(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+        var directoryEntries = await specificationExecutor
+            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
 
         var items = users
@@ -63,7 +68,8 @@ public class UsersController(
     {
         var currentUserId = await GetCurrentUserAsync(cancellationToken);
         var directorySpec = new UserDirectoryByIdsSpecification([currentUserId.ToString()]);
-        var projection = await ApplySpecification(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+        var projection = await specificationExecutor
+            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
             .SingleOrDefaultAsync(cancellationToken);
 
         if (projection is null)
@@ -119,11 +125,13 @@ public class UsersController(
 
         var invitedUserId = result.Value.ToString();
         var userSpec = new UserWithDetailsByIdSpecification(invitedUserId);
-        var user = await ApplySpecification(dbContext.Users.AsNoTracking(), userSpec)
+        var user = await specificationExecutor
+            .Apply(dbContext.Users.AsNoTracking(), userSpec)
             .SingleAsync(cancellationToken);
 
         var directorySpec = new UserDirectoryByIdsSpecification([invitedUserId]);
-        var directory = await ApplySpecification(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+        var directory = await specificationExecutor
+            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
             .SingleAsync(cancellationToken);
 
         return Created(string.Empty, MapUser(user, directory));
@@ -208,7 +216,7 @@ public class UsersController(
         return (page, size);
     }
 
-    private static UserListItemResponse MapUser(UserDb user, UserDirectoryDb? directory)
+    private static UserListItemResponse MapUser(UserDb user, UserDirectoryProjectionDb? directory)
     {
         var primaryIdentity = user.ExternalIdentities
             .OrderByDescending(x => x.LastSeenAt)
@@ -298,9 +306,4 @@ public class UsersController(
         DateTimeOffset LastAuthenticatedAt,
         IReadOnlyCollection<UserRoleResponse> Roles
     );
-
-    private static IQueryable<T> ApplySpecification<T>(IQueryable<T> query, ISpecification<T> specification) where T : class
-    {
-        return SpecificationEvaluator.GetQuery(query, specification);
-    }
 }

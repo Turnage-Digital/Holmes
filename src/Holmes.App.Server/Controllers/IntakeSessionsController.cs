@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
@@ -48,10 +46,11 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
             return BadRequest(result.Error);
         }
 
-        return CreatedAtAction(nameof(IssueInvite), new { sessionId = result.Value.IntakeSessionId }, new IssueIntakeInviteResponse(
-            result.Value.IntakeSessionId.ToString(),
-            result.Value.ResumeToken,
-            result.Value.ExpiresAt));
+        return CreatedAtAction(nameof(IssueInvite), new { sessionId = result.Value.IntakeSessionId },
+            new IssueIntakeInviteResponse(
+                result.Value.IntakeSessionId.ToString(),
+                result.Value.ResumeToken,
+                result.Value.ExpiresAt));
     }
 
     [HttpPost("{sessionId}/consent")]
@@ -248,4 +247,16 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
         [Required] string PayloadCipherText,
         DateTimeOffset? UpdatedAt
     );
+
+    public sealed record CaptureConsentArtifactRequest(
+        string MimeType,
+        string SchemaVersion,
+        string PayloadBase64,
+        DateTimeOffset? CapturedAt,
+        IReadOnlyDictionary<string, string>? Metadata
+    );
+
+    public sealed record SubmitIntakeRequest(DateTimeOffset? SubmittedAt);
+
+    public sealed record AcceptIntakeSubmissionRequest(DateTimeOffset? AcceptedAt);
 }

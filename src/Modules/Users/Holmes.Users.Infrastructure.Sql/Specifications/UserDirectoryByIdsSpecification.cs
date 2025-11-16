@@ -1,10 +1,9 @@
-using System.Linq;
 using Holmes.Core.Domain.Specifications;
 using Holmes.Users.Infrastructure.Sql.Entities;
 
 namespace Holmes.Users.Infrastructure.Sql.Specifications;
 
-public sealed class UserDirectoryByIdsSpecification : Specification<UserDirectoryDb>
+public sealed class UserDirectoryByIdsSpecification : Specification<UserDirectoryProjectionDb>
 {
     public UserDirectoryByIdsSpecification(IEnumerable<string> userIds)
     {

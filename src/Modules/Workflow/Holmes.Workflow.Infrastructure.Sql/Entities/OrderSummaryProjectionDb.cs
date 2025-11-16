@@ -1,6 +1,6 @@
 namespace Holmes.Workflow.Infrastructure.Sql.Entities;
 
-public class OrderSummaryDb
+public class OrderSummaryProjectionDb
 {
     public string OrderId { get; set; } = null!;
     public string SubjectId { get; set; } = null!;

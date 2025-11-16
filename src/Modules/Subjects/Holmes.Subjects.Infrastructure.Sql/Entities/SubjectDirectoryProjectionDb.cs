@@ -1,6 +1,6 @@
 namespace Holmes.Subjects.Infrastructure.Sql.Entities;
 
-public class SubjectDirectoryDb
+public class SubjectDirectoryProjectionDb
 {
     public string SubjectId { get; set; } = null!;
 

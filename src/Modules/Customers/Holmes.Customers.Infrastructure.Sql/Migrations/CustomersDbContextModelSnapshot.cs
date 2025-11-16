@@ -59,7 +59,7 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.ToTable("customer_admins", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerContactDb", b =>
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerContactProjectionDb", b =>
                 {
                     b.Property<string>("ContactId")
                         .HasMaxLength(26)
@@ -126,7 +126,7 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.ToTable("customers", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerDirectoryDb", b =>
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerDirectoryProjectionDb", b =>
                 {
                     b.Property<string>("CustomerId")
                         .HasMaxLength(26)
@@ -155,7 +155,7 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.ToTable("customer_directory", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileDb", b =>
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileProjectionDb", b =>
                 {
                     b.Property<string>("CustomerId")
                         .HasMaxLength(26)
@@ -201,9 +201,9 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerContactDb", b =>
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerContactProjectionDb", b =>
                 {
-                    b.HasOne("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileDb", "Customer")
+                    b.HasOne("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileProjectionDb", "Customer")
                         .WithMany("Contacts")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -217,7 +217,7 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.Navigation("Admins");
                 });
 
-            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileDb", b =>
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileProjectionDb", b =>
                 {
                     b.Navigation("Contacts");
                 });

@@ -4,20 +4,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Holmes.Intake.Infrastructure.Sql;
 
-    public class IntakeDbContext(DbContextOptions<IntakeDbContext> options)
-        : DbContext(options)
-    {
-        public DbSet<ConsentArtifactDb> ConsentArtifacts => Set<ConsentArtifactDb>();
-        public DbSet<IntakeSessionDb> IntakeSessions => Set<IntakeSessionDb>();
-        public DbSet<IntakeSessionProjectionDb> IntakeSessionProjections => Set<IntakeSessionProjectionDb>();
+public class IntakeDbContext(DbContextOptions<IntakeDbContext> options)
+    : DbContext(options)
+{
+    public DbSet<ConsentArtifactDb> ConsentArtifacts => Set<ConsentArtifactDb>();
+    public DbSet<IntakeSessionDb> IntakeSessions => Set<IntakeSessionDb>();
+    public DbSet<IntakeSessionProjectionDb> IntakeSessionProjections => Set<IntakeSessionProjectionDb>();
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            ConfigureConsentArtifacts(modelBuilder.Entity<ConsentArtifactDb>());
-            ConfigureIntakeSessions(modelBuilder.Entity<IntakeSessionDb>());
-            ConfigureIntakeSessionProjections(modelBuilder.Entity<IntakeSessionProjectionDb>());
-        }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        ConfigureConsentArtifacts(modelBuilder.Entity<ConsentArtifactDb>());
+        ConfigureIntakeSessions(modelBuilder.Entity<IntakeSessionDb>());
+        ConfigureIntakeSessionProjections(modelBuilder.Entity<IntakeSessionProjectionDb>());
+    }
 
     private static void ConfigureConsentArtifacts(EntityTypeBuilder<ConsentArtifactDb> builder)
     {

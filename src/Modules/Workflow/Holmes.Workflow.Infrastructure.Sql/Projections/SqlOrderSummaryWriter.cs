@@ -15,7 +15,7 @@ public sealed class SqlOrderSummaryWriter(WorkflowDbContext dbContext)
 
         if (record is null)
         {
-            record = new OrderSummaryDb
+            record = new OrderSummaryProjectionDb
             {
                 OrderId = order.Id.ToString(),
                 CreatedAt = order.CreatedAt,

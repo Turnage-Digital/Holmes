@@ -45,15 +45,38 @@ public abstract class Specification<T> : ISpecification<T>
         IsPagingEnabled = true;
     }
 
-    private static Expression<Func<T, bool>> Combine(
-        Expression<Func<T, bool>> left,
-        Expression<Func<T, bool>> right
-    )
+    private static Expression<Func<T, bool>> Combine(Expression<Func<T, bool>> left, Expression<Func<T, bool>> right)
     {
         var parameter = Expression.Parameter(typeof(T));
-        var body = Expression.AndAlso(
-            Expression.Invoke(left, parameter),
-            Expression.Invoke(right, parameter));
+        var leftBody = ReplaceParameter(left.Body, left.Parameters[0], parameter);
+        var rightBody = ReplaceParameter(right.Body, right.Parameters[0], parameter);
+        var body = Expression.AndAlso(leftBody, rightBody);
         return Expression.Lambda<Func<T, bool>>(body, parameter);
+    }
+
+    private static Expression ReplaceParameter(
+        Expression expression,
+        ParameterExpression source,
+        ParameterExpression target
+    )
+    {
+        return new ParameterReplaceVisitor(source, target).Visit(expression)!;
+    }
+
+    private sealed class ParameterReplaceVisitor : ExpressionVisitor
+    {
+        private readonly ParameterExpression source;
+        private readonly ParameterExpression target;
+
+        public ParameterReplaceVisitor(ParameterExpression source, ParameterExpression target)
+        {
+            this.source = source;
+            this.target = target;
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            return node == source ? target : base.VisitParameter(node);
+        }
     }
 }

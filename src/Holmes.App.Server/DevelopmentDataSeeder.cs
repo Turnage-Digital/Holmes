@@ -10,7 +10,7 @@ using Holmes.Users.Infrastructure.Sql;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Holmes.App.Server.Infrastructure;
+namespace Holmes.App.Server;
 
 public sealed class DevelopmentDataSeeder(
     IServiceProvider services,
@@ -176,7 +176,7 @@ public sealed class DevelopmentDataSeeder(
             return;
         }
 
-        var profile = new CustomerProfileDb
+        var profile = new CustomerProfileProjectionDb
         {
             CustomerId = customerId,
             TenantId = Ulid.NewUlid().ToString(),
@@ -186,7 +186,7 @@ public sealed class DevelopmentDataSeeder(
             UpdatedAt = timestamp
         };
 
-        var contact = new CustomerContactDb
+        var contact = new CustomerContactProjectionDb
         {
             ContactId = Ulid.NewUlid().ToString(),
             CustomerId = customerId,

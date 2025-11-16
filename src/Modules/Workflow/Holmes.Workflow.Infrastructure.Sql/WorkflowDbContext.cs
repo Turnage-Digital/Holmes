@@ -8,15 +8,15 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
     : DbContext(options)
 {
     public DbSet<OrderDb> Orders => Set<OrderDb>();
-    public DbSet<OrderSummaryDb> OrderSummaries => Set<OrderSummaryDb>();
-    public DbSet<OrderTimelineEventDb> OrderTimelineEvents => Set<OrderTimelineEventDb>();
+    public DbSet<OrderSummaryProjectionDb> OrderSummaries => Set<OrderSummaryProjectionDb>();
+    public DbSet<OrderTimelineEventProjectionDb> OrderTimelineEvents => Set<OrderTimelineEventProjectionDb>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         ConfigureOrders(modelBuilder.Entity<OrderDb>());
-        ConfigureOrderSummaries(modelBuilder.Entity<OrderSummaryDb>());
-        ConfigureOrderTimeline(modelBuilder.Entity<OrderTimelineEventDb>());
+        ConfigureOrderSummaries(modelBuilder.Entity<OrderSummaryProjectionDb>());
+        ConfigureOrderTimeline(modelBuilder.Entity<OrderTimelineEventProjectionDb>());
     }
 
     private static void ConfigureOrders(EntityTypeBuilder<OrderDb> builder)
@@ -64,7 +64,7 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
         builder.HasIndex(x => x.Status);
     }
 
-    private static void ConfigureOrderSummaries(EntityTypeBuilder<OrderSummaryDb> builder)
+    private static void ConfigureOrderSummaries(EntityTypeBuilder<OrderSummaryProjectionDb> builder)
     {
         builder.ToTable("order_summary");
         builder.HasKey(x => x.OrderId);
@@ -92,7 +92,7 @@ public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
         builder.HasIndex(x => x.Status);
     }
 
-    private static void ConfigureOrderTimeline(EntityTypeBuilder<OrderTimelineEventDb> builder)
+    private static void ConfigureOrderTimeline(EntityTypeBuilder<OrderTimelineEventProjectionDb> builder)
     {
         builder.ToTable("order_timeline_events");
         builder.HasKey(x => x.EventId);

@@ -6,10 +6,12 @@ namespace Holmes.Intake.Application.Projections;
 public interface IIntakeSessionProjectionWriter
 {
     Task CreateAsync(IntakeSessionProjectionModel model, CancellationToken cancellationToken);
+
     Task<bool> UpdateAsync(
         UlidId intakeSessionId,
         Func<IntakeSessionProjectionModel, IntakeSessionProjectionModel> updater,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }
 
 public sealed record IntakeSessionProjectionModel(

@@ -1,3 +1,4 @@
+using Holmes.Workflow.Application.Projections;
 using Holmes.Workflow.Application.Timeline;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
@@ -20,6 +21,9 @@ public static class DependencyInjection
 
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
+        services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
+        services.AddScoped<OrderSummaryProjectionRunner>();
+        services.AddScoped<OrderTimelineProjectionRunner>();
         return services;
     }
 }

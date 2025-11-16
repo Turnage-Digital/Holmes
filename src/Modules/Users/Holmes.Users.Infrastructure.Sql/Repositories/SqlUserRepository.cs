@@ -214,7 +214,7 @@ public class SqlUserRepository(UsersDbContext dbContext) : IUserRepository
 
         if (entry is null)
         {
-            entry = new UserDirectoryDb
+            entry = new UserDirectoryProjectionDb
             {
                 UserId = record.UserId,
                 Email = user.Email,
