@@ -130,7 +130,7 @@ Holmes v1 stores read models directly in the module DbContexts. To verify or reb
           metrics_path: /metrics
           scheme: https
           static_configs:
-            - targets: ['localhost:5001']
+            - targets: ['localhost:5000']
       ```
     - Dashboards can now chart runtime, ASP.NET Core, HttpClient, and `holmes.unit_of_work.*` histograms/counters.
 2. Traces (OTLP):

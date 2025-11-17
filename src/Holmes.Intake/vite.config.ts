@@ -12,9 +12,7 @@ const baseFolder =
         ? `${env.APPDATA}/ASP.NET/https`
         : `${env.HOME}/.aspnet/https`;
 
-console.log(baseFolder);
-
-const certificateName = "holmes";
+const certificateName = "holmes-intake";
 const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
 const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
 
@@ -43,9 +41,7 @@ const target = env.ASPNETCORE_HTTPS_PORT
     ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}`
     : env.ASPNETCORE_URLS
         ? env.ASPNETCORE_URLS.split(";")[0]
-        : "https://localhost:5000";
-
-// https://vitejs.dev/config/
+        : "https://localhost:5001";
 
 export default defineConfig({
     plugins: [viteReact()],
@@ -56,11 +52,9 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            "^/api": {target, secure: false},
-            "^/auth": {target, secure: false},
-            "^/signin-oidc": {target, secure: false}
+            "^/api": {target, secure: false}
         },
-        port: 3000,
+        port: 3001,
         https: {
             key: fs.readFileSync(keyFilePath),
             cert: fs.readFileSync(certFilePath)

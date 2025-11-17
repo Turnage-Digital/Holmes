@@ -625,7 +625,7 @@ create table adverse_action_clocks(
 - **Alerts**: SLA breaches, adverse-action deadline proximity, notification failure spikes.
 - **Phase 1.9 action**: Projection + UnitOfWork instrumentation (latency, error rate, replay lag) and Grafana dashboards
   are mandatory exit criteria before Phase 2. Document the endpoints + dashboard URLs in DEV_SETUP.
-- **Implementation**: `Holmes.App.Server` exposes a Prometheus scrape endpoint at `https://localhost:5001/metrics` and
+- **Implementation**: `Holmes.App.Server` exposes a Prometheus scrape endpoint at `https://localhost:5000/metrics` and
   publishes OTLP traces when `OpenTelemetry:Exporter:Endpoint` (or `OpenTelemetry__Exporter__Endpoint` env var) is set.
   Metrics include runtime, ASP.NET Core, HttpClient, and `Holmes.UnitOfWork` histograms/counters.
 - **Runbooks**: operational recipes (database reset, projection verification, observability hookup) live in

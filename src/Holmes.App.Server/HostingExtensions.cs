@@ -3,6 +3,7 @@ using Holmes.App.Server.DependencyInjection;
 using Holmes.App.Server.Endpoints;
 using Holmes.App.Server.Middleware;
 using Holmes.App.Server.Security;
+using Holmes.Hosting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -45,10 +46,10 @@ internal static class HostingExtensions
         else
         {
             app.UseExceptionHandler("/error");
+            app.UseHttpsRedirection();
             app.UseHsts();
         }
 
-        app.UseHttpsRedirection();
         app.UseMiddleware<RedirectToAuthOptionsMiddleware>();
 
         app.UseDefaultFiles();
@@ -137,5 +138,4 @@ internal static class HostingExtensions
                 }))
             .AllowAnonymous();
     }
-
 }

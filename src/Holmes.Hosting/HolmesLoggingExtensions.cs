@@ -2,11 +2,11 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 
-namespace Holmes.App.Server.DependencyInjection;
+namespace Holmes.Hosting;
 
-internal static class HolmesLoggingExtensions
+public static class HolmesLoggingExtensions
 {
-    public static void UseHolmesSerilog(this ConfigureHostBuilder host)
+    public static void UseHolmesSerilog(this IHostBuilder host)
     {
         host.UseSerilog((ctx, config) =>
         {

@@ -20,7 +20,7 @@ The `DevelopmentDataSeeder` hosted service ensures an Admin user and demo custom
 Development.***
 
 5. **Observability**
-    - Metrics: Prometheus-compatible scrape endpoint lives at `https://localhost:5001/metrics`. Point Grafana Agent (or
+    - Metrics: Prometheus-compatible scrape endpoint lives at `https://localhost:5000/metrics`. Point Grafana Agent (or
       another collector) at that URL to power the dashboards.
     - Traces: set `OpenTelemetry__Exporter__Endpoint` (for example `http://localhost:4317`) to stream traces to your
       OTLP collector. Leave it unset to run purely locally.
