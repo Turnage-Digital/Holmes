@@ -10,7 +10,7 @@
 
 3. **Run the app**
     - `dotnet run --project src/Holmes.App.Server`
-    - `npm run dev --prefix src/Holmes.Client` (if you want live SPA reloads)
+    - `npm run dev --prefix src/Holmes.App` (if you want live SPA reloads)
 
 4. **Login**
     - Visit https://localhost:5001 and follow the “Continue with Holmes Identity” flow

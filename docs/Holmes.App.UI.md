@@ -1,4 +1,4 @@
-# Holmes.Client UI Architecture
+# Holmes.App UI Architecture
 
 **Audience:** Frontend developers, UX partners (Luis Mendoza + Rebecca Wirfs-Brock’s team), and reviewers planning Phase
 2 SPA work.

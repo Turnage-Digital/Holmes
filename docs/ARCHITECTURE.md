@@ -190,9 +190,9 @@ pipeline and no additional queueing infrastructure is necessary.
 > multi-aggregate commits and failure paths. Future modules should add similar
 > tests whenever they extend the UnitOfWork abstraction.
 
-### Client Application (Holmes.Client)
+### Client Application (Holmes.App)
 
-- React + Vite (TypeScript) solution tracked via `Holmes.Client.esproj`, launched with `npm run dev`.
+- React + Vite (TypeScript) solution tracked via `Holmes.App.esproj`, launched with `npm run dev`.
 - `Holmes.App.Server` references the SPA via `SpaRoot` + SpaProxy so `dotnet run` proxies to `https://localhost:3000`
   during development and serves the static build in production pipelines.
 - Phase 1.5 delivers an admin-focused shell that surfaces Subject, User, and Customer read models, plus flows to invite
@@ -214,7 +214,7 @@ pipeline and no additional queueing infrastructure is necessary.
       so UX partners can restyle them without chasing bespoke implementations.
     - Documented workshop outputs with Luis Mendoza + Rebecca’s UX partners specify IA diagrams, component inventories,
       and testing expectations (lint/format, `npm run build`, visual regression hooks) before Phase 2 features begin.
-- Deliverables and conventions live in `docs/Holmes.Client.UI.md`.
+- Deliverables and conventions live in `docs/Holmes.App.UI.md`.
 
 ### Identity & Development Seeds
 
@@ -710,7 +710,7 @@ transaction, and new modules can copy the hardened templates without manual twea
   CI `dotnet test` pipeline.
 - Verify Subjects/Customers read models against the documented behaviors and capture the verification steps in
   DEV_SETUP; add runbooks for `ef-reset`, Dockerized MySQL resets, and projection replays.
-- Run the Holmes.Client architecture workshop with Luis Mendoza (design tokens, layout shells, React Query conventions)
+- Run the Holmes.App architecture workshop with Luis Mendoza (design tokens, layout shells, React Query conventions)
   staying inside the current dependency set (React Router, MUI, React Query, Emotion).
 - Engage Rebecca’s UX collaborators to produce the reusable UI primitives (timeline, SLA badge, audit panel, role badges
   and action rails) so CRUD placeholders are replaced before Workflow stories land.
@@ -722,7 +722,7 @@ shareable; UI architecture notes checked into `/docs`; readiness review signed o
 
 - Intake sessions + order workflow aggregates with subject/customer linkage.
 - REST + SSE endpoints for invite → submit, and order state transitions.
-- `Holmes.Client` PWA shell covering OTP verify, consent capture, intake submission.
+- `Holmes.App` PWA shell covering OTP verify, consent capture, intake submission.
 - Projections: `order_summary`, `order_timeline_events`, `intake_sessions`.
 
 **Acceptance**: End-to-end intake completes, order advances to `ready_for_routing`, and SSE streams events with

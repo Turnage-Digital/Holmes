@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <SpaRoot>..\Holmes.Client</SpaRoot>
+        <SpaRoot>..\Holmes.App</SpaRoot>
         <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
         <SpaProxyServerUrl>https://localhost:3000</SpaProxyServerUrl>
     </PropertyGroup>

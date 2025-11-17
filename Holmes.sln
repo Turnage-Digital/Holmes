@@ -86,17 +86,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8
 		docs\MODULE_TEMPLATE.md = docs\MODULE_TEMPLATE.md
 		docs\DEV_SETUP.md = docs\DEV_SETUP.md
 		docs\RUNBOOKS.md = docs\RUNBOOKS.md
-		docs\HOLMES_CLIENT.md = docs\HOLMES_CLIENT.md
+		docs\Holmes.App.UI.md = docs\Holmes.App.UI.md
 		docs\PHASE_2.md = docs\PHASE_2.md
 	EndProjectSection
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Client", "src\Holmes.Client\Holmes.Client.esproj", "{2A5F04DF-7FAB-4375-A39A-3C782F7226FD}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.App", "src\Holmes.App\Holmes.App.esproj", "{2A5F04DF-7FAB-4375-A39A-3C782F7226FD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server", "src\Holmes.Identity.Server\Holmes.Identity.Server.csproj", "{9CBFCA68-B0DD-4C70-9EF8-9526FF1F0804}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "domain", "domain", "{79A9B9B7-5163-424F-A8B9-C8413FEEC562}"
 	ProjectSection(SolutionItems) = preProject
 		docs\domain\INTAKE_SESSION.md = docs\domain\INTAKE_SESSION.md
+		docs\domain\INTAKE_UI.md = docs\domain\INTAKE_UI.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{E77B0781-85A5-4EC8-A2D6-D083D829E345}"
