@@ -1,6 +1,8 @@
 # Intake UI Plan
 
-This document defines the direction, structure, boundaries, and delivery expectations for the **Holmes Intake UI**. It supersedes prior PWA-oriented assumptions and reflects the final architectural decision: **the Intake experience is a lightweight, mobile-first SPA with a sub‑60‑second completion goal and no offline/PWA features**.
+This document defines the direction, structure, boundaries, and delivery expectations for the **Holmes Intake UI**. It
+supersedes prior PWA-oriented assumptions and reflects the final architectural decision: **the Intake experience is a
+lightweight, mobile-first SPA with a sub‑60‑second completion goal and no offline/PWA features**.
 
 ---
 
@@ -265,4 +267,5 @@ The Intake UI is considered complete when:
 ---
 
 This plan is intentionally concise, low-risk, and optimized for the Intake experience described in Phase 2.
-It aligns with the short-lived, single-purpose nature of the subject-facing workflow and avoids unnecessary PWA complexity.
+It aligns with the short-lived, single-purpose nature of the subject-facing workflow and avoids unnecessary PWA
+complexity.

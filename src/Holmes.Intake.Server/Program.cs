@@ -1,4 +1,3 @@
-using Holmes.App.Server;
 using Holmes.Intake.Server;
 using Serilog;
 
@@ -30,7 +29,7 @@ finally
     Log.CloseAndFlush();
 }
 
-namespace Holmes.App.Server
+namespace Holmes.Intake.Server
 {
     public class Program;
 }

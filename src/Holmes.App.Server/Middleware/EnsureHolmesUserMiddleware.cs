@@ -2,8 +2,6 @@ using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Users.Application.Exceptions;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace Holmes.App.Server.Middleware;
 

@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 
-namespace Holmes.Workflow.Application.Timeline;
+namespace Holmes.Workflow.Application.Projections;
 
 public interface IOrderTimelineWriter
 {

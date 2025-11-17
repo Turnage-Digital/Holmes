@@ -1,5 +1,4 @@
 using Holmes.Workflow.Application.Projections;
-using Holmes.Workflow.Application.Timeline;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;

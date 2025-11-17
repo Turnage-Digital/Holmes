@@ -5,7 +5,7 @@ using Holmes.Core.Infrastructure.Sql.Projections;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Entities;
-using Holmes.Workflow.Application.Timeline;
+using Holmes.Workflow.Application.Projections;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;

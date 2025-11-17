@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Holmes.Hosting\Holmes.Hosting.csproj" />
+        <ProjectReference Include="..\Holmes.Hosting\Holmes.Hosting.csproj"/>
     </ItemGroup>
 
 </Project>

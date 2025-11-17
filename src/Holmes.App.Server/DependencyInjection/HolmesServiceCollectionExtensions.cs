@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.App.Server;
 using Holmes.App.Server.Gateways;
 using Holmes.App.Server.Middleware;
 using Holmes.App.Server.Security;
@@ -34,7 +33,6 @@ using Holmes.Users.Infrastructure.Sql.Repositories;
 using Holmes.Workflow.Application.Commands;
 using Holmes.Workflow.Application.Notifications;
 using Holmes.Workflow.Application.Projections;
-using Holmes.Workflow.Application.Timeline;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Notifications;
@@ -43,14 +41,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
@@ -64,7 +56,8 @@ internal static class HolmesServiceCollectionExtensions
 {
     public static IServiceCollection AddHolmesObservability(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration
+    )
     {
         services.AddHealthChecks();
         services.AddOpenTelemetry()
@@ -120,7 +113,8 @@ internal static class HolmesServiceCollectionExtensions
     public static IServiceCollection AddHolmesAuthentication(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment
+    )
     {
         var isRunningInTestHost = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"),
@@ -245,7 +239,8 @@ internal static class HolmesServiceCollectionExtensions
 
     public static IServiceCollection AddHolmesDataProtection(
         this IServiceCollection services,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment
+    )
     {
         var isRunningInTestHost = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"),
@@ -270,7 +265,8 @@ internal static class HolmesServiceCollectionExtensions
 
     public static IServiceCollection AddHolmesSwagger(
         this IServiceCollection services,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment
+    )
     {
         if (!environment.IsDevelopment())
         {
@@ -294,7 +290,8 @@ internal static class HolmesServiceCollectionExtensions
     public static IServiceCollection AddHolmesModules(
         this IServiceCollection services,
         IConfiguration configuration,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment
+    )
     {
         var isRunningInTestHost = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"),
@@ -322,7 +319,8 @@ internal static class HolmesServiceCollectionExtensions
 
     private static IServiceCollection AddHolmesInfrastructure(
         this IServiceCollection services,
-        string connectionString)
+        string connectionString
+    )
     {
         ServerVersion serverVersion;
         try
@@ -350,7 +348,8 @@ internal static class HolmesServiceCollectionExtensions
     }
 
     private static IServiceCollection AddHolmesInfrastructureForTesting(
-        this IServiceCollection services)
+        this IServiceCollection services
+    )
     {
         services.AddDbContext<CoreDbContext>(options => options.UseInMemoryDatabase("holmes-core"));
         services.AddDbContext<UsersDbContext>(options => options.UseInMemoryDatabase("holmes-users"));

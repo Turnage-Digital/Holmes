@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Domain.Events;
-using Holmes.Workflow.Application.Timeline;
+using Holmes.Workflow.Application.Projections;
 using MediatR;
 
 namespace Holmes.Intake.Application.EventHandlers;

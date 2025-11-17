@@ -1,4 +1,3 @@
-using System;
 using Holmes.App.Server.DependencyInjection;
 using Holmes.App.Server.Endpoints;
 using Holmes.App.Server.Middleware;
@@ -8,9 +7,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace Holmes.App.Server;

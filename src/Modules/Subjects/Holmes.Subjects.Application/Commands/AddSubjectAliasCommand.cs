@@ -14,20 +14,12 @@ public sealed record AddSubjectAliasCommand(
     DateTimeOffset AddedAt
 ) : RequestBase<Result>;
 
-public sealed class AddSubjectAliasCommandHandler : IRequestHandler<AddSubjectAliasCommand, Result>
+public sealed class AddSubjectAliasCommandHandler(ISubjectsUnitOfWork unitOfWork)
+    : IRequestHandler<AddSubjectAliasCommand, Result>
 {
-    private readonly ISubjectsUnitOfWork _unitOfWork;
-
-    public AddSubjectAliasCommandHandler(
-        ISubjectsUnitOfWork unitOfWork
-    )
-    {
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(AddSubjectAliasCommand request, CancellationToken cancellationToken)
     {
-        var repository = _unitOfWork.Subjects;
+        var repository = unitOfWork.Subjects;
         var subject = await repository.GetByIdAsync(request.TargetSubjectId, cancellationToken);
         if (subject is null)
         {
@@ -38,7 +30,7 @@ public sealed class AddSubjectAliasCommandHandler : IRequestHandler<AddSubjectAl
         var actor = request.GetUserUlid();
         subject.AddAlias(alias, request.AddedAt, actor);
         await repository.UpdateAsync(subject, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

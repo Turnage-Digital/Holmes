@@ -13,20 +13,12 @@ public sealed record RegisterSubjectCommand(
     DateTimeOffset RegisteredAt
 ) : RequestBase<UlidId>;
 
-public sealed class RegisterSubjectCommandHandler : IRequestHandler<RegisterSubjectCommand, UlidId>
+public sealed class RegisterSubjectCommandHandler(ISubjectsUnitOfWork unitOfWork)
+    : IRequestHandler<RegisterSubjectCommand, UlidId>
 {
-    private readonly ISubjectsUnitOfWork _unitOfWork;
-
-    public RegisterSubjectCommandHandler(
-        ISubjectsUnitOfWork unitOfWork
-    )
-    {
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<UlidId> Handle(RegisterSubjectCommand request, CancellationToken cancellationToken)
     {
-        var repository = _unitOfWork.Subjects;
+        var repository = unitOfWork.Subjects;
         var subject = Subject.Register(
             UlidId.NewUlid(),
             request.GivenName,
@@ -36,7 +28,7 @@ public sealed class RegisterSubjectCommandHandler : IRequestHandler<RegisterSubj
             request.RegisteredAt);
 
         await repository.AddAsync(subject, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return subject.Id;
     }
 }

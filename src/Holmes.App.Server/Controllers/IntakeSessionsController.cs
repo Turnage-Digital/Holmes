@@ -159,6 +159,29 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
         return Accepted();
     }
 
+    [HttpPost("{sessionId}/otp/verify")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyOtpCode(
+        string sessionId,
+        [FromBody] VerifyOtpRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!TryParseUlid(sessionId, out var parsedSession))
+        {
+            return BadRequest("Invalid intake session id.");
+        }
+
+        var command = new VerifyIntakeSessionOtpCommand(parsedSession, request.Code);
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(new VerifyOtpResponse(true));
+    }
+
     [HttpPost("{sessionId}/submit")]
     public async Task<IActionResult> SubmitIntake(
         string sessionId,
@@ -247,6 +270,10 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
         [Required] string PayloadCipherText,
         DateTimeOffset? UpdatedAt
     );
+
+    public sealed record VerifyOtpRequest([Required] string Code);
+
+    public sealed record VerifyOtpResponse(bool Verified);
 
     public sealed record CaptureConsentArtifactRequest(
         string MimeType,

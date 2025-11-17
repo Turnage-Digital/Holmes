@@ -1,6 +1,6 @@
 using System.Diagnostics.Metrics;
 
-namespace Holmes.Workflow.Application.Timeline;
+namespace Holmes.Workflow.Application;
 
 public static class OrderTimelineMetrics
 {
