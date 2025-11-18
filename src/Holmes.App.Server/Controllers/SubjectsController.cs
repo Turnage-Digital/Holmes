@@ -3,6 +3,7 @@ using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Subjects.Application.Abstractions.Dtos;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
@@ -26,7 +27,7 @@ public sealed class SubjectsController(
     private const string SubjectStatusMerged = "Merged";
 
     [HttpGet]
-    public async Task<ActionResult<PaginatedResponse<SubjectListItemResponse>>> GetSubjects(
+    public async Task<ActionResult<PaginatedResponse<SubjectListItemDto>>> GetSubjects(
         [FromQuery] PaginationQuery query,
         CancellationToken cancellationToken
     )
@@ -49,11 +50,11 @@ public sealed class SubjectsController(
             .Select(MapSubject)
             .ToList();
 
-        return Ok(PaginatedResponse<SubjectListItemResponse>.Create(items, page, pageSize, totalItems));
+        return Ok(PaginatedResponse<SubjectListItemDto>.Create(items, page, pageSize, totalItems));
     }
 
     [HttpPost]
-    public async Task<ActionResult<SubjectSummaryResponse>> RegisterSubject(
+    public async Task<ActionResult<SubjectSummaryDto>> RegisterSubject(
         [FromBody] RegisterSubjectRequest request,
         CancellationToken cancellationToken
     )
@@ -72,7 +73,7 @@ public sealed class SubjectsController(
     }
 
     [HttpGet("{subjectId}")]
-    public async Task<ActionResult<SubjectSummaryResponse>> GetSubjectById(
+    public async Task<ActionResult<SubjectSummaryDto>> GetSubjectById(
         string subjectId,
         CancellationToken cancellationToken
     )
@@ -119,20 +120,20 @@ public sealed class SubjectsController(
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
     }
 
-    private static SubjectSummaryResponse MapSummary(SubjectDirectoryDb directory)
+    private static SubjectSummaryDto MapSummary(SubjectDirectoryDb directory)
     {
-        return new SubjectSummaryResponse(directory.SubjectId, directory.GivenName, directory.FamilyName,
+        return new SubjectSummaryDto(directory.SubjectId, directory.GivenName, directory.FamilyName,
             directory.DateOfBirth,
             directory.Email, directory.IsMerged, directory.AliasCount, directory.CreatedAt);
     }
 
-    private static SubjectListItemResponse MapSubject(SubjectDb subject)
+    private static SubjectListItemDto MapSubject(SubjectDb subject)
     {
         var status = subject.MergedIntoSubjectId is null ? SubjectStatusActive : SubjectStatusMerged;
         var aliases = subject.Aliases
             .OrderBy(a => a.FamilyName)
             .ThenBy(a => a.GivenName)
-            .Select(a => new SubjectAliasResponse(
+            .Select(a => new SubjectAliasDto(
                 a.Id.ToString(CultureInfo.InvariantCulture),
                 a.GivenName,
                 a.FamilyName,
@@ -140,7 +141,7 @@ public sealed class SubjectsController(
                 subject.CreatedAt))
             .ToList();
 
-        return new SubjectListItemResponse(
+        return new SubjectListItemDto(
             subject.SubjectId,
             subject.GivenName,
             null,
@@ -173,42 +174,9 @@ public sealed class SubjectsController(
         string? Email
     );
 
-    public sealed record SubjectSummaryResponse(
-        string SubjectId,
-        string GivenName,
-        string FamilyName,
-        DateOnly? DateOfBirth,
-        string? Email,
-        bool IsMerged,
-        int AliasCount,
-        DateTimeOffset CreatedAt
-    );
-
     public sealed record MergeSubjectsRequest(
         string WinnerSubjectId,
         string MergedSubjectId,
         string? Reason
-    );
-
-    public sealed record SubjectAliasResponse(
-        string Id,
-        string FirstName,
-        string LastName,
-        DateOnly? BirthDate,
-        DateTimeOffset CreatedAt
-    );
-
-    public sealed record SubjectListItemResponse(
-        string Id,
-        string FirstName,
-        string? MiddleName,
-        string LastName,
-        DateOnly? BirthDate,
-        string? Email,
-        string Status,
-        string? MergeParentId,
-        IReadOnlyCollection<SubjectAliasResponse> Aliases,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt
     );
 }

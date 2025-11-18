@@ -1,4 +1,4 @@
-using Holmes.Workflow.Application.Projections;
+using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;

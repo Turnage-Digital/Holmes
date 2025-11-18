@@ -1,6 +1,6 @@
 using Holmes.Workflow.Domain;
 
-namespace Holmes.Workflow.Application.Projections;
+namespace Holmes.Workflow.Application.Abstractions.Projections;
 
 public interface IOrderSummaryWriter
 {

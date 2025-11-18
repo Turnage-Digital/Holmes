@@ -243,10 +243,15 @@ pipeline and no additional queueing infrastructure is necessary.
   shared integrations.
 - A module's `*.Domain` project is pure (no Infrastructure or Application dependencies) and may depend only on
   `Holmes.Core.Domain`.
-- `*.Application` projects depend on their matching `*.Domain` + `Holmes.Core.Application`; they expose commands,
-  queries, and pipelines for the host.
-- `*.Infrastructure` projects depend on `*.Domain` + `Holmes.Core.Infrastructure.*`; they never reference the module's
-  `*.Application`, and `*.Application` cannot reference `*.Infrastructure`.
+- Each module exposes `*.Application.Abstractions` for DTOs, projection contracts, broadcasters, and other ports the
+  host or Infrastructure must consume. These assemblies depend on the module's `*.Domain` (and `Holmes.Core.Domain`)
+  but contain no handlers.
+- `*.Application` projects depend on their matching `*.Domain`, their module's `*.Application.Abstractions`, and
+  `Holmes.Core.Application`; they expose commands, queries, and pipelines for the host.
+- `*.Infrastructure` projects depend on `*.Domain`, the module's `*.Application.Abstractions`, and
+  `Holmes.Core.Infrastructure.*`. They never reference the module's `*.Application`, and `*.Application` cannot
+  reference `*.Infrastructure`. Cross-module calls flow only through other modules' `*.Application.Abstractions`
+  (e.g., Workflow consumes the Intake replay source interface rather than its EF DbContext).
 - Host projects (`Holmes.App.Server`, `Holmes.Mcp.Server`) wire modules through DI by referencing each module's
   `*.Application` and `*.Infrastructure`.
 - Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.

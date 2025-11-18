@@ -2,7 +2,7 @@ using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Domain;
 
-namespace Holmes.Workflow.Application.Notifications;
+namespace Holmes.Workflow.Application.Abstractions.Notifications;
 
 public interface IOrderChangeBroadcaster
 {

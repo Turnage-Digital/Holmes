@@ -1,8 +1,8 @@
 using System.Diagnostics.Metrics;
 
-namespace Holmes.Workflow.Application;
+namespace Holmes.Workflow.Infrastructure.Sql.Projections;
 
-public static class OrderTimelineMetrics
+internal static class OrderTimelineMetrics
 {
     private static readonly Meter Meter = new("Holmes.Workflow.Timeline", "1.0");
 

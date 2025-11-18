@@ -1,8 +1,9 @@
 using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
-using Holmes.Core.Application.Specifications;
+using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Users.Application.Abstractions.Dtos;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
@@ -27,7 +28,7 @@ public class UsersController(
 {
     [HttpGet]
     [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
-    public async Task<ActionResult<PaginatedResponse<UserListItemResponse>>> GetUsers(
+    public async Task<ActionResult<PaginatedResponse<UserDto>>> GetUsers(
         [FromQuery] PaginationQuery query,
         CancellationToken cancellationToken
     )
@@ -60,11 +61,11 @@ public class UsersController(
             .Select(u => MapUser(u, directoryEntries.GetValueOrDefault(u.UserId)))
             .ToList();
 
-        return Ok(PaginatedResponse<UserListItemResponse>.Create(items, page, pageSize, totalItems));
+        return Ok(PaginatedResponse<UserDto>.Create(items, page, pageSize, totalItems));
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<UserResponse>> GetMe(CancellationToken cancellationToken)
+    public async Task<ActionResult<CurrentUserDto>> GetMe(CancellationToken cancellationToken)
     {
         var currentUserId = await GetCurrentUserAsync(cancellationToken);
         var directorySpec = new UserDirectoryByIdsSpecification([currentUserId.ToString()]);
@@ -80,10 +81,10 @@ public class UsersController(
         var roles = await dbContext.UserRoleMemberships
             .AsNoTracking()
             .Where(x => x.UserId == currentUserId.ToString())
-            .Select(x => new UserRoleResponse(x.Role, x.CustomerId))
+            .Select(x => new UserRoleDto(x.Role, x.CustomerId))
             .ToListAsync(cancellationToken);
 
-        return Ok(new UserResponse(
+        return Ok(new CurrentUserDto(
             currentUserId.ToString(),
             projection.Email,
             projection.DisplayName,
@@ -96,7 +97,7 @@ public class UsersController(
 
     [HttpPost("invitations")]
     [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
-    public async Task<ActionResult<UserListItemResponse>> InviteUser(
+    public async Task<ActionResult<UserDto>> InviteUser(
         [FromBody] InviteUserRequest request,
         CancellationToken cancellationToken
     )
@@ -216,7 +217,7 @@ public class UsersController(
         return (page, size);
     }
 
-    private static UserListItemResponse MapUser(UserDb user, UserDirectoryDb? directory)
+    private static UserDto MapUser(UserDb user, UserDirectoryDb? directory)
     {
         var primaryIdentity = user.ExternalIdentities
             .OrderByDescending(x => x.LastSeenAt)
@@ -224,7 +225,7 @@ public class UsersController(
 
         var identity = primaryIdentity is null
             ? null
-            : new ExternalIdentityResponse(
+            : new ExternalIdentityDto(
                 primaryIdentity.Issuer,
                 primaryIdentity.Subject,
                 primaryIdentity.AuthenticationMethod,
@@ -233,7 +234,7 @@ public class UsersController(
 
         var roles = user.RoleMemberships
             .OrderByDescending(r => r.GrantedAt)
-            .Select(r => new RoleAssignmentResponse(
+            .Select(r => new RoleAssignmentDto(
                 r.Id.ToString(),
                 r.Role,
                 r.CustomerId,
@@ -243,7 +244,7 @@ public class UsersController(
 
         var lastSeen = directory?.LastAuthenticatedAt ?? user.CreatedAt;
 
-        return new UserListItemResponse(
+        return new UserDto(
             user.UserId,
             user.Email,
             user.DisplayName,
@@ -264,46 +265,5 @@ public class UsersController(
 
     public sealed record InviteUserRoleRequest(UserRole Role, string? CustomerId);
 
-    public sealed record RoleAssignmentResponse(
-        string Id,
-        UserRole Role,
-        string? CustomerId,
-        string GrantedBy,
-        DateTimeOffset GrantedAt
-    );
-
-    public sealed record ExternalIdentityResponse(
-        string Issuer,
-        string Subject,
-        string? AuthenticationMethod,
-        DateTimeOffset LinkedAt,
-        DateTimeOffset LastSeenAt
-    );
-
-    public sealed record UserListItemResponse(
-        string Id,
-        string Email,
-        string? DisplayName,
-        UserStatus Status,
-        DateTimeOffset LastSeenAt,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt,
-        IReadOnlyCollection<RoleAssignmentResponse> RoleAssignments,
-        ExternalIdentityResponse? ExternalIdentity
-    );
-
     public sealed record ModifyUserRoleRequest(UserRole Role, string? CustomerId);
-
-    public sealed record UserRoleResponse(UserRole Role, string? CustomerId);
-
-    public sealed record UserResponse(
-        string UserId,
-        string Email,
-        string? DisplayName,
-        string Issuer,
-        string Subject,
-        UserStatus Status,
-        DateTimeOffset LastAuthenticatedAt,
-        IReadOnlyCollection<UserRoleResponse> Roles
-    );
 }

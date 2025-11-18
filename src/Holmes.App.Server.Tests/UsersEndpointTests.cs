@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Users.Application.Abstractions.Dtos;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
@@ -36,7 +37,7 @@ public class UsersEndpointTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var payload = await response.Content.ReadFromJsonAsync<UserResponse>(JsonOptions);
+        var payload = await response.Content.ReadFromJsonAsync<CurrentUserDto>(JsonOptions);
         Assert.That(payload, Is.Not.Null);
         Assert.That(payload!.Email, Is.EqualTo("user01@holmes.dev"));
         Assert.That(payload.Roles, Is.Empty);
@@ -128,17 +129,4 @@ public class UsersEndpointTests
     }
 
     private sealed record ModifyUserRoleRequest(UserRole Role, string? CustomerId);
-
-    private sealed record UserRoleResponse(UserRole Role, string? CustomerId);
-
-    private sealed record UserResponse(
-        string UserId,
-        string Email,
-        string? DisplayName,
-        string Issuer,
-        string Subject,
-        UserStatus Status,
-        DateTimeOffset LastAuthenticatedAt,
-        IReadOnlyCollection<UserRoleResponse> Roles
-    );
 }

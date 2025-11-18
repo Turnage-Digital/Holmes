@@ -1,4 +1,4 @@
-using Holmes.Core.Application.Specifications;
+using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Domain.Specifications;
 
 namespace Holmes.Core.Infrastructure.Sql.Specifications;

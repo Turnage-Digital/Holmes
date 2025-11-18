@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Domain;
+using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
@@ -58,7 +58,7 @@ public class CustomersEndpointTests
 
         Assert.That(createResponse.StatusCode, Is.EqualTo(HttpStatusCode.Created));
 
-        var summary = await createResponse.Content.ReadFromJsonAsync<CustomerSummaryResponse>(JsonOptions);
+        var summary = await createResponse.Content.ReadFromJsonAsync<CustomerListItemDto>(JsonOptions);
         Assert.That(summary, Is.Not.Null);
         var customerId = summary!.Id;
 
@@ -150,24 +150,4 @@ public class CustomersEndpointTests
     );
 
     private sealed record ModifyCustomerAdminRequest(string UserId);
-
-    private sealed record CustomerSummaryResponse(
-        string Id,
-        string TenantId,
-        string Name,
-        CustomerStatus Status,
-        string PolicySnapshotId,
-        string? BillingEmail,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt,
-        IReadOnlyCollection<CustomerContactResponse> Contacts
-    );
-
-    private sealed record CustomerContactResponse(
-        string Id,
-        string Name,
-        string Email,
-        string? Phone,
-        string? Role
-    );
 }

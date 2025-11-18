@@ -2,10 +2,9 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Entities;
 using Holmes.Core.Infrastructure.Sql.Projections;
+using Holmes.Intake.Application.Abstractions.Sessions;
 using Holmes.Intake.Domain;
-using Holmes.Intake.Infrastructure.Sql;
-using Holmes.Intake.Infrastructure.Sql.Entities;
-using Holmes.Workflow.Application.Projections;
+using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +14,8 @@ namespace Holmes.Workflow.Infrastructure.Sql.Projections;
 
 public sealed class OrderTimelineProjectionRunner(
     WorkflowDbContext workflowDbContext,
-    IntakeDbContext intakeDbContext,
     CoreDbContext coreDbContext,
+    IIntakeSessionReplaySource intakeSessionReplaySource,
     IOrderTimelineWriter timelineWriter,
     ILogger<OrderTimelineProjectionRunner> logger
 )
@@ -45,11 +44,10 @@ public sealed class OrderTimelineProjectionRunner(
             events.AddRange(BuildOrderEvents(order));
         }
 
-        var intakeSessions = await intakeDbContext.IntakeSessions
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-
-        foreach (var session in intakeSessions)
+        var intakeSessions = await intakeSessionReplaySource.ListSessionsAsync(cancellationToken);
+        foreach (var session in intakeSessions
+                     .OrderBy(s => s.CreatedAt)
+                     .ThenBy(s => s.IntakeSessionId))
         {
             events.AddRange(BuildIntakeEvents(session));
         }
@@ -193,9 +191,9 @@ public sealed class OrderTimelineProjectionRunner(
             new { status = status.ToString() }));
     }
 
-    private static IEnumerable<TimelineReplayEvent> BuildIntakeEvents(IntakeSessionDb session)
+    private static IEnumerable<TimelineReplayEvent> BuildIntakeEvents(IntakeSessionReplayRecord session)
     {
-        var orderId = UlidId.Parse(session.OrderId);
+        var orderId = session.OrderId;
         var events = new List<TimelineReplayEvent>
         {
             new(orderId,
@@ -205,7 +203,7 @@ public sealed class OrderTimelineProjectionRunner(
                 "intake-replay",
                 new
                 {
-                    sessionId = session.IntakeSessionId,
+                    sessionId = session.IntakeSessionId.ToString(),
                     expiresAt = session.ExpiresAt
                 })
         };
@@ -220,7 +218,7 @@ public sealed class OrderTimelineProjectionRunner(
                 "intake-replay",
                 new
                 {
-                    sessionId = session.IntakeSessionId,
+                    sessionId = session.IntakeSessionId.ToString(),
                     artifactId = session.ConsentArtifactId
                 }));
         }
@@ -233,7 +231,7 @@ public sealed class OrderTimelineProjectionRunner(
                 "intake.submission_received",
                 "Intake submitted (replayed)",
                 "intake-replay",
-                new { sessionId = session.IntakeSessionId }));
+                new { sessionId = session.IntakeSessionId.ToString() }));
         }
 
         if (session.AcceptedAt is not null)
@@ -244,11 +242,11 @@ public sealed class OrderTimelineProjectionRunner(
                 "intake.submission_accepted",
                 "Intake accepted (replayed)",
                 "intake-replay",
-                new { sessionId = session.IntakeSessionId }));
+                new { sessionId = session.IntakeSessionId.ToString() }));
         }
 
         if (!string.IsNullOrWhiteSpace(session.CancellationReason) &&
-            Enum.Parse<IntakeSessionStatus>(session.Status) == IntakeSessionStatus.Abandoned)
+            session.Status == IntakeSessionStatus.Abandoned)
         {
             events.Add(new TimelineReplayEvent(
                 orderId,
@@ -256,10 +254,10 @@ public sealed class OrderTimelineProjectionRunner(
                 "intake.session_abandoned",
                 $"Session abandoned: {session.CancellationReason}",
                 "intake-replay",
-                new { sessionId = session.IntakeSessionId }));
+                new { sessionId = session.IntakeSessionId.ToString() }));
         }
 
-        if (!string.IsNullOrWhiteSpace(session.SupersededBySessionId))
+        if (session.SupersededBySessionId is not null)
         {
             events.Add(new TimelineReplayEvent(
                 orderId,
@@ -269,8 +267,8 @@ public sealed class OrderTimelineProjectionRunner(
                 "intake-replay",
                 new
                 {
-                    sessionId = session.IntakeSessionId,
-                    supersededBy = session.SupersededBySessionId
+                    sessionId = session.IntakeSessionId.ToString(),
+                    supersededBy = session.SupersededBySessionId.ToString()
                 }));
         }
 

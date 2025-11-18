@@ -3,7 +3,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Entities;
 using Holmes.Core.Infrastructure.Sql.Projections;
-using Holmes.Intake.Application.Projections;
+using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;

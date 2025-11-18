@@ -3,13 +3,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Contracts;
-using Holmes.App.Server.Controllers;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
+using Holmes.Workflow.Application.Abstractions.Dtos;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
@@ -43,7 +43,7 @@ public class OrdersEndpointTests
         var response = await client.GetAsync("/api/orders/summary?page=1&pageSize=1");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var payload = await response.Content.ReadFromJsonAsync<PaginatedResponse<OrderSummaryResponse>>(JsonOptions);
+        var payload = await response.Content.ReadFromJsonAsync<PaginatedResponse<OrderSummaryDto>>(JsonOptions);
         Assert.That(payload, Is.Not.Null);
         Assert.That(payload!.TotalItems, Is.EqualTo(2));
         Assert.That(payload.PageSize, Is.EqualTo(1));
@@ -73,7 +73,7 @@ public class OrdersEndpointTests
 
         var response = await client.GetAsync("/api/orders/summary");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var payload = await response.Content.ReadFromJsonAsync<PaginatedResponse<OrderSummaryResponse>>(JsonOptions);
+        var payload = await response.Content.ReadFromJsonAsync<PaginatedResponse<OrderSummaryDto>>(JsonOptions);
         Assert.That(payload, Is.Not.Null);
         var summary = payload!.Items.Single();
         Assert.That(summary.OrderId, Is.EqualTo(orderA));

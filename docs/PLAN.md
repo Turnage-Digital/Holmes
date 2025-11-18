@@ -156,8 +156,7 @@ Holmes.App
       role union (`Admin`, `CustomerAdmin`, `Compliance`, `Operations`, `Auditor`) matches the backend enums.
 - Customer contract alignment:
     - Introduced `customer_profiles` + `customer_contacts` projections/migrations and exposed paginated
-      `CustomerListItemResponse` payloads from `GET/POST /api/customers`, so the React table/form consumes the real
-      DTOs.
+      `CustomerListItemDto` payloads from `GET/POST /api/customers`, so the React table/form consumes the real DTOs.
     - `docs/DEV_SETUP.md` now walks through `pwsh ./ef-reset.ps1`, which *always* drops databases, deletes migration
       folders, scaffolds initial migrations (plus `AddCustomerProfiles`), and reapplies them for Core/Users/Customers/
       Subjects.

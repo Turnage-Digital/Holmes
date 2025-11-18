@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Workflow.Application.Notifications;
+using Holmes.Workflow.Application.Abstractions.Notifications;
 
 namespace Holmes.Workflow.Infrastructure.Sql.Notifications;
 

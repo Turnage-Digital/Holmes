@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.Specifications;
 
-namespace Holmes.Core.Application.Specifications;
+namespace Holmes.Core.Application.Abstractions.Specifications;
 
 public interface ISpecificationQueryExecutor
 {
