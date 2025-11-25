@@ -1,4 +1,3 @@
-using Holmes.App.Server.DependencyInjection;
 using Holmes.App.Server.Endpoints;
 using Holmes.App.Server.Middleware;
 using Holmes.App.Server.Security;

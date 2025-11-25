@@ -50,9 +50,9 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace Holmes.App.Server.DependencyInjection;
+namespace Holmes.App.Server;
 
-internal static class HolmesServiceCollectionExtensions
+internal static class DependencyInjection
 {
     public static IServiceCollection AddHolmesObservability(
         this IServiceCollection services,
@@ -63,7 +63,7 @@ internal static class HolmesServiceCollectionExtensions
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource.AddService(
                 "Holmes.App.Server",
-                serviceVersion: typeof(HolmesServiceCollectionExtensions).Assembly.GetName().Version?.ToString()))
+                serviceVersion: typeof(DependencyInjection).Assembly.GetName().Version?.ToString()))
             .WithMetrics(metrics =>
             {
                 metrics

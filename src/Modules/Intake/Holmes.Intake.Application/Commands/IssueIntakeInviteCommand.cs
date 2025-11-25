@@ -40,7 +40,7 @@ public sealed class IssueIntakeInviteCommandHandler(
         CancellationToken cancellationToken
     )
     {
-        var metadata = request.PolicyMetadata ?? new Dictionary<string, string>();
+        var metadata = request.PolicyMetadata;
         var ttl = request.TimeToLive <= TimeSpan.Zero
             ? TimeSpan.FromHours(DefaultTimeToLiveHours)
             : request.TimeToLive;
