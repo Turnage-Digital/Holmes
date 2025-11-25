@@ -31,7 +31,7 @@ value, expands observability, and keeps the event-sourced backbone intact.
 /src
   Holmes.App.Server/                 # ASP.NET Core host (APIs, SSE, background services)
   Holmes.App.Server.Tests/           # Host-level integration/acceptance tests
-  Holmes.Client/                     # React workspace (components/, pages/, models/, lib/)
+  Holmes.App/                     # React workspace (components/, pages/, models/, lib/)
   Holmes.Mcp.Server/                 # Dev MCP sidecar exposing tool endpoints
   Modules/
     Core/
@@ -141,7 +141,7 @@ Infrastructure to compose the runtime.
 ### Phase 1.5 — Platform Cohesion & Event Plumbing
 
 **Modules delivered:** Holmes.Core, Holmes.App.Server, Users, Customers, Subjects, Holmes.Identity.Server,
-Holmes.Client  
+Holmes.App  
 **Outcomes**
 
 - Shared infrastructure: integration specs in `Holmes.Core.Tests` guard the `UnitOfWork<TContext>` + domain-event
@@ -156,15 +156,14 @@ Holmes.Client
       role union (`Admin`, `CustomerAdmin`, `Compliance`, `Operations`, `Auditor`) matches the backend enums.
 - Customer contract alignment:
     - Introduced `customer_profiles` + `customer_contacts` projections/migrations and exposed paginated
-      `CustomerListItemResponse` payloads from `GET/POST /api/customers`, so the React table/form consumes the real
-      DTOs.
+      `CustomerListItemDto` payloads from `GET/POST /api/customers`, so the React table/form consumes the real DTOs.
     - `docs/DEV_SETUP.md` now walks through `pwsh ./ef-reset.ps1`, which *always* drops databases, deletes migration
       folders, scaffolds initial migrations (plus `AddCustomerProfiles`), and reapplies them for Core/Users/Customers/
       Subjects.
 - Subject registry readiness: `GET /api/subjects?page=&pageSize=` and `POST /api/subjects/merge` feed the UI proof
   screen with
   actual data and wire through `MergeSubjectCommand`.
-- SPA proof surface: `Holmes.Client` runs under Vite + SPA proxy, hits the aforementioned APIs via TanStack Query,
+- SPA proof surface: `Holmes.App` runs under Vite + SPA proxy, hits the aforementioned APIs via TanStack Query,
   redirects 401 responses to `/auth/options`, and proves Phase 1 flows (invite, grant/revoke role, create customer,
   merge subject) without Postman.
 - Observability + docs: structured logging + correlation IDs are standard, and ARCHITECTURE + DEV_SETUP call out IdP
@@ -174,18 +173,18 @@ Holmes.Client
 
 - `pwsh ./ef-reset.ps1` rebuilds every schema (Core, Users, Customers, Subjects) and reapplies the Initial +
   `AddCustomerProfiles` migrations without manual cleanup or selective skipping.
-- Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.Client) allows a tenant admin to complete
+- Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.App) allows a tenant admin to complete
   invite → activate → grant/revoke role → create customer → merge subject entirely through the UI, with a single
   domain-event batch per transaction and green `dotnet test` / `npm run build` pipelines.
 
 ### Phase 1.8 — Auth Flow Cleanup & Hardening
 
-**Modules delivered:** Holmes.App.Server, Holmes.Client, Holmes.Identity.Server  
+**Modules delivered:** Holmes.App.Server, Holmes.App, Holmes.Identity.Server  
 **Outcomes**
 
 - Holmes.App.Server owns the entire auth challenge experience: unauthenticated HTML requests short-circuit to
   `/auth/options`, which renders the provider list server-side (sanitized `returnUrl`, no SPA boot required).
-- `Holmes.Client`'s `AuthBoundary` simply retries `/users/me`; if it ever receives 401/403/404, it performs a full-page
+- `Holmes.App`'s `AuthBoundary` simply retries `/users/me`; if it ever receives 401/403/404, it performs a full-page
   navigation back through `/auth/options?returnUrl=…`, keeping provider choice and cookie issuance on the server.
 - OpenID Connect logins now rely on middleware + `RegisterExternalUserCommand` to ensure the Holmes user already exists.
   Uninvited attempts publish `UninvitedExternalLoginAttempted`, are logged, and the session is cleared + redirected to
@@ -200,7 +199,7 @@ Holmes.Client
 
 ### Phase 1.9 — Foundation Hardening & UX Architecture
 
-**Modules delivered:** Holmes.App.Server, Holmes.Client, Holmes.Core, Users, Customers, Subjects  
+**Modules delivered:** Holmes.App.Server, Holmes.App, Holmes.Core, Users, Customers, Subjects  
 **Objectives**
 
 - **Deferred MCP scope:** explicitly move the developer MCP sidecar into the backlog so Phase 2 can start without
@@ -213,9 +212,9 @@ Holmes.Client
   the documented behaviors; document verification steps in DEV_SETUP.
 - **Operational runbooks:** author deterministic guides for `ef-reset`, Dockerized MySQL resets, and projection replays.
   See `docs/RUNBOOKS.md` for the shared playbook covering resets, projection verification, and observability hookup.
-- **Holmes.Client architecture pass:** working within the current stack (`react`, `react-router-dom`, `@mui/*`,
+- **Holmes.App architecture pass:** working within the current stack (`react`, `react-router-dom`, `@mui/*`,
   `@tanstack/react-query`), define design tokens, layout primitives, route conventions, and query hooks so future flows
-  drop in without re-plumbing. Documented in `docs/Holmes.Client.UI.md`.
+  drop in without re-plumbing. Documented in `docs/Holmes.App.UI.md`.
 - **UX refresh:** partner with Rebecca Wirfs-Brock’s recommended UX collaborators to replace placeholder CRUD layouts
   with domain-first surfaces (subject timeline, SLA badges, audit panels, role badges). Capture their component library
   guidelines in docs.
@@ -232,7 +231,7 @@ Holmes.Client
 - Read models: `order_summary`, `order_timeline_events`, `intake_sessions`.
 - SSE `/changes` endpoint delivering ordered event frames with filters + heartbeats.
 - Integration tests for intake flow, SSE resume, optimistic concurrency.
-- Initial PWA scaffolding within `Holmes.Client` for intake experience.
+- Initial PWA scaffolding within `Holmes.Intake` for intake experience.
 
 ### Phase 3 — SLA, Compliance & Notifications
 

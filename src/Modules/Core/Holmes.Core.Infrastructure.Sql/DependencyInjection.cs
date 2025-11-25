@@ -1,4 +1,4 @@
-using Holmes.Core.Application.Specifications;
+using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

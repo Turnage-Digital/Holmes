@@ -12,20 +12,12 @@ public sealed record MergeSubjectCommand(
     DateTimeOffset MergedAt
 ) : RequestBase<Result>;
 
-public sealed class MergeSubjectCommandHandler : IRequestHandler<MergeSubjectCommand, Result>
+public sealed class MergeSubjectCommandHandler(ISubjectsUnitOfWork unitOfWork)
+    : IRequestHandler<MergeSubjectCommand, Result>
 {
-    private readonly ISubjectsUnitOfWork _unitOfWork;
-
-    public MergeSubjectCommandHandler(
-        ISubjectsUnitOfWork unitOfWork
-    )
-    {
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<Result> Handle(MergeSubjectCommand request, CancellationToken cancellationToken)
     {
-        var repository = _unitOfWork.Subjects;
+        var repository = unitOfWork.Subjects;
         var subject = await repository.GetByIdAsync(request.SourceSubjectId, cancellationToken);
         if (subject is null)
         {
@@ -35,7 +27,7 @@ public sealed class MergeSubjectCommandHandler : IRequestHandler<MergeSubjectCom
         var actor = request.GetUserUlid();
         subject.MergeInto(request.TargetSubjectId, actor, request.MergedAt);
         await repository.UpdateAsync(subject, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }
 }

@@ -1,9 +1,9 @@
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application;
-using Holmes.Core.Application.Specifications;
+using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Application.Commands;
-using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
 using Holmes.Customers.Infrastructure.Sql.Specifications;
@@ -29,7 +29,7 @@ public class CustomersController(
 {
     [HttpGet]
     [Authorize]
-    public async Task<ActionResult<PaginatedResponse<CustomerListItemResponse>>> GetCustomers(
+    public async Task<ActionResult<PaginatedResponse<CustomerListItemDto>>> GetCustomers(
         [FromQuery] PaginationQuery query,
         CancellationToken cancellationToken
     )
@@ -83,12 +83,12 @@ public class CustomersController(
             })
             .ToList();
 
-        return Ok(PaginatedResponse<CustomerListItemResponse>.Create(items, page, pageSize, totalItems));
+        return Ok(PaginatedResponse<CustomerListItemDto>.Create(items, page, pageSize, totalItems));
     }
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<CustomerListItemResponse>> CreateCustomer(
+    public async Task<ActionResult<CustomerListItemDto>> CreateCustomer(
         [FromBody] CreateCustomerRequest request,
         CancellationToken cancellationToken
     )
@@ -122,7 +122,7 @@ public class CustomersController(
 
     [HttpGet("{customerId}")]
     [Authorize]
-    public async Task<ActionResult<CustomerDetailResponse>> GetCustomerById(
+    public async Task<ActionResult<CustomerDetailDto>> GetCustomerById(
         string customerId,
         CancellationToken cancellationToken
     )
@@ -146,10 +146,10 @@ public class CustomersController(
 
         var admins = await customersDbContext.CustomerAdmins.AsNoTracking()
             .Where(a => a.CustomerId == customerId)
-            .Select(a => new CustomerAdminResponse(a.UserId, a.AssignedBy.ToString(), a.AssignedAt))
+            .Select(a => new CustomerAdminDto(a.UserId, a.AssignedBy.ToString(), a.AssignedAt))
             .ToListAsync(cancellationToken);
 
-        return Ok(new CustomerDetailResponse(
+        return Ok(new CustomerDetailDto(
             customer.Id,
             customer.TenantId,
             customer.Name,
@@ -296,7 +296,7 @@ public class CustomersController(
         await customersDbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<CustomerListItemResponse?> LoadCustomerAsync(
+    private async Task<CustomerListItemDto?> LoadCustomerAsync(
         string customerId,
         CancellationToken cancellationToken
     )
@@ -324,7 +324,7 @@ public class CustomersController(
         return (page, size);
     }
 
-    private static CustomerListItemResponse MapCustomer(
+    private static CustomerListItemDto MapCustomer(
         CustomerDirectoryDb directory,
         CustomerProfileDb? profile,
         IReadOnlyCollection<CustomerContactDb> contacts
@@ -338,7 +338,7 @@ public class CustomersController(
 
         var contactResponses = contacts
             .OrderBy(c => c.Name)
-            .Select(c => new CustomerContactResponse(
+            .Select(c => new CustomerContactDto(
                 c.ContactId,
                 c.Name,
                 c.Email,
@@ -346,16 +346,16 @@ public class CustomersController(
                 c.Role))
             .ToList();
 
-        return new CustomerListItemResponse(
+        return new CustomerListItemDto(
             directory.CustomerId,
             profile?.TenantId ?? directory.CustomerId,
             directory.Name,
             directory.Status,
             policySnapshotId,
             billingEmail,
+            contactResponses,
             directory.CreatedAt,
-            profile?.UpdatedAt ?? directory.CreatedAt,
-            contactResponses);
+            profile?.UpdatedAt ?? directory.CreatedAt);
     }
 
     public sealed record CreateCustomerRequest(
@@ -373,43 +373,4 @@ public class CustomersController(
     );
 
     public sealed record ModifyCustomerAdminRequest(string UserId);
-
-    public sealed record CustomerContactResponse(
-        string Id,
-        string Name,
-        string Email,
-        string? Phone,
-        string? Role
-    );
-
-    public sealed record CustomerListItemResponse(
-        string Id,
-        string TenantId,
-        string Name,
-        CustomerStatus Status,
-        string PolicySnapshotId,
-        string? BillingEmail,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt,
-        IReadOnlyCollection<CustomerContactResponse> Contacts
-    );
-
-    public sealed record CustomerAdminResponse(
-        string UserId,
-        string AssignedBy,
-        DateTimeOffset AssignedAt
-    );
-
-    public sealed record CustomerDetailResponse(
-        string Id,
-        string TenantId,
-        string Name,
-        CustomerStatus Status,
-        string PolicySnapshotId,
-        string? BillingEmail,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset UpdatedAt,
-        IReadOnlyCollection<CustomerContactResponse> Contacts,
-        IReadOnlyCollection<CustomerAdminResponse> Admins
-    );
 }

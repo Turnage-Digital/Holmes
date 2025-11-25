@@ -190,9 +190,9 @@ pipeline and no additional queueing infrastructure is necessary.
 > multi-aggregate commits and failure paths. Future modules should add similar
 > tests whenever they extend the UnitOfWork abstraction.
 
-### Client Application (Holmes.Client)
+### Client Application (Holmes.App)
 
-- React + Vite (TypeScript) solution tracked via `Holmes.Client.esproj`, launched with `npm run dev`.
+- React + Vite (TypeScript) solution tracked via `Holmes.App.esproj`, launched with `npm run dev`.
 - `Holmes.App.Server` references the SPA via `SpaRoot` + SpaProxy so `dotnet run` proxies to `https://localhost:3000`
   during development and serves the static build in production pipelines.
 - Phase 1.5 delivers an admin-focused shell that surfaces Subject, User, and Customer read models, plus flows to invite
@@ -214,7 +214,7 @@ pipeline and no additional queueing infrastructure is necessary.
       so UX partners can restyle them without chasing bespoke implementations.
     - Documented workshop outputs with Luis Mendoza + Rebecca’s UX partners specify IA diagrams, component inventories,
       and testing expectations (lint/format, `npm run build`, visual regression hooks) before Phase 2 features begin.
-- Deliverables and conventions live in `docs/Holmes.Client.UI.md`.
+- Deliverables and conventions live in `docs/Holmes.App.UI.md`.
 
 ### Identity & Development Seeds
 
@@ -243,10 +243,15 @@ pipeline and no additional queueing infrastructure is necessary.
   shared integrations.
 - A module's `*.Domain` project is pure (no Infrastructure or Application dependencies) and may depend only on
   `Holmes.Core.Domain`.
-- `*.Application` projects depend on their matching `*.Domain` + `Holmes.Core.Application`; they expose commands,
-  queries, and pipelines for the host.
-- `*.Infrastructure` projects depend on `*.Domain` + `Holmes.Core.Infrastructure.*`; they never reference the module's
-  `*.Application`, and `*.Application` cannot reference `*.Infrastructure`.
+- Each module exposes `*.Application.Abstractions` for DTOs, projection contracts, broadcasters, and other ports the
+  host or Infrastructure must consume. These assemblies depend on the module's `*.Domain` (and `Holmes.Core.Domain`)
+  but contain no handlers.
+- `*.Application` projects depend on their matching `*.Domain`, their module's `*.Application.Abstractions`, and
+  `Holmes.Core.Application`; they expose commands, queries, and pipelines for the host.
+- `*.Infrastructure` projects depend on `*.Domain`, the module's `*.Application.Abstractions`, and
+  `Holmes.Core.Infrastructure.*`. They never reference the module's `*.Application`, and `*.Application` cannot
+  reference `*.Infrastructure`. Cross-module calls flow only through other modules' `*.Application.Abstractions`
+  (e.g., Workflow consumes the Intake replay source interface rather than its EF DbContext).
 - Host projects (`Holmes.App.Server`, `Holmes.Mcp.Server`) wire modules through DI by referencing each module's
   `*.Application` and `*.Infrastructure`.
 - Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.
@@ -625,7 +630,7 @@ create table adverse_action_clocks(
 - **Alerts**: SLA breaches, adverse-action deadline proximity, notification failure spikes.
 - **Phase 1.9 action**: Projection + UnitOfWork instrumentation (latency, error rate, replay lag) and Grafana dashboards
   are mandatory exit criteria before Phase 2. Document the endpoints + dashboard URLs in DEV_SETUP.
-- **Implementation**: `Holmes.App.Server` exposes a Prometheus scrape endpoint at `https://localhost:5001/metrics` and
+- **Implementation**: `Holmes.App.Server` exposes a Prometheus scrape endpoint at `https://localhost:5000/metrics` and
   publishes OTLP traces when `OpenTelemetry:Exporter:Endpoint` (or `OpenTelemetry__Exporter__Endpoint` env var) is set.
   Metrics include runtime, ASP.NET Core, HttpClient, and `Holmes.UnitOfWork` histograms/counters.
 - **Runbooks**: operational recipes (database reset, projection verification, observability hookup) live in
@@ -710,7 +715,7 @@ transaction, and new modules can copy the hardened templates without manual twea
   CI `dotnet test` pipeline.
 - Verify Subjects/Customers read models against the documented behaviors and capture the verification steps in
   DEV_SETUP; add runbooks for `ef-reset`, Dockerized MySQL resets, and projection replays.
-- Run the Holmes.Client architecture workshop with Luis Mendoza (design tokens, layout shells, React Query conventions)
+- Run the Holmes.App architecture workshop with Luis Mendoza (design tokens, layout shells, React Query conventions)
   staying inside the current dependency set (React Router, MUI, React Query, Emotion).
 - Engage Rebecca’s UX collaborators to produce the reusable UI primitives (timeline, SLA badge, audit panel, role badges
   and action rails) so CRUD placeholders are replaced before Workflow stories land.
@@ -722,7 +727,7 @@ shareable; UI architecture notes checked into `/docs`; readiness review signed o
 
 - Intake sessions + order workflow aggregates with subject/customer linkage.
 - REST + SSE endpoints for invite → submit, and order state transitions.
-- `Holmes.Client` PWA shell covering OTP verify, consent capture, intake submission.
+- `Holmes.App` PWA shell covering OTP verify, consent capture, intake submission.
 - Projections: `order_summary`, `order_timeline_events`, `intake_sessions`.
 
 **Acceptance**: End-to-end intake completes, order advances to `ready_for_routing`, and SSE streams events with

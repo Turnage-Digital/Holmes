@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
-
 namespace Holmes.App.Server.Middleware;
 
 internal sealed class RedirectToAuthOptionsMiddleware : IMiddleware

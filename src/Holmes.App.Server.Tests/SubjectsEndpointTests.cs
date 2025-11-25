@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Holmes.Subjects.Application.Abstractions.Dtos;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
@@ -25,7 +26,7 @@ public class SubjectsEndpointTests
         var response = await client.PostAsJsonAsync("/api/subjects", request);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-        var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryResponse>();
+        var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryDto>();
         Assert.That(summary, Is.Not.Null);
         Assert.That(summary!.GivenName, Is.EqualTo("Jane"));
         Assert.That(summary.AliasCount, Is.EqualTo(0));
@@ -73,7 +74,7 @@ public class SubjectsEndpointTests
         var response = await client.GetAsync($"/api/subjects/{subjectId}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryResponse>();
+        var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryDto>();
         Assert.That(summary, Is.Not.Null);
         Assert.That(summary!.GivenName, Is.EqualTo("John"));
     }
@@ -83,17 +84,6 @@ public class SubjectsEndpointTests
         string FamilyName,
         DateOnly? DateOfBirth,
         string? Email
-    );
-
-    private sealed record SubjectSummaryResponse(
-        string SubjectId,
-        string GivenName,
-        string FamilyName,
-        DateOnly? DateOfBirth,
-        string? Email,
-        bool IsMerged,
-        int AliasCount,
-        DateTimeOffset CreatedAt
     );
 
     private static async Task EnsureTestUserAsync(HolmesWebApplicationFactory factory)

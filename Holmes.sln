@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-#
+# 
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -86,22 +86,41 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8
 		docs\MODULE_TEMPLATE.md = docs\MODULE_TEMPLATE.md
 		docs\DEV_SETUP.md = docs\DEV_SETUP.md
 		docs\RUNBOOKS.md = docs\RUNBOOKS.md
-		docs\HOLMES_CLIENT.md = docs\HOLMES_CLIENT.md
+		docs\Holmes.App.UI.md = docs\Holmes.App.UI.md
 		docs\PHASE_2.md = docs\PHASE_2.md
 	EndProjectSection
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Client", "src\Holmes.Client\Holmes.Client.esproj", "{2A5F04DF-7FAB-4375-A39A-3C782F7226FD}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.App", "src\Holmes.App\Holmes.App.esproj", "{2A5F04DF-7FAB-4375-A39A-3C782F7226FD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server", "src\Holmes.Identity.Server\Holmes.Identity.Server.csproj", "{9CBFCA68-B0DD-4C70-9EF8-9526FF1F0804}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "domain", "domain", "{79A9B9B7-5163-424F-A8B9-C8413FEEC562}"
 	ProjectSection(SolutionItems) = preProject
 		docs\domain\INTAKE_SESSION.md = docs\domain\INTAKE_SESSION.md
+		docs\domain\INTAKE_UI.md = docs\domain\INTAKE_UI.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{E77B0781-85A5-4EC8-A2D6-D083D829E345}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Projections.Runner", "src\Tools\Holmes.Projections.Runner\Holmes.Projections.Runner.csproj", "{39AA1A5D-FAA0-45F2-A920-2B7AF5401397}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Intake", "src\Holmes.Intake\Holmes.Intake.esproj", "{305669B8-725E-463B-9622-1BC3C0ADF4A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Intake.Server", "src\Holmes.Intake.Server\Holmes.Intake.Server.csproj", "{765B70F3-0FAE-4C19-A8BB-232F96EFDE10}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Hosting", "src\Holmes.Hosting\Holmes.Hosting.csproj", "{ADDF918E-7B9C-4343-A608-BE521587D6BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Application.Abstractions", "src\Modules\Core\Holmes.Core.Application.Abstractions\Holmes.Core.Application.Abstractions.csproj", "{F59A38C5-75D5-4526-B43D-084E82849448}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Intake.Application.Abstractions", "src\Modules\Intake\Holmes.Intake.Application.Abstractions\Holmes.Intake.Application.Abstractions.csproj", "{E9EFFECC-B5EA-4158-BA51-9701F2F3CFC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Workflow.Application.Abstractions", "src\Modules\Workflow\Holmes.Workflow.Application.Abstractions\Holmes.Workflow.Application.Abstractions.csproj", "{2128B805-9948-4D3E-AC2C-FA4849A51B7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Users.Application.Abstractions", "src\Modules\Users\Holmes.Users.Application.Abstractions\Holmes.Users.Application.Abstractions.csproj", "{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Application.Abstractions", "src\Modules\Customers\Holmes.Customers.Application.Abstractions\Holmes.Customers.Application.Abstractions.csproj", "{51A7EFDA-92A9-471E-B95A-193D7579FABA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Application.Abstractions", "src\Modules\Subjects\Holmes.Subjects.Application.Abstractions\Holmes.Subjects.Application.Abstractions.csproj", "{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -237,6 +256,42 @@ Global
 		{39AA1A5D-FAA0-45F2-A920-2B7AF5401397}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39AA1A5D-FAA0-45F2-A920-2B7AF5401397}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39AA1A5D-FAA0-45F2-A920-2B7AF5401397}.Release|Any CPU.Build.0 = Release|Any CPU
+		{305669B8-725E-463B-9622-1BC3C0ADF4A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{305669B8-725E-463B-9622-1BC3C0ADF4A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{305669B8-725E-463B-9622-1BC3C0ADF4A4}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{305669B8-725E-463B-9622-1BC3C0ADF4A4}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{765B70F3-0FAE-4C19-A8BB-232F96EFDE10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{765B70F3-0FAE-4C19-A8BB-232F96EFDE10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{765B70F3-0FAE-4C19-A8BB-232F96EFDE10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{765B70F3-0FAE-4C19-A8BB-232F96EFDE10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADDF918E-7B9C-4343-A608-BE521587D6BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADDF918E-7B9C-4343-A608-BE521587D6BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADDF918E-7B9C-4343-A608-BE521587D6BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADDF918E-7B9C-4343-A608-BE521587D6BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F59A38C5-75D5-4526-B43D-084E82849448}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F59A38C5-75D5-4526-B43D-084E82849448}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F59A38C5-75D5-4526-B43D-084E82849448}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F59A38C5-75D5-4526-B43D-084E82849448}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9EFFECC-B5EA-4158-BA51-9701F2F3CFC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9EFFECC-B5EA-4158-BA51-9701F2F3CFC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9EFFECC-B5EA-4158-BA51-9701F2F3CFC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9EFFECC-B5EA-4158-BA51-9701F2F3CFC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2128B805-9948-4D3E-AC2C-FA4849A51B7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2128B805-9948-4D3E-AC2C-FA4849A51B7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2128B805-9948-4D3E-AC2C-FA4849A51B7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2128B805-9948-4D3E-AC2C-FA4849A51B7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51A7EFDA-92A9-471E-B95A-193D7579FABA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51A7EFDA-92A9-471E-B95A-193D7579FABA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51A7EFDA-92A9-471E-B95A-193D7579FABA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51A7EFDA-92A9-471E-B95A-193D7579FABA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -278,5 +333,14 @@ Global
 		{7E8C9DE7-F478-45B8-ADC5-40FDA2C2957D} = {693A6EAD-49F5-4B5D-B7D4-34F273FA796C}
 		{E77B0781-85A5-4EC8-A2D6-D083D829E345} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 		{39AA1A5D-FAA0-45F2-A920-2B7AF5401397} = {E77B0781-85A5-4EC8-A2D6-D083D829E345}
+		{305669B8-725E-463B-9622-1BC3C0ADF4A4} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
+		{765B70F3-0FAE-4C19-A8BB-232F96EFDE10} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
+		{ADDF918E-7B9C-4343-A608-BE521587D6BA} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
+		{F59A38C5-75D5-4526-B43D-084E82849448} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
+		{E9EFFECC-B5EA-4158-BA51-9701F2F3CFC9} = {52F9E2C8-BBE8-4190-B5BC-70FFA64D4798}
+		{2128B805-9948-4D3E-AC2C-FA4849A51B7F} = {693A6EAD-49F5-4B5D-B7D4-34F273FA796C}
+		{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A} = {B9351E67-7A50-4B05-9B5B-2D78F42E4E8E}
+		{51A7EFDA-92A9-471E-B95A-193D7579FABA} = {53AA447A-6340-4411-B32B-59C440B65DCB}
+		{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7} = {DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}
 	EndGlobalSection
 EndGlobal

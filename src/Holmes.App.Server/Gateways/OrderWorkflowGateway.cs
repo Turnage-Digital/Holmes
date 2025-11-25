@@ -7,8 +7,7 @@ namespace Holmes.App.Server.Gateways;
 public sealed class OrderWorkflowGateway(
     ISender sender,
     ILogger<OrderWorkflowGateway> logger
-)
-    : IOrderWorkflowGateway
+) : IOrderWorkflowGateway
 {
     public Task<OrderPolicyCheckResult> ValidateSubmissionAsync(
         OrderIntakeSubmission submission,

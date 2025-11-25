@@ -50,7 +50,8 @@ public class EnsureHolmesUserMiddlewareTests
         var initializer = new ThrowingInitializer();
         var middleware = new EnsureHolmesUserMiddleware(initializer, NullLogger<EnsureHolmesUserMiddleware>.Instance);
         var context = CreateAuthenticatedContext("/api/users/me");
-        var authService = (StubAuthenticationService)context.RequestServices.GetRequiredService<IAuthenticationService>();
+        var authService =
+            (StubAuthenticationService)context.RequestServices.GetRequiredService<IAuthenticationService>();
 
         var nextCalled = false;
         await middleware.InvokeAsync(context, _ =>
@@ -78,7 +79,7 @@ public class EnsureHolmesUserMiddlewareTests
 
         context.Request.Method = HttpMethods.Get;
         context.Request.Path = path;
-        context.User = new ClaimsPrincipal(new ClaimsIdentity("Cookies") { });
+        context.User = new ClaimsPrincipal(new ClaimsIdentity("Cookies"));
 
         return context;
     }
@@ -121,7 +122,12 @@ public class EnsureHolmesUserMiddlewareTests
             return Task.CompletedTask;
         }
 
-        public Task SignInAsync(HttpContext context, string? scheme, ClaimsPrincipal principal, AuthenticationProperties? properties)
+        public Task SignInAsync(
+            HttpContext context,
+            string? scheme,
+            ClaimsPrincipal principal,
+            AuthenticationProperties? properties
+        )
         {
             return Task.CompletedTask;
         }

@@ -5,6 +5,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
+using Holmes.Workflow.Application.Abstractions.Dtos;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +25,7 @@ public sealed class OrdersController(
 ) : ControllerBase
 {
     [HttpGet("summary")]
-    public async Task<ActionResult<PaginatedResponse<OrderSummaryResponse>>> GetSummaryAsync(
+    public async Task<ActionResult<PaginatedResponse<OrderSummaryDto>>> GetSummaryAsync(
         [FromQuery] OrderSummaryQuery query,
         CancellationToken cancellationToken
     )
@@ -35,8 +36,8 @@ public sealed class OrdersController(
         var (page, pageSize) = NormalizePagination(query.Page, query.PageSize);
         if (!access.AllowsAll && (access.AllowedCustomerIds is null || access.AllowedCustomerIds.Count == 0))
         {
-            return Ok(PaginatedResponse<OrderSummaryResponse>.Create(
-                Array.Empty<OrderSummaryResponse>(),
+            return Ok(PaginatedResponse<OrderSummaryDto>.Create(
+                Array.Empty<OrderSummaryDto>(),
                 page,
                 pageSize,
                 0));
@@ -100,7 +101,7 @@ public sealed class OrdersController(
             .ThenBy(o => o.OrderId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(o => new OrderSummaryResponse(
+            .Select(o => new OrderSummaryDto(
                 o.OrderId,
                 o.SubjectId,
                 o.CustomerId,
@@ -114,11 +115,11 @@ public sealed class OrdersController(
                 o.CanceledAt))
             .ToListAsync(cancellationToken);
 
-        return Ok(PaginatedResponse<OrderSummaryResponse>.Create(items, page, pageSize, totalItems));
+        return Ok(PaginatedResponse<OrderSummaryDto>.Create(items, page, pageSize, totalItems));
     }
 
     [HttpGet("{orderId}/timeline")]
-    public async Task<ActionResult<IReadOnlyCollection<OrderTimelineEntryResponse>>> GetTimelineAsync(
+    public async Task<ActionResult<IReadOnlyCollection<OrderTimelineEntryDto>>> GetTimelineAsync(
         string orderId,
         [FromQuery] OrderTimelineQuery query,
         CancellationToken cancellationToken
@@ -161,7 +162,7 @@ public sealed class OrdersController(
             .OrderByDescending(e => e.OccurredAt)
             .ThenByDescending(e => e.EventId)
             .Take(limit)
-            .Select(e => new OrderTimelineEntryResponse(
+            .Select(e => new OrderTimelineEntryDto(
                 e.EventId,
                 e.OrderId,
                 e.EventType,
@@ -253,31 +254,6 @@ public sealed class OrdersController(
         public static CustomerAccess None { get; } = new(false, Array.Empty<string>());
     }
 }
-
-public sealed record OrderSummaryResponse(
-    string OrderId,
-    string SubjectId,
-    string CustomerId,
-    string PolicySnapshotId,
-    string? PackageCode,
-    string Status,
-    string? LastStatusReason,
-    DateTimeOffset LastUpdatedAt,
-    DateTimeOffset? ReadyForRoutingAt,
-    DateTimeOffset? ClosedAt,
-    DateTimeOffset? CanceledAt
-);
-
-public sealed record OrderTimelineEntryResponse(
-    string EventId,
-    string OrderId,
-    string EventType,
-    string Description,
-    string Source,
-    DateTimeOffset OccurredAt,
-    DateTimeOffset RecordedAt,
-    JsonElement? Metadata
-);
 
 public sealed record OrderSummaryQuery
 {

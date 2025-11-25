@@ -1,7 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Workflow.Application.Notifications;
-using Holmes.Workflow.Application.Projections;
-using Holmes.Workflow.Application.Timeline;
+using Holmes.Workflow.Application.Abstractions.Notifications;
+using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Domain.Events;
 using MediatR;

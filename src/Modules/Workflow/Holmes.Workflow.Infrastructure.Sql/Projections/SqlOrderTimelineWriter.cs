@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Holmes.Workflow.Application.Timeline;
+using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Microsoft.Extensions.Logging;
 

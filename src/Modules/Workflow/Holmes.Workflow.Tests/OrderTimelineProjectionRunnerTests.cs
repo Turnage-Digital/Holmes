@@ -3,6 +3,7 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Entities;
+using Holmes.Intake.Infrastructure.Sql.Sessions;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
@@ -42,10 +43,12 @@ public sealed class OrderTimelineProjectionRunnerTests : IDisposable
             _workflowDbContext,
             NullLogger<SqlOrderTimelineWriter>.Instance);
 
+        var replaySource = new SqlIntakeSessionReplaySource(_intakeDbContext);
+
         _runner = new OrderTimelineProjectionRunner(
             _workflowDbContext,
-            _intakeDbContext,
             _coreDbContext,
+            replaySource,
             timelineWriter,
             NullLogger<OrderTimelineProjectionRunner>.Instance);
     }

@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace Holmes.App.Server.Security;
 
 internal static class ReturnUrlSanitizer
