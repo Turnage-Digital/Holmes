@@ -99,6 +99,17 @@ const OrdersPage = () => {
     [],
   );
 
+  let errorContent: React.ReactNode = null;
+
+  if (ordersQuery.error) {
+    const errorMessage =
+      ordersQuery.error instanceof Error
+        ? ordersQuery.error.message
+        : "Unable to load orders.";
+
+    errorContent = <Alert severity="error">{errorMessage}</Alert>;
+  }
+
   return (
     <Stack spacing={3}>
       <PageHeader
@@ -114,11 +125,7 @@ const OrdersPage = () => {
           </Button>
         }
       />
-      {ordersQuery.error ? (
-        <Alert severity="error">
-          {(ordersQuery.error as Error).message ?? "Unable to load orders."}
-        </Alert>
-      ) : null}
+      {errorContent}
       <SectionCard title="Order Summary">
         <Box sx={{ height: 520, width: "100%" }}>
           <DataGrid

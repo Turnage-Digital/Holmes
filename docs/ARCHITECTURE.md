@@ -252,7 +252,7 @@ pipeline and no additional queueing infrastructure is necessary.
   `Holmes.Core.Infrastructure.*`. They never reference the module's `*.Application`, and `*.Application` cannot
   reference `*.Infrastructure`. Cross-module calls flow only through other modules' `*.Application.Abstractions`
   (e.g., Workflow consumes the Intake replay source interface rather than its EF DbContext).
-- Host projects (`Holmes.App.Server`, `Holmes.Mcp.Server`) wire modules through DI by referencing each module's
+- Host projects (`Holmes.App.Server`) wire modules through DI by referencing each module's
   `*.Application` and `*.Infrastructure`.
 - Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.
 
@@ -640,7 +640,7 @@ create table adverse_action_clocks(
 
 ## 18) Technology Baseline (swappable)
 
-- Language: **.NET 8** (ASP.NET Core Minimal APIs + BackgroundService).
+- Language: **.NET 9** (ASP.NET Core Minimal APIs + BackgroundService).
 - DB: **MySQL 8** (InnoDB).
 - Eventing: **MySQL event store** (append-only) + **SSE** change feed.
 - Object storage: local dev filesystem (swap to S3/MinIO later).

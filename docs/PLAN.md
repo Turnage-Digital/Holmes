@@ -1,15 +1,15 @@
 # Holmes Delivery Plan
 
-This roadmap assumes the ASP.NET Core host (`src/Holmes.App.Server`) fronts APIs, SSE endpoints, and background workers,
-with a developer MCP sidecar (`src/Holmes.Mcp.Server`) exposing tool endpoints. Feature slices live under `src/Modules/`
-and compose into the host through each module's Application + Infrastructure packages. Each phase bundles deployable
-value, expands observability, and keeps the event-sourced backbone intact.
+This roadmap assumes the ASP.NET Core host (`src/Holmes.App.Server`) fronts APIs, SSE endpoints, and background
+workers. Feature slices live under `src/Modules/` and compose into the host through each module's Application +
+Infrastructure packages. Each phase bundles deployable value, expands observability, and keeps the event-sourced
+backbone intact.
 
 ---
 
 ## 0. Baseline Constraints
 
-- **Runtime:** .NET 8 (Minimal APIs, background services, file-scoped namespaces).
+- **Runtime:** .NET 9 (Minimal APIs, background services, file-scoped namespaces).
 - **Database:** MySQL 8 with EF Core migrations (Pomelo provider).
 - **Identifiers:** ULID per aggregate; global `events.position` as `BIGINT`.
 - **Event Store:** Append-only `events` table + optional snapshots; projections checkpointed.
@@ -18,7 +18,7 @@ value, expands observability, and keeps the event-sourced backbone intact.
   aggregate mutation writes an immutable `EventRecord` (
   `src/Modules/Core/Holmes.Core.Infrastructure.Sql/Entities/EventRecord.cs`) so regulators can replay history, and no
   customer data ever crosses tenant boundaries—FCRA/EEOC/ICRAA readiness is a 100% requirement.
-- **Tooling:** `dotnet format`, GitHub Actions (later), Docker Compose for dev MySQL.
+- **Tooling:** `jb inspectcode|cleanupcode [tool-specific parameters]`, GitHub Actions, Docker Compose for dev MySQL.
 - **Module layering:** `Holmes.Core.*` supplies shared primitives; each feature module is split into `*.Domain`,
   `*.Application`, `*.Infrastructure` with `*.Application` → `*.Domain` dependencies only and `*.Infrastructure` wiring
   into hosts without referencing `*.Application`.
@@ -31,8 +31,7 @@ value, expands observability, and keeps the event-sourced backbone intact.
 /src
   Holmes.App.Server/                 # ASP.NET Core host (APIs, SSE, background services)
   Holmes.App.Server.Tests/           # Host-level integration/acceptance tests
-  Holmes.App/                     # React workspace (components/, pages/, models/, lib/)
-  Holmes.Mcp.Server/                 # Dev MCP sidecar exposing tool endpoints
+  Holmes.App/                        # React workspace (components/, pages/, models/, lib/)
   Modules/
     Core/
       Holmes.Core.Domain/            # Value objects, integration events, policies
@@ -103,11 +102,10 @@ Infrastructure to compose the runtime.
 
 ### Phase 0 — Bootstrap & Infrastructure
 
-**Modules touched:** Holmes.Core.*, Holmes.App.Server scaffold, Holmes.Mcp.Server  
+**Modules touched:** Holmes.Core.*, Holmes.App.Server scaffold  
 **Outcomes**
 
 - `Holmes.App.Server` minimal host with health endpoint, Serilog, config, env-based settings.
-- `Holmes.Mcp.Server` stub with discovery + single tool endpoint for local orchestration.
 - Holmes.Core primitives (`UlidId`, `Result<T>`, `ValueObject`, pipeline behaviors, crypto stubs).
 - Event store EF Core model (`events`, `snapshots`, `projection_checkpoints`) with optimistic concurrency + idempotency
   key.
@@ -241,15 +239,6 @@ Holmes.App
 - Business calendar service + EF models for calendars/holidays.
 - Aggregates: `SlaClock`, `CompliancePolicy`, `PermissiblePurposeGrant`, `DisclosurePack`.
 - Guards wired into order workflow (PP grant, disclosure acceptance, customer policy overlays).
-
-### Backlog / Deferred Items
-
-- **Developer MCP Sidecar:** Originally scoped for Phase 0; explicitly deferred until after Phase 2 so we can ship core
-  intake/workflow value first. Requirements (tool discovery, auth, local orchestration) stay in the backlog column and
-  will be re-estimated once Phase 2 lands.
-- Watchdog background worker flipping clock states; read model `sla_clocks`.
-- Notification rules v1 (email/SMS/webhook stubs) firing on domain events, stored in `notifications_history`.
-- Dashboard-ready metrics: SLA status counts, notification success/failure.
 
 ### Phase 4 — Adverse Action & Evidence Packs
 

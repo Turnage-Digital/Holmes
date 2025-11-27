@@ -58,7 +58,7 @@ public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) 
     private IReadOnlyCollection<UlidId>? ParseOrderFilter()
     {
         var values = Request.Query["orderId"];
-        if (values.Count == 0)
+        if (values.Count is 0)
         {
             return null;
         }

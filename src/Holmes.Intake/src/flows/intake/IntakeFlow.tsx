@@ -1,4 +1,10 @@
-import React, { ReactNode, useCallback, useMemo, useState } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   Alert,
@@ -12,11 +18,26 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import { alpha } from "@mui/material/styles";
 import { useMutation } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
-import { startIntakeSession, verifyIntakeOtp } from "@/services/intake";
+import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
+import {
+  captureConsentArtifact,
+  getIntakeBootstrap,
+  saveIntakeProgress,
+  startIntakeSession,
+  submitIntake,
+  verifyIntakeOtp,
+} from "@/services/intake";
+import {
+  CaptureConsentResponse,
+  IntakeBootstrapResponse,
+  SaveIntakeProgressRequest,
+} from "@/types/api";
 
 type IntakeStepId =
   | "verify"
@@ -36,6 +57,43 @@ interface StepDefinition {
   onPrimary?: () => Promise<boolean | void> | boolean | void;
   primaryButtonDisabled?: boolean;
 }
+
+interface IntakeFormState {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  email: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  region: string;
+  postalCode: string;
+  ssnLast4: string;
+  consentAccepted: boolean;
+}
+
+const formSchemaVersion = "intake-basic-v1";
+const consentSchemaVersion = "consent-basic-v1";
+
+const initialFormState: IntakeFormState = {
+  firstName: "",
+  lastName: "",
+  dateOfBirth: "",
+  email: "",
+  phone: "",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  region: "",
+  postalCode: "",
+  ssnLast4: "",
+  consentAccepted: false,
+};
+
+const CONSENT_TEXT = `I authorize Holmes to obtain and share consumer reports for employment purposes.
+I acknowledge I have received and reviewed the disclosure describing this process.
+This authorization remains valid for this background check request and may be revoked in writing.`;
 
 const StepCopy = ({
   heading,
@@ -105,8 +163,7 @@ const IntakeFlow = () => {
   const inviteDefaults = useMemo(() => parseInviteParams(), []);
   const [sessionId] = useState(inviteDefaults.sessionId);
   const [resumeToken] = useState(inviteDefaults.resumeToken);
-  const hasInviteParams = Boolean(sessionId && resumeToken);
-  const inviteParamsMissing = hasInviteParams === false;
+  const inviteParamsMissing = !(sessionId && resumeToken);
   const deviceInfo =
     typeof navigator === "undefined" ? "intake-client" : navigator.userAgent;
 
@@ -114,6 +171,24 @@ const IntakeFlow = () => {
   const [otpCode, setOtpCode] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpVerified, setOtpVerified] = useState(false);
+  const [formState, setFormState] = useState<IntakeFormState>(initialFormState);
+  const [consentReceipt, setConsentReceipt] =
+    useState<CaptureConsentResponse | null>(null);
+  const [consentError, setConsentError] = useState<string | null>(null);
+  const [progressError, setProgressError] = useState<string | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+  const envPrefill = useMemo(
+    () => ({
+      firstName: import.meta.env.VITE_INTAKE_SUBJECT_FIRST ?? "",
+      lastName: import.meta.env.VITE_INTAKE_SUBJECT_LAST ?? "",
+      email: import.meta.env.VITE_INTAKE_SUBJECT_EMAIL ?? "",
+      phone: import.meta.env.VITE_INTAKE_SUBJECT_PHONE ?? "",
+      city: import.meta.env.VITE_INTAKE_SUBJECT_CITY ?? "",
+      region: import.meta.env.VITE_INTAKE_SUBJECT_STATE ?? "",
+    }),
+    [],
+  );
 
   const requireSessionId = () => {
     if (!sessionId) {
@@ -130,6 +205,22 @@ const IntakeFlow = () => {
 
     return { sessionId, resumeToken };
   };
+
+  useEffect(() => {
+    if (!otpVerified) {
+      return;
+    }
+
+    setFormState((current) => {
+      const next = { ...current };
+      (["firstName", "lastName", "email", "phone", "city", "region"] as const)
+        .filter((field) => !current[field] && envPrefill[field])
+        .forEach((field) => {
+          next[field] = envPrefill[field];
+        });
+      return next;
+    });
+  }, [envPrefill, otpVerified]);
 
   const { mutateAsync: verifyOtpMutateAsync, isPending: isVerifyingOtp } =
     useMutation({
@@ -150,6 +241,171 @@ const IntakeFlow = () => {
       },
     });
 
+  const {
+    mutateAsync: captureConsentMutateAsync,
+    isPending: isCapturingConsent,
+  } = useMutation({
+    mutationFn: () =>
+      captureConsentArtifact(requireSessionId(), {
+        mimeType: "text/plain",
+        schemaVersion: consentSchemaVersion,
+        payloadBase64: toBase64(CONSENT_TEXT),
+        capturedAt: new Date().toISOString(),
+        metadata: {
+          source: "intake-ui",
+          variant: "phase-2",
+        },
+      }),
+  });
+
+  const { mutateAsync: saveProgressMutateAsync, isPending: isSavingProgress } =
+    useMutation({
+      mutationFn: (payload: SaveIntakeProgressRequest) =>
+        saveIntakeProgress(requireSessionId(), payload),
+    });
+
+  const {
+    mutateAsync: submitIntakeMutateAsync,
+    isPending: isSubmittingIntake,
+  } = useMutation({
+    mutationFn: () =>
+      submitIntake(requireSessionId(), {
+        submittedAt: new Date().toISOString(),
+      }),
+  });
+
+  const { mutateAsync: bootstrapMutateAsync, isPending: isBootstrapping } =
+    useMutation({
+      mutationFn: () => {
+        const { sessionId: safeSessionId, resumeToken: safeToken } =
+          requireInviteParams();
+        return getIntakeBootstrap(safeSessionId, safeToken);
+      },
+      onError: (error: unknown) => {
+        setBootstrapError(extractErrorMessage(error));
+      },
+    });
+
+  const updateField = useCallback(
+    <K extends keyof IntakeFormState>(key: K, value: IntakeFormState[K]) =>
+      setFormState((prev) => ({ ...prev, [key]: value })),
+    [],
+  );
+
+  const validateForm = useCallback(() => {
+    const missingFields: string[] = [];
+    if (!formState.firstName.trim()) missingFields.push("First name");
+    if (!formState.lastName.trim()) missingFields.push("Last name");
+    if (!formState.dateOfBirth.trim()) missingFields.push("Date of birth");
+    if (!formState.email.trim()) missingFields.push("Email");
+    if (!formState.phone.trim()) missingFields.push("Phone");
+    if (!formState.addressLine1.trim()) missingFields.push("Street");
+    if (!formState.city.trim()) missingFields.push("City");
+    if (!formState.region.trim()) missingFields.push("State");
+    if (!formState.postalCode.trim()) missingFields.push("Postal code");
+
+    return missingFields;
+  }, [formState]);
+
+  const buildAnswersPayload = useCallback(
+    () => ({
+      subject: {
+        firstName: formState.firstName.trim(),
+        lastName: formState.lastName.trim(),
+        dateOfBirth: formState.dateOfBirth.trim(),
+        ssnLast4: formState.ssnLast4.trim(),
+      },
+      contact: {
+        email: formState.email.trim(),
+        phone: formState.phone.trim(),
+        addressLine1: formState.addressLine1.trim(),
+        addressLine2: formState.addressLine2.trim(),
+        city: formState.city.trim(),
+        region: formState.region.trim(),
+        postalCode: formState.postalCode.trim(),
+      },
+      consent: {
+        artifactId: consentReceipt?.artifactId ?? null,
+        acceptedAt: consentReceipt?.createdAt ?? null,
+      },
+    }),
+    [consentReceipt, formState],
+  );
+
+  const persistProgressSnapshot = useCallback(async () => {
+    const answers = buildAnswersPayload();
+    const serialized = JSON.stringify(answers);
+    const payloadHash = await hashString(serialized);
+    const payloadCipherText = toBase64(serialized);
+
+    await saveProgressMutateAsync({
+      resumeToken,
+      schemaVersion: formSchemaVersion,
+      payloadHash,
+      payloadCipherText,
+      updatedAt: new Date().toISOString(),
+    });
+  }, [buildAnswersPayload, resumeToken, saveProgressMutateAsync]);
+
+  const applyBootstrap = useCallback((bootstrap: IntakeBootstrapResponse) => {
+    setBootstrapError(null);
+
+    if (bootstrap.consent) {
+      setConsentReceipt({
+        artifactId: bootstrap.consent.artifactId,
+        mimeType: bootstrap.consent.mimeType,
+        length: bootstrap.consent.length,
+        hash: bootstrap.consent.hash,
+        hashAlgorithm: bootstrap.consent.hashAlgorithm,
+        schemaVersion: bootstrap.consent.schemaVersion,
+        createdAt: bootstrap.consent.capturedAt,
+      });
+    }
+
+    const decodeAnswers = () => {
+      if (!bootstrap.answers?.payloadCipherText) {
+        return null;
+      }
+      try {
+        const json = fromBase64(bootstrap.answers.payloadCipherText);
+        return JSON.parse(json) as {
+          subject?: Partial<IntakeFormState>;
+          contact?: Partial<IntakeFormState>;
+        };
+      } catch {
+        setBootstrapError(
+          "We could not load your saved answers. You can re-enter them.",
+        );
+        return null;
+      }
+    };
+
+    const decoded = decodeAnswers();
+    if (!decoded) {
+      setFormState((prev) => ({
+        ...prev,
+        consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
+      }));
+      return;
+    }
+
+    setFormState((prev) => ({
+      ...prev,
+      firstName: decoded.subject?.firstName ?? prev.firstName,
+      lastName: decoded.subject?.lastName ?? prev.lastName,
+      dateOfBirth: decoded.subject?.dateOfBirth ?? prev.dateOfBirth,
+      ssnLast4: decoded.subject?.ssnLast4 ?? prev.ssnLast4,
+      email: decoded.contact?.email ?? prev.email,
+      phone: decoded.contact?.phone ?? prev.phone,
+      addressLine1: decoded.contact?.addressLine1 ?? prev.addressLine1,
+      addressLine2: decoded.contact?.addressLine2 ?? prev.addressLine2,
+      city: decoded.contact?.city ?? prev.city,
+      region: decoded.contact?.region ?? prev.region,
+      postalCode: decoded.contact?.postalCode ?? prev.postalCode,
+      consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
+    }));
+  }, []);
+
   const handleOtpVerification = useCallback(async () => {
     if (inviteParamsMissing) {
       setInviteError("This invite link is missing required details.");
@@ -169,6 +425,8 @@ const IntakeFlow = () => {
     try {
       await verifyOtpMutateAsync(sanitizedOtp);
       await startSessionMutateAsync();
+      const bootstrap = await bootstrapMutateAsync();
+      applyBootstrap(bootstrap);
       setOtpVerified(true);
       return true;
     } catch (error) {
@@ -177,13 +435,76 @@ const IntakeFlow = () => {
       return false;
     }
   }, [
+    applyBootstrap,
+    bootstrapMutateAsync,
     inviteParamsMissing,
     otpCode,
     startSessionMutateAsync,
     verifyOtpMutateAsync,
   ]);
 
-  const verifyingOtp = isVerifyingOtp || isStartingSession;
+  const verifyingOtp = isVerifyingOtp || isStartingSession || isBootstrapping;
+
+  const handleConsentCapture = useCallback(async () => {
+    if (consentReceipt) {
+      return true;
+    }
+
+    if (!formState.consentAccepted) {
+      setConsentError("Please confirm you have read and agree to continue.");
+      return false;
+    }
+
+    setConsentError(null);
+
+    try {
+      const receipt = await captureConsentMutateAsync();
+      setConsentReceipt(receipt);
+      return true;
+    } catch (error) {
+      setConsentError(extractErrorMessage(error));
+      return false;
+    }
+  }, [captureConsentMutateAsync, consentReceipt, formState.consentAccepted]);
+
+  const handleSubmit = useCallback(async () => {
+    setSubmissionError(null);
+    setProgressError(null);
+
+    if (!otpVerified) {
+      setSubmissionError("Verify the code before submitting.");
+      return false;
+    }
+
+    const missingFields = validateForm();
+    if (missingFields.length > 0) {
+      setProgressError(`Add: ${missingFields.join(", ")}`);
+      return false;
+    }
+
+    if (!consentReceipt) {
+      const consentOk = await handleConsentCapture();
+      if (!consentOk) {
+        return false;
+      }
+    }
+
+    try {
+      await persistProgressSnapshot();
+      await submitIntakeMutateAsync();
+      return true;
+    } catch (error) {
+      setSubmissionError(extractErrorMessage(error));
+      return false;
+    }
+  }, [
+    consentReceipt,
+    handleConsentCapture,
+    persistProgressSnapshot,
+    submitIntakeMutateAsync,
+    validateForm,
+    otpVerified,
+  ]);
 
   const steps: StepDefinition[] = useMemo(
     () => [
@@ -271,7 +592,7 @@ const IntakeFlow = () => {
             <Stack spacing={2}>
               <StepCopy
                 heading="Enter the one-time code"
-                body="We’ll send a 6-digit code to the phone number on file."
+                body="We sent a 6-digit code to the phone number on file."
                 helper="Codes expire after 5 minutes for your security."
               />
               {otpErrorAlert}
@@ -299,40 +620,272 @@ const IntakeFlow = () => {
         id: "consent",
         title: "Consent & Disclosures",
         subtitle: "Review standard disclosures and acknowledge consent.",
-        render: () => (
-          <StepCopy
-            heading="Disclosures in plain language"
-            body="You’ll see the exact documents your employer uses for background checks."
-            helper="You can download a copy after agreeing."
-          />
-        ),
-        primaryCtaLabel: "Agree & continue",
+        render: () => {
+          let consentStatus: ReactNode = null;
+          if (consentReceipt) {
+            consentStatus = (
+              <Alert severity="success">
+                Consent saved at{" "}
+                {new Date(consentReceipt.createdAt).toLocaleString()}.
+              </Alert>
+            );
+          }
+          const consentErrorAlert = consentError ? (
+            <Alert severity="error">{consentError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="Disclosures in plain language"
+                body="Review the summary below and confirm you agree to continue."
+                helper="We will attach this acceptance to your intake record."
+              />
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Stack spacing={1}>
+                  {CONSENT_TEXT.split("\n").map((line) => (
+                    <Typography
+                      key={line}
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      {line}
+                    </Typography>
+                  ))}
+                </Stack>
+              </Paper>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formState.consentAccepted}
+                    onChange={(event) => {
+                      updateField("consentAccepted", event.target.checked);
+                      setConsentError(null);
+                    }}
+                  />
+                }
+                label="I have read the disclosure and authorize this background check."
+              />
+              {consentErrorAlert}
+              {consentStatus}
+            </Stack>
+          );
+        },
+        primaryCtaLabel: isCapturingConsent ? "Saving..." : "Agree & continue",
+        onPrimary: handleConsentCapture,
+        primaryButtonDisabled: isCapturingConsent,
       },
       {
         id: "data",
         title: "Provide required info",
         subtitle: "We only ask for what the check needs—nothing more.",
-        render: () => (
-          <StepCopy
-            heading="Share the basics"
-            body="We’ll collect your legal name, date of birth, and current city."
-            helper="The entire form fits on one screen."
-          />
-        ),
+        render: () => {
+          const bootstrapErrorAlert = bootstrapError ? (
+            <Alert severity="warning">{bootstrapError}</Alert>
+          ) : null;
+          const progressErrorAlert = progressError ? (
+            <Alert severity="error">{progressError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="Share the basics"
+                body="We’ll collect your legal name, date of birth, and current city."
+                helper="This form stays lightweight and should take less than a minute."
+              />
+              {bootstrapErrorAlert}
+              {progressErrorAlert}
+              <Stack spacing={1.5}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <TextField
+                    label="First name"
+                    value={formState.firstName}
+                    onChange={(event) => {
+                      updateField("firstName", event.target.value);
+                      setProgressError(null);
+                    }}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Last name"
+                    value={formState.lastName}
+                    onChange={(event) => {
+                      updateField("lastName", event.target.value);
+                      setProgressError(null);
+                    }}
+                    fullWidth
+                  />
+                </Stack>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <TextField
+                    type="date"
+                    label="Date of birth"
+                    value={formState.dateOfBirth}
+                    onChange={(event) =>
+                      updateField("dateOfBirth", event.target.value)
+                    }
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <TextField
+                    label="SSN (last 4, optional)"
+                    value={formState.ssnLast4}
+                    onChange={(event) =>
+                      updateField(
+                        "ssnLast4",
+                        event.target.value.replace(/\D/g, "").slice(0, 4),
+                      )
+                    }
+                    inputProps={{ inputMode: "numeric", maxLength: 4 }}
+                    fullWidth
+                  />
+                </Stack>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    value={formState.email}
+                    onChange={(event) =>
+                      updateField("email", event.target.value)
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Mobile phone"
+                    value={formState.phone}
+                    onChange={(event) =>
+                      updateField(
+                        "phone",
+                        event.target.value.replace(/[^\d+]/g, "").slice(0, 20),
+                      )
+                    }
+                    inputProps={{ inputMode: "tel" }}
+                    fullWidth
+                  />
+                </Stack>
+                <TextField
+                  label="Street address"
+                  value={formState.addressLine1}
+                  onChange={(event) =>
+                    updateField("addressLine1", event.target.value)
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label="Apartment, suite (optional)"
+                  value={formState.addressLine2}
+                  onChange={(event) =>
+                    updateField("addressLine2", event.target.value)
+                  }
+                  fullWidth
+                />
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <TextField
+                    label="City"
+                    value={formState.city}
+                    onChange={(event) =>
+                      updateField("city", event.target.value)
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="State"
+                    value={formState.region}
+                    onChange={(event) =>
+                      updateField("region", event.target.value)
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Postal code"
+                    value={formState.postalCode}
+                    onChange={(event) =>
+                      updateField(
+                        "postalCode",
+                        event.target.value
+                          .replace(/[^\dA-Za-z- ]/g, "")
+                          .slice(0, 10),
+                      )
+                    }
+                    fullWidth
+                  />
+                </Stack>
+              </Stack>
+            </Stack>
+          );
+        },
         primaryCtaLabel: "Review",
+        onPrimary: () => {
+          const missingFields = validateForm();
+          if (missingFields.length > 0) {
+            setProgressError(`Add: ${missingFields.join(", ")}`);
+            return false;
+          }
+          setProgressError(null);
+          return true;
+        },
       },
       {
         id: "review",
         title: "Review & submit",
         subtitle: "Double-check everything before you send it.",
-        render: () => (
-          <StepCopy
-            heading="One last look"
-            body="We summarize your answers so you can fix any typos before submission."
-            helper="Submitting hands your order to routing instantly."
-          />
-        ),
-        primaryCtaLabel: "Submit",
+        render: () => {
+          const summaryRow = (label: string, value: string | null) => (
+            <Stack
+              key={label}
+              direction="row"
+              justifyContent="space-between"
+              spacing={2}
+            >
+              <Typography color="text.secondary">{label}</Typography>
+              <Typography fontWeight={600}>{value || "—"}</Typography>
+            </Stack>
+          );
+
+          const answers = buildAnswersPayload();
+          const submissionErrorAlert = submissionError ? (
+            <Alert severity="error">{submissionError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="One last look"
+                body="We summarize your answers so you can fix any typos before submission."
+                helper="Submitting hands your order to routing instantly."
+              />
+              {submissionErrorAlert}
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Stack spacing={1.25}>
+                  {summaryRow(
+                    "Name",
+                    `${answers.subject.firstName} ${answers.subject.lastName}`.trim(),
+                  )}
+                  {summaryRow("Date of birth", answers.subject.dateOfBirth)}
+                  {summaryRow("Email", answers.contact.email)}
+                  {summaryRow("Mobile", answers.contact.phone)}
+                  {summaryRow(
+                    "Address",
+                    `${answers.contact.addressLine1}${
+                      answers.contact.addressLine2
+                        ? `, ${answers.contact.addressLine2}`
+                        : ""
+                    }, ${answers.contact.city}, ${answers.contact.region} ${answers.contact.postalCode}`,
+                  )}
+                  {summaryRow("Consent", consentReceipt ? "Saved" : "Pending")}
+                </Stack>
+              </Paper>
+              <Typography variant="body2" color="text.secondary">
+                By submitting, you confirm these details are accurate.
+              </Typography>
+            </Stack>
+          );
+        },
+        primaryCtaLabel:
+          isSubmittingIntake || isSavingProgress ? "Submitting..." : "Submit",
+        onPrimary: handleSubmit,
+        primaryButtonDisabled: isSubmittingIntake || isSavingProgress,
       },
       {
         id: "success",
@@ -350,14 +903,28 @@ const IntakeFlow = () => {
       },
     ],
     [
+      consentError,
+      consentReceipt,
+      formState,
+      handleConsentCapture,
       handleOtpVerification,
+      handleSubmit,
       inviteError,
       inviteParamsMissing,
+      isCapturingConsent,
+      isSavingProgress,
+      isSubmittingIntake,
       otpCode,
       otpError,
       otpVerified,
+      bootstrapError,
+      progressError,
       resumeToken,
       sessionId,
+      submissionError,
+      updateField,
+      buildAnswersPayload,
+      validateForm,
       verifyingOtp,
     ],
   );
@@ -392,6 +959,14 @@ const IntakeFlow = () => {
 
   const resetFlow = () => {
     setActiveIndex(0);
+    setOtpCode("");
+    setOtpError(null);
+    setOtpVerified(false);
+    setConsentReceipt(null);
+    setConsentError(null);
+    setProgressError(null);
+    setSubmissionError(null);
+    setFormState(initialFormState);
   };
 
   const handlePrimaryAction = async () => {
@@ -419,7 +994,7 @@ const IntakeFlow = () => {
       color="primary"
       onClick={resetFlow}
     >
-      Restart demo
+      Restart intake
     </Button>
   ) : (
     <>

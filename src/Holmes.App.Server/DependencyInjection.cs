@@ -191,7 +191,6 @@ internal static class DependencyInjection
                     NameClaimType = ClaimTypes.Name,
                     RoleClaimType = ClaimTypes.Role
                 };
-                options.Events ??= new OpenIdConnectEvents();
                 options.Events.OnRedirectToIdentityProvider = context =>
                 {
                     if (IsApiRequest(context.Request))
