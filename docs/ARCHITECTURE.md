@@ -190,11 +190,11 @@ pipeline and no additional queueing infrastructure is necessary.
 > multi-aggregate commits and failure paths. Future modules should add similar
 > tests whenever they extend the UnitOfWork abstraction.
 
-### Client Application (Holmes.App)
+### Client Application (Holmes.Internal)
 
-- React + Vite (TypeScript) solution tracked via `Holmes.App.esproj`, launched with `npm run dev`.
-- `Holmes.App.Server` references the SPA via `SpaRoot` + SpaProxy so `dotnet run` proxies to `https://localhost:3000`
-  during development and serves the static build in production pipelines.
+- React + Vite (TypeScript) solution tracked via `Holmes.Internal.esproj`, launched with `npm run dev`.
+- `Holmes.Internal.Server` hosts the SPA (SpaProxy in development, static files in production). `Holmes.App.Server`
+  now stays API/SSE-only.
 - Phase 1.5 delivers an admin-focused shell that surfaces Subject, User, and Customer read models, plus flows to invite
   and activate users, grant/revoke roles, create customers, and inspect deduped subjects—proving Phase 1 behavior via
   UI.
@@ -218,24 +218,21 @@ pipeline and no additional queueing infrastructure is necessary.
 
 ### Identity & Development Seeds
 
-- `Holmes.Identity.Server` hosts a minimal Duende IdentityServer for development. Run
+- `Holmes.Identity.Server` is now a first-class Duende IdentityServer backed by ASP.NET Identity + EF stores (MySQL).
+  It seeds IdentityServer config (clients/resources/grants) plus baseline admin/ops users, persists data-protection
+  keys, and serves the standard Identity UI for login, confirm-email, and reset flows. Run
   `dotnet run --project src/Holmes.Identity.Server` (defaults to `https://localhost:6001`) before launching the main
-  host. Dev credentials: `admin` / `password`. This project is explicitly local-only and never deployed past a
-  developer workstation; production/staging environments point the Holmes host at real customer IdPs.
-- Holmes.App.Server intercepts any unauthenticated HTML navigation and redirects to `/auth/options`, which renders the
-  provider list directly on the server (including sanitized `returnUrl` handling) before handing off to the configured
-  OpenID Connect challenge.
-- The React app no longer duplicates that UI: `AuthBoundary` verifies `/users/me` once, and on any 401/403/404 it
-  performs
-  a full-page navigation back to `/auth/options?returnUrl=…`, ensuring session refreshes follow the same hardened flow
-  as
-  first-time sign-ins.
+  host. Seed credentials: `admin@holmes.dev` / `ChangeMe123!` (reset immediately).
+- Holmes.App.Server uses standard cookie + OIDC middleware (no custom ensure/redirect middleware). `/auth/login`
+  challenges against IdentityServer; `/auth/logout` signs out the cookie. Authorization still flows through Holmes
+  role claims emitted by the IdP profile service.
+- Invites create the ASP.NET Identity user up front (blank/temporary password) and send a confirmation/set-password
+  link. First login requires confirmed email; no “create user on first request” middleware remains.
 - Holmes.App.Server registers two baseline policies:
     - `AuthorizationPolicies.RequireAdmin` → requires the `Admin` role claim.
     - `AuthorizationPolicies.RequireOps` → requires `Ops` or `Admin`.
-- A development-only hosted service (`DevelopmentDataSeeder`) mirrors the IdP user inside Holmes, grants the Admin role
-  via domain commands, and seeds a demo customer with that admin assigned. This keeps the invite/role/customer flows
-  runnable immediately after `dotnet run`.
+- A development-only hosted service (`DevelopmentDataSeeder`) still mirrors the IdP admin into Holmes roles and seeds a
+  demo customer so invite/role/customer flows remain runnable after `dotnet run`.
 
 **Layering rules**
 

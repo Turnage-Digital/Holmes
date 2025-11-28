@@ -1,4 +1,6 @@
 using Holmes.App.Server.Contracts;
+using Holmes.App.Server.Identity;
+using Holmes.App.Server.Identity.Models;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions.Specifications;
@@ -23,7 +25,8 @@ public class UsersController(
     IMediator mediator,
     UsersDbContext dbContext,
     ICurrentUserInitializer currentUserInitializer,
-    ISpecificationQueryExecutor specificationExecutor
+    ISpecificationQueryExecutor specificationExecutor,
+    IIdentityProvisioningClient identityProvisioningClient
 ) : ControllerBase
 {
     [HttpGet]
@@ -97,7 +100,7 @@ public class UsersController(
 
     [HttpPost("invitations")]
     [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
-    public async Task<ActionResult<UserDto>> InviteUser(
+    public async Task<ActionResult<InviteUserResponse>> InviteUser(
         [FromBody] InviteUserRequest request,
         CancellationToken cancellationToken
     )
@@ -135,7 +138,13 @@ public class UsersController(
             .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
             .SingleAsync(cancellationToken);
 
-        return Created(string.Empty, MapUser(user, directory));
+        var mappedUser = MapUser(user, directory);
+
+        var provisioning = await identityProvisioningClient.ProvisionUserAsync(
+            new ProvisionIdentityUserRequest(invitedUserId, mappedUser.Email, mappedUser.DisplayName),
+            cancellationToken);
+
+        return Created(string.Empty, new InviteUserResponse(mappedUser, provisioning.ConfirmationLink));
     }
 
     [HttpPost("{userId}/roles")]

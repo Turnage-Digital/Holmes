@@ -1,33 +1,18 @@
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Application.Commands;
-using MediatR;
 
 namespace Holmes.App.Server.Security;
 
-public sealed class CurrentUserInitializer(
-    IMediator mediator,
-    IUserContext userContext
-) : ICurrentUserInitializer
+public sealed class CurrentUserInitializer(IUserContext userContext) : ICurrentUserInitializer
 {
-    private UlidId? _cachedUserId;
-
-    public async Task<UlidId> EnsureCurrentUserIdAsync(CancellationToken cancellationToken)
+    public Task<UlidId> EnsureCurrentUserIdAsync(CancellationToken cancellationToken)
     {
-        if (_cachedUserId is not null)
+        var userIdClaim = userContext.Principal.FindFirst("holmes_user_id")?.Value;
+        if (string.IsNullOrWhiteSpace(userIdClaim))
         {
-            return _cachedUserId.Value;
+            throw new InvalidOperationException("Required claim 'holmes_user_id' was not present.");
         }
 
-        var command = new RegisterExternalUserCommand(
-            userContext.Issuer,
-            userContext.Subject,
-            userContext.Email,
-            userContext.DisplayName,
-            userContext.AuthenticationMethod,
-            DateTimeOffset.UtcNow);
-
-        _cachedUserId = await mediator.Send(command, cancellationToken);
-        return _cachedUserId.Value;
+        return Task.FromResult(UlidId.Parse(userIdClaim));
     }
 }

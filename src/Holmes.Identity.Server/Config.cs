@@ -28,38 +28,49 @@ internal static class Config
                 ClientName = "Holmes App",
                 ClientSecrets = { new Secret("dev-secret".Sha256()) },
                 AllowedGrantTypes = GrantTypes.Code,
-                RequirePkce = false,
+                RequirePkce = true,
                 AllowOfflineAccess = true,
                 RedirectUris =
                 {
-                    "https://localhost:3000/signin-oidc"
+                    "https://localhost:5001/signin-oidc"
                 },
                 PostLogoutRedirectUris =
                 {
-                    "https://localhost:3000/signout-callback-oidc"
+                    "https://localhost:5001/signout-callback-oidc"
                 },
                 AllowedScopes =
                 {
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
-                    "email"
+                    IdentityServerConstants.StandardScopes.Email,
+                    IdentityServerConstants.StandardScopes.OfflineAccess,
+                    "holmes.api"
+                }
+            },
+            new()
+            {
+                ClientId = "holmes_internal",
+                ClientName = "Holmes Internal SPA (BFF)",
+                ClientSecrets = { new Secret("dev-internal-secret".Sha256()) },
+                AllowedGrantTypes = GrantTypes.Code,
+                RequirePkce = true,
+                AllowOfflineAccess = true,
+                RedirectUris =
+                {
+                    "https://localhost:5003/signin-oidc"
+                },
+                PostLogoutRedirectUris =
+                {
+                    "https://localhost:5003/signout-callback-oidc"
+                },
+                AllowedScopes =
+                {
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    IdentityServerConstants.StandardScopes.Email,
+                    IdentityServerConstants.StandardScopes.OfflineAccess,
+                    "holmes.api"
                 }
             }
         };
-
-    public static IReadOnlyList<DevUser> DevUsers =>
-        new List<DevUser>
-        {
-            new("1001", "admin", "password", "Dev Admin", "admin@holmes.dev", "Admin"),
-            new("1002", "ops", "password", "Ops User", "ops@holmes.dev", "Operations")
-        };
 }
-
-internal sealed record DevUser(
-    string SubjectId,
-    string Username,
-    string Password,
-    string DisplayName,
-    string Email,
-    string Role
-);

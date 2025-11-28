@@ -242,6 +242,34 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
         return false;
     }
 
+    [HttpGet("{sessionId}/bootstrap")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetBootstrap(
+        string sessionId,
+        [FromQuery] string resumeToken,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!TryParseUlid(sessionId, out var parsedSession))
+        {
+            return BadRequest("Invalid intake session id.");
+        }
+
+        if (string.IsNullOrWhiteSpace(resumeToken))
+        {
+            return BadRequest("Resume token is required.");
+        }
+
+        var session = await mediator.Send(new GetIntakeSessionBootstrapQuery(parsedSession, resumeToken),
+            cancellationToken);
+        if (session is null)
+        {
+            return Unauthorized("Resume token is invalid or session not found.");
+        }
+
+        return Ok(session);
+    }
+
     public sealed record IssueIntakeInviteRequest(
         string OrderId,
         string SubjectId,
@@ -289,32 +317,4 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
     public sealed record SubmitIntakeRequest(DateTimeOffset? SubmittedAt);
 
     public sealed record AcceptIntakeSubmissionRequest(DateTimeOffset? AcceptedAt);
-
-    [HttpGet("{sessionId}/bootstrap")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetBootstrap(
-        string sessionId,
-        [FromQuery] string resumeToken,
-        CancellationToken cancellationToken
-    )
-    {
-        if (!TryParseUlid(sessionId, out var parsedSession))
-        {
-            return BadRequest("Invalid intake session id.");
-        }
-
-        if (string.IsNullOrWhiteSpace(resumeToken))
-        {
-            return BadRequest("Resume token is required.");
-        }
-
-        var session = await mediator.Send(new GetIntakeSessionBootstrapQuery(parsedSession, resumeToken),
-            cancellationToken);
-        if (session is null)
-        {
-            return Unauthorized("Resume token is invalid or session not found.");
-        }
-
-        return Ok(session);
-    }
 }

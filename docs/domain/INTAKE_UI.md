@@ -65,7 +65,7 @@ The Intake UI **must not** leak concepts, components, or layout patterns from th
 
 ```
 src/
-  Holmes.App/             # Admin SPA (existing)
+  Holmes.Internal/        # Admin SPA (existing)
   Holmes.Intake/          # Intake UI (new, lightweight SPA)
   Holmes.App.Server/      # APIs, Workflow, Intake, SSE (main backend)
   Holmes.Intake.Server/   # Static file host for Intake SPA

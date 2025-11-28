@@ -9,6 +9,30 @@ $migrationOutputDir = "Migrations"
 
 $modules = @(
     @{
+        Name = "Identity"
+        Project = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        StartupProject = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        Context = "Holmes.Identity.Server.Data.ApplicationDbContext"
+        MigrationName = "InitialIdentity"
+        MigrationOutputDir = "Migrations/Application"
+    },
+    @{
+        Name = "IdentityServerConfiguration"
+        Project = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        StartupProject = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        Context = "Duende.IdentityServer.EntityFramework.DbContexts.ConfigurationDbContext"
+        MigrationName = "InitialIdentityServerConfiguration"
+        MigrationOutputDir = "Migrations/Configuration"
+    },
+    @{
+        Name = "IdentityServerGrants"
+        Project = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        StartupProject = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        Context = "Duende.IdentityServer.EntityFramework.DbContexts.PersistedGrantDbContext"
+        MigrationName = "InitialIdentityServerGrants"
+        MigrationOutputDir = "Migrations/Operational"
+    },
+    @{
         Name = "Core"
         Project = "src/Modules/Core/Holmes.Core.Infrastructure.Sql/Holmes.Core.Infrastructure.Sql.csproj"
         Context = "Holmes.Core.Infrastructure.Sql.CoreDbContext"
@@ -69,9 +93,18 @@ function Get-EfCommonArgs
         [hashtable]$Module
     )
 
+    $startup = if ($Module.ContainsKey("StartupProject") -and $Module.StartupProject)
+    {
+        $Module.StartupProject
+    }
+    else
+    {
+        $startupProject
+    }
+
     return @(
         "--project", $Module.Project,
-        "--startup-project", $startupProject,
+        "--startup-project", $startup,
         "--context", $Module.Context,
         "--configuration", $configuration,
         "--verbose"
@@ -100,7 +133,16 @@ function Ensure-ModuleMigrations
     {
         "InitialMigration"
     }
-    $addArgs = @("migrations", "add", $name) + $commonArgs + @("--output-dir", $migrationOutputDir)
+    $outputDir = if ($Module.ContainsKey("MigrationOutputDir") -and $Module.MigrationOutputDir)
+    {
+        $Module.MigrationOutputDir
+    }
+    else
+    {
+        $migrationOutputDir
+    }
+
+    $addArgs = @("migrations", "add", $name) + $commonArgs + @("--output-dir", $outputDir)
     Invoke-DotNetEf -Arguments $addArgs
 }
 
@@ -153,7 +195,16 @@ function Reset-ModuleMigrations
         return
     }
 
-    $migrationDir = Join-Path (Split-Path $Module.Project) $migrationOutputDir
+    $moduleOutputDir = if ($Module.ContainsKey("MigrationOutputDir") -and $Module.MigrationOutputDir)
+    {
+        $Module.MigrationOutputDir
+    }
+    else
+    {
+        $migrationOutputDir
+    }
+
+    $migrationDir = Join-Path (Split-Path $Module.Project) $moduleOutputDir
     if (Test-Path -Path $migrationDir)
     {
         Write-Host "Removing existing migrations for $( $Module.Name )..." -ForegroundColor Yellow

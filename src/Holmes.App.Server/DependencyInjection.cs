@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Gateways;
-using Holmes.App.Server.Middleware;
+using Holmes.App.Server.Identity;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions.Specifications;
@@ -98,6 +98,9 @@ internal static class DependencyInjection
     {
         services.AddHttpContextAccessor();
         services.AddDistributedMemoryCache();
+        services.AddOptions<IdentityProvisioningOptions>()
+            .BindConfiguration(IdentityProvisioningOptions.SectionName);
+        services.AddHttpClient<IIdentityProvisioningClient, IdentityProvisioningClient>();
 
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -179,6 +182,8 @@ internal static class DependencyInjection
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
+                options.Scope.Add("offline_access");
+                options.Scope.Add("holmes.api");
                 options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
                 options.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
                 options.ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
@@ -220,8 +225,6 @@ internal static class DependencyInjection
         services.AddScoped<ICurrentUserInitializer, CurrentUserInitializer>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-        services.AddTransient<EnsureHolmesUserMiddleware>();
-        services.AddTransient<RedirectToAuthOptionsMiddleware>();
 
         services.AddMediatR(config =>
         {
@@ -310,7 +313,7 @@ internal static class DependencyInjection
 
         if (environment.IsDevelopment())
         {
-            services.AddHostedService<DevelopmentDataSeeder>();
+            services.AddHostedService<SeedData>();
         }
 
         return services;
