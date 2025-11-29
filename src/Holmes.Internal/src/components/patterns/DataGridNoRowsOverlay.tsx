@@ -3,11 +3,7 @@ import React from "react";
 import { Box, Typography } from "@mui/material";
 import { GridOverlay } from "@mui/x-data-grid";
 
-interface DataGridNoRowsOverlayProps {
-  message: string;
-}
-
-const DataGridNoRowsOverlay = ({ message }: DataGridNoRowsOverlayProps) => (
+const DataGridNoRowsOverlay = () => (
   <GridOverlay>
     <Box
       sx={{
@@ -18,7 +14,7 @@ const DataGridNoRowsOverlay = ({ message }: DataGridNoRowsOverlayProps) => (
         fontSize: 14,
       }}
     >
-      <Typography variant="body2">{message}</Typography>
+      <Typography variant="body2">No rows to display</Typography>
     </Box>
   </GridOverlay>
 );

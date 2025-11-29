@@ -233,9 +233,7 @@ const SubjectsPage = () => {
               paginationMode="server"
               loading={tableLoading}
               slots={{
-                noRowsOverlay: () => (
-                  <DataGridNoRowsOverlay message="No subjects found yet." />
-                ),
+                noRowsOverlay: DataGridNoRowsOverlay,
               }}
             />
           </Box>

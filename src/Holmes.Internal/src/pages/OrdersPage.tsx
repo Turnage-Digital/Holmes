@@ -78,7 +78,7 @@ const OrdersPage = () => {
         field: "status",
         headerName: "Status",
         minWidth: 160,
-        valueGetter: ({ row }) => row.status,
+        valueGetter: (_value, row) => row.status,
       },
       {
         field: "lastStatusReason",
@@ -90,7 +90,7 @@ const OrdersPage = () => {
         field: "lastUpdatedAt",
         headerName: "Updated",
         minWidth: 160,
-        valueGetter: ({ row }) =>
+        valueGetter: (_value, row) =>
           formatDistanceToNow(new Date(row.lastUpdatedAt), {
             addSuffix: true,
           }),

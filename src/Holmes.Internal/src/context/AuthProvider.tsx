@@ -1,6 +1,6 @@
 import React, { PropsWithChildren, useEffect, useMemo, useState } from "react";
 
-import AuthContext, { AuthState } from "./AuthContext.ts";
+import AuthContext, { AuthState } from "./AuthContext";
 
 interface Claim {
   type: string;
@@ -76,7 +76,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     if (authState.exp && authState.logoutUrl) {
       const interval = window.setInterval(() => {
         const now = Date.now();
-        if (authState.exp < now) {
+        if (authState.exp !== null && authState.exp < now) {
           window.location.href = authState.logoutUrl!;
         }
       }, 60000);

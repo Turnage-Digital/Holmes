@@ -1,8 +1,10 @@
-import { alpha, createTheme as createMuiTheme } from "@mui/material";
+import { alpha, createTheme as createMuiTheme, Theme } from "@mui/material";
 
 import { colors, typography } from "./tokens";
 
-export const createTheme = () =>
+export type { Theme };
+
+export const createTheme = (): Theme =>
   createMuiTheme({
     cssVariables: true,
     palette: {

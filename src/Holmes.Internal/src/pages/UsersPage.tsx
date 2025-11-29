@@ -459,9 +459,7 @@ const UsersPage = () => {
               loading={tableLoading}
               density="comfortable"
               slots={{
-                noRowsOverlay: () => (
-                  <DataGridNoRowsOverlay message="No users found yet." />
-                ),
+                noRowsOverlay: DataGridNoRowsOverlay,
               }}
             />
           </Box>

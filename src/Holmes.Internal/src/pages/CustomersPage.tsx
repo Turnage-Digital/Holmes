@@ -279,9 +279,7 @@ const CustomersPage = () => {
               paginationMode="server"
               loading={tableLoading}
               slots={{
-                noRowsOverlay: () => (
-                  <DataGridNoRowsOverlay message="No customers found yet." />
-                ),
+                noRowsOverlay: DataGridNoRowsOverlay,
               }}
             />
           </Box>

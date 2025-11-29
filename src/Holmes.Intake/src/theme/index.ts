@@ -1,3 +1,3 @@
-import { createTheme } from "@holmes/ui-core";
+import { createTheme, type Theme } from "@holmes/ui-core";
 
-export const intakeTheme = createTheme();
+export const intakeTheme: Theme = createTheme();

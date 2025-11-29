@@ -5,11 +5,18 @@ import { Stack, Typography } from "@mui/material";
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  description?: string;
   actions?: ReactNode;
   meta?: ReactNode;
 }
 
-const PageHeader = ({ title, subtitle, actions, meta }: PageHeaderProps) => (
+const PageHeader = ({
+  title,
+  subtitle,
+  description,
+  actions,
+  meta,
+}: PageHeaderProps) => (
   <Stack
     direction={{ xs: "column", md: "row" }}
     spacing={2}
@@ -23,6 +30,11 @@ const PageHeader = ({ title, subtitle, actions, meta }: PageHeaderProps) => (
       {subtitle && (
         <Typography variant="subtitle1" component="p">
           {subtitle}
+        </Typography>
+      )}
+      {description && (
+        <Typography variant="body2" component="p" color="text.secondary">
+          {description}
         </Typography>
       )}
       {meta}
