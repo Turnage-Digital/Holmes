@@ -141,6 +141,8 @@ descriptor so aggregates persist only the pointer + hash.
 - SSE channel should broadcast `IntakeSessionStarted`, `ConsentCaptured`, and `IntakeSubmissionAccepted` so ops
   dashboards reflect live progress.
 - Runbooks need procedures for resending invites, force-expiring sessions, and verifying consent artifacts.
+- OTP remains the gate into `StartIntakeSession`—keep issuance/resend/expiration logic intact even as the operator IdP
+  moves to the first-class IdentityServer host. Subject OTP validation is distinct from operator OIDC login.
 
 ## 7. Open Questions
 

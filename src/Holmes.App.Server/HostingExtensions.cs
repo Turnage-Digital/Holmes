@@ -1,5 +1,3 @@
-using Holmes.App.Server.Endpoints;
-using Holmes.App.Server.Middleware;
 using Holmes.App.Server.Security;
 using Holmes.Hosting;
 using Microsoft.AspNetCore.Authentication;
@@ -45,14 +43,9 @@ internal static class HostingExtensions
             app.UseHsts();
         }
 
-        app.UseMiddleware<RedirectToAuthOptionsMiddleware>();
-
-        app.UseDefaultFiles();
-        app.UseStaticFiles();
         app.UseRouting();
 
         app.UseAuthentication();
-        app.UseMiddleware<EnsureHolmesUserMiddleware>();
         app.UseAuthorization();
         app.MapControllers();
 
@@ -69,8 +62,9 @@ internal static class HostingExtensions
         auth.MapGet("/options", (HttpRequest request, string? returnUrl) =>
             {
                 var destination = ReturnUrlSanitizer.Sanitize(returnUrl, request);
-                var html = AuthPageRenderer.RenderOptionsPage(destination);
-                return Results.Content(html, "text/html");
+                return Results.Challenge(
+                    new AuthenticationProperties { RedirectUri = destination },
+                    [OpenIdConnectDefaults.AuthenticationScheme]);
             })
             .AllowAnonymous();
 
@@ -85,8 +79,13 @@ internal static class HostingExtensions
 
         auth.MapGet("/access-denied", (string? reason) =>
             {
-                var html = AuthPageRenderer.RenderAccessDeniedPage(reason);
-                return Results.Content(html, "text/html");
+                var message = reason switch
+                {
+                    "uninvited" => "Invitation required before sign-in.",
+                    "suspended" => "Your account has been suspended.",
+                    _ => "Access denied."
+                };
+                return Results.Problem(message, statusCode: StatusCodes.Status403Forbidden);
             })
             .AllowAnonymous();
 

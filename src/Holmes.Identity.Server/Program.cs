@@ -1,9 +1,15 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Duende.IdentityServer;
+using System.Security.Cryptography;
+using System.Text;
 using Duende.IdentityServer.Services;
 using Holmes.Identity.Server;
-using IdentityModel;
-using Microsoft.AspNetCore.Authentication;
+using Holmes.Identity.Server.Data;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 
@@ -43,185 +49,166 @@ try
         }
     });
 
-    builder.Services
-        .AddIdentityServer(options =>
+    builder.Services.AddOptions<ProvisioningOptions>()
+        .Bind(builder.Configuration.GetSection(ProvisioningOptions.SectionName))
+        .Validate(options => !string.IsNullOrWhiteSpace(options.ApiKey),
+            "Provisioning:ApiKey is required")
+        .ValidateOnStart();
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException(
+            "ConnectionStrings:DefaultConnection must be configured for the Identity host.");
+    }
+
+    ServerVersion serverVersion;
+    try
+    {
+        serverVersion = ServerVersion.AutoDetect(connectionString);
+    }
+    catch
+    {
+        serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
+    }
+
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseMySql(connectionString, serverVersion,
+            mySqlOptions => mySqlOptions.MigrationsAssembly(typeof(Program).Assembly.FullName)));
+
+    builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            options.SignIn.RequireConfirmedEmail = true;
+            options.User.RequireUniqueEmail = true;
+            options.Password.RequiredLength = 12;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Lockout.AllowedForNewUsers = true;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders()
+        .AddDefaultUI();
+
+    builder.Services.AddIdentityServer(options =>
         {
             options.Events.RaiseErrorEvents = true;
             options.Events.RaiseInformationEvents = true;
             options.Events.RaiseFailureEvents = true;
             options.Events.RaiseSuccessEvents = true;
-            options.UserInteraction.LoginUrl = "/dev/login";
-            options.UserInteraction.LogoutUrl = "/dev/logout";
+            options.UserInteraction.LoginUrl = "/Identity/Account/Login";
+            options.UserInteraction.LogoutUrl = "/Identity/Account/Logout";
         })
-        .AddInMemoryIdentityResources(Config.IdentityResources)
-        .AddInMemoryApiScopes(Config.ApiScopes)
-        .AddInMemoryClients(Config.Clients)
+        .AddConfigurationStore(options =>
+        {
+            options.ConfigureDbContext = db =>
+                db.UseMySql(connectionString, serverVersion,
+                    mySqlOptions => mySqlOptions.MigrationsAssembly(typeof(Program).Assembly.FullName));
+        })
+        .AddOperationalStore(options =>
+        {
+            options.ConfigureDbContext = db =>
+                db.UseMySql(connectionString, serverVersion,
+                    mySqlOptions => mySqlOptions.MigrationsAssembly(typeof(Program).Assembly.FullName));
+            options.EnableTokenCleanup = true;
+            options.TokenCleanupInterval = 3600;
+        })
+        .AddAspNetIdentity<ApplicationUser>()
         .AddProfileService<ProfileService>();
+
+    builder.Services.AddDataProtection()
+        .PersistKeysToDbContext<ApplicationDbContext>();
 
     builder.Services.AddAuthentication();
     builder.Services.AddAuthorization();
+    builder.Services.AddRazorPages();
 
     var app = builder.Build();
+
+    await SeedData.EnsureSeedDataAsync(app.Services);
 
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
     app.UseSerilogRequestLogging();
 
+    app.UseAuthentication();
     app.UseIdentityServer();
     app.UseAuthorization();
 
-    app.MapGet("/", () => Results.Redirect("/.well-known/openid-configuration"));
-
-    app.MapGet("/dev/login", (
-            HttpContext context,
-            string? returnUrl,
-            IIdentityServerInteractionService interaction
-        ) =>
-        {
-            if (context.User.Identity?.IsAuthenticated == true &&
-                !string.IsNullOrEmpty(returnUrl) &&
-                interaction.IsValidReturnUrl(returnUrl))
-            {
-                return Results.Redirect(returnUrl);
-            }
-
-            if (!string.IsNullOrWhiteSpace(returnUrl) && !interaction.IsValidReturnUrl(returnUrl))
-            {
-                return Results.BadRequest("Invalid returnUrl");
-            }
-
-            var error = context.Request.Query["error"] == "1";
-            var message = error ? "<p style=\"color:red\">Invalid credentials</p>" : string.Empty;
-            var encodedReturnUrl = returnUrl ?? "/";
-
-            var html = $$"""
-                         <!DOCTYPE html>
-                             <html lang="en">
-                               <head>
-                                 <meta charset="utf-8" />
-                                 <title>Holmes Dev Login</title>
-                                 <style>
-                                   body {
-                                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-                                     background: #f4f6fb;
-                                     display: flex;
-                                     align-items: center;
-                                     justify-content: center;
-                                     min-height: 100vh;
-                                     margin: 0;
-                                   }
-                                   .card {
-                                     background: white;
-                                     padding: 2rem;
-                                     border-radius: 12px;
-                                     box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-                                     width: 320px;
-                                   }
-                                   label { display:block; margin-top: 1rem; font-weight: 600; }
-                                   input {
-                                     width: 100%;
-                                     padding: 0.65rem;
-                                     border: 1px solid #c8d0e0;
-                                     border-radius: 6px;
-                                     margin-top: 0.3rem;
-                                   }
-                                   button {
-                                     width: 100%;
-                                     margin-top: 1.5rem;
-                                     background: #1b2e5f;
-                                     color: white;
-                                     border: none;
-                                     padding: 0.75rem;
-                                     border-radius: 6px;
-                                     font-weight: 600;
-                                     cursor: pointer;
-                                   }
-                                   button:hover { background: #142046; }
-                                 </style>
-                               </head>
-                               <body>
-                                 <div class="card">
-                                   <h2>Holmes Dev Login</h2>
-                                   {{message}}
-                                   <form method="post" action="/dev/login">
-                                     <input type="hidden" name="returnUrl" value="{{encodedReturnUrl}}" />
-                                     <label for="username">Username</label>
-                                     <input id="username" name="username" autofocus />
-                                     <label for="password">Password</label>
-                                     <input id="password" name="password" type="password" />
-                                     <button type="submit">Sign in</button>
-                                   </form>
-                                 </div>
-                               </body>
-                             </html>
-                         """;
-
-            return Results.Content(html, "text/html");
-        })
+    app.MapGet("/", () => Results.Redirect("/.well-known/openid-configuration"))
         .AllowAnonymous();
+    app.MapRazorPages();
 
-    app.MapPost("/dev/login", async (
-            HttpContext context,
-            IIdentityServerInteractionService interaction
+    var provisioningOptions = app.Services
+        .GetRequiredService<IOptions<ProvisioningOptions>>()
+        .Value;
+
+    app.MapPost("/provision/users", async (
+            ProvisionIdentityUserRequest request,
+            UserManager<ApplicationUser> userManager,
+            HttpContext context
         ) =>
         {
-            var form = await context.Request.ReadFormAsync();
-            var username = form["username"].ToString();
-            var password = form["password"].ToString();
-            var returnUrl = form["returnUrl"].ToString();
-
-            var user = Config.DevUsers.FirstOrDefault(u =>
-                string.Equals(u.Username, username, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(u.Password, password, StringComparison.Ordinal));
-
-            if (user is not null)
+            var apiKey = provisioningOptions.ApiKey ?? string.Empty;
+            var headerValue = context.Request.Headers.Authorization.ToString();
+            var suppliedToken = headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? headerValue["Bearer ".Length..]
+                : headerValue;
+            var suppliedBytes = Encoding.UTF8.GetBytes(suppliedToken);
+            var apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
+            var apiKeyMatch = suppliedBytes.Length == apiKeyBytes.Length &&
+                CryptographicOperations.FixedTimeEquals(suppliedBytes, apiKeyBytes);
+            if (!apiKeyMatch)
             {
-                var idsUser = new IdentityServerUser(user.SubjectId)
+                return Results.Unauthorized();
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.HolmesUserId))
+            {
+                return Results.BadRequest("Email and HolmesUserId are required.");
+            }
+
+            var user = await userManager.FindByEmailAsync(request.Email);
+            if (user is null)
+            {
+                user = new ApplicationUser
                 {
-                    DisplayName = user.DisplayName,
-                    AdditionalClaims = new List<Claim>
-                    {
-                        new(JwtClaimTypes.Name, user.DisplayName),
-                        new(JwtClaimTypes.Email, user.Email),
-                        new(JwtClaimTypes.PreferredUserName, user.Username),
-                        new(JwtClaimTypes.Role, user.Role)
-                    }
+                    UserName = request.Email,
+                    Email = request.Email,
+                    DisplayName = request.DisplayName,
+                    EmailConfirmed = false
                 };
 
-                await context.SignInAsync(idsUser.CreatePrincipal());
-
-                if (!string.IsNullOrWhiteSpace(returnUrl) && interaction.IsValidReturnUrl(returnUrl))
+                var createResult = await userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
                 {
-                    return Results.Redirect(returnUrl);
+                    return Results.BadRequest(createResult.Errors);
                 }
-
-                return Results.Redirect("/");
             }
 
-            var redirectUrl = $"/dev/login?returnUrl={Uri.EscapeDataString(returnUrl)}&error=1";
-            return Results.Redirect(redirectUrl);
-        })
-        .AllowAnonymous();
-
-    app.MapPost("/dev/logout", async (
-            HttpContext context,
-            string? logoutId,
-            IIdentityServerInteractionService interaction
-        ) =>
-        {
-            await context.SignOutAsync();
-
-            if (!string.IsNullOrEmpty(logoutId))
+            var existingClaims = await userManager.GetClaimsAsync(user);
+            if (existingClaims.All(c => c.Type != "holmes_user_id"))
             {
-                var logout = await interaction.GetLogoutContextAsync(logoutId);
-                if (!string.IsNullOrEmpty(logout?.PostLogoutRedirectUri))
-                {
-                    return Results.Redirect(logout.PostLogoutRedirectUri);
-                }
+                await userManager.AddClaimAsync(user, new Claim("holmes_user_id", request.HolmesUserId));
             }
 
-            return Results.Redirect("/");
+            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            var baseUrl = provisioningOptions.BaseUrl ?? builder.Configuration["BaseUrl"] ?? string.Empty;
+            var returnUrl = string.IsNullOrWhiteSpace(request.ConfirmationReturnUrl)
+                ? "/"
+                : request.ConfirmationReturnUrl;
+            var confirmationLink =
+                $"{baseUrl}/Identity/Account/ConfirmEmail?userId={Uri.EscapeDataString(user.Id)}&code={encodedToken}&returnUrl={Uri.EscapeDataString(returnUrl)}";
+
+            return Results.Ok(new
+            {
+                identityUserId = user.Id,
+                email = user.Email,
+                confirmationLink
+            });
         })
         .AllowAnonymous();
 
@@ -237,4 +224,16 @@ finally
     Log.CloseAndFlush();
 }
 
-// public partial class Program;
+public sealed class ProvisionIdentityUserRequest
+{
+    [Required]
+    public string? HolmesUserId { get; init; }
+
+    [Required]
+    [EmailAddress]
+    public string? Email { get; init; }
+
+    public string? DisplayName { get; init; }
+
+    public string? ConfirmationReturnUrl { get; init; }
+}

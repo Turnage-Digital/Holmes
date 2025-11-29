@@ -1,44 +1,64 @@
 using System.Security.Claims;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
+using Holmes.Identity.Server.Data;
 using IdentityModel;
+using Microsoft.AspNetCore.Identity;
 
 namespace Holmes.Identity.Server;
 
-internal sealed class ProfileService : IProfileService
+internal sealed class ProfileService(
+    UserManager<ApplicationUser> userManager
+) : IProfileService
 {
-    public Task GetProfileDataAsync(ProfileDataRequestContext context)
+    public async Task GetProfileDataAsync(ProfileDataRequestContext context)
     {
         var subjectId = context.Subject.FindFirst(JwtClaimTypes.Subject)?.Value;
         if (string.IsNullOrWhiteSpace(subjectId))
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        var user = Config.DevUsers.FirstOrDefault(u => u.SubjectId == subjectId);
+        var user = await userManager.FindByIdAsync(subjectId);
         if (user is null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var claims = new List<Claim>
         {
-            new(JwtClaimTypes.Subject, user.SubjectId),
-            new(JwtClaimTypes.Name, user.DisplayName),
-            new(JwtClaimTypes.PreferredUserName, user.Username),
-            new(JwtClaimTypes.Email, user.Email),
-            new(JwtClaimTypes.Role, user.Role)
+            new(JwtClaimTypes.Subject, user.Id),
+            new(JwtClaimTypes.PreferredUserName, user.UserName ?? user.Email ?? string.Empty),
+            new(JwtClaimTypes.Email, user.Email ?? string.Empty)
         };
 
+        if (!string.IsNullOrWhiteSpace(user.DisplayName))
+        {
+            claims.Add(new Claim(JwtClaimTypes.Name, user.DisplayName));
+        }
+
+        var userClaims = await userManager.GetClaimsAsync(user);
+        claims.AddRange(userClaims);
+
+        var roles = await userManager.GetRolesAsync(user);
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(JwtClaimTypes.Role, role));
+        }
+
         context.IssuedClaims.AddRange(claims);
-        return Task.CompletedTask;
     }
 
-    public Task IsActiveAsync(IsActiveContext context)
+    public async Task IsActiveAsync(IsActiveContext context)
     {
         var subjectId = context.Subject.FindFirst(JwtClaimTypes.Subject)?.Value;
-        context.IsActive = !string.IsNullOrWhiteSpace(subjectId) &&
-                           Config.DevUsers.Any(u => u.SubjectId == subjectId);
-        return Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(subjectId))
+        {
+            context.IsActive = false;
+            return;
+        }
+
+        var user = await userManager.FindByIdAsync(subjectId);
+        context.IsActive = user is not null && user.EmailConfirmed;
     }
 }

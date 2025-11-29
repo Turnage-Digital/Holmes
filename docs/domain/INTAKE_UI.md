@@ -45,13 +45,13 @@ Every decision prioritizes friction reduction:
 The Intake UI is not an ongoing touchpoint.
 
 * No account creation
-* No saved progress
+* No long-lived saved progress (only crash-recovery drafts with TTL)
 * No multi-step return journeys
 * No install or re-engagement features
 
 ### ✔️ 2.3 Keep It Isolated
 
-The Intake UI **must not** leak concepts, components, or layout patterns from the Admin SPA.
+The Intake UI **must not** leak concepts, components, or layout patterns from the Internal SPA.
 
 ### ✔️ 2.4 Keep It Secure
 
@@ -65,7 +65,7 @@ The Intake UI **must not** leak concepts, components, or layout patterns from th
 
 ```
 src/
-  Holmes.App/             # Admin SPA (existing)
+  Holmes.Internal/        # Internal SPA (existing)
   Holmes.Intake/          # Intake UI (new, lightweight SPA)
   Holmes.App.Server/      # APIs, Workflow, Intake, SSE (main backend)
   Holmes.Intake.Server/   # Static file host for Intake SPA
@@ -87,6 +87,12 @@ src/
 * Simple ASP.NET Core static host (or Nginx/static bucket if preferred later)
 * Should **not** expose OIDC or any admin infrastructure
 * Handles fallback route for SPA (`index.html`)
+
+### 3.3 Shared UI Core
+
+* Intake and Internal share a thin `ui-core` layer (tokens, typography, form primitives, OTP control, consent viewer,
+  wizard shell, fetch/error helpers).
+* Layout shells, navigation, and role concepts remain isolated to each app.
 
 ---
 
@@ -118,12 +124,17 @@ The client authenticates by **presenting the invite token**.
 
 ### 4.4 Completion
 
-Submission triggers:
+Submission path:
+
+* Client posts submit payload with invite token.
+* Server returns **synchronous success** with final status + evidence hashes (or error payload on failure).
+* SPA renders Success on the response and wipes local draft; no SSE/poll required for completion (SSE remains available
+  for order/timeline updates elsewhere).
+
+Events emitted:
 
 * `IntakeSubmitted`
 * `OrderReadyForRouting` (via gateway)
-
-The SPA then displays a final confirmation and exits.
 
 ---
 
@@ -194,19 +205,27 @@ The SPA then displays a final confirmation and exits.
 * Aggressive tree-shaking
 * Lazy-load steps where possible
 
+### 6.5 Evidence Capture
+
+* Consent step must record checkbox, timestamp, IP/UA context, and the disclosure version/hash surfaced by the server.
+* Review step surfaces what will be stored; submission wipes local draft data.
+
 ---
 
 # 7. Technical Guardrails
 
 ### 7.1 Do Not Persist Sensitive Data Long-Term
 
-* No IndexedDB
-* No encrypted caches
-* At most: temporary `localStorage` for crash-recovery of one step
+* No IndexedDB; no service worker caches.
+* Allow **short-lived `localStorage` drafts** per invite/session for crash-recovery only:
+    - Minimal footprint (only fields the user typed).
+    - Per-invite key; wipe on submit, abandon, or expiry (e.g., 2h TTL).
+    - Prefer encryption-at-rest if we add a lightweight crypto helper; otherwise keep data minimal and documented.
 
-### 7.2 Do Not Reuse Admin Components
+### 7.2 Do Not Reuse Internal Components
 
-The Admin SPA and Intake SPA serve different audiences and must remain logically separate.
+The Internal SPA and Intake SPA serve different audiences and must remain logically separate. Only shared `ui-core`
+primitives are reused.
 
 ### 7.3 No Routing Beyond the Wizard
 
@@ -248,10 +267,13 @@ The Intake UI is considered complete when:
     * Android Chrome
     * Desktop (for debugging)
 3. All steps match WCAG 2.1 AA expectations.
-4. All backend interactions match the APIs defined in `docs/PHASE_2.md`.
-5. No service worker, no caching beyond ephemeral state.
-6. Build output is less than ~200 KB compressed.
-7. `Holmes.Intake.Server` can serve the SPA standalone.
+4. All backend interactions match the APIs defined in `docs/PHASE_2.md`; submit returns synchronous success/error without
+   hanging the UI.
+5. Draft persistence follows guardrails (per-invite key, TTL, wiped on submit/abandon; minimal PII).
+6. Consent step captures evidence (checkbox, timestamp, IP/UA, disclosure version/hash) surfaced by the server.
+7. No service worker, no caching beyond the guarded draft storage.
+8. Build output is less than ~200 KB compressed.
+9. `Holmes.Intake.Server` can serve the SPA standalone.
 
 ---
 

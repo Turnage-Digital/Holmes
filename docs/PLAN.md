@@ -1,15 +1,15 @@
 # Holmes Delivery Plan
 
-This roadmap assumes the ASP.NET Core host (`src/Holmes.App.Server`) fronts APIs, SSE endpoints, and background workers,
-with a developer MCP sidecar (`src/Holmes.Mcp.Server`) exposing tool endpoints. Feature slices live under `src/Modules/`
-and compose into the host through each module's Application + Infrastructure packages. Each phase bundles deployable
-value, expands observability, and keeps the event-sourced backbone intact.
+This roadmap assumes the ASP.NET Core host (`src/Holmes.App.Server`) fronts APIs, SSE endpoints, and background
+workers. Feature slices live under `src/Modules/` and compose into the host through each module's Application +
+Infrastructure packages. Each phase bundles deployable value, expands observability, and keeps the event-sourced
+backbone intact.
 
 ---
 
 ## 0. Baseline Constraints
 
-- **Runtime:** .NET 8 (Minimal APIs, background services, file-scoped namespaces).
+- **Runtime:** .NET 9 (Minimal APIs, background services, file-scoped namespaces).
 - **Database:** MySQL 8 with EF Core migrations (Pomelo provider).
 - **Identifiers:** ULID per aggregate; global `events.position` as `BIGINT`.
 - **Event Store:** Append-only `events` table + optional snapshots; projections checkpointed.
@@ -18,7 +18,7 @@ value, expands observability, and keeps the event-sourced backbone intact.
   aggregate mutation writes an immutable `EventRecord` (
   `src/Modules/Core/Holmes.Core.Infrastructure.Sql/Entities/EventRecord.cs`) so regulators can replay history, and no
   customer data ever crosses tenant boundaries—FCRA/EEOC/ICRAA readiness is a 100% requirement.
-- **Tooling:** `dotnet format`, GitHub Actions (later), Docker Compose for dev MySQL.
+- **Tooling:** `jb inspectcode|cleanupcode [tool-specific parameters]`, GitHub Actions, Docker Compose for dev MySQL.
 - **Module layering:** `Holmes.Core.*` supplies shared primitives; each feature module is split into `*.Domain`,
   `*.Application`, `*.Infrastructure` with `*.Application` → `*.Domain` dependencies only and `*.Infrastructure` wiring
   into hosts without referencing `*.Application`.
@@ -31,8 +31,8 @@ value, expands observability, and keeps the event-sourced backbone intact.
 /src
   Holmes.App.Server/                 # ASP.NET Core host (APIs, SSE, background services)
   Holmes.App.Server.Tests/           # Host-level integration/acceptance tests
-  Holmes.App/                     # React workspace (components/, pages/, models/, lib/)
-  Holmes.Mcp.Server/                 # Dev MCP sidecar exposing tool endpoints
+  Holmes.Internal/                   # React workspace (components/, pages/, models/, lib/)
+  Holmes.Internal.Server/            # SPA host (SpaProxy in dev, static in prod)
   Modules/
     Core/
       Holmes.Core.Domain/            # Value objects, integration events, policies
@@ -103,11 +103,10 @@ Infrastructure to compose the runtime.
 
 ### Phase 0 — Bootstrap & Infrastructure
 
-**Modules touched:** Holmes.Core.*, Holmes.App.Server scaffold, Holmes.Mcp.Server  
+**Modules touched:** Holmes.Core.*, Holmes.App.Server scaffold  
 **Outcomes**
 
 - `Holmes.App.Server` minimal host with health endpoint, Serilog, config, env-based settings.
-- `Holmes.Mcp.Server` stub with discovery + single tool endpoint for local orchestration.
 - Holmes.Core primitives (`UlidId`, `Result<T>`, `ValueObject`, pipeline behaviors, crypto stubs).
 - Event store EF Core model (`events`, `snapshots`, `projection_checkpoints`) with optimistic concurrency + idempotency
   key.
@@ -175,27 +174,23 @@ Holmes.App
   `AddCustomerProfiles` migrations without manual cleanup or selective skipping.
 - Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.App) allows a tenant admin to complete
   invite → activate → grant/revoke role → create customer → merge subject entirely through the UI, with a single
-  domain-event batch per transaction and green `dotnet test` / `npm run build` pipelines.
+  domain-event batch per transaction and green `dotnet test` / `npm run build` pipelines (Internal now, Intake added
+  once the SPA scaffolding lands).
 
 ### Phase 1.8 — Auth Flow Cleanup & Hardening
 
 **Modules delivered:** Holmes.App.Server, Holmes.App, Holmes.Identity.Server  
 **Outcomes**
 
-- Holmes.App.Server owns the entire auth challenge experience: unauthenticated HTML requests short-circuit to
-  `/auth/options`, which renders the provider list server-side (sanitized `returnUrl`, no SPA boot required).
-- `Holmes.App`'s `AuthBoundary` simply retries `/users/me`; if it ever receives 401/403/404, it performs a full-page
-  navigation back through `/auth/options?returnUrl=…`, keeping provider choice and cookie issuance on the server.
-- OpenID Connect logins now rely on middleware + `RegisterExternalUserCommand` to ensure the Holmes user already exists.
-  Uninvited attempts publish `UninvitedExternalLoginAttempted`, are logged, and the session is cleared + redirected to
-  `/auth/access-denied`.
-- Invited users flow straight from `Invited` to `Active` on successful login; no manual approval
-  endpoints or pending lists are exposed.
-- Added integration coverage that asserts `/users` (HTML) produces a 302 to `/auth/options`, so regressions in the
-  middleware are caught alongside the existing API tests.
-- `Holmes.Identity.Server` stays a local-only Duende stub; the docs now flag it as dev-only plumbing so it never makes
-  it
-  into CI/CD environments.
+- Holmes.Identity.Server is promoted to a real Duende + ASP.NET Identity host (EF stores on MySQL, persisted grants,
+  DP keys). Login/confirm/reset use the standard Identity UI; clients/resources live in the DB. Seed admin/ops users are
+  created with reset-required passwords.
+- Holmes.App.Server uses standard cookie + OIDC middleware (no custom redirect/ensure middlewares). `/auth/login`
+  challenges, `/auth/logout` signs out, and policies still enforce Admin/Ops claims issued by the IdP profile service.
+- Invites create Identity users immediately with confirmation/set-password tokens; uninvited logins still surface
+  `UninvitedExternalLoginAttempted` domain events. No first-request user creation middleware remains.
+- Added integration coverage to assert `/users` (HTML) challenges properly and API requests return 401 for unauthorized
+  calls.
 
 ### Phase 1.9 — Foundation Hardening & UX Architecture
 
@@ -218,6 +213,8 @@ Holmes.App
 - **UX refresh:** partner with Rebecca Wirfs-Brock’s recommended UX collaborators to replace placeholder CRUD layouts
   with domain-first surfaces (subject timeline, SLA badges, audit panels, role badges). Capture their component library
   guidelines in docs.
+- **Shared UI core:** carve out a thin shared package (tokens/theme + form/OTP/consent primitives, fetch helpers) that
+  Internal and Intake reuse without sharing navigation/role concepts; document in `docs/Holmes.App.UI.md`.
 - **Readiness review:** only when the above items are closed can Phase 2 begin; the review is documented with links to
   metrics dashboards, test reports, and updated UI architecture notes.
 
@@ -231,7 +228,7 @@ Holmes.App
 - Read models: `order_summary`, `order_timeline_events`, `intake_sessions`.
 - SSE `/changes` endpoint delivering ordered event frames with filters + heartbeats.
 - Integration tests for intake flow, SSE resume, optimistic concurrency.
-- Initial PWA scaffolding within `Holmes.Intake` for intake experience.
+- Initial Intake SPA scaffolding within `Holmes.Intake` (chrome-free wizard, guarded draft storage, no service worker).
 
 ### Phase 3 — SLA, Compliance & Notifications
 
@@ -241,15 +238,6 @@ Holmes.App
 - Business calendar service + EF models for calendars/holidays.
 - Aggregates: `SlaClock`, `CompliancePolicy`, `PermissiblePurposeGrant`, `DisclosurePack`.
 - Guards wired into order workflow (PP grant, disclosure acceptance, customer policy overlays).
-
-### Backlog / Deferred Items
-
-- **Developer MCP Sidecar:** Originally scoped for Phase 0; explicitly deferred until after Phase 2 so we can ship core
-  intake/workflow value first. Requirements (tool discovery, auth, local orchestration) stay in the backlog column and
-  will be re-estimated once Phase 2 lands.
-- Watchdog background worker flipping clock states; read model `sla_clocks`.
-- Notification rules v1 (email/SMS/webhook stubs) firing on domain events, stored in `notifications_history`.
-- Dashboard-ready metrics: SLA status counts, notification success/failure.
 
 ### Phase 4 — Adverse Action & Evidence Packs
 

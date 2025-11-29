@@ -11,7 +11,7 @@ and audit-ready evidence.
 - **Product & UX Lead (Intake Experience Designer):** Owns intake journey research, wireframes, interaction states, and
   accessibility standards.
 - **Tech Leads (Backend & Client):** Own aggregate/handler implementation, API contracts, projections, SSE
-  infrastructure, and PWA delivery.
+  infrastructure, and Intake SPA delivery.
 - **Compliance & Ops Partner:** Confirms policy snapshot, consent, and audit artifacts meet regulatory requirements for
   first-order go-live.
 
@@ -30,7 +30,7 @@ Standing ceremonies:
 | **Domain & Application**      | `IntakeSession` + `Order` aggregates, state transitions (`invited`, `in_progress`, `submitted`, `ready_for_routing`), policy snapshot enforcement, optimistic concurrency guards | Command handlers emit canonical events, invariants covered by unit + integration tests, documentation of state diagrams    |
 | **Read Models & Projections** | `order_summary`, `order_timeline_events`, `intake_sessions` projections with EF contexts + checkpointing                                                                         | Replayable via projection runner, surfaced in runbooks with verification queries                                           |
 | **API & Streaming**           | REST endpoints (invite, resume, submit, state transitions), SSE `/changes` with tenant filters, Last-Event-ID resume, heartbeat contracts                                        | OpenAPI/contract tests published; SSE resilience test proves resume after simulated disconnect                             |
-| **Client Experience (PWA)**   | Mobile-first intake shell covering OTP verification, consent capture, data entry wizard, review/submit screen, success state with next steps                                     | UX specs signed, React implementation responsive + accessible, connects to live APIs with optimistic UI + failure recovery |
+| **Client Experience (Intake SPA)** | Mobile-first intake shell covering OTP verification, consent capture, data entry wizard, review/submit screen, success state with next steps, and short-lived drafts for crash recovery | UX specs signed, React implementation responsive + accessible, connects to live APIs with optimistic UI + failure recovery; guarded draft storage + wipe on submit/abandon |
 | **Compliance & Evidence**     | Policy snapshot persisted per order, consent proof attached via `DatabaseConsentArtifactStore`, audit timeline events created                                                    | Evidence pack for first order includes policy version, consent timestamp, subject metadata + artifact hash                 |
 | **Observability & Ops**       | Metrics for intake latency, SSE reconnects, projection lag; trace spans around UnitOfWork + order transitions; runbooks updated                                                  | `docs/RUNBOOKS.md` includes Phase 2 flow, Grafana dashboard links captured, alert thresholds defined                       |
 
@@ -77,8 +77,9 @@ Standing ceremonies:
 
 - UX designer delivers journey map, high-fidelity mockups, content strategy (plain language instructions, error copy,
   SMS/email templates).
-- React PWA implements modular wizard with offline-friendly persistence (local draft cache), OTP verification screen,
-  consent viewer (PDF or HTML), and summary/submit confirmation.
+- React SPA implements modular wizard with short-lived draft storage (per-invite `localStorage`, TTL, wiped on
+  submit/abandon), OTP verification screen, consent viewer (PDF or HTML), and summary/submit confirmation. No service
+  worker/offline scope.
 - Accessibility: WCAG 2.1 AA, keyboard navigation, screen reader labels; usability tests with at least 3 participants
   validating time-to-complete goals (P50 sub-minute).
 - Integrate analytics hooks (page timing, drop-off) and feature flags for staged rollout.
@@ -96,11 +97,12 @@ Standing ceremonies:
 ## 4. Acceptance Checklist
 
 1. **Functional:** End-to-end invite→submit completes in staging, order state becomes `ready_for_routing`, SSE client
-   receives streamed events and resumes after simulated disconnect.
+   receives streamed events and resumes after simulated disconnect; submit returns synchronous success/error without
+   leaving the user hanging.
 2. **Quality:** All new handlers, projections, and React flows covered by automated tests; manual QA sign-off on
    usability + accessibility.
-3. **Compliance:** Policy snapshot + consent evidence attached to order record; audit timeline exportable for the first
-   order run.
+3. **Compliance:** Policy snapshot + consent evidence attached to order record (checkbox, timestamp, IP/UA, disclosure
+   version/hash); audit timeline exportable for the first order run.
 4. **Observability:** Metrics dashboards live; runbooks updated with screenshots/links; alerts configured for intake
    latency & SSE error rates.
 5. **Documentation:** API contracts published, UX artifacts checked into repo, domain diagrams available, Phase 2 retro
@@ -172,8 +174,8 @@ Standing ceremonies:
   remaining projection runners/read models (order summaries, timeline consumers, ops tooling), exposing
   read-model/timeline
   queries, and wiring the final observability hooks.
-- **Front-End:** Intake PWA work stays on hold per the original plan until backend projections and ops tooling are fully
-  landed.
+- **Front-End:** Intake SPA scope is defined (guarded drafts, OTP/consent/data/review/success, SSE/poll completion) but
+  remains paused until backend projections and ops tooling are fully landed.
 
 Documentation status: both `docs/PHASE_2.md` and `docs/RUNBOOKS.md` are current with the projection/timeline additions
 and

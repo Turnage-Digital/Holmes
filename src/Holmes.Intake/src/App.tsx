@@ -4,18 +4,18 @@ import { CssBaseline, GlobalStyles, ThemeProvider } from "@mui/material";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import IntakeFlow from "@/flows/intake/IntakeFlow";
-import theme from "@/theme";
+import { intakeTheme } from "@/theme";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider theme={theme}>
+  <ThemeProvider theme={intakeTheme}>
     <CssBaseline />
     <GlobalStyles
       styles={{
         body: {
           minHeight: "100vh",
-          backgroundColor: theme.palette.background.default,
+          backgroundColor: intakeTheme.palette.background.default,
         },
       }}
     />

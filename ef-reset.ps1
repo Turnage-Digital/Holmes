@@ -1,5 +1,14 @@
 #!/usr/bin/env pwsh
 # Rebuilds EF migrations and databases for Holmes modules.
+#
+# Usage:
+#   ./ef-reset.ps1              # Full reset: drops DB, removes migrations, regenerates migrations, applies them
+#   ./ef-reset.ps1 -QuickReset  # Quick reset: drops DB, applies existing migrations (for seed data testing)
+#
+param(
+    [switch]$QuickReset
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -8,6 +17,30 @@ $startupProject = "src/Holmes.App.Server/Holmes.App.Server.csproj"
 $migrationOutputDir = "Migrations"
 
 $modules = @(
+    @{
+        Name = "Identity"
+        Project = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        StartupProject = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        Context = "Holmes.Identity.Server.Data.ApplicationDbContext"
+        MigrationName = "InitialIdentity"
+        MigrationOutputDir = "Migrations/Application"
+    },
+    @{
+        Name = "IdentityServerConfiguration"
+        Project = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        StartupProject = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        Context = "Duende.IdentityServer.EntityFramework.DbContexts.ConfigurationDbContext"
+        MigrationName = "InitialIdentityServerConfiguration"
+        MigrationOutputDir = "Migrations/Configuration"
+    },
+    @{
+        Name = "IdentityServerGrants"
+        Project = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        StartupProject = "src/Holmes.Identity.Server/Holmes.Identity.Server.csproj"
+        Context = "Duende.IdentityServer.EntityFramework.DbContexts.PersistedGrantDbContext"
+        MigrationName = "InitialIdentityServerGrants"
+        MigrationOutputDir = "Migrations/Operational"
+    },
     @{
         Name = "Core"
         Project = "src/Modules/Core/Holmes.Core.Infrastructure.Sql/Holmes.Core.Infrastructure.Sql.csproj"
@@ -69,9 +102,18 @@ function Get-EfCommonArgs
         [hashtable]$Module
     )
 
+    $startup = if ($Module.ContainsKey("StartupProject") -and $Module.StartupProject)
+    {
+        $Module.StartupProject
+    }
+    else
+    {
+        $startupProject
+    }
+
     return @(
         "--project", $Module.Project,
-        "--startup-project", $startupProject,
+        "--startup-project", $startup,
         "--context", $Module.Context,
         "--configuration", $configuration,
         "--verbose"
@@ -100,7 +142,16 @@ function Ensure-ModuleMigrations
     {
         "InitialMigration"
     }
-    $addArgs = @("migrations", "add", $name) + $commonArgs + @("--output-dir", $migrationOutputDir)
+    $outputDir = if ($Module.ContainsKey("MigrationOutputDir") -and $Module.MigrationOutputDir)
+    {
+        $Module.MigrationOutputDir
+    }
+    else
+    {
+        $migrationOutputDir
+    }
+
+    $addArgs = @("migrations", "add", $name) + $commonArgs + @("--output-dir", $outputDir)
     Invoke-DotNetEf -Arguments $addArgs
 }
 
@@ -153,7 +204,16 @@ function Reset-ModuleMigrations
         return
     }
 
-    $migrationDir = Join-Path (Split-Path $Module.Project) $migrationOutputDir
+    $moduleOutputDir = if ($Module.ContainsKey("MigrationOutputDir") -and $Module.MigrationOutputDir)
+    {
+        $Module.MigrationOutputDir
+    }
+    else
+    {
+        $migrationOutputDir
+    }
+
+    $migrationDir = Join-Path (Split-Path $Module.Project) $moduleOutputDir
     if (Test-Path -Path $migrationDir)
     {
         Write-Host "Removing existing migrations for $( $Module.Name )..." -ForegroundColor Yellow
@@ -163,6 +223,15 @@ function Reset-ModuleMigrations
 
 $databaseDropped = $false
 $processedModules = @()
+
+if ($QuickReset)
+{
+    Write-Host "Quick reset mode: Dropping database and applying existing migrations (no migration regeneration)." -ForegroundColor Green
+}
+else
+{
+    Write-Host "Full reset mode: Dropping database, removing migrations, and regenerating from scratch." -ForegroundColor Green
+}
 
 foreach ($module in $modules)
 {
@@ -182,9 +251,19 @@ foreach ($module in $modules)
         Write-Host "Database already dropped – skipping drop for $( $module.Name )." -ForegroundColor Yellow
     }
 
-    Reset-ModuleMigrations -Module $module
-    Ensure-ModuleMigrations -Module $module
-    Update-ModuleDatabase -Module $module
+    if ($QuickReset)
+    {
+        # Quick reset: Just apply existing migrations without regenerating them
+        Update-ModuleDatabase -Module $module
+    }
+    else
+    {
+        # Full reset: Remove old migrations, create new ones, then apply
+        Reset-ModuleMigrations -Module $module
+        Ensure-ModuleMigrations -Module $module
+        Update-ModuleDatabase -Module $module
+    }
+
     $processedModules += $module.Name
 }
 

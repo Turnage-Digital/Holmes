@@ -96,6 +96,10 @@ must request the unit of work and access repositories via its properties to hono
    Application assembly to the MediatR registration list.
 5. Add a minimal integration test that instantiates the UnitOfWork and exercises
    domain events (see `Holmes.Core.Tests/UnitOfWorkDomainEventsTests.cs`).
+6. When adding additional DbContexts (e.g., Identity/IdentityServer) in the same
+   assembly, give each migration its own output directory and, if necessary, its own
+   startup project in `ef-reset.ps1` so resets can drop/recreate the database once and
+   rebuild every context’s “Initial” migration cleanly.
 
 Following this template keeps module wiring consistent and prevents accidental
 cross-layer references.

@@ -6,17 +6,16 @@ using MediatR;
 namespace Holmes.App.Server.Security;
 
 public sealed class CurrentUserInitializer(
-    IMediator mediator,
-    IUserContext userContext
+    IUserContext userContext,
+    IMediator mediator
 ) : ICurrentUserInitializer
 {
-    private UlidId? _cachedUserId;
-
     public async Task<UlidId> EnsureCurrentUserIdAsync(CancellationToken cancellationToken)
     {
-        if (_cachedUserId is not null)
+        var userIdClaim = userContext.Principal.FindFirst("holmes_user_id")?.Value;
+        if (!string.IsNullOrWhiteSpace(userIdClaim) && Ulid.TryParse(userIdClaim, out var parsed))
         {
-            return _cachedUserId.Value;
+            return UlidId.FromUlid(parsed);
         }
 
         var command = new RegisterExternalUserCommand(
@@ -27,7 +26,6 @@ public sealed class CurrentUserInitializer(
             userContext.AuthenticationMethod,
             DateTimeOffset.UtcNow);
 
-        _cachedUserId = await mediator.Send(command, cancellationToken);
-        return _cachedUserId.Value;
+        return await mediator.Send(command, cancellationToken);
     }
 }

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.784122">
+    <PropertyGroup>
+        <StartupCommand>npm run dev</StartupCommand>
+        <JavaScriptTestRoot>src\</JavaScriptTestRoot>
+        <ShouldRunBuildScript>false</ShouldRunBuildScript>
+        <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
+        <Configurations>Debug</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Script Include="tsconfig.json"/>
+        <Script Include="package.json"/>
+        <Script Include="eslint.config.js"/>
+    </ItemGroup>
+</Project>

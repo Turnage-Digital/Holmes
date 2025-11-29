@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Holmes.App.Server.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
+using Holmes.Intake.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,6 +55,7 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{sessionId}/consent")]
+    [AllowAnonymous]
     public async Task<IActionResult> CaptureConsent(
         string sessionId,
         [FromBody] CaptureConsentArtifactRequest request,
@@ -183,6 +185,7 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{sessionId}/submit")]
+    [AllowAnonymous]
     public async Task<IActionResult> SubmitIntake(
         string sessionId,
         [FromBody] SubmitIntakeRequest request,
@@ -237,6 +240,34 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
 
         id = default;
         return false;
+    }
+
+    [HttpGet("{sessionId}/bootstrap")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetBootstrap(
+        string sessionId,
+        [FromQuery] string resumeToken,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!TryParseUlid(sessionId, out var parsedSession))
+        {
+            return BadRequest("Invalid intake session id.");
+        }
+
+        if (string.IsNullOrWhiteSpace(resumeToken))
+        {
+            return BadRequest("Resume token is required.");
+        }
+
+        var session = await mediator.Send(new GetIntakeSessionBootstrapQuery(parsedSession, resumeToken),
+            cancellationToken);
+        if (session is null)
+        {
+            return Unauthorized("Resume token is invalid or session not found.");
+        }
+
+        return Ok(session);
     }
 
     public sealed record IssueIntakeInviteRequest(
