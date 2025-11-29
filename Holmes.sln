@@ -120,7 +120,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Applicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Application.Abstractions", "src\Modules\Subjects\Holmes.Subjects.Application.Abstractions\Holmes.Subjects.Application.Abstractions.csproj", "{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}"
 EndProject
-Project("{54a90642-561a-4bb1-a94e-469adee60c69}") = "Holmes.Internal", "src\Holmes.Internal\Holmes.Internal.esproj", "{537C4436-7D89-44AD-A053-D97A013F5882}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Internal", "src\Holmes.Internal\Holmes.Internal.esproj", "{537C4436-7D89-44AD-A053-D97A013F5882}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Core", "src\Holmes.Core\Holmes.Core.esproj", "{2A0DBAC0-4A18-4B3A-9F36-CEB9D6D125AC}"
 EndProject
