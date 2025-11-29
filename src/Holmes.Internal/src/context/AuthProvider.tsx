@@ -1,6 +1,6 @@
 import React, { PropsWithChildren, useEffect, useMemo, useState } from "react";
 
-import AuthContext, { AuthState } from "./auth-context";
+import AuthContext, { AuthState } from "./AuthContext.ts";
 
 interface Claim {
   type: string;

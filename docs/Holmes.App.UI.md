@@ -20,27 +20,22 @@ This document captures the architecture decisions from the Phase 1.9 workshop so
 
 ## 2. Design Tokens & Theme
 
-- Tokens live in `src/theme/tokens.ts` (brand colors, spacing, typography).
-- `src/theme/index.ts` composes a MUI theme:
-    - Primary/secondary palettes match Holmes brand.
-    - Buttons default to `contained`, rounded corners, bold typography.
-    - Tabs use a thicker indicator + gutter padding to feel like rails.
-- Future adjustments (dark mode, tenant branding) happen via tokens so downstream components stay untouched.
-- Add **semantic status tokens** shared by both apps: `on_track`, `at_risk`, `breached`, `paused`, `ready`, `error`,
-  plus focus/outline tokens to guarantee contrast and consistent badges.
+- Shared theme lives in `@holmes/ui-core` (exported `createTheme` + tokens).
+- Palette: primary (slate), secondary (amber/brown), gray ramp, success/warning/error scales; action/hover/selected
+  defined via `alpha`.
+- Typography: Inter stack, detailed h1–h6, subtitle, body, caption, overline weights/sizing.
+- Shape/spacing/shadows: border radius 3px, spacing 8px, custom shadow scale. Component overrides for buttons, app bar,
+  paper, inputs, chips, toggles, etc.
 
 ---
 
 ## 3. Shared UI Core (Internal + Intake)
 
-- A thin shared package (e.g., `src/ui-core/`) holds:
-    - Tokens/theme factory + typography scale.
-    - Form primitives (TextField wrapper with masks, `PhoneField`, `EmailField`, `DateField`, `SsnLast4Field`).
-    - Intake-focused controls: `OtpInput` with focus/aria, `ConsentViewer` (HTML/PDF) with sticky CTA + timestamp
-      capture, `WizardShell`/`StepFooter` for linear flows, `ActionButton` presets.
-    - Fetch/error helpers (typed fetch, error boundary, retry/prompt patterns) with no Internal-only headers baked in.
-- Internal and Intake keep separate layout shells and routes. Only core primitives/theme are shared to avoid bleed-over
-  of navigation or role concepts.
+- Thin shared package (`src/Holmes.Core`, npm name `@holmes/ui-core`) holds:
+    - Theme factory + tokens (used by both apps).
+    - Shared API helper (`apiFetch`, `toQueryString`, `ApiError`, `createEventSource`).
+- Internal and Intake keep separate layout shells and routes. Only theme + API helper are shared to avoid bleed-over of
+  navigation or role concepts.
 
 ---
 
@@ -59,7 +54,7 @@ This document captures the architecture decisions from the Phase 1.9 workshop so
 
 - `src/lib/queryClient.ts` exports the singleton with Holmes defaults:
     - `staleTime = 30s`, no refetch-on-focus, two retry attempts for GETs, zero retries for mutations.
-- Helpers (`apiFetch`, `toQueryString`) stay in `src/lib/api.ts`.
+- Shared HTTP utilities come from `@holmes/ui-core` (`apiFetch`, `ApiError`, `toQueryString`, `createEventSource`).
 - Queries must live close to their page component, with typed DTOs imported from `src/types/api.ts`.
 - When invalidating caches, scope by key segments (e.g., `{ queryKey: ["users"] }`) to avoid full cache nukes.
 - **Intake fetch profile:** invite-token auth only (no Internal/admin headers); per-session caches wiped on
@@ -74,11 +69,6 @@ This document captures the architecture decisions from the Phase 1.9 workshop so
 - `SectionCard` wraps forms/tables in a consistent shell (header + divider + body).
 - `AuditPanel` and `TimelineCard` standardize dashboard-style insights and event history cards.
 - `DataGridNoRowsOverlay`/`EmptyState` give us reusable “no data” messaging.
-- Intake-focused primitives (live in shared core but stay neutral):
-    - `OtpInput` with focus/aria handling and SMS resend timers.
-    - `ConsentViewer` for HTML/PDF disclosures with sticky CTA + timestamp/evidence capture hooks.
-    - `WizardShell` + `StepFooter` for linear flows with mobile-safe progress indicators.
-    - Masked inputs (`PhoneField`, `DateField`, `SsnLast4Field`), inline validation, and review-step error summary.
 - Future primitives:
     - **ActionRail** for contextual operations with policy gating.
 - Place new primitives under `src/components/patterns/` or `src/components/layout/` depending on scope.
