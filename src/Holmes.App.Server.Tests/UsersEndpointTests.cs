@@ -86,6 +86,22 @@ public class UsersEndpointTests
         Assert.That(membership, Is.Not.Null);
     }
 
+    [Test]
+    public async Task GetUsers_Returns_Forbidden_When_Not_Admin()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Auth-Roles", "Operations"); // lacks Admin
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", "ops-user");
+        client.DefaultRequestHeaders.Add("X-Auth-Email", "ops@holmes.dev");
+
+        await CreateUserAsync(factory, "ops-user", "ops@holmes.dev");
+
+        var response = await client.GetAsync("/api/users");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
     private static async Task<string> CreateUserAsync(HolmesWebApplicationFactory factory, string subject, string email)
     {
         using var scope = factory.Services.CreateScope();
