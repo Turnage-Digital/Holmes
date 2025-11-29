@@ -214,6 +214,9 @@ pipeline and no additional queueing infrastructure is necessary.
       so UX partners can restyle them without chasing bespoke implementations.
     - Documented workshop outputs with Luis Mendoza + Rebecca’s UX partners specify IA diagrams, component inventories,
       and testing expectations (lint/format, `npm run build`, visual regression hooks) before Phase 2 features begin.
+- Intake SPA remains a separate project (`Holmes.Intake`) with a chrome-free wizard; it may share a thin `ui-core`
+  package (tokens, form primitives, OTP/consent controls, fetch helpers) with Internal, but navigation/role concepts
+  stay isolated.
 - Deliverables and conventions live in `docs/Holmes.App.UI.md`.
 
 ### Identity & Development Seeds

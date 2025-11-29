@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 
+import { apiFetch, createEventSource } from "@holmes/ui-core";
 import { Alert, Box, Button, Stack } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +8,6 @@ import { formatDistanceToNow } from "date-fns";
 
 import { PageHeader } from "@/components/layout";
 import { DataGridNoRowsOverlay, SectionCard } from "@/components/patterns";
-import { apiFetch, createEventSource } from "@/lib/api";
 import { OrderSummary, PaginatedResult } from "@/types/api";
 
 const fetchOrderSummary = () =>

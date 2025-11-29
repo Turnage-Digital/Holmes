@@ -19,6 +19,16 @@ internal static class Config
             new("holmes.api", "Holmes API")
         };
 
+    public static IEnumerable<ApiResource> ApiResources =>
+        new List<ApiResource>
+        {
+            new("holmes.api", "Holmes API")
+            {
+                Scopes = { "holmes.api" },
+                UserClaims = { "role", "email", "name" }
+            }
+        };
+
     public static IEnumerable<Client> Clients =>
         new List<Client>
         {

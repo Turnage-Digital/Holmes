@@ -39,8 +39,7 @@ using Holmes.Workflow.Infrastructure.Sql.Notifications;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -154,57 +153,17 @@ internal static class DependencyInjection
         JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
         services
-            .AddAuthentication(options =>
-            {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-            })
-            .AddCookie(options =>
-            {
-                options.LoginPath = "/auth/login";
-                options.LogoutPath = "/auth/logout";
-                options.ExpireTimeSpan = TimeSpan.FromHours(8);
-                options.SlidingExpiration = true;
-                options.Cookie.Name = "holmes.auth";
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.Cookie.SameSite = SameSiteMode.None;
-            })
-            .AddOpenIdConnect(options =>
+            .AddAuthentication("Bearer")
+            .AddJwtBearer("Bearer", options =>
             {
                 options.Authority = authority;
-                options.ClientId = clientId;
-                options.ClientSecret = clientSecret;
-                options.ResponseType = "code";
-                options.SaveTokens = true;
-                options.GetClaimsFromUserInfoEndpoint = true;
+                options.Audience = "holmes.api";
                 options.MapInboundClaims = false;
-                options.Scope.Clear();
-                options.Scope.Add("openid");
-                options.Scope.Add("profile");
-                options.Scope.Add("email");
-                options.Scope.Add("offline_access");
-                options.Scope.Add("holmes.api");
-                options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
-                options.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
-                options.ClaimActions.MapJsonKey(ClaimTypes.Surname, "family_name");
-                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
-                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "sub");
-                options.ClaimActions.MapJsonKey(ClaimTypes.Role, "role");
-                options.ClaimActions.MapJsonKey("preferred_username", "preferred_username");
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    NameClaimType = ClaimTypes.Name,
-                    RoleClaimType = ClaimTypes.Role
-                };
-                options.Events.OnRedirectToIdentityProvider = context =>
-                {
-                    if (IsApiRequest(context.Request))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        context.HandleResponse();
-                    }
-
-                    return Task.CompletedTask;
+                    NameClaimType = "name",
+                    RoleClaimType = "role",
+                    ValidateAudience = true
                 };
             });
 
@@ -374,31 +333,5 @@ internal static class DependencyInjection
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
         services.AddScoped<IOrderWorkflowGateway, OrderWorkflowGateway>();
         return services;
-    }
-
-    private static bool IsApiRequest(HttpRequest request)
-    {
-        if (request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (request.Headers.TryGetValue("Accept", out var acceptHeader) &&
-            acceptHeader.Any(value =>
-                value is not null &&
-                value.Contains("application/json", StringComparison.OrdinalIgnoreCase)))
-        {
-            return true;
-        }
-
-        if (request.Headers.TryGetValue("X-Requested-With", out var requestedWith) &&
-            requestedWith.Any(value =>
-                value is not null &&
-                value.Equals("XMLHttpRequest", StringComparison.OrdinalIgnoreCase)))
-        {
-            return true;
-        }
-
-        return false;
     }
 }

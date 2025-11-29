@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 
+import { apiFetch, toQueryString } from "@holmes/ui-core";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
@@ -44,7 +45,6 @@ import {
   SlaBadge,
   TimelineCard,
 } from "@/components/patterns";
-import { apiFetch, toQueryString } from "@/lib/api";
 import {
   GrantUserRoleRequest,
   InviteUserRequest,

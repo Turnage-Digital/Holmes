@@ -50,6 +50,14 @@ internal static class SeedData
             }
         }
 
+        if (!configurationDb.ApiResources.Any())
+        {
+            foreach (var apiResource in Config.ApiResources)
+            {
+                configurationDb.ApiResources.Add(apiResource.ToEntity());
+            }
+        }
+
         if (!configurationDb.Clients.Any())
         {
             foreach (var client in Config.Clients)

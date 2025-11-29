@@ -1,5 +1,6 @@
 import React, { FormEvent, useState } from "react";
 
+import { apiFetch, toQueryString } from "@holmes/ui-core";
 import MergeIcon from "@mui/icons-material/Merge";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
@@ -24,7 +25,6 @@ import {
   SectionCard,
   SlaBadge,
 } from "@/components/patterns";
-import { apiFetch, toQueryString } from "@/lib/api";
 import { MergeSubjectsRequest, PaginatedResult, SubjectDto } from "@/types/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 

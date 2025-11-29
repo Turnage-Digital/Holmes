@@ -174,7 +174,8 @@ Holmes.App
   `AddCustomerProfiles` migrations without manual cleanup or selective skipping.
 - Running `dotnet run` (Holmes.App.Server) alongside `npm run dev` (Holmes.App) allows a tenant admin to complete
   invite → activate → grant/revoke role → create customer → merge subject entirely through the UI, with a single
-  domain-event batch per transaction and green `dotnet test` / `npm run build` pipelines.
+  domain-event batch per transaction and green `dotnet test` / `npm run build` pipelines (Internal now, Intake added
+  once the SPA scaffolding lands).
 
 ### Phase 1.8 — Auth Flow Cleanup & Hardening
 
@@ -212,6 +213,8 @@ Holmes.App
 - **UX refresh:** partner with Rebecca Wirfs-Brock’s recommended UX collaborators to replace placeholder CRUD layouts
   with domain-first surfaces (subject timeline, SLA badges, audit panels, role badges). Capture their component library
   guidelines in docs.
+- **Shared UI core:** carve out a thin shared package (tokens/theme + form/OTP/consent primitives, fetch helpers) that
+  Internal and Intake reuse without sharing navigation/role concepts; document in `docs/Holmes.App.UI.md`.
 - **Readiness review:** only when the above items are closed can Phase 2 begin; the review is documented with links to
   metrics dashboards, test reports, and updated UI architecture notes.
 
@@ -225,7 +228,7 @@ Holmes.App
 - Read models: `order_summary`, `order_timeline_events`, `intake_sessions`.
 - SSE `/changes` endpoint delivering ordered event frames with filters + heartbeats.
 - Integration tests for intake flow, SSE resume, optimistic concurrency.
-- Initial PWA scaffolding within `Holmes.Intake` for intake experience.
+- Initial Intake SPA scaffolding within `Holmes.Intake` (chrome-free wizard, guarded draft storage, no service worker).
 
 ### Phase 3 — SLA, Compliance & Notifications
 

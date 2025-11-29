@@ -1,9 +1,10 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Duende.IdentityServer.Services;
 using Holmes.Identity.Server;
 using Holmes.Identity.Server.Data;
-using Holmes.Identity.Server.Endpoints;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
@@ -114,8 +115,7 @@ try
             options.TokenCleanupInterval = 3600;
         })
         .AddAspNetIdentity<ApplicationUser>()
-        .AddProfileService<ProfileService>()
-        .AddDeveloperSigningCredential();
+        .AddProfileService<ProfileService>();
 
     builder.Services.AddDataProtection()
         .PersistKeysToDbContext<ApplicationDbContext>();
@@ -148,7 +148,6 @@ try
     app.MapPost("/provision/users", async (
             ProvisionIdentityUserRequest request,
             UserManager<ApplicationUser> userManager,
-            IIdentityServerInteractionService interaction,
             HttpContext context
         ) =>
         {
@@ -157,7 +156,11 @@ try
             var suppliedToken = headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
                 ? headerValue["Bearer ".Length..]
                 : headerValue;
-            if (!string.Equals(suppliedToken, apiKey, StringComparison.Ordinal))
+            var suppliedBytes = Encoding.UTF8.GetBytes(suppliedToken);
+            var apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
+            var apiKeyMatch = suppliedBytes.Length == apiKeyBytes.Length &&
+                CryptographicOperations.FixedTimeEquals(suppliedBytes, apiKeyBytes);
+            if (!apiKeyMatch)
             {
                 return Results.Unauthorized();
             }
@@ -219,4 +222,18 @@ finally
 {
     Log.Information("Shut down complete");
     Log.CloseAndFlush();
+}
+
+public sealed class ProvisionIdentityUserRequest
+{
+    [Required]
+    public string? HolmesUserId { get; init; }
+
+    [Required]
+    [EmailAddress]
+    public string? Email { get; init; }
+
+    public string? DisplayName { get; init; }
+
+    public string? ConfirmationReturnUrl { get; init; }
 }

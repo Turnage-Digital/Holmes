@@ -1,5 +1,6 @@
 import React, { FormEvent, useState } from "react";
 
+import { apiFetch, toQueryString } from "@holmes/ui-core";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
@@ -24,7 +25,6 @@ import {
   SectionCard,
   SlaBadge,
 } from "@/components/patterns";
-import { apiFetch, toQueryString } from "@/lib/api";
 import {
   CreateCustomerRequest,
   CustomerDto,

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { createTheme } from "@holmes/ui-core";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -11,7 +12,6 @@ import CustomersPage from "./pages/CustomersPage";
 import OrdersPage from "./pages/OrdersPage";
 import SubjectsPage from "./pages/SubjectsPage";
 import UsersPage from "./pages/UsersPage";
-import { appTheme } from "./theme";
 
 import { AppLayout } from "@/components/layout";
 
@@ -19,6 +19,8 @@ const App = () => {
   const devtools = import.meta.env.DEV ? (
     <ReactQueryDevtools initialIsOpen={false} />
   ) : null;
+
+  const appTheme = createTheme();
 
   return (
     <ThemeProvider theme={appTheme}>

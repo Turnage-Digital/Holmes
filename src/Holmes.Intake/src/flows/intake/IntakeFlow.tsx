@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 
+import { ApiError } from "@holmes/ui-core";
 import {
   Alert,
   Box,
@@ -23,7 +24,6 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import { alpha } from "@mui/material/styles";
 import { useMutation } from "@tanstack/react-query";
 
-import { ApiError } from "@/lib/api";
 import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
 import {
   captureConsentArtifact,

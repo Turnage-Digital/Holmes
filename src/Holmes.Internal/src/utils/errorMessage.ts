@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api";
+import { ApiError } from "@holmes/ui-core";
 
 export const getErrorMessage = (
   error: unknown,

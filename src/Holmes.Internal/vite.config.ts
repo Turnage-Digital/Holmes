@@ -79,7 +79,8 @@ export default defineConfig({
     base: "/",
     resolve: {
         alias: {
-            "@": fileURLToPath(new URL("./src", import.meta.url))
+            "@": fileURLToPath(new URL("./src", import.meta.url)),
+            "@holmes/ui-core": fileURLToPath(new URL("../Holmes.Core/src", import.meta.url))
         }
     },
     server: isDevelopment

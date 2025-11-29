@@ -22,7 +22,8 @@
     "date-fns": "^4.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^6.28.0",
+    "@holmes/ui-core": "file:../Holmes.Core"
   },
   "devDependencies": {
     "@shopify/eslint-plugin": "^48.0.2",
