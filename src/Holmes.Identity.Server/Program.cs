@@ -48,7 +48,11 @@ try
         }
     });
 
-    builder.Services.Configure<ProvisioningOptions>(builder.Configuration.GetSection(ProvisioningOptions.SectionName));
+    builder.Services.AddOptions<ProvisioningOptions>()
+        .Bind(builder.Configuration.GetSection(ProvisioningOptions.SectionName))
+        .Validate(options => !string.IsNullOrWhiteSpace(options.ApiKey),
+            "Provisioning:ApiKey is required")
+        .ValidateOnStart();
 
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     if (string.IsNullOrWhiteSpace(connectionString))
@@ -137,7 +141,9 @@ try
         .AllowAnonymous();
     app.MapRazorPages();
 
-    var provisioningOptions = app.Services.GetRequiredService<IOptions<ProvisioningOptions>>().Value;
+    var provisioningOptions = app.Services
+        .GetRequiredService<IOptions<ProvisioningOptions>>()
+        .Value;
 
     app.MapPost("/provision/users", async (
             ProvisionIdentityUserRequest request,
@@ -146,17 +152,14 @@ try
             HttpContext context
         ) =>
         {
-            var apiKey = provisioningOptions.ApiKey;
-            if (!string.IsNullOrWhiteSpace(apiKey))
+            var apiKey = provisioningOptions.ApiKey ?? string.Empty;
+            var headerValue = context.Request.Headers.Authorization.ToString();
+            var suppliedToken = headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? headerValue["Bearer ".Length..]
+                : headerValue;
+            if (!string.Equals(suppliedToken, apiKey, StringComparison.Ordinal))
             {
-                var headerValue = context.Request.Headers.Authorization.ToString();
-                var suppliedToken = headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-                    ? headerValue["Bearer ".Length..]
-                    : headerValue;
-                if (!string.Equals(suppliedToken, apiKey, StringComparison.Ordinal))
-                {
-                    return Results.Unauthorized();
-                }
+                return Results.Unauthorized();
             }
 
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.HolmesUserId))
@@ -195,7 +198,7 @@ try
                 ? "/"
                 : request.ConfirmationReturnUrl;
             var confirmationLink =
-                $"{baseUrl}/Identity/Account/ConfirmEmail?token={encodedToken}&returnUrl={Uri.EscapeDataString(returnUrl)}";
+                $"{baseUrl}/Identity/Account/ConfirmEmail?userId={Uri.EscapeDataString(user.Id)}&code={encodedToken}&returnUrl={Uri.EscapeDataString(returnUrl)}";
 
             return Results.Ok(new
             {

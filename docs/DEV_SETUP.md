@@ -11,7 +11,8 @@
 
 3. **Run the app**
     - `dotnet run --project src/Holmes.App.Server` (APIs/SSE)
-    - `dotnet run --project src/Holmes.Internal.Server` (SPA host at https://localhost:5003; proxies to Vite in development)
+    - `dotnet run --project src/Holmes.Internal.Server` (SPA host at https://localhost:5003; proxies to Vite in
+      development)
     - `npm run dev --prefix src/Holmes.Internal` (if you want live SPA reloads)
 
 4. **Login**
@@ -32,6 +33,7 @@ Development.***
       follow (or share with teammates) without spelunking through source.
 
 **Port map (dev)**
+
 - IdentityServer: https://localhost:5000
 - App API/SSE: https://localhost:5001
 - Intake SPA host: https://localhost:5002

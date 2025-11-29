@@ -1,5 +1,14 @@
 #!/usr/bin/env pwsh
 # Rebuilds EF migrations and databases for Holmes modules.
+#
+# Usage:
+#   ./ef-reset.ps1              # Full reset: drops DB, removes migrations, regenerates migrations, applies them
+#   ./ef-reset.ps1 -QuickReset  # Quick reset: drops DB, applies existing migrations (for seed data testing)
+#
+param(
+    [switch]$QuickReset
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -215,6 +224,15 @@ function Reset-ModuleMigrations
 $databaseDropped = $false
 $processedModules = @()
 
+if ($QuickReset)
+{
+    Write-Host "Quick reset mode: Dropping database and applying existing migrations (no migration regeneration)." -ForegroundColor Green
+}
+else
+{
+    Write-Host "Full reset mode: Dropping database, removing migrations, and regenerating from scratch." -ForegroundColor Green
+}
+
 foreach ($module in $modules)
 {
     if (-not (Test-Path -Path $module.Project))
@@ -233,9 +251,19 @@ foreach ($module in $modules)
         Write-Host "Database already dropped – skipping drop for $( $module.Name )." -ForegroundColor Yellow
     }
 
-    Reset-ModuleMigrations -Module $module
-    Ensure-ModuleMigrations -Module $module
-    Update-ModuleDatabase -Module $module
+    if ($QuickReset)
+    {
+        # Quick reset: Just apply existing migrations without regenerating them
+        Update-ModuleDatabase -Module $module
+    }
+    else
+    {
+        # Full reset: Remove old migrations, create new ones, then apply
+        Reset-ModuleMigrations -Module $module
+        Ensure-ModuleMigrations -Module $module
+        Update-ModuleDatabase -Module $module
+    }
+
     $processedModules += $module.Name
 }
 

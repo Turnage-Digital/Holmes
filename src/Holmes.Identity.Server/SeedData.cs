@@ -26,7 +26,7 @@ internal static class SeedData
         await appDb.Database.MigrateAsync(cancellationToken);
 
         await SeedIdentityServerConfigAsync(configurationDb, cancellationToken);
-        await SeedDefaultUsersAsync(userManager, roleManager, cancellationToken);
+        await SeedDefaultUsersAsync(userManager, roleManager);
     }
 
     private static async Task SeedIdentityServerConfigAsync(
@@ -63,8 +63,7 @@ internal static class SeedData
 
     private static async Task SeedDefaultUsersAsync(
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager,
-        CancellationToken cancellationToken
+        RoleManager<IdentityRole> roleManager
     )
     {
         string[] roles = ["Admin", "Operations"];
@@ -76,7 +75,7 @@ internal static class SeedData
             }
         }
 
-        var adminEmail = "admin@holmes.dev";
+        const string adminEmail = "admin@holmes.dev";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         if (adminUser is null)
         {
@@ -99,7 +98,7 @@ internal static class SeedData
             await userManager.AddToRoleAsync(adminUser, "Admin");
         }
 
-        var opsEmail = "ops@holmes.dev";
+        const string opsEmail = "ops@holmes.dev";
         var opsUser = await userManager.FindByEmailAsync(opsEmail);
         if (opsUser is null)
         {
