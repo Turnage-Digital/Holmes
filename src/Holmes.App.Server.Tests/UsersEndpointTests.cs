@@ -56,7 +56,7 @@ public class UsersEndpointTests
         var targetId = await CreateUserAsync(factory, "target-user", "target@holmes.dev");
 
         var result = await client.PostAsJsonAsync($"/api/users/{targetId}/roles",
-            new ModifyUserRoleRequest(UserRole.CustomerAdmin, null));
+            new ModifyUserRoleRequest(UserRole.Admin, null));
 
         Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
@@ -75,14 +75,14 @@ public class UsersEndpointTests
         var targetId = await CreateUserAsync(factory, "target-admin", "target.admin@holmes.dev");
 
         var result = await client.PostAsJsonAsync($"/api/users/{targetId}/roles",
-            new ModifyUserRoleRequest(UserRole.CustomerAdmin, null));
+            new ModifyUserRoleRequest(UserRole.Admin, null));
 
         Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
         var membership = await db.UserRoleMemberships.AsNoTracking()
-            .SingleOrDefaultAsync(r => r.UserId == targetId && r.Role == UserRole.CustomerAdmin);
+            .SingleOrDefaultAsync(r => r.UserId == targetId && r.Role == UserRole.Admin);
         Assert.That(membership, Is.Not.Null);
     }
 

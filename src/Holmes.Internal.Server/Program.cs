@@ -1,5 +1,4 @@
 using Duende.Bff;
-using Duende.Bff.AccessTokenManagement;
 using Duende.Bff.Yarp;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -79,8 +78,8 @@ try
     app.UseAuthorization();
 
     app.MapRemoteBffApiEndpoint("/api", new Uri(apiBase))
-        .WithAccessToken(RequiredTokenType.User);
-    
+        .WithAccessToken();
+
     app.MapFallbackToFile("index.html");
 
     app.Run();

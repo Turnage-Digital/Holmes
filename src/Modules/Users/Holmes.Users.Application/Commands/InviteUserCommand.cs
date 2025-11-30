@@ -32,7 +32,7 @@ public sealed class InviteUserCommandHandler(IUsersUnitOfWork unitOfWork)
         }
 
         var roles = request.Roles.Count == 0
-            ? [new InviteUserRole(UserRole.Admin, null)]
+            ? [new InviteUserRole(UserRole.Operations, null)]
             : request.Roles;
 
         var user = User.Invite(UlidId.NewUlid(), normalizedEmail, request.DisplayName?.Trim(), request.InvitedAt);

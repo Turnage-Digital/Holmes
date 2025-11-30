@@ -71,15 +71,15 @@ const TimelineDot = ({ isLast }: { isLast: boolean }) => (
       bgcolor: "primary.main",
       mt: 0.5,
       "&::after": {
-        content: '""',
+        content: "\"\"",
         position: "absolute",
         left: "50%",
         top: "100%",
         width: 2,
         height: isLast ? 0 : 40,
         bgcolor: "divider",
-        transform: "translateX(-50%)",
-      },
+        transform: "translateX(-50%)"
+      }
     }}
   />
 );

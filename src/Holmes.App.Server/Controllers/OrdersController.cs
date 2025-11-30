@@ -1,13 +1,14 @@
 using System.Text.Json;
 using Holmes.App.Server.Contracts;
-using Holmes.Core.Application;
+using Holmes.App.Server.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql;
-using Holmes.Users.Domain;
-using Holmes.Users.Infrastructure.Sql;
+using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Workflow.Application.Abstractions.Dtos;
+using Holmes.Workflow.Application.Commands;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,26 +19,119 @@ namespace Holmes.App.Server.Controllers;
 [Authorize]
 [Route("api/orders")]
 public sealed class OrdersController(
+    IMediator mediator,
     WorkflowDbContext workflowDbContext,
     CustomersDbContext customersDbContext,
-    UsersDbContext usersDbContext,
-    ICurrentUserInitializer currentUserInitializer
+    SubjectsDbContext subjectsDbContext,
+    ICurrentUserAccess currentUserAccess
 ) : ControllerBase
 {
+    [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.RequireOps)]
+    public async Task<ActionResult<OrderSummaryDto>> CreateOrderAsync(
+        [FromBody] CreateOrderRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!Ulid.TryParse(request.CustomerId, out var parsedCustomer))
+        {
+            return BadRequest("Invalid customer id format.");
+        }
+
+        if (!Ulid.TryParse(request.SubjectId, out var parsedSubject))
+        {
+            return BadRequest("Invalid subject id format.");
+        }
+
+        var customerId = parsedCustomer.ToString();
+        if (!await currentUserAccess.HasCustomerAccessAsync(customerId, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        var customerExists = await customersDbContext.Customers
+            .AsNoTracking()
+            .AnyAsync(c => c.CustomerId == customerId, cancellationToken);
+
+        if (!customerExists)
+        {
+            return NotFound($"Customer '{customerId}' not found.");
+        }
+
+        var subjectId = parsedSubject.ToString();
+        var subjectExists = await subjectsDbContext.Subjects
+            .AsNoTracking()
+            .AnyAsync(s => s.SubjectId == subjectId, cancellationToken);
+
+        if (!subjectExists)
+        {
+            return NotFound($"Subject '{subjectId}' not found.");
+        }
+
+        var orderId = UlidId.NewUlid();
+        var timestamp = DateTimeOffset.UtcNow;
+        var result = await mediator.Send(new CreateOrderCommand(
+            orderId,
+            UlidId.FromUlid(parsedSubject),
+            UlidId.FromUlid(parsedCustomer),
+            request.PolicySnapshotId,
+            timestamp,
+            request.PackageCode), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Error);
+        }
+
+        var summary = await workflowDbContext.OrderSummaries
+            .AsNoTracking()
+            .Where(o => o.OrderId == orderId.ToString())
+            .Select(o => new OrderSummaryDto(
+                o.OrderId,
+                o.SubjectId,
+                o.CustomerId,
+                o.PolicySnapshotId,
+                o.PackageCode,
+                o.Status,
+                o.LastStatusReason,
+                o.LastUpdatedAt,
+                o.ReadyForRoutingAt,
+                o.ClosedAt,
+                o.CanceledAt))
+            .SingleOrDefaultAsync(cancellationToken);
+
+        summary ??= new OrderSummaryDto(
+            orderId.ToString(),
+            subjectId,
+            customerId,
+            request.PolicySnapshotId,
+            request.PackageCode,
+            nameof(OrderStatus.Created),
+            null,
+            timestamp,
+            null,
+            null,
+            null);
+
+        return Created($"/api/orders/{orderId}/timeline", summary);
+    }
+
     [HttpGet("summary")]
     public async Task<ActionResult<PaginatedResponse<OrderSummaryDto>>> GetSummaryAsync(
         [FromQuery] OrderSummaryQuery query,
         CancellationToken cancellationToken
     )
     {
-        var actor = await EnsureCurrentUserAsync(cancellationToken);
-        var access = await GetCustomerAccessAsync(actor, cancellationToken);
+        var isGlobalAdmin = await currentUserAccess.IsGlobalAdminAsync(cancellationToken);
+        var allowedCustomers = isGlobalAdmin
+            ? []
+            : await currentUserAccess.GetAllowedCustomerIdsAsync(cancellationToken);
 
-        var (page, pageSize) = NormalizePagination(query.Page, query.PageSize);
-        if (!access.AllowsAll && (access.AllowedCustomerIds is null || access.AllowedCustomerIds.Count == 0))
+        var (page, pageSize) = PaginationNormalization.Normalize(query.Page, query.PageSize);
+        if (!isGlobalAdmin && allowedCustomers.Count == 0)
         {
             return Ok(PaginatedResponse<OrderSummaryDto>.Create(
-                Array.Empty<OrderSummaryDto>(),
+                [],
                 page,
                 pageSize,
                 0));
@@ -75,17 +169,16 @@ public sealed class OrdersController(
             }
 
             var customerId = parsedCustomer.ToString();
-            if (!access.AllowsAll && !(access.AllowedCustomerIds?.Contains(customerId) ?? false))
+            if (!isGlobalAdmin && !allowedCustomers.Contains(customerId))
             {
                 return Forbid();
             }
 
             summaries = summaries.Where(o => o.CustomerId == customerId);
         }
-        else if (!access.AllowsAll)
+        else if (!isGlobalAdmin)
         {
-            var allowed = access.AllowedCustomerIds ?? Array.Empty<string>();
-            summaries = summaries.Where(o => allowed.Contains(o.CustomerId));
+            summaries = summaries.Where(o => allowedCustomers.Contains(o.CustomerId));
         }
 
         var statuses = NormalizeStatuses(query.Status);
@@ -118,6 +211,49 @@ public sealed class OrdersController(
         return Ok(PaginatedResponse<OrderSummaryDto>.Create(items, page, pageSize, totalItems));
     }
 
+    [HttpGet("stats")]
+    [Authorize(Policy = AuthorizationPolicies.RequireOps)]
+    public async Task<ActionResult<OrderStatsDto>> GetStatsAsync(CancellationToken cancellationToken)
+    {
+        var isGlobalAdmin = await currentUserAccess.IsGlobalAdminAsync(cancellationToken);
+        var allowedCustomers = isGlobalAdmin
+            ? []
+            : await currentUserAccess.GetAllowedCustomerIdsAsync(cancellationToken);
+
+        var summaries = workflowDbContext.OrderSummaries.AsNoTracking().AsQueryable();
+        if (!isGlobalAdmin)
+        {
+            if (allowedCustomers.Count == 0)
+            {
+                return Ok(new OrderStatsDto(0, 0, 0, 0, 0, 0));
+            }
+
+            summaries = summaries.Where(o => allowedCustomers.Contains(o.CustomerId));
+        }
+
+        var grouped = await summaries
+            .GroupBy(o => o.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var lookup = grouped.ToDictionary(x => x.Status, x => x.Count, StringComparer.Ordinal);
+
+        int GetCount(OrderStatus status)
+        {
+            return lookup.TryGetValue(status.ToString(), out var value) ? value : 0;
+        }
+
+        var stats = new OrderStatsDto(
+            GetCount(OrderStatus.Invited),
+            GetCount(OrderStatus.IntakeInProgress),
+            GetCount(OrderStatus.IntakeComplete),
+            GetCount(OrderStatus.ReadyForRouting),
+            GetCount(OrderStatus.Blocked),
+            GetCount(OrderStatus.Canceled));
+
+        return Ok(stats);
+    }
+
     [HttpGet("{orderId}/timeline")]
     public async Task<ActionResult<IReadOnlyCollection<OrderTimelineEntryDto>>> GetTimelineAsync(
         string orderId,
@@ -130,8 +266,6 @@ public sealed class OrdersController(
             return BadRequest("Invalid order id format.");
         }
 
-        var actor = await EnsureCurrentUserAsync(cancellationToken);
-        var access = await GetCustomerAccessAsync(actor, cancellationToken);
         var targetOrderId = parsedOrder.ToString();
 
         var orderSummary = await workflowDbContext.OrderSummaries
@@ -143,7 +277,7 @@ public sealed class OrdersController(
             return NotFound();
         }
 
-        if (!access.AllowsAll && !(access.AllowedCustomerIds?.Contains(orderSummary.CustomerId) ?? false))
+        if (!await currentUserAccess.HasCustomerAccessAsync(orderSummary.CustomerId, cancellationToken))
         {
             return Forbid();
         }
@@ -176,53 +310,11 @@ public sealed class OrdersController(
         return Ok(events);
     }
 
-    private async Task<UlidId> EnsureCurrentUserAsync(CancellationToken cancellationToken)
-    {
-        return await currentUserInitializer.EnsureCurrentUserIdAsync(cancellationToken);
-    }
-
-    private async Task<CustomerAccess> GetCustomerAccessAsync(UlidId userId, CancellationToken cancellationToken)
-    {
-        if (await IsGlobalAdminAsync(userId, cancellationToken))
-        {
-            return CustomerAccess.All;
-        }
-
-        var customerIds = await customersDbContext.CustomerAdmins
-            .AsNoTracking()
-            .Where(a => a.UserId == userId.ToString())
-            .Select(a => a.CustomerId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        return customerIds.Count == 0
-            ? CustomerAccess.None
-            : new CustomerAccess(false, customerIds);
-    }
-
-    private Task<bool> IsGlobalAdminAsync(UlidId userId, CancellationToken cancellationToken)
-    {
-        return usersDbContext.UserRoleMemberships
-            .AsNoTracking()
-            .AnyAsync(x =>
-                    x.UserId == userId.ToString() &&
-                    x.Role == UserRole.Admin &&
-                    x.CustomerId == null,
-                cancellationToken);
-    }
-
-    private static (int Page, int PageSize) NormalizePagination(int page, int pageSize)
-    {
-        var currentPage = page <= 0 ? 1 : page;
-        var size = pageSize <= 0 ? 25 : Math.Min(pageSize, 100);
-        return (currentPage, size);
-    }
-
     private static IReadOnlyCollection<string> NormalizeStatuses(IReadOnlyCollection<string>? statuses)
     {
-        if (statuses is null || statuses.Count == 0)
+        if (statuses is null || statuses.Count is 0)
         {
-            return Array.Empty<string>();
+            return [];
         }
 
         var normalized = new List<string>(statuses.Count);
@@ -245,13 +337,6 @@ public sealed class OrdersController(
         }
 
         return JsonSerializer.Deserialize<JsonElement>(metadataJson);
-    }
-
-    private sealed record CustomerAccess(bool AllowsAll, IReadOnlyList<string>? AllowedCustomerIds)
-    {
-        public static CustomerAccess All { get; } = new(true, null);
-
-        public static CustomerAccess None { get; } = new(false, Array.Empty<string>());
     }
 }
 
@@ -276,3 +361,10 @@ public sealed record OrderTimelineQuery
 
     public int Limit { get; init; } = 50;
 }
+
+public sealed record CreateOrderRequest(
+    string CustomerId,
+    string SubjectId,
+    string PolicySnapshotId,
+    string? PackageCode = null
+);

@@ -10,18 +10,18 @@ const navItems: PrimaryNavItem[] = [
   {
     label: "Customers",
     path: "/customers",
-    description: "CRA clients and contacts",
+    description: "CRA clients and contacts"
   },
   {
     label: "Subjects",
     path: "/subjects",
-    description: "Registry, merges, and lineage",
+    description: "Registry, merges, and lineage"
   },
   {
     label: "Orders",
     path: "/orders",
-    description: "Intake + workflow monitoring",
-  },
+    description: "Intake + workflow monitoring"
+  }
 ];
 
 const AppLayout = () => {
@@ -43,7 +43,7 @@ const AppLayout = () => {
           py: 4,
           display: "flex",
           flexDirection: "column",
-          gap: 3,
+          gap: 3
         }}
       >
         <Outlet />

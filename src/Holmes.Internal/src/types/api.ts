@@ -2,12 +2,7 @@ export type Ulid = string;
 
 export type UserStatus = "Invited" | "Active" | "Suspended";
 
-export type UserRole =
-  | "Admin"
-  | "CustomerAdmin"
-  | "Compliance"
-  | "Operations"
-  | "Auditor";
+export type UserRole = "Admin" | "Operations";
 
 export interface RoleAssignmentDto {
   id: Ulid;

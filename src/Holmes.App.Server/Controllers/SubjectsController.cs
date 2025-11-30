@@ -1,5 +1,5 @@
-using System.Globalization;
 using Holmes.App.Server.Contracts;
+using Holmes.App.Server.Mappers;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
@@ -23,16 +23,13 @@ public sealed class SubjectsController(
     ICurrentUserInitializer currentUserInitializer
 ) : ControllerBase
 {
-    private const string SubjectStatusActive = "Active";
-    private const string SubjectStatusMerged = "Merged";
-
     [HttpGet]
     public async Task<ActionResult<PaginatedResponse<SubjectListItemDto>>> GetSubjects(
         [FromQuery] PaginationQuery query,
         CancellationToken cancellationToken
     )
     {
-        var (page, pageSize) = NormalizePagination(query);
+        var (page, pageSize) = PaginationNormalization.Normalize(query);
 
         var baseQuery = dbContext.Subjects
             .AsNoTracking()
@@ -47,7 +44,7 @@ public sealed class SubjectsController(
             .ToListAsync(cancellationToken);
 
         var items = subjects
-            .Select(MapSubject)
+            .Select(SubjectDtoMapper.ToListItem)
             .ToList();
 
         return Ok(PaginatedResponse<SubjectListItemDto>.Create(items, page, pageSize, totalItems));
@@ -69,7 +66,8 @@ public sealed class SubjectsController(
         var directory = await dbContext.SubjectDirectory.AsNoTracking()
             .SingleAsync(x => x.SubjectId == subjectId.ToString(), cancellationToken);
 
-        return CreatedAtAction(nameof(GetSubjectById), new { subjectId = subjectId.ToString() }, MapSummary(directory));
+        return CreatedAtAction(nameof(GetSubjectById), new { subjectId = subjectId.ToString() },
+            SubjectDtoMapper.ToSummary(directory));
     }
 
     [HttpGet("{subjectId}")]
@@ -91,7 +89,7 @@ public sealed class SubjectsController(
             return NotFound();
         }
 
-        return Ok(MapSummary(directory));
+        return Ok(SubjectDtoMapper.ToSummary(directory));
     }
 
     [HttpPost("merge")]
@@ -118,48 +116,6 @@ public sealed class SubjectsController(
             DateTimeOffset.UtcNow), cancellationToken);
 
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
-    }
-
-    private static SubjectSummaryDto MapSummary(SubjectDirectoryDb directory)
-    {
-        return new SubjectSummaryDto(directory.SubjectId, directory.GivenName, directory.FamilyName,
-            directory.DateOfBirth,
-            directory.Email, directory.IsMerged, directory.AliasCount, directory.CreatedAt);
-    }
-
-    private static SubjectListItemDto MapSubject(SubjectDb subject)
-    {
-        var status = subject.MergedIntoSubjectId is null ? SubjectStatusActive : SubjectStatusMerged;
-        var aliases = subject.Aliases
-            .OrderBy(a => a.FamilyName)
-            .ThenBy(a => a.GivenName)
-            .Select(a => new SubjectAliasDto(
-                a.Id.ToString(CultureInfo.InvariantCulture),
-                a.GivenName,
-                a.FamilyName,
-                a.DateOfBirth,
-                subject.CreatedAt))
-            .ToList();
-
-        return new SubjectListItemDto(
-            subject.SubjectId,
-            subject.GivenName,
-            null,
-            subject.FamilyName,
-            subject.DateOfBirth,
-            subject.Email,
-            status,
-            subject.MergedIntoSubjectId,
-            aliases,
-            subject.CreatedAt,
-            subject.MergedAt ?? subject.CreatedAt);
-    }
-
-    private static (int Page, int PageSize) NormalizePagination(PaginationQuery query)
-    {
-        var page = query.Page <= 0 ? 1 : query.Page;
-        var size = query.PageSize <= 0 ? 25 : Math.Min(query.PageSize, 100);
-        return (page, size);
     }
 
     private async Task<UlidId> GetCurrentUserAsync(CancellationToken cancellationToken)

@@ -1,10 +1,4 @@
-import React, {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { apiFetch, toQueryString } from "@holmes/ui-core";
 import AddIcon from "@mui/icons-material/Add";
@@ -26,25 +20,14 @@ import {
   Stack,
   Switch,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 
 import { PageHeader } from "@/components/layout";
-import {
-  AuditPanel,
-  DataGridNoRowsOverlay,
-  SectionCard,
-  SlaBadge,
-  TimelineCard,
-} from "@/components/patterns";
+import { AuditPanel, DataGridNoRowsOverlay, SectionCard, SlaBadge, TimelineCard } from "@/components/patterns";
 import {
   GrantUserRoleRequest,
   InviteUserRequest,
@@ -52,29 +35,23 @@ import {
   RoleAssignmentDto,
   Ulid,
   UserDto,
-  UserRole,
+  UserRole
 } from "@/types/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
-const roleOptions: UserRole[] = [
-  "Admin",
-  "CustomerAdmin",
-  "Compliance",
-  "Operations",
-  "Auditor",
-];
+const roleOptions: UserRole[] = ["Admin", "Operations"];
 
 const defaultInviteForm: InviteUserRequest = {
   email: "",
   displayName: "",
   sendInviteEmail: true,
-  roles: [{ role: "Admin" }],
+  roles: [{ role: "Admin" }]
 };
 
 const initialGrantDialogState = {
   user: null as UserDto | null,
   role: "Admin" as UserRole,
-  customerId: "",
+  customerId: ""
 };
 
 const formatRoleLabel = (assignment: RoleAssignmentDto) =>
@@ -83,41 +60,41 @@ const formatRoleLabel = (assignment: RoleAssignmentDto) =>
     : assignment.role;
 
 const fetchUsersPage = ({
-  page,
-  pageSize,
-}: {
+                          page,
+                          pageSize
+                        }: {
   page: number;
   pageSize: number;
 }) =>
   apiFetch<PaginatedResult<UserDto>>(
     `/users${toQueryString({
       page,
-      pageSize,
-    })}`,
+      pageSize
+    })}`
   );
 
 const inviteUser = (payload: InviteUserRequest) =>
   apiFetch<UserDto>("/users/invitations", {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 const grantRole = ({
-  userId,
-  payload,
-}: {
+                     userId,
+                     payload
+                   }: {
   userId: Ulid;
   payload: GrantUserRoleRequest;
 }) =>
   apiFetch<UserDto>(`/users/${userId}/roles`, {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 const revokeRole = ({
-  userId,
-  assignment,
-}: {
+                      userId,
+                      assignment
+                    }: {
   userId: Ulid;
   assignment: RoleAssignmentDto;
 }) =>
@@ -125,14 +102,14 @@ const revokeRole = ({
     method: "DELETE",
     body: {
       role: assignment.role,
-      customerId: assignment.customerId ?? undefined,
-    },
+      customerId: assignment.customerId ?? undefined
+    }
   });
 
 const UsersPage = () => {
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25,
+    pageSize: 25
   });
   const [inviteForm, setInviteForm] =
     useState<InviteUserRequest>(defaultInviteForm);
@@ -147,9 +124,9 @@ const UsersPage = () => {
     queryFn: () =>
       fetchUsersPage({
         page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize,
+        pageSize: paginationModel.pageSize
       }),
-    placeholderData: keepPreviousData,
+    placeholderData: keepPreviousData
   });
 
   const inviteUserMutation = useMutation({
@@ -163,7 +140,7 @@ const UsersPage = () => {
       setSuccessMessage(`Invitation sent to ${variables.email}`);
       await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (err) => setClientError(getErrorMessage(err)),
+    onError: (err) => setClientError(getErrorMessage(err))
   });
 
   const revokeRoleMutation = useMutation({
@@ -173,7 +150,7 @@ const UsersPage = () => {
       setSuccessMessage(`Revoked ${assignment.role} from user`);
       await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (err) => setClientError(getErrorMessage(err)),
+    onError: (err) => setClientError(getErrorMessage(err))
   });
 
   const grantRoleMutation = useMutation({
@@ -182,13 +159,13 @@ const UsersPage = () => {
     onSuccess: async (_, variables) => {
       if (grantDialog.user) {
         setSuccessMessage(
-          `Granted ${variables.payload.role} to ${grantDialog.user.email}`,
+          `Granted ${variables.payload.role} to ${grantDialog.user.email}`
         );
       }
       setGrantDialog(initialGrantDialogState);
       await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (err) => setClientError(getErrorMessage(err)),
+    onError: (err) => setClientError(getErrorMessage(err))
   });
 
   const handleInviteSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -200,7 +177,7 @@ const UsersPage = () => {
     (userId: Ulid, assignment: RoleAssignmentDto) => {
       revokeRoleMutation.mutate({ userId, assignment });
     },
-    [revokeRoleMutation],
+    [revokeRoleMutation]
   );
 
   const handleGrantDialogClose = () => {
@@ -230,7 +207,7 @@ const UsersPage = () => {
               />
             ))}
           </Stack>
-        ),
+        )
       },
       {
         field: "actions",
@@ -246,16 +223,16 @@ const UsersPage = () => {
               setGrantDialog({
                 user: params.row,
                 role: "Admin",
-                customerId: "",
+                customerId: ""
               });
             }}
           >
             Grant role
           </Button>
-        ),
-      },
+        )
+      }
     ],
-    [grantRoleMutation, handleRevokeRole],
+    [grantRoleMutation, handleRevokeRole]
   );
 
   const inviteButtonLabel = inviteUserMutation.isPending
@@ -278,24 +255,24 @@ const UsersPage = () => {
     const invited = items.filter((user) => user.status === "Invited").length;
     const active = items.filter((user) => user.status === "Active").length;
     const suspended = items.filter(
-      (user) => user.status === "Suspended",
+      (user) => user.status === "Suspended"
     ).length;
     return [
       {
         label: "Total users",
         value: total.toString(),
-        helperText: `${active} active`,
+        helperText: `${active} active`
       },
       {
         label: "Invited",
         value: invited.toString(),
-        helperText: "Awaiting first login",
+        helperText: "Awaiting first login"
       },
       {
         label: "Suspended",
         value: suspended.toString(),
-        helperText: "Temporarily blocked",
-      },
+        helperText: "Temporarily blocked"
+      }
     ];
   }, [usersResult]);
 
@@ -305,7 +282,7 @@ const UsersPage = () => {
       .slice()
       .sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
       .slice(0, 5)
       .map((user) => ({
@@ -314,17 +291,17 @@ const UsersPage = () => {
         description:
           user.roleAssignments.length > 0
             ? user.roleAssignments
-                .map((assignment) =>
-                  assignment.customerId
-                    ? `${assignment.role} (${assignment.customerId})`
-                    : assignment.role,
-                )
-                .join(", ")
+              .map((assignment) =>
+                assignment.customerId
+                  ? `${assignment.role} (${assignment.customerId})`
+                  : assignment.role
+              )
+              .join(", ")
             : "No roles granted yet",
         timestamp: formatDistanceToNow(new Date(user.createdAt), {
-          addSuffix: true,
+          addSuffix: true
         }),
-        meta: user.status,
+        meta: user.status
       }));
   }, [usersResult]);
 
@@ -380,7 +357,7 @@ const UsersPage = () => {
                 onChange={(event) =>
                   setInviteForm((prev) => ({
                     ...prev,
-                    email: event.target.value,
+                    email: event.target.value
                   }))
                 }
                 fullWidth
@@ -391,7 +368,7 @@ const UsersPage = () => {
                 onChange={(event) =>
                   setInviteForm((prev) => ({
                     ...prev,
-                    displayName: event.target.value,
+                    displayName: event.target.value
                   }))
                 }
                 fullWidth
@@ -405,7 +382,7 @@ const UsersPage = () => {
                   onChange={(event) =>
                     setInviteForm((prev) => ({
                       ...prev,
-                      roles: [{ role: event.target.value as UserRole }],
+                      roles: [{ role: event.target.value as UserRole }]
                     }))
                   }
                 >
@@ -422,7 +399,7 @@ const UsersPage = () => {
                   onChange={(event) =>
                     setInviteForm((prev) => ({
                       ...prev,
-                      sendInviteEmail: event.target.checked,
+                      sendInviteEmail: event.target.checked
                     }))
                   }
                 />
@@ -459,7 +436,7 @@ const UsersPage = () => {
               loading={tableLoading}
               density="comfortable"
               slots={{
-                noRowsOverlay: DataGridNoRowsOverlay,
+                noRowsOverlay: DataGridNoRowsOverlay
               }}
             />
           </Box>
@@ -479,8 +456,8 @@ const UsersPage = () => {
             userId: grantDialog.user.id,
             payload: {
               role,
-              customerId: customerId || undefined,
-            },
+              customerId: customerId || undefined
+            }
           });
         }}
       />
@@ -501,12 +478,12 @@ interface GrantRoleDialogProps {
 }
 
 const GrantRoleDialog = ({
-  dialogState,
-  onClose,
-  onSubmit,
-  isSubmitting,
-  errorMessage,
-}: GrantRoleDialogProps) => {
+                           dialogState,
+                           onClose,
+                           onSubmit,
+                           isSubmitting,
+                           errorMessage
+                         }: GrantRoleDialogProps) => {
   const [role, setRole] = useState<UserRole>(dialogState.role);
   const [customerId, setCustomerId] = useState(dialogState.customerId);
 

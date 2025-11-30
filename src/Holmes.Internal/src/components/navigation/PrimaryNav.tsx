@@ -19,7 +19,7 @@ const PrimaryNav = ({ items }: PrimaryNavProps) => {
     items.find((item) =>
       location.pathname === "/"
         ? item.path === "/"
-        : location.pathname.startsWith(item.path),
+        : location.pathname.startsWith(item.path)
     )?.path ?? items[0]?.path;
 
   return (

@@ -11,12 +11,12 @@ interface PageHeaderProps {
 }
 
 const PageHeader = ({
-  title,
-  subtitle,
-  description,
-  actions,
-  meta,
-}: PageHeaderProps) => (
+                      title,
+                      subtitle,
+                      description,
+                      actions,
+                      meta
+                    }: PageHeaderProps) => (
   <Stack
     direction={{ xs: "column", md: "row" }}
     spacing={2}
