@@ -7,7 +7,8 @@ namespace Holmes.App.Server.Security;
 
 public sealed class CurrentUserInitializer(
     IUserContext userContext,
-    IMediator mediator
+    IMediator mediator,
+    IHostEnvironment hostEnvironment
 ) : ICurrentUserInitializer
 {
     public async Task<UlidId> EnsureCurrentUserIdAsync(CancellationToken cancellationToken)
@@ -24,8 +25,16 @@ public sealed class CurrentUserInitializer(
             userContext.Email,
             userContext.DisplayName,
             userContext.AuthenticationMethod,
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            AllowAutoProvision: IsTestEnvironment());
 
         return await mediator.Send(command, cancellationToken);
+    }
+
+    private bool IsTestEnvironment()
+    {
+        return hostEnvironment.IsEnvironment("Testing") ||
+               string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"), "1",
+                   StringComparison.Ordinal);
     }
 }

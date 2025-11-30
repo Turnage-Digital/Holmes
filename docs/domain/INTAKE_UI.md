@@ -267,7 +267,8 @@ The Intake UI is considered complete when:
     * Android Chrome
     * Desktop (for debugging)
 3. All steps match WCAG 2.1 AA expectations.
-4. All backend interactions match the APIs defined in `docs/PHASE_2.md`; submit returns synchronous success/error without
+4. All backend interactions match the APIs defined in `docs/PHASE_2.md`; submit returns synchronous success/error
+   without
    hanging the UI.
 5. Draft persistence follows guardrails (per-invite key, TTL, wiped on submit/abandon; minimal PII).
 6. Consent step captures evidence (checkbox, timestamp, IP/UA, disclosure version/hash) surfaced by the server.

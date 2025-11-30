@@ -85,6 +85,7 @@ Each feature view follows this stack:
 4. Data surface (DataGrid/List) tied to React Query results.
 
 This order keeps the “action -> data -> detail” hierarchy consistent and aligns with Rebecca’s UX guidelines.
+
 - Intake uses a single-page wizard: Welcome → OTP → Consent → Data → Review → Success. Each step renders its own
   section with clear CTAs, inline validation, and mobile-friendly tap targets.
 

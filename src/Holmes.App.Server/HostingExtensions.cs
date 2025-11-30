@@ -1,8 +1,4 @@
-using Holmes.App.Server.Security;
 using Holmes.Hosting;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
 
@@ -46,56 +42,13 @@ internal static class HostingExtensions
         app.UseRouting();
 
         app.UseAuthentication();
+        app.UseMiddleware<Security.CurrentUserEnrichmentMiddleware>();
         app.UseAuthorization();
         app.MapControllers();
 
-        ConfigureAuthEndpoints(app);
         ConfigureDiagnostics(app);
 
         return app;
-    }
-
-    private static void ConfigureAuthEndpoints(WebApplication app)
-    {
-        var auth = app.MapGroup("/auth");
-
-        auth.MapGet("/options", (HttpRequest request, string? returnUrl) =>
-            {
-                var destination = ReturnUrlSanitizer.Sanitize(returnUrl, request);
-                return Results.Challenge(
-                    new AuthenticationProperties { RedirectUri = destination },
-                    [OpenIdConnectDefaults.AuthenticationScheme]);
-            })
-            .AllowAnonymous();
-
-        auth.MapGet("/login", (HttpRequest request, string? returnUrl) =>
-            {
-                var destination = ReturnUrlSanitizer.Sanitize(returnUrl, request);
-                return Results.Challenge(
-                    new AuthenticationProperties { RedirectUri = destination },
-                    [OpenIdConnectDefaults.AuthenticationScheme]);
-            })
-            .AllowAnonymous();
-
-        auth.MapGet("/access-denied", (string? reason) =>
-            {
-                var message = reason switch
-                {
-                    "uninvited" => "Invitation required before sign-in.",
-                    "suspended" => "Your account has been suspended.",
-                    _ => "Access denied."
-                };
-                return Results.Problem(message, statusCode: StatusCodes.Status403Forbidden);
-            })
-            .AllowAnonymous();
-
-        auth.MapPost("/logout", async (HttpContext context, string? returnUrl) =>
-            {
-                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                var target = ReturnUrlSanitizer.Sanitize(returnUrl, context.Request);
-                return Results.Redirect(target);
-            })
-            .RequireAuthorization();
     }
 
     private static void ConfigureDiagnostics(WebApplication app)

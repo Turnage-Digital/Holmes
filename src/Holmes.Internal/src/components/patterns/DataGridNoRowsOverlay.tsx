@@ -11,7 +11,7 @@ const DataGridNoRowsOverlay = () => (
         py: 4,
         textAlign: "center",
         color: "text.secondary",
-        fontSize: 14,
+        fontSize: 14
       }}
     >
       <Typography variant="body2">No rows to display</Typography>

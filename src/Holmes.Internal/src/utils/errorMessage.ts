@@ -2,7 +2,7 @@ import { ApiError } from "@holmes/ui-core";
 
 export const getErrorMessage = (
   error: unknown,
-  fallback = "Something went wrong",
+  fallback = "Something went wrong"
 ) => {
   if (!error) {
     return fallback;

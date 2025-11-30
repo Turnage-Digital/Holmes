@@ -11,6 +11,6 @@ public class ConsentArtifactDb
     public string HashAlgorithm { get; set; } = null!;
     public string SchemaVersion { get; set; } = null!;
     public DateTimeOffset CreatedAt { get; set; }
-    public byte[] Payload { get; set; } = Array.Empty<byte>();
+    public byte[] Payload { get; set; } = [];
     public string MetadataJson { get; set; } = "{}";
 }

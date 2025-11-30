@@ -1,4 +1,6 @@
 using Holmes.App.Server.Contracts;
+using Holmes.App.Server.Mappers;
+using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Domain.ValueObjects;
@@ -7,8 +9,6 @@ using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
 using Holmes.Customers.Infrastructure.Sql.Specifications;
-using Holmes.Users.Domain;
-using Holmes.Users.Infrastructure.Sql;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,8 +22,7 @@ namespace Holmes.App.Server.Controllers;
 public class CustomersController(
     IMediator mediator,
     CustomersDbContext customersDbContext,
-    UsersDbContext usersDbContext,
-    ICurrentUserInitializer currentUserInitializer,
+    ICurrentUserAccess currentUserAccess,
     ISpecificationQueryExecutor specificationExecutor
 ) : ControllerBase
 {
@@ -34,17 +33,12 @@ public class CustomersController(
         CancellationToken cancellationToken
     )
     {
-        var caller = await EnsureUserAsync(cancellationToken);
-
-        var (page, pageSize) = NormalizePagination(query);
+        var (page, pageSize) = PaginationNormalization.Normalize(query);
+        var isGlobalAdmin = await currentUserAccess.IsGlobalAdminAsync(cancellationToken);
         IList<string>? allowedCustomerIds = null;
-        if (!await IsGlobalAdminAsync(caller, cancellationToken))
+        if (!isGlobalAdmin)
         {
-            allowedCustomerIds = await customersDbContext.CustomerAdmins
-                .AsNoTracking()
-                .Where(a => a.UserId == caller.ToString())
-                .Select(a => a.CustomerId)
-                .ToListAsync(cancellationToken);
+            allowedCustomerIds = (await currentUserAccess.GetAllowedCustomerIdsAsync(cancellationToken)).ToList();
         }
 
         var listingSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds, page, pageSize);
@@ -79,7 +73,7 @@ public class CustomersController(
             {
                 profiles.TryGetValue(directory.CustomerId, out var profile);
                 contacts.TryGetValue(directory.CustomerId, out var contactList);
-                return MapCustomer(directory, profile, contactList ?? []);
+                return CustomerDtoMapper.ToListItem(directory, profile, contactList ?? []);
             })
             .ToList();
 
@@ -93,9 +87,9 @@ public class CustomersController(
         CancellationToken cancellationToken
     )
     {
-        var caller = await EnsureUserAsync(cancellationToken);
+        var caller = await currentUserAccess.GetUserIdAsync(cancellationToken);
 
-        if (!await IsGlobalAdminAsync(caller, cancellationToken))
+        if (!await currentUserAccess.IsGlobalAdminAsync(cancellationToken))
         {
             return Forbid();
         }
@@ -132,8 +126,7 @@ public class CustomersController(
             return BadRequest("Invalid customer id format.");
         }
 
-        var caller = await EnsureUserAsync(cancellationToken);
-        if (!await HasCustomerAccessAsync(parsed, caller, cancellationToken))
+        if (!await HasCustomerAccessAsync(parsed, cancellationToken))
         {
             return Forbid();
         }
@@ -175,8 +168,7 @@ public class CustomersController(
             return BadRequest("Invalid id format.");
         }
 
-        var caller = await EnsureUserAsync(cancellationToken);
-        if (!await HasCustomerAccessAsync(parsedCustomer, caller, cancellationToken))
+        if (!await HasCustomerAccessAsync(parsedCustomer, cancellationToken))
         {
             return Forbid();
         }
@@ -202,8 +194,7 @@ public class CustomersController(
             return BadRequest("Invalid id format.");
         }
 
-        var caller = await EnsureUserAsync(cancellationToken);
-        if (!await HasCustomerAccessAsync(parsedCustomer, caller, cancellationToken))
+        if (!await HasCustomerAccessAsync(parsedCustomer, cancellationToken))
         {
             return Forbid();
         }
@@ -216,32 +207,14 @@ public class CustomersController(
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
     }
 
-    private async Task<bool> HasCustomerAccessAsync(Ulid customerId, UlidId caller, CancellationToken cancellationToken)
+    private async Task<bool> HasCustomerAccessAsync(Ulid customerId, CancellationToken cancellationToken)
     {
-        if (await IsGlobalAdminAsync(caller, cancellationToken))
+        if (await currentUserAccess.IsGlobalAdminAsync(cancellationToken))
         {
             return true;
         }
 
-        return await customersDbContext.CustomerAdmins
-            .AsNoTracking()
-            .AnyAsync(a => a.CustomerId == customerId.ToString() && a.UserId == caller.ToString(), cancellationToken);
-    }
-
-    private async Task<bool> IsGlobalAdminAsync(UlidId caller, CancellationToken cancellationToken)
-    {
-        return await usersDbContext.UserRoleMemberships
-            .AsNoTracking()
-            .AnyAsync(r =>
-                    r.UserId == caller.ToString() &&
-                    r.Role == UserRole.Admin &&
-                    r.CustomerId == null,
-                cancellationToken);
-    }
-
-    private async Task<UlidId> EnsureUserAsync(CancellationToken cancellationToken)
-    {
-        return await currentUserInitializer.EnsureCurrentUserIdAsync(cancellationToken);
+        return await currentUserAccess.HasCustomerAccessAsync(customerId.ToString(), cancellationToken);
     }
 
     private async Task CreateCustomerProfileAsync(
@@ -314,48 +287,7 @@ public class CustomersController(
             .SingleOrDefaultAsync(p => p.CustomerId == customerId, cancellationToken);
 
         var contacts = profile?.Contacts?.ToList() ?? [];
-        return MapCustomer(directory, profile, contacts);
-    }
-
-    private static (int Page, int PageSize) NormalizePagination(PaginationQuery query)
-    {
-        var page = query.Page <= 0 ? 1 : query.Page;
-        var size = query.PageSize <= 0 ? 25 : Math.Min(query.PageSize, 100);
-        return (page, size);
-    }
-
-    private static CustomerListItemDto MapCustomer(
-        CustomerDirectoryDb directory,
-        CustomerProfileDb? profile,
-        IReadOnlyCollection<CustomerContactDb> contacts
-    )
-    {
-        var policySnapshotId = string.IsNullOrWhiteSpace(profile?.PolicySnapshotId)
-            ? "policy-default"
-            : profile!.PolicySnapshotId;
-
-        var billingEmail = string.IsNullOrWhiteSpace(profile?.BillingEmail) ? null : profile!.BillingEmail;
-
-        var contactResponses = contacts
-            .OrderBy(c => c.Name)
-            .Select(c => new CustomerContactDto(
-                c.ContactId,
-                c.Name,
-                c.Email,
-                c.Phone,
-                c.Role))
-            .ToList();
-
-        return new CustomerListItemDto(
-            directory.CustomerId,
-            profile?.TenantId ?? directory.CustomerId,
-            directory.Name,
-            directory.Status,
-            policySnapshotId,
-            billingEmail,
-            contactResponses,
-            directory.CreatedAt,
-            profile?.UpdatedAt ?? directory.CreatedAt);
+        return CustomerDtoMapper.ToListItem(directory, profile, contacts);
     }
 
     public sealed record CreateCustomerRequest(

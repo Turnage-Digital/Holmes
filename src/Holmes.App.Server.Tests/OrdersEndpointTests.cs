@@ -3,10 +3,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Contracts;
+using Holmes.App.Server.Controllers;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Subjects.Infrastructure.Sql;
+using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Workflow.Application.Abstractions.Dtos;
@@ -113,11 +116,109 @@ public class OrdersEndpointTests
         Assert.That(deniedResponse.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
-    private static void SetDefaultAuth(HttpClient client, string subject, string email)
+    [Test]
+    public async Task CreateOrder_Creates_Order_And_Returns_Summary()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "order-creator", "creator@holmes.dev");
+        await PromoteCurrentUserToAdminAsync(factory, "order-creator", "creator@holmes.dev");
+
+        var customerId = Ulid.NewUlid().ToString();
+        var subjectId = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, customerId, "tenant-create");
+        await SeedSubjectAsync(factory, subjectId);
+
+        var request = new CreateOrderRequest(
+            customerId,
+            subjectId,
+            "policy-snapshot-v1",
+            "PKG-A");
+
+        var response = await client.PostAsJsonAsync("/api/orders", request);
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            TestContext.WriteLine(await response.Content.ReadAsStringAsync());
+        }
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+        var summary = await response.Content.ReadFromJsonAsync<OrderSummaryDto>(JsonOptions);
+        Assert.That(summary, Is.Not.Null);
+        Assert.That(summary!.CustomerId, Is.EqualTo(customerId));
+        Assert.That(summary.SubjectId, Is.EqualTo(subjectId));
+        Assert.That(summary.PolicySnapshotId, Is.EqualTo("policy-snapshot-v1"));
+        Assert.That(summary.Status, Is.EqualTo(OrderStatus.Created.ToString()));
+    }
+
+    [Test]
+    public async Task CreateOrder_Forbidden_When_User_Lacks_Customer_Access()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "order-ops", "ops@holmes.dev", "Operations");
+
+        var customerId = Ulid.NewUlid().ToString();
+        var subjectId = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, customerId, "tenant-no-access");
+        await SeedSubjectAsync(factory, subjectId);
+
+        var request = new CreateOrderRequest(
+            customerId,
+            subjectId,
+            "policy-snapshot-v1");
+
+        var response = await client.PostAsJsonAsync("/api/orders", request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    [Test]
+    public async Task Stats_Are_Filtered_By_Customer_Access()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "order-stats", "stats@holmes.dev", "Operations");
+
+        var userId = await CreateUserAsync(factory, "order-stats", "stats@holmes.dev");
+        var adminId = await PromoteCurrentUserToAdminAsync(factory, "order-stats-admin", "stats-admin@holmes.dev");
+
+        var allowedCustomer = Ulid.NewUlid().ToString();
+        var deniedCustomer = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed");
+        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied");
+        await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
+
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), allowedCustomer, Ulid.NewUlid().ToString(),
+            OrderStatus.Invited);
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), allowedCustomer, Ulid.NewUlid().ToString(),
+            OrderStatus.Blocked);
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), allowedCustomer, Ulid.NewUlid().ToString(),
+            OrderStatus.ReadyForRouting);
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), deniedCustomer, Ulid.NewUlid().ToString(),
+            OrderStatus.IntakeComplete);
+
+        var response = await client.GetAsync("/api/orders/stats");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var stats = await response.Content.ReadFromJsonAsync<OrderStatsDto>(JsonOptions);
+        Assert.That(stats, Is.Not.Null);
+        Assert.That(stats!.Invited, Is.EqualTo(1));
+        Assert.That(stats.IntakeInProgress, Is.EqualTo(0));
+        Assert.That(stats.IntakeComplete, Is.EqualTo(0));
+        Assert.That(stats.ReadyForRouting, Is.EqualTo(1));
+        Assert.That(stats.Blocked, Is.EqualTo(1));
+        Assert.That(stats.Canceled, Is.EqualTo(0));
+    }
+
+    private static void SetDefaultAuth(HttpClient client, string subject, string email, string? roles = null)
     {
         client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
         client.DefaultRequestHeaders.Add("X-Auth-Subject", subject);
         client.DefaultRequestHeaders.Add("X-Auth-Email", email);
+        if (!string.IsNullOrWhiteSpace(roles))
+        {
+            client.DefaultRequestHeaders.Add("X-Auth-Roles", roles);
+        }
     }
 
     private static async Task<UlidId> CreateUserAsync(HolmesWebApplicationFactory factory, string subject, string email)
@@ -267,5 +368,30 @@ public class OrdersEndpointTests
         var directory = await customersDb.CustomerDirectory.SingleAsync(d => d.CustomerId == customerId);
         directory.AdminCount += 1;
         await customersDb.SaveChangesAsync();
+    }
+
+    private static async Task SeedSubjectAsync(HolmesWebApplicationFactory factory, string subjectId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var subjectsDb = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
+        subjectsDb.Subjects.Add(new SubjectDb
+        {
+            SubjectId = subjectId,
+            GivenName = "Test",
+            FamilyName = "Subject",
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        subjectsDb.SubjectDirectory.Add(new SubjectDirectoryDb
+        {
+            SubjectId = subjectId,
+            GivenName = "Test",
+            FamilyName = "Subject",
+            CreatedAt = DateTimeOffset.UtcNow,
+            AliasCount = 0,
+            IsMerged = false
+        });
+
+        await subjectsDb.SaveChangesAsync();
     }
 }

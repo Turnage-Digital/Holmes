@@ -42,7 +42,7 @@ public class CaptureConsentArtifactCommandTests
             session.Id,
             "application/pdf",
             "schema",
-            new byte[] { 1, 2, 3 },
+            [1, 2, 3],
             DateTimeOffset.UtcNow);
 
         var result = await handler.Handle(command, CancellationToken.None);

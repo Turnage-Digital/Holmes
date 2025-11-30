@@ -24,7 +24,7 @@ const OrdersPage = () => {
   const queryClient = useQueryClient();
   const ordersQuery = useQuery({
     queryKey: ["orders", "summary"],
-    queryFn: fetchOrderSummary,
+    queryFn: fetchOrderSummary
   });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const OrdersPage = () => {
           }
 
           const existing = current.items.find(
-            (order) => order.orderId === payload.orderId,
+            (order) => order.orderId === payload.orderId
           );
 
           if (!existing) {
@@ -51,15 +51,15 @@ const OrdersPage = () => {
             items: current.items.map((order) =>
               order.orderId === payload.orderId
                 ? {
-                    ...order,
-                    status: payload.status as OrderSummary["status"],
-                    lastStatusReason: payload.reason,
-                    lastUpdatedAt: payload.changedAt,
-                  }
-                : order,
-            ),
+                  ...order,
+                  status: payload.status as OrderSummary["status"],
+                  lastStatusReason: payload.reason,
+                  lastUpdatedAt: payload.changedAt
+                }
+                : order
+            )
           };
-        },
+        }
       );
     };
 
@@ -78,13 +78,13 @@ const OrdersPage = () => {
         field: "status",
         headerName: "Status",
         minWidth: 160,
-        valueGetter: (_value, row) => row.status,
+        valueGetter: (_value, row) => row.status
       },
       {
         field: "lastStatusReason",
         headerName: "Reason",
         flex: 1,
-        minWidth: 200,
+        minWidth: 200
       },
       {
         field: "lastUpdatedAt",
@@ -92,11 +92,11 @@ const OrdersPage = () => {
         minWidth: 160,
         valueGetter: (_value, row) =>
           formatDistanceToNow(new Date(row.lastUpdatedAt), {
-            addSuffix: true,
-          }),
-      },
+            addSuffix: true
+          })
+      }
     ],
-    [],
+    []
   );
 
   let errorContent: React.ReactNode = null;
@@ -135,7 +135,7 @@ const OrdersPage = () => {
             columns={columns}
             disableRowSelectionOnClick
             slots={{
-              noRowsOverlay: DataGridNoRowsOverlay,
+              noRowsOverlay: DataGridNoRowsOverlay
             }}
           />
         </Box>

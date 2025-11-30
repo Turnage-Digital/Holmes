@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Duende.IdentityServer.Services;
 using Holmes.Identity.Server;
 using Holmes.Identity.Server.Data;
 using Microsoft.AspNetCore.DataProtection;
@@ -159,7 +158,7 @@ try
             var suppliedBytes = Encoding.UTF8.GetBytes(suppliedToken);
             var apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
             var apiKeyMatch = suppliedBytes.Length == apiKeyBytes.Length &&
-                CryptographicOperations.FixedTimeEquals(suppliedBytes, apiKeyBytes);
+                              CryptographicOperations.FixedTimeEquals(suppliedBytes, apiKeyBytes);
             if (!apiKeyMatch)
             {
                 return Results.Unauthorized();

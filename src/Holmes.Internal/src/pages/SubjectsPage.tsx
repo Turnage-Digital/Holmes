@@ -3,60 +3,44 @@ import React, { FormEvent, useState } from "react";
 import { apiFetch, toQueryString } from "@holmes/ui-core";
 import MergeIcon from "@mui/icons-material/Merge";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import {
-  Alert,
-  Box,
-  Button,
-  CardContent,
-  Stack,
-  TextField,
-} from "@mui/material";
+import { Alert, Box, Button, CardContent, Stack, TextField } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageHeader } from "@/components/layout";
-import {
-  DataGridNoRowsOverlay,
-  SectionCard,
-  SlaBadge,
-} from "@/components/patterns";
+import { DataGridNoRowsOverlay, SectionCard, SlaBadge } from "@/components/patterns";
 import { MergeSubjectsRequest, PaginatedResult, SubjectDto } from "@/types/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
 const fetchSubjectsPage = ({
-  page,
-  pageSize,
-}: {
+                             page,
+                             pageSize
+                           }: {
   page: number;
   pageSize: number;
 }) =>
   apiFetch<PaginatedResult<SubjectDto>>(
     `/subjects${toQueryString({
       page,
-      pageSize,
-    })}`,
+      pageSize
+    })}`
   );
 
 const mergeSubjects = (payload: MergeSubjectsRequest) =>
   apiFetch<SubjectDto>("/subjects/merge", {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 const SubjectsPage = () => {
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25,
+    pageSize: 25
   });
   const [mergeForm, setMergeForm] = useState<MergeSubjectsRequest>({
     winnerSubjectId: "",
     mergedSubjectId: "",
-    reason: "",
+    reason: ""
   });
   const [successMessage, setSuccessMessage] = useState<string>();
   const [clientError, setClientError] = useState<string>();
@@ -68,9 +52,9 @@ const SubjectsPage = () => {
     queryFn: () =>
       fetchSubjectsPage({
         page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize,
+        pageSize: paginationModel.pageSize
       }),
-    placeholderData: keepPreviousData,
+    placeholderData: keepPreviousData
   });
 
   const mergeSubjectsMutation = useMutation({
@@ -84,11 +68,11 @@ const SubjectsPage = () => {
       setMergeForm({
         winnerSubjectId: "",
         mergedSubjectId: "",
-        reason: "",
+        reason: ""
       });
       await queryClient.invalidateQueries({ queryKey: ["subjects"] });
     },
-    onError: (err) => setClientError(getErrorMessage(err)),
+    onError: (err) => setClientError(getErrorMessage(err))
   });
 
   const handleMerge = (event: FormEvent<HTMLFormElement>) => {
@@ -109,7 +93,7 @@ const SubjectsPage = () => {
           return [row.firstName, row.middleName, row.lastName]
             .filter(Boolean)
             .join(" ");
-        },
+        }
       },
       { field: "status", headerName: "Status", width: 140 },
       { field: "birthDate", headerName: "DOB", width: 140 },
@@ -121,16 +105,16 @@ const SubjectsPage = () => {
         renderCell: (params) => {
           const row = params.row as SubjectDto;
           return row.aliases.length;
-        },
+        }
       },
       {
         field: "mergeParentId",
         headerName: "Merged Into",
         flex: 1,
-        minWidth: 220,
-      },
+        minWidth: 220
+      }
     ],
-    [],
+    []
   );
 
   const isRefreshing = subjectsQuery.isFetching;
@@ -177,7 +161,7 @@ const SubjectsPage = () => {
                 onChange={(event) =>
                   setMergeForm((prev) => ({
                     ...prev,
-                    winnerSubjectId: event.target.value,
+                    winnerSubjectId: event.target.value
                   }))
                 }
                 fullWidth
@@ -189,7 +173,7 @@ const SubjectsPage = () => {
                 onChange={(event) =>
                   setMergeForm((prev) => ({
                     ...prev,
-                    mergedSubjectId: event.target.value,
+                    mergedSubjectId: event.target.value
                   }))
                 }
                 fullWidth
@@ -200,7 +184,7 @@ const SubjectsPage = () => {
                 onChange={(event) =>
                   setMergeForm((prev) => ({
                     ...prev,
-                    reason: event.target.value,
+                    reason: event.target.value
                   }))
                 }
                 fullWidth
@@ -233,7 +217,7 @@ const SubjectsPage = () => {
               paginationMode="server"
               loading={tableLoading}
               slots={{
-                noRowsOverlay: DataGridNoRowsOverlay,
+                noRowsOverlay: DataGridNoRowsOverlay
               }}
             />
           </Box>

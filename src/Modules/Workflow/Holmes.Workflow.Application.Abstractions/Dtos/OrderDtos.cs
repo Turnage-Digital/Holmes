@@ -26,3 +26,12 @@ public sealed record OrderTimelineEntryDto(
     DateTimeOffset RecordedAt,
     JsonElement? Metadata
 );
+
+public sealed record OrderStatsDto(
+    int Invited,
+    int IntakeInProgress,
+    int IntakeComplete,
+    int ReadyForRouting,
+    int Blocked,
+    int Canceled
+);

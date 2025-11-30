@@ -3,66 +3,46 @@ import React, { FormEvent, useState } from "react";
 import { apiFetch, toQueryString } from "@holmes/ui-core";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import {
-  Alert,
-  Box,
-  Button,
-  CardContent,
-  Stack,
-  TextField,
-} from "@mui/material";
+import { Alert, Box, Button, CardContent, Stack, TextField } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PageHeader } from "@/components/layout";
-import {
-  DataGridNoRowsOverlay,
-  SectionCard,
-  SlaBadge,
-} from "@/components/patterns";
-import {
-  CreateCustomerRequest,
-  CustomerDto,
-  PaginatedResult,
-} from "@/types/api";
+import { DataGridNoRowsOverlay, SectionCard, SlaBadge } from "@/components/patterns";
+import { CreateCustomerRequest, CustomerDto, PaginatedResult } from "@/types/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
 const fetchCustomersPage = ({
-  page,
-  pageSize,
-}: {
+                              page,
+                              pageSize
+                            }: {
   page: number;
   pageSize: number;
 }) =>
   apiFetch<PaginatedResult<CustomerDto>>(
     `/customers${toQueryString({
       page,
-      pageSize,
-    })}`,
+      pageSize
+    })}`
   );
 
 const createCustomer = (payload: CreateCustomerRequest) =>
   apiFetch<CustomerDto>("/customers", {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 const CustomersPage = () => {
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25,
+    pageSize: 25
   });
   const [formState, setFormState] = useState({
     name: "",
     policySnapshotId: "",
     billingEmail: "",
     contactName: "",
-    contactEmail: "",
+    contactEmail: ""
   });
   const [successMessage, setSuccessMessage] = useState<string>();
   const [clientError, setClientError] = useState<string>();
@@ -74,9 +54,9 @@ const CustomersPage = () => {
     queryFn: () =>
       fetchCustomersPage({
         page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize,
+        pageSize: paginationModel.pageSize
       }),
-    placeholderData: keepPreviousData,
+    placeholderData: keepPreviousData
   });
 
   const createCustomerMutation = useMutation({
@@ -92,11 +72,11 @@ const CustomersPage = () => {
         policySnapshotId: "",
         billingEmail: "",
         contactName: "",
-        contactEmail: "",
+        contactEmail: ""
       });
       await queryClient.invalidateQueries({ queryKey: ["customers"] });
     },
-    onError: (err) => setClientError(getErrorMessage(err)),
+    onError: (err) => setClientError(getErrorMessage(err))
   });
 
   const handleCreateCustomer = (event: FormEvent<HTMLFormElement>) => {
@@ -104,15 +84,15 @@ const CustomersPage = () => {
     const payload: CreateCustomerRequest = {
       name: formState.name,
       policySnapshotId: formState.policySnapshotId,
-      billingEmail: formState.billingEmail || undefined,
+      billingEmail: formState.billingEmail || undefined
     };
 
     if (formState.contactName && formState.contactEmail) {
       payload.contacts = [
         {
           name: formState.contactName,
-          email: formState.contactEmail,
-        },
+          email: formState.contactEmail
+        }
       ];
     }
 
@@ -128,7 +108,7 @@ const CustomersPage = () => {
         field: "policySnapshotId",
         headerName: "Policy snapshot",
         flex: 1,
-        minWidth: 200,
+        minWidth: 200
       },
       {
         field: "contacts",
@@ -139,10 +119,10 @@ const CustomersPage = () => {
         renderCell: (params) => {
           const row = params.row as CustomerDto;
           return row.contacts.map((contact) => contact.email).join(", ");
-        },
-      },
+        }
+      }
     ],
-    [],
+    []
   );
 
   const isRefreshing = customersQuery.isFetching;
@@ -190,7 +170,7 @@ const CustomersPage = () => {
                   onChange={(event) =>
                     setFormState((prev) => ({
                       ...prev,
-                      name: event.target.value,
+                      name: event.target.value
                     }))
                   }
                   fullWidth
@@ -202,7 +182,7 @@ const CustomersPage = () => {
                   onChange={(event) =>
                     setFormState((prev) => ({
                       ...prev,
-                      policySnapshotId: event.target.value,
+                      policySnapshotId: event.target.value
                     }))
                   }
                   fullWidth
@@ -214,7 +194,7 @@ const CustomersPage = () => {
                   onChange={(event) =>
                     setFormState((prev) => ({
                       ...prev,
-                      billingEmail: event.target.value,
+                      billingEmail: event.target.value
                     }))
                   }
                   fullWidth
@@ -227,7 +207,7 @@ const CustomersPage = () => {
                   onChange={(event) =>
                     setFormState((prev) => ({
                       ...prev,
-                      contactName: event.target.value,
+                      contactName: event.target.value
                     }))
                   }
                   fullWidth
@@ -239,7 +219,7 @@ const CustomersPage = () => {
                   onChange={(event) =>
                     setFormState((prev) => ({
                       ...prev,
-                      contactEmail: event.target.value,
+                      contactEmail: event.target.value
                     }))
                   }
                   fullWidth
@@ -250,7 +230,7 @@ const CustomersPage = () => {
                   startIcon={<AddBusinessIcon />}
                   sx={{
                     alignSelf: { xs: "stretch", md: "flex-end" },
-                    minHeight: 56,
+                    minHeight: 56
                   }}
                   disabled={isCreatingCustomer}
                 >
@@ -279,7 +259,7 @@ const CustomersPage = () => {
               paginationMode="server"
               loading={tableLoading}
               slots={{
-                noRowsOverlay: DataGridNoRowsOverlay,
+                noRowsOverlay: DataGridNoRowsOverlay
               }}
             />
           </Box>

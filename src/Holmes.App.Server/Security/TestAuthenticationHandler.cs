@@ -18,7 +18,7 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
     private const string NameHeader = "X-Auth-Name";
     private const string RolesHeader = "X-Auth-Roles";
     private const string AmrHeader = "X-Auth-Amr";
-#pragma warning disable CS0618
+    
     public TestAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
@@ -28,7 +28,6 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
         : base(options, logger, encoder, clock)
     {
     }
-#pragma warning restore CS0618
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -40,7 +39,7 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
 
         var roleHeader = GetHeader(RolesHeader);
         var roles = string.IsNullOrWhiteSpace(roleHeader)
-            ? ["Admin"]
+            ? ["Operations"]
             : roleHeader.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         var claims = new List<Claim>

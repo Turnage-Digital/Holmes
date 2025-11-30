@@ -72,7 +72,7 @@ public sealed class OrderChangeBroadcaster : IOrderChangeBroadcaster
     {
         private readonly HashSet<UlidId>? _filterSet = OrderFilter is null
             ? null
-            : new HashSet<UlidId>(OrderFilter);
+            : [..OrderFilter];
 
         public bool ShouldReceive(OrderChange change)
         {

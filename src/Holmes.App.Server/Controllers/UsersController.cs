@@ -1,6 +1,7 @@
 using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Identity;
 using Holmes.App.Server.Identity.Models;
+using Holmes.App.Server.Mappers;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions.Specifications;
@@ -24,25 +25,19 @@ namespace Holmes.App.Server.Controllers;
 public class UsersController(
     IMediator mediator,
     UsersDbContext dbContext,
-    ICurrentUserInitializer currentUserInitializer,
+    ICurrentUserAccess currentUserAccess,
     ISpecificationQueryExecutor specificationExecutor,
     IIdentityProvisioningClient identityProvisioningClient
 ) : ControllerBase
 {
     [HttpGet]
-    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
+    [Authorize(Policy = AuthorizationPolicies.RequireGlobalAdmin)]
     public async Task<ActionResult<PaginatedResponse<UserDto>>> GetUsers(
         [FromQuery] PaginationQuery query,
         CancellationToken cancellationToken
     )
     {
-        var actor = await GetCurrentUserAsync(cancellationToken);
-        if (!await IsGlobalAdminAsync(actor, cancellationToken))
-        {
-            return Forbid();
-        }
-
-        var (page, pageSize) = NormalizePagination(query);
+        var (page, pageSize) = PaginationNormalization.Normalize(query);
         var countSpec = new UsersWithDetailsSpecification();
         var totalItems = await specificationExecutor
             .Apply(dbContext.Users.AsNoTracking(), countSpec)
@@ -61,7 +56,7 @@ public class UsersController(
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
 
         var items = users
-            .Select(u => MapUser(u, directoryEntries.GetValueOrDefault(u.UserId)))
+            .Select(u => UserDtoMapper.ToDto(u, directoryEntries.GetValueOrDefault(u.UserId)))
             .ToList();
 
         return Ok(PaginatedResponse<UserDto>.Create(items, page, pageSize, totalItems));
@@ -70,7 +65,7 @@ public class UsersController(
     [HttpGet("me")]
     public async Task<ActionResult<CurrentUserDto>> GetMe(CancellationToken cancellationToken)
     {
-        var currentUserId = await GetCurrentUserAsync(cancellationToken);
+        var currentUserId = await currentUserAccess.GetUserIdAsync(cancellationToken);
         var directorySpec = new UserDirectoryByIdsSpecification([currentUserId.ToString()]);
         var projection = await specificationExecutor
             .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
@@ -99,18 +94,12 @@ public class UsersController(
     }
 
     [HttpPost("invitations")]
-    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
+    [Authorize(Policy = AuthorizationPolicies.RequireGlobalAdmin)]
     public async Task<ActionResult<InviteUserResponse>> InviteUser(
         [FromBody] InviteUserRequest request,
         CancellationToken cancellationToken
     )
     {
-        var actor = await GetCurrentUserAsync(cancellationToken);
-        if (!await IsGlobalAdminAsync(actor, cancellationToken))
-        {
-            return Forbid();
-        }
-
         IReadOnlyCollection<InviteUserRole> roles = (request.Roles?.Count ?? 0) == 0
             ? [new InviteUserRole(UserRole.Admin, null)]
             : request.Roles!.Select(r => new InviteUserRole(r.Role, r.CustomerId)).ToList();
@@ -138,7 +127,7 @@ public class UsersController(
             .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
             .SingleAsync(cancellationToken);
 
-        var mappedUser = MapUser(user, directory);
+        var mappedUser = UserDtoMapper.ToDto(user, directory);
 
         var provisioning = await identityProvisioningClient.ProvisionUserAsync(
             new ProvisionIdentityUserRequest(invitedUserId, mappedUser.Email, mappedUser.DisplayName),
@@ -148,19 +137,13 @@ public class UsersController(
     }
 
     [HttpPost("{userId}/roles")]
-    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
+    [Authorize(Policy = AuthorizationPolicies.RequireGlobalAdmin)]
     public async Task<IActionResult> GrantRole(
         string userId,
         [FromBody] ModifyUserRoleRequest request,
         CancellationToken cancellationToken
     )
     {
-        var actorId = await GetCurrentUserAsync(cancellationToken);
-        if (!await IsGlobalAdminAsync(actorId, cancellationToken))
-        {
-            return Forbid();
-        }
-
         if (!Ulid.TryParse(userId, out var parsedTarget))
         {
             return BadRequest("Invalid user id format.");
@@ -176,19 +159,13 @@ public class UsersController(
     }
 
     [HttpDelete("{userId}/roles")]
-    [Authorize(Policy = AuthorizationPolicies.RequireAdmin)]
+    [Authorize(Policy = AuthorizationPolicies.RequireGlobalAdmin)]
     public async Task<IActionResult> RevokeRole(
         string userId,
         [FromBody] ModifyUserRoleRequest request,
         CancellationToken cancellationToken
     )
     {
-        var actorId = await GetCurrentUserAsync(cancellationToken);
-        if (!await IsGlobalAdminAsync(actorId, cancellationToken))
-        {
-            return Forbid();
-        }
-
         if (!Ulid.TryParse(userId, out var parsedTarget))
         {
             return BadRequest("Invalid user id format.");
@@ -203,68 +180,6 @@ public class UsersController(
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
     }
 
-    private async Task<UlidId> GetCurrentUserAsync(CancellationToken cancellationToken)
-    {
-        return await currentUserInitializer.EnsureCurrentUserIdAsync(cancellationToken);
-    }
-
-    private Task<bool> IsGlobalAdminAsync(UlidId userId, CancellationToken cancellationToken)
-    {
-        return dbContext.UserRoleMemberships
-            .AsNoTracking()
-            .AnyAsync(x =>
-                    x.UserId == userId.ToString() &&
-                    x.Role == UserRole.Admin &&
-                    x.CustomerId == null,
-                cancellationToken);
-    }
-
-    private static (int Page, int PageSize) NormalizePagination(PaginationQuery query)
-    {
-        var page = query.Page <= 0 ? 1 : query.Page;
-        var size = query.PageSize <= 0 ? 25 : Math.Min(query.PageSize, 100);
-        return (page, size);
-    }
-
-    private static UserDto MapUser(UserDb user, UserDirectoryDb? directory)
-    {
-        var primaryIdentity = user.ExternalIdentities
-            .OrderByDescending(x => x.LastSeenAt)
-            .FirstOrDefault();
-
-        var identity = primaryIdentity is null
-            ? null
-            : new ExternalIdentityDto(
-                primaryIdentity.Issuer,
-                primaryIdentity.Subject,
-                primaryIdentity.AuthenticationMethod,
-                primaryIdentity.LinkedAt,
-                primaryIdentity.LastSeenAt);
-
-        var roles = user.RoleMemberships
-            .OrderByDescending(r => r.GrantedAt)
-            .Select(r => new RoleAssignmentDto(
-                r.Id.ToString(),
-                r.Role,
-                r.CustomerId,
-                r.GrantedBy.ToString(),
-                r.GrantedAt))
-            .ToList();
-
-        var lastSeen = directory?.LastAuthenticatedAt ?? user.CreatedAt;
-
-        return new UserDto(
-            user.UserId,
-            user.Email,
-            user.DisplayName,
-            user.Status,
-            lastSeen,
-            user.CreatedAt,
-            user.CreatedAt,
-            roles,
-            identity);
-    }
-
     public sealed record InviteUserRequest(
         string Email,
         string? DisplayName,
@@ -275,4 +190,6 @@ public class UsersController(
     public sealed record InviteUserRoleRequest(UserRole Role, string? CustomerId);
 
     public sealed record ModifyUserRoleRequest(UserRole Role, string? CustomerId);
+
+    public sealed record InviteUserResponse(UserDto User, string ConfirmationLink);
 }

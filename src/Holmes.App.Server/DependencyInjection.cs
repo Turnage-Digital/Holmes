@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Gateways;
@@ -39,7 +38,7 @@ using Holmes.Workflow.Infrastructure.Sql.Notifications;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -174,7 +173,9 @@ internal static class DependencyInjection
     {
         services.AddAuthorizationBuilder()
             .AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole("Admin"))
-            .AddPolicy(AuthorizationPolicies.RequireOps, policy => policy.RequireRole("Operations", "Admin"));
+            .AddPolicy(AuthorizationPolicies.RequireOps, policy => policy.RequireRole("Operations", "Admin"))
+            .AddPolicy(AuthorizationPolicies.RequireGlobalAdmin,
+                policy => policy.Requirements.Add(new GlobalAdminRequirement()));
         return services;
     }
 
@@ -182,6 +183,8 @@ internal static class DependencyInjection
     {
         services.AddScoped<IUserContext, HttpUserContext>();
         services.AddScoped<ICurrentUserInitializer, CurrentUserInitializer>();
+        services.AddScoped<ICurrentUserAccess, CurrentUserAccess>();
+        services.AddSingleton<IAuthorizationHandler, GlobalAdminAuthorizationHandler>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
