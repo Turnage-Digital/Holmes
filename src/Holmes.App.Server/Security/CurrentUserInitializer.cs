@@ -2,21 +2,31 @@ using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Commands;
 using MediatR;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Holmes.App.Server.Security;
 
 public sealed class CurrentUserInitializer(
     IUserContext userContext,
     IMediator mediator,
-    IHostEnvironment hostEnvironment
+    IHostEnvironment hostEnvironment,
+    IMemoryCache cache
 ) : ICurrentUserInitializer
 {
+    private const string CachePrefix = "current-user-id:";
+
     public async Task<UlidId> EnsureCurrentUserIdAsync(CancellationToken cancellationToken)
     {
         var userIdClaim = userContext.Principal.FindFirst("holmes_user_id")?.Value;
         if (!string.IsNullOrWhiteSpace(userIdClaim) && Ulid.TryParse(userIdClaim, out var parsed))
         {
             return UlidId.FromUlid(parsed);
+        }
+
+        var cacheKey = $"{CachePrefix}{userContext.Issuer}|{userContext.Subject}";
+        if (cache.TryGetValue(cacheKey, out UlidId cached))
+        {
+            return cached;
         }
 
         var command = new RegisterExternalUserCommand(
@@ -26,9 +36,16 @@ public sealed class CurrentUserInitializer(
             userContext.DisplayName,
             userContext.AuthenticationMethod,
             DateTimeOffset.UtcNow,
-            AllowAutoProvision: IsTestEnvironment());
+            IsTestEnvironment());
 
-        return await mediator.Send(command, cancellationToken);
+        var userId = await mediator.Send(command, cancellationToken);
+        cache.Set(cacheKey, userId, new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = TimeSpan.FromMinutes(15),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(4)
+        });
+
+        return userId;
     }
 
     private bool IsTestEnvironment()

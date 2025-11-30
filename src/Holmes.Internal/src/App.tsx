@@ -9,6 +9,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AuthBoundary from "./components/AuthBoundary";
 import { queryClient } from "./lib/queryClient";
 import CustomersPage from "./pages/CustomersPage";
+import DashboardPage from "./pages/DashboardPage";
+import OrderDetailPage from "./pages/OrderDetailPage";
 import OrdersPage from "./pages/OrdersPage";
 import SubjectsPage from "./pages/SubjectsPage";
 import UsersPage from "./pages/UsersPage";
@@ -30,11 +32,14 @@ const App = () => {
           <Routes>
             <Route element={<AuthBoundary />}>
               <Route path="/" element={<AppLayout />}>
-                <Route index element={<Navigate to="/users" replace />} />
-                <Route path="users" element={<UsersPage />} />
-                <Route path="customers" element={<CustomersPage />} />
-                <Route path="subjects" element={<SubjectsPage />} />
+                <Route index element={<DashboardPage />} />
                 <Route path="orders" element={<OrdersPage />} />
+                <Route path="orders/:orderId" element={<OrderDetailPage />} />
+                <Route path="subjects" element={<SubjectsPage />} />
+                <Route path="customers" element={<CustomersPage />} />
+                <Route path="users" element={<UsersPage />} />
+                {/* Redirect old default to dashboard */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Route>
           </Routes>

@@ -18,7 +18,7 @@ public sealed class TestAuthenticationHandler : AuthenticationHandler<Authentica
     private const string NameHeader = "X-Auth-Name";
     private const string RolesHeader = "X-Auth-Roles";
     private const string AmrHeader = "X-Auth-Amr";
-    
+
     public TestAuthenticationHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,

@@ -5,12 +5,10 @@ using Holmes.App.Server.Gateways;
 using Holmes.App.Server.Identity;
 using Holmes.App.Server.Security;
 using Holmes.Core.Application;
-using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Domain.Security;
 using Holmes.Core.Infrastructure.Security;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
@@ -95,6 +93,7 @@ internal static class DependencyInjection
     public static IServiceCollection AddHolmesWebStack(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
+        services.AddMemoryCache();
         services.AddDistributedMemoryCache();
         services.AddOptions<IdentityProvisioningOptions>()
             .BindConfiguration(IdentityProvisioningOptions.SectionName);
@@ -184,7 +183,7 @@ internal static class DependencyInjection
         services.AddScoped<IUserContext, HttpUserContext>();
         services.AddScoped<ICurrentUserInitializer, CurrentUserInitializer>();
         services.AddScoped<ICurrentUserAccess, CurrentUserAccess>();
-        services.AddSingleton<IAuthorizationHandler, GlobalAdminAuthorizationHandler>();
+        services.AddScoped<IAuthorizationHandler, GlobalAdminAuthorizationHandler>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
@@ -322,7 +321,6 @@ internal static class DependencyInjection
         services.AddDbContext<IntakeDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
         services.AddDbContext<WorkflowDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
-        services.AddSingleton<ISpecificationQueryExecutor, EfSpecificationQueryExecutor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();

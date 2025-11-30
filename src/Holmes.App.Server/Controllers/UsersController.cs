@@ -3,14 +3,12 @@ using Holmes.App.Server.Identity;
 using Holmes.App.Server.Identity.Models;
 using Holmes.App.Server.Mappers;
 using Holmes.App.Server.Security;
-using Holmes.Core.Application;
-using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Users.Application.Abstractions.Dtos;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
-using Holmes.Users.Infrastructure.Sql.Entities;
 using Holmes.Users.Infrastructure.Sql.Specifications;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +24,6 @@ public class UsersController(
     IMediator mediator,
     UsersDbContext dbContext,
     ICurrentUserAccess currentUserAccess,
-    ISpecificationQueryExecutor specificationExecutor,
     IIdentityProvisioningClient identityProvisioningClient
 ) : ControllerBase
 {
@@ -39,20 +36,23 @@ public class UsersController(
     {
         var (page, pageSize) = PaginationNormalization.Normalize(query);
         var countSpec = new UsersWithDetailsSpecification();
-        var totalItems = await specificationExecutor
-            .Apply(dbContext.Users.AsNoTracking(), countSpec)
+        var totalItems = await dbContext.Users
+            .AsNoTracking()
+            .ApplySpecification(countSpec)
             .CountAsync(cancellationToken);
 
         var usersSpec = new UsersWithDetailsSpecification(page, pageSize);
-        var users = await specificationExecutor
-            .Apply(dbContext.Users.AsNoTracking(), usersSpec)
+        var users = await dbContext.Users
+            .AsNoTracking()
+            .ApplySpecification(usersSpec)
             .ToListAsync(cancellationToken);
 
         var userIds = users.Select(u => u.UserId).ToList();
 
         var directorySpec = new UserDirectoryByIdsSpecification(userIds);
-        var directoryEntries = await specificationExecutor
-            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+        var directoryEntries = await dbContext.UserDirectory
+            .AsNoTracking()
+            .ApplySpecification(directorySpec)
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
 
         var items = users
@@ -67,8 +67,9 @@ public class UsersController(
     {
         var currentUserId = await currentUserAccess.GetUserIdAsync(cancellationToken);
         var directorySpec = new UserDirectoryByIdsSpecification([currentUserId.ToString()]);
-        var projection = await specificationExecutor
-            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+        var projection = await dbContext.UserDirectory
+            .AsNoTracking()
+            .ApplySpecification(directorySpec)
             .SingleOrDefaultAsync(cancellationToken);
 
         if (projection is null)
@@ -118,13 +119,15 @@ public class UsersController(
 
         var invitedUserId = result.Value.ToString();
         var userSpec = new UserWithDetailsByIdSpecification(invitedUserId);
-        var user = await specificationExecutor
-            .Apply(dbContext.Users.AsNoTracking(), userSpec)
+        var user = await dbContext.Users
+            .AsNoTracking()
+            .ApplySpecification(userSpec)
             .SingleAsync(cancellationToken);
 
         var directorySpec = new UserDirectoryByIdsSpecification([invitedUserId]);
-        var directory = await specificationExecutor
-            .Apply(dbContext.UserDirectory.AsNoTracking(), directorySpec)
+        var directory = await dbContext.UserDirectory
+            .AsNoTracking()
+            .ApplySpecification(directorySpec)
             .SingleAsync(cancellationToken);
 
         var mappedUser = UserDtoMapper.ToDto(user, directory);

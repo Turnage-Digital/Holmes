@@ -10,12 +10,12 @@ interface SectionCardProps extends CardProps {
 }
 
 const SectionCard = ({
-                       title,
-                       subtitle,
-                       action,
-                       children,
-                       ...cardProps
-                     }: SectionCardProps) => (
+  title,
+  subtitle,
+  action,
+  children,
+  ...cardProps
+}: SectionCardProps) => (
   <Card {...cardProps}>
     <CardHeader title={title} subheader={subtitle} action={action} />
     <Divider />

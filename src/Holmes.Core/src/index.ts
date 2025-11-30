@@ -1,3 +1,2 @@
-export * from "./theme/tokens";
-export * from "./theme/createTheme";
+export * from "./theme";
 export * from "./lib/api";

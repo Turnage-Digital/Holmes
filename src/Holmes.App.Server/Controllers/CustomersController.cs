@@ -1,9 +1,8 @@
 using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Mappers;
 using Holmes.App.Server.Security;
-using Holmes.Core.Application;
-using Holmes.Core.Application.Abstractions.Specifications;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Infrastructure.Sql;
@@ -22,8 +21,7 @@ namespace Holmes.App.Server.Controllers;
 public class CustomersController(
     IMediator mediator,
     CustomersDbContext customersDbContext,
-    ICurrentUserAccess currentUserAccess,
-    ISpecificationQueryExecutor specificationExecutor
+    ICurrentUserAccess currentUserAccess
 ) : ControllerBase
 {
     [HttpGet]
@@ -44,12 +42,14 @@ public class CustomersController(
         var listingSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds, page, pageSize);
         var countSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds);
 
-        var totalItems = await specificationExecutor
-            .Apply(customersDbContext.CustomerDirectory.AsNoTracking(), countSpec)
+        var totalItems = await customersDbContext.CustomerDirectory
+            .AsNoTracking()
+            .ApplySpecification(countSpec)
             .CountAsync(cancellationToken);
 
-        var directories = await specificationExecutor
-            .Apply(customersDbContext.CustomerDirectory.AsNoTracking(), listingSpec)
+        var directories = await customersDbContext.CustomerDirectory
+            .AsNoTracking()
+            .ApplySpecification(listingSpec)
             .ToListAsync(cancellationToken);
 
         var customerIdsPage = directories.Select(c => c.CustomerId).ToList();

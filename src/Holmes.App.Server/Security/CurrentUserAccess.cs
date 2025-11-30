@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Application;
+using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
@@ -65,12 +65,12 @@ public sealed class CurrentUserAccess(
         }
 
         var isGlobalAdmin = await usersDbContext.UserRoleMemberships
-                .AsNoTracking()
-                .AnyAsync(x =>
-                        x.UserId == userId.ToString() &&
-                        x.Role == UserRole.Admin &&
-                        x.CustomerId == null,
-                    cancellationToken);
+            .AsNoTracking()
+            .AnyAsync(x =>
+                    x.UserId == userId.ToString() &&
+                    x.Role == UserRole.Admin &&
+                    x.CustomerId == null,
+                cancellationToken);
 
         IReadOnlyCollection<string> allowedCustomers;
         if (isGlobalAdmin)
@@ -106,5 +106,9 @@ public sealed class CurrentUserAccess(
         identity.AddClaim(new Claim(UserIdClaimType, userId));
     }
 
-    private sealed record UserAccessSnapshot(UlidId UserId, bool IsGlobalAdmin, IReadOnlyCollection<string> AllowedCustomerIds);
+    private sealed record UserAccessSnapshot(
+        UlidId UserId,
+        bool IsGlobalAdmin,
+        IReadOnlyCollection<string> AllowedCustomerIds
+    );
 }

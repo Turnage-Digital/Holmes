@@ -1,3 +1,4 @@
+using Holmes.App.Server.Security;
 using Holmes.Hosting;
 using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
@@ -42,7 +43,7 @@ internal static class HostingExtensions
         app.UseRouting();
 
         app.UseAuthentication();
-        app.UseMiddleware<Security.CurrentUserEnrichmentMiddleware>();
+        app.UseMiddleware<CurrentUserEnrichmentMiddleware>();
         app.UseAuthorization();
         app.MapControllers();
 

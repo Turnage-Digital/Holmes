@@ -1,271 +1,245 @@
 import React, { FormEvent, useState } from "react";
 
-import { apiFetch, toQueryString } from "@holmes/ui-core";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import { Alert, Box, Button, CardContent, Stack, TextField } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  TextField,
+} from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+
+import type { CreateCustomerRequest, CustomerListItemDto } from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay, SectionCard, SlaBadge } from "@/components/patterns";
-import { CreateCustomerRequest, CustomerDto, PaginatedResult } from "@/types/api";
+import { DataGridNoRowsOverlay, SectionCard } from "@/components/patterns";
+import { useCreateCustomer, useCustomers } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
-const fetchCustomersPage = ({
-                              page,
-                              pageSize
-                            }: {
-  page: number;
-  pageSize: number;
-}) =>
-  apiFetch<PaginatedResult<CustomerDto>>(
-    `/customers${toQueryString({
-      page,
-      pageSize
-    })}`
-  );
-
-const createCustomer = (payload: CreateCustomerRequest) =>
-  apiFetch<CustomerDto>("/customers", {
-    method: "POST",
-    body: payload
-  });
+const initialFormState: CreateCustomerRequest = {
+  name: "",
+  policySnapshotId: "",
+  billingEmail: "",
+  contacts: [],
+};
 
 const CustomersPage = () => {
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25
+    pageSize: 25,
   });
-  const [formState, setFormState] = useState({
-    name: "",
-    policySnapshotId: "",
-    billingEmail: "",
-    contactName: "",
-    contactEmail: ""
-  });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formState, setFormState] =
+    useState<CreateCustomerRequest>(initialFormState);
   const [successMessage, setSuccessMessage] = useState<string>();
   const [clientError, setClientError] = useState<string>();
 
-  const queryClient = useQueryClient();
+  const {
+    data: customersData,
+    isLoading,
+    error,
+  } = useCustomers(paginationModel.page + 1, paginationModel.pageSize);
 
-  const customersQuery = useQuery({
-    queryKey: ["customers", paginationModel.page, paginationModel.pageSize],
-    queryFn: () =>
-      fetchCustomersPage({
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize
-      }),
-    placeholderData: keepPreviousData
-  });
+  const createCustomerMutation = useCreateCustomer();
 
-  const createCustomerMutation = useMutation({
-    mutationFn: createCustomer,
-    onMutate: () => {
-      setClientError(undefined);
-      setSuccessMessage(undefined);
-    },
-    onSuccess: async (_, variables) => {
-      setSuccessMessage(`Customer ${variables.name} created`);
-      setFormState({
-        name: "",
-        policySnapshotId: "",
-        billingEmail: "",
-        contactName: "",
-        contactEmail: ""
-      });
-      await queryClient.invalidateQueries({ queryKey: ["customers"] });
-    },
-    onError: (err) => setClientError(getErrorMessage(err))
-  });
-
-  const handleCreateCustomer = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const payload: CreateCustomerRequest = {
-      name: formState.name,
-      policySnapshotId: formState.policySnapshotId,
-      billingEmail: formState.billingEmail || undefined
-    };
-
-    if (formState.contactName && formState.contactEmail) {
-      payload.contacts = [
-        {
-          name: formState.contactName,
-          email: formState.contactEmail
-        }
-      ];
-    }
-
-    createCustomerMutation.mutate(payload);
+  const handleOpenDialog = () => {
+    setDialogOpen(true);
+    setClientError(undefined);
+    setSuccessMessage(undefined);
   };
 
-  const columns = React.useMemo<GridColDef<CustomerDto>[]>(
-    () => [
-      { field: "name", headerName: "Name", flex: 1, minWidth: 200 },
-      { field: "tenantId", headerName: "Tenant", width: 200 },
-      { field: "status", headerName: "Status", width: 150 },
-      {
-        field: "policySnapshotId",
-        headerName: "Policy snapshot",
-        flex: 1,
-        minWidth: 200
-      },
-      {
-        field: "contacts",
-        headerName: "Contacts",
-        flex: 1.2,
-        minWidth: 220,
-        sortable: false,
-        renderCell: (params) => {
-          const row = params.row as CustomerDto;
-          return row.contacts.map((contact) => contact.email).join(", ");
-        }
-      }
-    ],
-    []
-  );
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setFormState(initialFormState);
+    setClientError(undefined);
+  };
 
-  const isRefreshing = customersQuery.isFetching;
-  const isCreatingCustomer = createCustomerMutation.isPending;
-  const createButtonLabel = isCreatingCustomer ? "Creating..." : "Create";
-  const tableLoading = customersQuery.isFetching;
-  const fetchErrorMessage = customersQuery.error
-    ? getErrorMessage(customersQuery.error)
-    : undefined;
-  const combinedError = clientError ?? fetchErrorMessage;
-  const customersResult = customersQuery.data;
+  const handleCreateCustomer = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setClientError(undefined);
+    setSuccessMessage(undefined);
+
+    if (!formState.name.trim()) {
+      setClientError("Customer name is required.");
+      return;
+    }
+
+    if (!formState.policySnapshotId.trim()) {
+      setClientError("Policy snapshot ID is required.");
+      return;
+    }
+
+    try {
+      await createCustomerMutation.mutateAsync(formState);
+      setSuccessMessage(`Customer "${formState.name}" created successfully.`);
+      handleCloseDialog();
+    } catch (err) {
+      setClientError(getErrorMessage(err));
+    }
+  };
+
+  const columns: GridColDef<CustomerListItemDto>[] = [
+    {
+      field: "name",
+      headerName: "Name",
+      width: 250,
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 120,
+    },
+    {
+      field: "policySnapshotId",
+      headerName: "Policy",
+      width: 200,
+      renderCell: (params) => (
+        <span style={{ fontFamily: "monospace" }}>{params.value}</span>
+      ),
+    },
+    {
+      field: "billingEmail",
+      headerName: "Billing Email",
+      width: 220,
+    },
+    {
+      field: "contacts",
+      headerName: "Contacts",
+      width: 100,
+      renderCell: (params) => params.value?.length ?? 0,
+    },
+    {
+      field: "createdAt",
+      headerName: "Created",
+      width: 180,
+      renderCell: (params) =>
+        formatDistanceToNow(new Date(params.value), { addSuffix: true }),
+    },
+  ];
 
   return (
-    <Stack spacing={3}>
+    <>
       <PageHeader
         title="Customers"
-        subtitle="CRA clients, policy snapshots, and contact rosters."
-        meta={<SlaBadge status="at_risk" deadlineLabel="Billing lock in 6h" />}
-        actions={
+        subtitle="Manage CRA clients and their configurations"
+        action={
           <Button
-            startIcon={<RefreshIcon />}
-            disabled={isRefreshing}
-            onClick={() => customersQuery.refetch()}
+            variant="contained"
+            startIcon={<AddBusinessIcon />}
+            onClick={handleOpenDialog}
           >
-            Refresh
+            Add Customer
           </Button>
         }
       />
 
-      {combinedError && <Alert severity="error">{combinedError}</Alert>}
-      {successMessage && <Alert severity="success">{successMessage}</Alert>}
-
-      <Box component="form" onSubmit={handleCreateCustomer}>
-        <SectionCard
-          title="Create customer"
-          subtitle="Bind policy snapshots and optional billing contacts."
+      {successMessage && (
+        <Alert
+          severity="success"
+          onClose={() => setSuccessMessage(undefined)}
+          sx={{ mb: 2 }}
         >
-          <CardContent>
-            <Stack spacing={2}>
-              <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-                <TextField
-                  required
-                  label="Customer name"
-                  value={formState.name}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      name: event.target.value
-                    }))
-                  }
-                  fullWidth
-                />
-                <TextField
-                  required
-                  label="Policy snapshot ID"
-                  value={formState.policySnapshotId}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      policySnapshotId: event.target.value
-                    }))
-                  }
-                  fullWidth
-                />
-                <TextField
-                  label="Billing email"
-                  type="email"
-                  value={formState.billingEmail}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      billingEmail: event.target.value
-                    }))
-                  }
-                  fullWidth
-                />
-              </Stack>
-              <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-                <TextField
-                  label="Primary contact name"
-                  value={formState.contactName}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      contactName: event.target.value
-                    }))
-                  }
-                  fullWidth
-                />
-                <TextField
-                  label="Primary contact email"
-                  type="email"
-                  value={formState.contactEmail}
-                  onChange={(event) =>
-                    setFormState((prev) => ({
-                      ...prev,
-                      contactEmail: event.target.value
-                    }))
-                  }
-                  fullWidth
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  startIcon={<AddBusinessIcon />}
-                  sx={{
-                    alignSelf: { xs: "stretch", md: "flex-end" },
-                    minHeight: 56
-                  }}
-                  disabled={isCreatingCustomer}
-                >
-                  {createButtonLabel}
-                </Button>
-              </Stack>
-            </Stack>
-          </CardContent>
-        </SectionCard>
-      </Box>
+          {successMessage}
+        </Alert>
+      )}
 
-      <SectionCard
-        title="Registry"
-        subtitle="Customers tied to the current tenant."
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Failed to load customers. Please try again.
+        </Alert>
+      )}
+
+      <DataGrid
+        rows={customersData?.items ?? []}
+        columns={columns}
+        getRowId={(row) => row.id}
+        loading={isLoading}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        pageSizeOptions={[10, 25, 50]}
+        paginationMode="server"
+        rowCount={customersData?.totalItems ?? 0}
+        slots={{
+          noRowsOverlay: () => (
+            <DataGridNoRowsOverlay message="No customers yet. Add your first customer to get started." />
+          ),
+        }}
+        sx={{ minHeight: 400 }}
+        disableRowSelectionOnClick
+      />
+
+      {/* Create Customer Dialog */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
       >
-        <CardContent>
-          <Box sx={{ height: 520, width: "100%" }}>
-            <DataGrid
-              disableColumnMenu
-              rows={customersResult?.items ?? []}
-              getRowId={(row) => row.id}
-              columns={columns}
-              paginationModel={paginationModel}
-              onPaginationModelChange={(model) => setPaginationModel(model)}
-              rowCount={customersResult?.totalItems ?? 0}
-              paginationMode="server"
-              loading={tableLoading}
-              slots={{
-                noRowsOverlay: DataGridNoRowsOverlay
-              }}
-            />
-          </Box>
-        </CardContent>
-      </SectionCard>
-    </Stack>
+        <form onSubmit={handleCreateCustomer}>
+          <DialogTitle>Add Customer</DialogTitle>
+          <DialogContent>
+            <Stack spacing={3} sx={{ mt: 1 }}>
+              {clientError && <Alert severity="error">{clientError}</Alert>}
+
+              <TextField
+                label="Customer Name"
+                value={formState.name}
+                onChange={(e) =>
+                  setFormState((prev) => ({ ...prev, name: e.target.value }))
+                }
+                required
+                fullWidth
+              />
+
+              <TextField
+                label="Policy Snapshot ID"
+                value={formState.policySnapshotId}
+                onChange={(e) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    policySnapshotId: e.target.value,
+                  }))
+                }
+                required
+                fullWidth
+                helperText="The policy configuration that applies to this customer's orders."
+              />
+
+              <TextField
+                label="Billing Email"
+                type="email"
+                value={formState.billingEmail}
+                onChange={(e) =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    billingEmail: e.target.value,
+                  }))
+                }
+                fullWidth
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={createCustomerMutation.isPending}
+            >
+              {createCustomerMutation.isPending && <>Creating…</>}
+              {!createCustomerMutation.isPending && <>Create Customer</>}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </>
   );
 };
 

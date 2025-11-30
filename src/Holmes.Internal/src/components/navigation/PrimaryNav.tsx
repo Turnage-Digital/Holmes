@@ -15,12 +15,18 @@ interface PrimaryNavProps {
 
 const PrimaryNav = ({ items }: PrimaryNavProps) => {
   const location = useLocation();
+
+  // Find the active tab by matching the pathname
   const active =
-    items.find((item) =>
-      location.pathname === "/"
-        ? item.path === "/"
-        : location.pathname.startsWith(item.path)
-    )?.path ?? items[0]?.path;
+    items.find((item) => {
+      // Exact match for root
+      if (item.path === "/") {
+        return location.pathname === "/";
+      }
+      // For other paths, check if the current path starts with the item path
+      // This handles nested routes like /orders/123 matching /orders
+      return location.pathname.startsWith(item.path);
+    })?.path ?? false;
 
   return (
     <Tabs

@@ -1,28 +1,8 @@
 import { ApiError } from "@holmes/ui-core";
 
-export const getErrorMessage = (
-  error: unknown,
-  fallback = "Something went wrong"
-) => {
-  if (!error) {
-    return fallback;
-  }
-
+export const getErrorMessage = (error: unknown): string => {
   if (error instanceof ApiError) {
-    if (typeof error.payload === "string") {
-      return error.payload;
-    }
-
-    if (
-      error.payload &&
-      typeof error.payload === "object" &&
-      "message" in error.payload &&
-      typeof (error.payload as { message?: unknown }).message === "string"
-    ) {
-      return (error.payload as { message?: string }).message ?? fallback;
-    }
-
-    return `${error.message} (status ${error.status})`;
+    return error.message;
   }
 
   if (error instanceof Error) {
@@ -33,5 +13,5 @@ export const getErrorMessage = (
     return error;
   }
 
-  return fallback;
+  return "An unexpected error occurred. Please try again.";
 };

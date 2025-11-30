@@ -37,6 +37,22 @@ public class SubjectTests
     }
 
     [Test]
+    public void Register_Allows_Empty_Names_For_Pending_Intake()
+    {
+        var id = UlidId.NewUlid();
+        var registeredAt = DateTimeOffset.UtcNow;
+
+        var subject = Subject.Register(id, string.Empty, string.Empty, null, "pending@example.com", registeredAt);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(subject.GivenName, Is.EqualTo(string.Empty));
+            Assert.That(subject.FamilyName, Is.EqualTo(string.Empty));
+            Assert.That(subject.Email, Is.EqualTo("pending@example.com"));
+        });
+    }
+
+    [Test]
     public void AddAlias_Adds_NewAlias_And_Emits_Event()
     {
         var subject = Subject.Register(UlidId.NewUlid(), "Avery", "Nguyen", null, null, DateTimeOffset.UtcNow);

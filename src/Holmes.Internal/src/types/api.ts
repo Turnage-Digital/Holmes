@@ -1,5 +1,9 @@
 export type Ulid = string;
 
+// ============================================================================
+// User Types
+// ============================================================================
+
 export type UserStatus = "Invited" | "Active" | "Suspended";
 
 export type UserRole = "Admin" | "Operations";
@@ -32,14 +36,23 @@ export interface UserDto {
   updatedAt: string;
 }
 
-export interface CurrentUserDto {
-  id: Ulid;
-  email: string;
-  displayName?: string;
-  roles: UserRole[];
+export interface UserRoleDto {
+  role: UserRole;
+  customerId?: Ulid | null;
 }
 
-export interface InviteUserRole {
+export interface CurrentUserDto {
+  userId: Ulid;
+  email: string;
+  displayName?: string;
+  issuer?: string;
+  subject?: string;
+  status: UserStatus;
+  lastAuthenticatedAt: string;
+  roles: UserRoleDto[];
+}
+
+export interface InviteUserRoleRequest {
   role: UserRole;
   customerId?: Ulid | null;
 }
@@ -48,13 +61,22 @@ export interface InviteUserRequest {
   email: string;
   displayName?: string;
   sendInviteEmail?: boolean;
-  roles: InviteUserRole[];
+  roles: InviteUserRoleRequest[];
+}
+
+export interface InviteUserResponse {
+  user: UserDto;
+  confirmationLink?: string;
 }
 
 export interface GrantUserRoleRequest {
   role: UserRole;
   customerId?: Ulid | null;
 }
+
+// ============================================================================
+// Customer Types
+// ============================================================================
 
 export type CustomerStatus = "Active" | "Suspended";
 
@@ -66,7 +88,13 @@ export interface CustomerContactDto {
   role?: string;
 }
 
-export interface CustomerDto {
+export interface CustomerAdminDto {
+  userId: Ulid;
+  assignedBy?: Ulid;
+  assignedAt: string;
+}
+
+export interface CustomerListItemDto {
   id: Ulid;
   tenantId: Ulid;
   name: string;
@@ -78,7 +106,20 @@ export interface CustomerDto {
   updatedAt: string;
 }
 
-export interface CreateCustomerContact {
+export interface CustomerDetailDto {
+  id: Ulid;
+  tenantId: Ulid;
+  name: string;
+  status: CustomerStatus;
+  policySnapshotId: string;
+  billingEmail?: string;
+  contacts: CustomerContactDto[];
+  admins: CustomerAdminDto[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCustomerContactRequest {
   name: string;
   email: string;
   phone?: string;
@@ -89,8 +130,12 @@ export interface CreateCustomerRequest {
   name: string;
   policySnapshotId: string;
   billingEmail?: string;
-  contacts?: CreateCustomerContact[];
+  contacts?: CreateCustomerContactRequest[];
 }
+
+// ============================================================================
+// Subject Types
+// ============================================================================
 
 export type SubjectStatus = "Active" | "Merged" | "Archived";
 
@@ -98,17 +143,17 @@ export interface SubjectAliasDto {
   id: Ulid;
   firstName: string;
   lastName: string;
-  middleName?: string;
+  birthDate?: string;
   createdAt: string;
 }
 
-export interface SubjectDto {
+export interface SubjectListItemDto {
   id: Ulid;
   firstName: string;
-  lastName: string;
   middleName?: string;
+  lastName: string;
   birthDate?: string;
-  ssnLast4?: string;
+  email?: string;
   status: SubjectStatus;
   mergeParentId?: Ulid | null;
   aliases: SubjectAliasDto[];
@@ -116,11 +161,116 @@ export interface SubjectDto {
   updatedAt: string;
 }
 
+export interface SubjectSummaryDto {
+  subjectId: Ulid;
+  givenName: string;
+  familyName: string;
+  dateOfBirth?: string;
+  email?: string;
+  isMerged: boolean;
+  aliasCount: number;
+  createdAt: string;
+}
+
+export interface RegisterSubjectRequest {
+  givenName: string;
+  familyName: string;
+  dateOfBirth?: string;
+  email?: string;
+}
+
 export interface MergeSubjectsRequest {
   winnerSubjectId: Ulid;
   mergedSubjectId: Ulid;
   reason?: string;
 }
+
+// ============================================================================
+// Order Types
+// ============================================================================
+
+export type OrderStatus =
+  | "Created"
+  | "Invited"
+  | "IntakeInProgress"
+  | "IntakeComplete"
+  | "ReadyForRouting"
+  | "RoutingInProgress"
+  | "ReadyForReport"
+  | "Closed"
+  | "Blocked"
+  | "Canceled";
+
+export interface OrderSummaryDto {
+  orderId: Ulid;
+  subjectId: Ulid;
+  customerId: Ulid;
+  policySnapshotId: string;
+  packageCode?: string | null;
+  status: string;
+  lastStatusReason?: string | null;
+  lastUpdatedAt: string;
+  readyForRoutingAt?: string | null;
+  closedAt?: string | null;
+  canceledAt?: string | null;
+}
+
+export interface OrderTimelineEntryDto {
+  eventId: Ulid;
+  orderId: Ulid;
+  eventType: string;
+  description: string;
+  source?: string;
+  occurredAt: string;
+  recordedAt: string;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface OrderStatsDto {
+  invited: number;
+  intakeInProgress: number;
+  intakeComplete: number;
+  readyForRouting: number;
+  blocked: number;
+  canceled: number;
+}
+
+export interface CreateOrderRequest {
+  customerId: Ulid;
+  subjectId: Ulid;
+  policySnapshotId: string;
+  packageCode?: string;
+}
+
+export interface OrderSummaryQuery {
+  page?: number;
+  pageSize?: number;
+  customerId?: Ulid;
+  subjectId?: Ulid;
+  orderId?: Ulid;
+  status?: string[];
+  [key: string]: string | number | string[] | Ulid | undefined;
+}
+
+// ============================================================================
+// Intake Types
+// ============================================================================
+
+export interface IssueIntakeInviteRequest {
+  orderId: Ulid;
+  subjectId: Ulid;
+  customerId: Ulid;
+  policySnapshotId: string;
+  policySnapshotSchemaVersion?: string;
+  policyMetadata?: Record<string, string>;
+  timeToLiveHours?: number;
+  policyCapturedAt?: string;
+  resumeToken?: string;
+}
+
+// ============================================================================
+// Pagination Types
+// ============================================================================
 
 export interface PaginationQuery {
   page?: number;
@@ -135,28 +285,13 @@ export interface PaginatedResult<TItem> {
   totalPages: number;
 }
 
-export type OrderStatus =
-  | "Created"
-  | "Invited"
-  | "IntakeInProgress"
-  | "IntakeComplete"
-  | "ReadyForRouting"
-  | "RoutingInProgress"
-  | "ReadyForReport"
-  | "Closed"
-  | "Blocked"
-  | "Canceled";
+// ============================================================================
+// SSE Event Types
+// ============================================================================
 
-export interface OrderSummary {
+export interface OrderChangeEvent {
   orderId: Ulid;
-  subjectId: Ulid;
-  customerId: Ulid;
-  policySnapshotId: string;
-  packageCode?: string | null;
-  status: OrderStatus;
-  lastStatusReason?: string | null;
-  lastUpdatedAt: string;
-  readyForRoutingAt?: string | null;
-  closedAt?: string | null;
-  canceledAt?: string | null;
+  status: string;
+  reason?: string;
+  changedAt: string;
 }

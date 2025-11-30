@@ -6,7 +6,6 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Application.Abstractions.Dtos;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
-using Holmes.Subjects.Infrastructure.Sql.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
