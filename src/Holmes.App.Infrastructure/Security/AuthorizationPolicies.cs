@@ -1,4 +1,4 @@
-namespace Holmes.App.Server.Security;
+namespace Holmes.App.Infrastructure.Security;
 
 public static class AuthorizationPolicies
 {

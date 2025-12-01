@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Holmes.App.Server.Security;
+namespace Holmes.App.Infrastructure.Security;
 
 public interface IUserContext
 {

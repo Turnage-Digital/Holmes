@@ -1,6 +1,6 @@
-using Holmes.App.Server.Identity.Models;
+using Holmes.App.Infrastructure.Identity.Models;
 
-namespace Holmes.App.Server.Identity;
+namespace Holmes.App.Infrastructure.Identity;
 
 public interface IIdentityProvisioningClient
 {

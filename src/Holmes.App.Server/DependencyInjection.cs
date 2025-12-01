@@ -1,9 +1,7 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.App.Server.Gateways;
-using Holmes.App.Server.Identity;
-using Holmes.App.Server.Security;
+using Holmes.App.Infrastructure;
+using Holmes.App.Integration;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Domain.Security;
@@ -35,11 +33,8 @@ using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Notifications;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using MediatR;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySqlConnector;
 using OpenTelemetry.Metrics;
@@ -95,9 +90,6 @@ internal static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
         services.AddDistributedMemoryCache();
-        services.AddOptions<IdentityProvisioningOptions>()
-            .BindConfiguration(IdentityProvisioningOptions.SectionName);
-        services.AddHttpClient<IIdentityProvisioningClient, IdentityProvisioningClient>();
 
         services.AddControllers()
             .AddJsonOptions(options =>
@@ -110,80 +102,8 @@ internal static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddHolmesAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        IWebHostEnvironment environment
-    )
-    {
-        var isRunningInTestHost = string.Equals(
-            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_TESTHOST"),
-            "1",
-            StringComparison.Ordinal);
-
-        if (environment.IsEnvironment("Testing") || isRunningInTestHost)
-        {
-            services
-                .AddAuthentication(options =>
-                {
-                    options.DefaultScheme = TestAuthenticationDefaults.Scheme;
-                    options.DefaultAuthenticateScheme = TestAuthenticationDefaults.Scheme;
-                    options.DefaultChallengeScheme = TestAuthenticationDefaults.Scheme;
-                })
-                .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
-                    TestAuthenticationDefaults.Scheme, _ => { });
-
-            return services;
-        }
-
-        var authority = configuration["Authentication:Authority"];
-        var clientId = configuration["Authentication:ClientId"];
-        var clientSecret = configuration["Authentication:ClientSecret"];
-
-        if (string.IsNullOrWhiteSpace(authority) ||
-            string.IsNullOrWhiteSpace(clientId) ||
-            string.IsNullOrWhiteSpace(clientSecret))
-        {
-            throw new InvalidOperationException(
-                "Interactive authentication requires Authentication:Authority, ClientId, and ClientSecret.");
-        }
-
-        JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
-
-        services
-            .AddAuthentication("Bearer")
-            .AddJwtBearer("Bearer", options =>
-            {
-                options.Authority = authority;
-                options.Audience = "holmes.api";
-                options.MapInboundClaims = false;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    NameClaimType = "name",
-                    RoleClaimType = "role",
-                    ValidateAudience = true
-                };
-            });
-
-        return services;
-    }
-
-    public static IServiceCollection AddHolmesAuthorization(this IServiceCollection services)
-    {
-        services.AddAuthorizationBuilder()
-            .AddPolicy(AuthorizationPolicies.RequireAdmin, policy => policy.RequireRole("Admin"))
-            .AddPolicy(AuthorizationPolicies.RequireOps, policy => policy.RequireRole("Operations", "Admin"))
-            .AddPolicy(AuthorizationPolicies.RequireGlobalAdmin,
-                policy => policy.Requirements.Add(new GlobalAdminRequirement()));
-        return services;
-    }
-
     public static IServiceCollection AddHolmesApplicationCore(this IServiceCollection services)
     {
-        services.AddScoped<IUserContext, HttpUserContext>();
-        services.AddScoped<ICurrentUserInitializer, CurrentUserInitializer>();
-        services.AddScoped<ICurrentUserAccess, CurrentUserAccess>();
-        services.AddScoped<IAuthorizationHandler, GlobalAdminAuthorizationHandler>();
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AssignUserBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
@@ -304,7 +224,7 @@ internal static class DependencyInjection
         services.AddIntakeInfrastructureSql(connectionString, serverVersion);
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
 
-        services.AddScoped<IOrderWorkflowGateway, OrderWorkflowGateway>();
+        services.AddAppIntegration();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
 
         return services;
@@ -332,7 +252,7 @@ internal static class DependencyInjection
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
-        services.AddScoped<IOrderWorkflowGateway, OrderWorkflowGateway>();
+        services.AddAppIntegration();
         return services;
     }
 }

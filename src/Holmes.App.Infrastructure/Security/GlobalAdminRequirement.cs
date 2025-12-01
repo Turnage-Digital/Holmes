@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace Holmes.App.Server.Security;
+namespace Holmes.App.Infrastructure.Security;
 
 public sealed class GlobalAdminRequirement : IAuthorizationRequirement;
 
@@ -12,7 +12,6 @@ public sealed class GlobalAdminAuthorizationHandler(ICurrentUserAccess currentUs
         GlobalAdminRequirement requirement
     )
     {
-        // If the user context cannot resolve, fail silently; caller will be forbidden.
         if (await currentUserAccess.IsGlobalAdminAsync(CancellationToken.None))
         {
             context.Succeed(requirement);

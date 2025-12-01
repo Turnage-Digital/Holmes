@@ -1,6 +1,6 @@
 using System.Text.Json;
+using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
-using Holmes.App.Server.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql;
@@ -101,18 +101,10 @@ public sealed class OrdersController(
                 o.CanceledAt))
             .SingleOrDefaultAsync(cancellationToken);
 
-        summary ??= new OrderSummaryDto(
-            orderId.ToString(),
-            subjectId,
-            customerId,
-            request.PolicySnapshotId,
-            request.PackageCode,
-            nameof(OrderStatus.Created),
-            null,
-            timestamp,
-            null,
-            null,
-            null);
+        if (summary is null)
+        {
+            return Problem("Failed to load created order.");
+        }
 
         return Created($"/api/orders/{orderId}/timeline", summary);
     }
@@ -339,33 +331,33 @@ public sealed class OrdersController(
 
         return JsonSerializer.Deserialize<JsonElement>(metadataJson);
     }
+
+    public sealed record OrderSummaryQuery
+    {
+        public int Page { get; init; } = 1;
+
+        public int PageSize { get; init; } = 25;
+
+        public string? CustomerId { get; init; }
+
+        public string? SubjectId { get; init; }
+
+        public string? OrderId { get; init; }
+
+        public IReadOnlyCollection<string>? Status { get; init; }
+    }
+
+    public sealed record OrderTimelineQuery
+    {
+        public DateTimeOffset? Before { get; init; }
+
+        public int Limit { get; init; } = 50;
+    }
+
+    public sealed record CreateOrderRequest(
+        string CustomerId,
+        string SubjectId,
+        string PolicySnapshotId,
+        string? PackageCode = null
+    );
 }
-
-public sealed record OrderSummaryQuery
-{
-    public int Page { get; init; } = 1;
-
-    public int PageSize { get; init; } = 25;
-
-    public string? CustomerId { get; init; }
-
-    public string? SubjectId { get; init; }
-
-    public string? OrderId { get; init; }
-
-    public IReadOnlyCollection<string>? Status { get; init; }
-}
-
-public sealed record OrderTimelineQuery
-{
-    public DateTimeOffset? Before { get; init; }
-
-    public int Limit { get; init; } = 50;
-}
-
-public sealed record CreateOrderRequest(
-    string CustomerId,
-    string SubjectId,
-    string PolicySnapshotId,
-    string? PackageCode = null
-);

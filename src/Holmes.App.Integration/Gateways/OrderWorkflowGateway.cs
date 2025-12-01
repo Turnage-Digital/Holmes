@@ -1,8 +1,9 @@
 using Holmes.Intake.Application.Gateways;
 using Holmes.Workflow.Application.Commands;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
-namespace Holmes.App.Server.Gateways;
+namespace Holmes.App.Integration.Gateways;
 
 public sealed class OrderWorkflowGateway(
     ISender sender,

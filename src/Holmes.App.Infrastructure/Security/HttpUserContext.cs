@@ -1,7 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
-namespace Holmes.App.Server.Security;
+namespace Holmes.App.Infrastructure.Security;
 
 public class HttpUserContext(IHttpContextAccessor accessor)
     : IUserContext

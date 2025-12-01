@@ -3,8 +3,9 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Commands;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
 
-namespace Holmes.App.Server.Security;
+namespace Holmes.App.Infrastructure.Security;
 
 public sealed class CurrentUserInitializer(
     IUserContext userContext,

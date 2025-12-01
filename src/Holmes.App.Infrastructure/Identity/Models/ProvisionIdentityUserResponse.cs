@@ -1,4 +1,4 @@
-namespace Holmes.App.Server.Identity.Models;
+namespace Holmes.App.Infrastructure.Identity.Models;
 
 public sealed record ProvisionIdentityUserResponse(
     string IdentityUserId,

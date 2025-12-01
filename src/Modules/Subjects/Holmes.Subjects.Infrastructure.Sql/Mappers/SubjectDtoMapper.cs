@@ -2,7 +2,7 @@ using System.Globalization;
 using Holmes.Subjects.Application.Abstractions.Dtos;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 
-namespace Holmes.App.Server.Mappers;
+namespace Holmes.Subjects.Infrastructure.Sql.Mappers;
 
 public static class SubjectDtoMapper
 {

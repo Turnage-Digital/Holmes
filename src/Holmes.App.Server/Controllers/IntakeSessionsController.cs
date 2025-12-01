@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Holmes.App.Server.Security;
+using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Application.Queries;
@@ -12,7 +12,7 @@ namespace Holmes.App.Server.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/intake/sessions")]
-public class IntakeSessionsController(IMediator mediator) : ControllerBase
+public sealed class IntakeSessionsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]

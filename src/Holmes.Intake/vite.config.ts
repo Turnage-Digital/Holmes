@@ -66,7 +66,8 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@holmes/ui-core": fileURLToPath(new URL("../Holmes.Core/src", import.meta.url))
-    }
+    },
+    dedupe: ["@emotion/react", "@emotion/styled", "@mui/material", "react", "react-dom"]
   },
   server: isDevelopment
     ? {

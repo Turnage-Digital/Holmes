@@ -1,8 +1,8 @@
+using Holmes.App.Infrastructure.Identity;
+using Holmes.App.Infrastructure.Identity.Models;
+using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
-using Holmes.App.Server.Identity;
-using Holmes.App.Server.Identity.Models;
-using Holmes.App.Server.Mappers;
-using Holmes.App.Server.Security;
+using Holmes.Users.Infrastructure.Sql.Mappers;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Users.Application.Abstractions.Dtos;
@@ -20,7 +20,7 @@ namespace Holmes.App.Server.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/users")]
-public class UsersController(
+public sealed class UsersController(
     IMediator mediator,
     UsersDbContext dbContext,
     ICurrentUserAccess currentUserAccess,
@@ -122,13 +122,18 @@ public class UsersController(
         var user = await dbContext.Users
             .AsNoTracking()
             .ApplySpecification(userSpec)
-            .SingleAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
 
         var directorySpec = new UserDirectoryByIdsSpecification([invitedUserId]);
         var directory = await dbContext.UserDirectory
             .AsNoTracking()
             .ApplySpecification(directorySpec)
-            .SingleAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (user is null || directory is null)
+        {
+            return Problem("Failed to load invited user.");
+        }
 
         var mappedUser = UserDtoMapper.ToDto(user, directory);
 

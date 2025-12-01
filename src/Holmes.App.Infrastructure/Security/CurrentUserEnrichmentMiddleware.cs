@@ -2,9 +2,10 @@ using System.Security.Claims;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Infrastructure.Sql;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
-namespace Holmes.App.Server.Security;
+namespace Holmes.App.Infrastructure.Security;
 
 public sealed class CurrentUserEnrichmentMiddleware(RequestDelegate next)
 {

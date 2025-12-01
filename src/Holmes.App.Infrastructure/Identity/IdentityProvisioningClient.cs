@@ -1,8 +1,9 @@
 using System.Net.Http.Headers;
-using Holmes.App.Server.Identity.Models;
+using System.Net.Http.Json;
+using Holmes.App.Infrastructure.Identity.Models;
 using Microsoft.Extensions.Options;
 
-namespace Holmes.App.Server.Identity;
+namespace Holmes.App.Infrastructure.Identity;
 
 internal sealed class IdentityProvisioningClient(
     HttpClient httpClient,
@@ -23,16 +24,14 @@ internal sealed class IdentityProvisioningClient(
 
         httpClient.BaseAddress ??= new Uri(_options.BaseUrl);
 
-        using var message = new HttpRequestMessage(HttpMethod.Post, "/provision/users")
+        using var message = new HttpRequestMessage(HttpMethod.Post, "/provision/users");
+        message.Content = JsonContent.Create(new
         {
-            Content = JsonContent.Create(new
-            {
-                holmesUserId = request.HolmesUserId,
-                email = request.Email,
-                displayName = request.DisplayName,
-                confirmationReturnUrl = _options.ConfirmationReturnUrl
-            })
-        };
+            holmesUserId = request.HolmesUserId,
+            email = request.Email,
+            displayName = request.DisplayName,
+            confirmationReturnUrl = _options.ConfirmationReturnUrl
+        });
 
         if (!string.IsNullOrWhiteSpace(_options.ApiKey))
         {

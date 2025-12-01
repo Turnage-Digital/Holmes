@@ -1,6 +1,6 @@
+using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
-using Holmes.App.Server.Mappers;
-using Holmes.App.Server.Security;
+using Holmes.Customers.Infrastructure.Sql.Mappers;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Customers.Application.Abstractions.Dtos;
@@ -18,14 +18,13 @@ namespace Holmes.App.Server.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/customers")]
-public class CustomersController(
+public sealed class CustomersController(
     IMediator mediator,
     CustomersDbContext customersDbContext,
     ICurrentUserAccess currentUserAccess
 ) : ControllerBase
 {
     [HttpGet]
-    [Authorize]
     public async Task<ActionResult<PaginatedResponse<CustomerListItemDto>>> GetCustomers(
         [FromQuery] PaginationQuery query,
         CancellationToken cancellationToken
@@ -81,7 +80,6 @@ public class CustomersController(
     }
 
     [HttpPost]
-    [Authorize]
     public async Task<ActionResult<CustomerListItemDto>> CreateCustomer(
         [FromBody] CreateCustomerRequest request,
         CancellationToken cancellationToken
@@ -115,7 +113,6 @@ public class CustomersController(
     }
 
     [HttpGet("{customerId}")]
-    [Authorize]
     public async Task<ActionResult<CustomerDetailDto>> GetCustomerById(
         string customerId,
         CancellationToken cancellationToken
@@ -156,7 +153,6 @@ public class CustomersController(
     }
 
     [HttpPost("{customerId}/admins")]
-    [Authorize]
     public async Task<IActionResult> AssignCustomerAdmin(
         string customerId,
         [FromBody] ModifyCustomerAdminRequest request,
@@ -182,7 +178,6 @@ public class CustomersController(
     }
 
     [HttpDelete("{customerId}/admins")]
-    [Authorize]
     public async Task<IActionResult> RemoveCustomerAdmin(
         string customerId,
         [FromBody] ModifyCustomerAdminRequest request,

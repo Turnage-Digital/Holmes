@@ -6,7 +6,7 @@ using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Microsoft.EntityFrameworkCore;
 
-namespace Holmes.App.Server.Security;
+namespace Holmes.App.Infrastructure.Security;
 
 public sealed class CurrentUserAccess(
     IUserContext userContext,

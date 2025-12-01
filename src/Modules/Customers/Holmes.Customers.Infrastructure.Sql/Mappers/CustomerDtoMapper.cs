@@ -1,7 +1,7 @@
 using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Infrastructure.Sql.Entities;
 
-namespace Holmes.App.Server.Mappers;
+namespace Holmes.Customers.Infrastructure.Sql.Mappers;
 
 public static class CustomerDtoMapper
 {
