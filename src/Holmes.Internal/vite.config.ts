@@ -65,7 +65,7 @@ if (isDevelopment) {
           proxyRes.headers["X-Accel-Buffering"] = "no";
           proxyRes.headers["Cache-Control"] = "no-cache";
         });
-      },
+      }
     },
     "^/api": {
       target,

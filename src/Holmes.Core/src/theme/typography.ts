@@ -97,7 +97,8 @@ export const typography: TypographyVariantsOptions = {
     fontSize: "0.875rem",
     fontWeight: 500,
     lineHeight: 1.5,
-    textTransform: "none", // No all-caps buttons
+    // No all-caps buttons
+    textTransform: "none",
   },
 };
 

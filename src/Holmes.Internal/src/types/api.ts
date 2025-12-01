@@ -248,6 +248,7 @@ export interface OrderSummaryQuery {
   subjectId?: Ulid;
   orderId?: Ulid;
   status?: string[];
+
   [key: string]: string | number | string[] | Ulid | undefined;
 }
 

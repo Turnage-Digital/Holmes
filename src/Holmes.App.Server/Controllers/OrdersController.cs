@@ -77,7 +77,7 @@ public sealed class OrdersController(
             request.PolicySnapshotId,
             timestamp,
             request.PackageCode);
-        
+
         var result = await mediator.Send(command, cancellationToken);
         if (!result.IsSuccess)
         {

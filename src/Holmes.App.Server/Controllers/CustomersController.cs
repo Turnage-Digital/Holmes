@@ -1,12 +1,12 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
-using Holmes.Customers.Infrastructure.Sql.Mappers;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Customers.Infrastructure.Sql.Mappers;
 using Holmes.Customers.Infrastructure.Sql.Specifications;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

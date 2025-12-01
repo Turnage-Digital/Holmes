@@ -60,16 +60,26 @@ export const palette: PaletteOptions = {
 
 // Status-specific colors for order pipeline and badges
 export const statusColors = {
-  created: "#9AA0A6",      // Gray - initial
-  invited: "#64748B",      // Slate - waiting
-  intakeInProgress: "#F59E0B", // Amber - active
-  intakeComplete: "#10B981",   // Emerald - done
-  readyForRouting: "#2E7D32",  // Green - success
-  routingInProgress: "#0288D1", // Blue - processing
-  readyForReport: "#7C3AED",   // Purple - final stage
-  closed: "#6B7280",       // Gray - finished
-  blocked: "#DC2626",      // Red - problem
-  canceled: "#6B7280",     // Gray - inactive
+  // Gray - initial
+  created: "#9AA0A6",
+  // Slate - waiting
+  invited: "#64748B",
+  // Amber - active
+  intakeInProgress: "#F59E0B",
+  // Emerald - done
+  intakeComplete: "#10B981",
+  // Green - success
+  readyForRouting: "#2E7D32",
+  // Blue - processing
+  routingInProgress: "#0288D1",
+  // Purple - final stage
+  readyForReport: "#7C3AED",
+  // Gray - finished
+  closed: "#6B7280",
+  // Red - problem
+  blocked: "#DC2626",
+  // Gray - inactive
+  canceled: "#6B7280",
 } as const;
 
 export type StatusColorKey = keyof typeof statusColors;

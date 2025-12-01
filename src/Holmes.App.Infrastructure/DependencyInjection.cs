@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using Holmes.App.Infrastructure.Identity;
 using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Application;
-using Holmes.Core.Domain.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;

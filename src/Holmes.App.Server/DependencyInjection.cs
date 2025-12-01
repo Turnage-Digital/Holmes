@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.App.Infrastructure;
 using Holmes.App.Integration;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
@@ -12,7 +11,6 @@ using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Application.Commands;
-using Holmes.Intake.Application.Gateways;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql;

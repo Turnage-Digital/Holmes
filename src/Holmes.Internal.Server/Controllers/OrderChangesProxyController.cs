@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Duende.AccessTokenManagement;
 using Duende.AccessTokenManagement.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -6,9 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Holmes.Internal.Server.Controllers;
 
 /// <summary>
-/// Proxies SSE connections to the downstream API with proper authentication.
-/// EventSource API cannot send custom headers, so the BFF's standard CSRF-protected
-/// endpoints don't work for SSE. This controller handles SSE separately.
+///     Proxies SSE connections to the downstream API with proper authentication.
+///     EventSource API cannot send custom headers, so the BFF's standard CSRF-protected
+///     endpoints don't work for SSE. This controller handles SSE separately.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -16,7 +17,8 @@ namespace Holmes.Internal.Server.Controllers;
 public sealed class OrderChangesProxyController(
     IHttpClientFactory httpClientFactory,
     IConfiguration configuration,
-    ILogger<OrderChangesProxyController> logger) : ControllerBase
+    ILogger<OrderChangesProxyController> logger
+) : ControllerBase
 {
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromMinutes(30);
 
@@ -26,7 +28,8 @@ public sealed class OrderChangesProxyController(
         UserToken userToken;
         try
         {
-            userToken = await HttpContext.GetUserAccessTokenAsync(new UserTokenRequestParameters(), cancellationToken).GetToken();
+            userToken = await HttpContext.GetUserAccessTokenAsync(new UserTokenRequestParameters(), cancellationToken)
+                .GetToken();
         }
         catch (InvalidOperationException ex)
         {
@@ -45,8 +48,8 @@ public sealed class OrderChangesProxyController(
         client.Timeout = RequestTimeout;
 
         var request = new HttpRequestMessage(HttpMethod.Get, targetUrl);
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", userToken.AccessToken);
-        request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", userToken.AccessToken);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
 
         try
         {

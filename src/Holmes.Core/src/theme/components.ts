@@ -360,7 +360,8 @@ export const components: Components<Omit<Theme, "components">> = {
   MuiPaper: {
     styleOverrides: {
       root: {
-        backgroundImage: "none", // Remove default gradient
+        // Remove default gradient
+        backgroundImage: "none",
       },
       rounded: {
         borderRadius: 8,

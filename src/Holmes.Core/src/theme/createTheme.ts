@@ -1,4 +1,8 @@
-import { createTheme as muiCreateTheme, Theme, ThemeOptions } from "@mui/material/styles";
+import {
+  createTheme as muiCreateTheme,
+  Theme,
+  ThemeOptions,
+} from "@mui/material/styles";
 
 import { components } from "./components";
 import { palette, statusColors } from "./palette";
