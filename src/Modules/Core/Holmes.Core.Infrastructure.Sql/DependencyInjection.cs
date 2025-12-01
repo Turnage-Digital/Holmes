@@ -1,5 +1,3 @@
-using Holmes.Core.Application.Abstractions.Specifications;
-using Holmes.Core.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,8 +16,6 @@ public static class DependencyInjection
         services.AddDbContext<CoreDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(CoreDbContext).Assembly.FullName)));
-
-        services.AddSingleton<ISpecificationQueryExecutor, EfSpecificationQueryExecutor>();
 
         return services;
     }

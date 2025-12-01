@@ -1,146 +1,417 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { apiFetch, createEventSource } from "@holmes/ui-core";
-import { Alert, Box, Button, Stack } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  FormControl,
+  InputLabel,
+  ListSubheader,
+  MenuItem,
+  Pagination,
+  Select,
+  type SelectChangeEvent,
+  Skeleton,
+  Stack,
+  useMediaQuery,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
+import type {
+  OrderChangeEvent,
+  OrderStatus,
+  OrderSummaryDto,
+  PaginatedResult,
+} from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay, SectionCard } from "@/components/patterns";
-import { OrderSummary, PaginatedResult } from "@/types/api";
+import { NewOrderDialog, OrderCard } from "@/components/orders";
+import {
+  CustomerNameCell,
+  DataGridNoRowsOverlay,
+  MonospaceIdCell,
+  RelativeTimeCell,
+  SubjectNameCell,
+} from "@/components/patterns";
+import { createOrderChangesStream, queryKeys, useOrders } from "@/hooks/api";
+import {
+  closedStatuses,
+  getOrderStatusColor,
+  getOrderStatusLabel,
+  isOrderStatus,
+  openStatuses,
+  orderStatuses,
+} from "@/lib/status";
 
-const fetchOrderSummary = () =>
-  apiFetch<PaginatedResult<OrderSummary>>("/orders/summary");
+// ============================================================================
+// Status Filter
+// ============================================================================
 
-interface OrderChangePayload {
-  orderId: string;
-  status: string;
-  reason?: string;
-  changedAt: string;
-}
+type StatusFilter = OrderStatus | "open" | "closed" | "all";
+
+const statusFilterMap: Record<StatusFilter, OrderStatus[] | undefined> = {
+  open: openStatuses,
+  closed: closedStatuses,
+  all: undefined,
+  ...Object.fromEntries(orderStatuses.map((s) => [s, [s]])),
+} as Record<StatusFilter, OrderStatus[] | undefined>;
+
+const isStatusFilter = (value: string | null): value is StatusFilter =>
+  value === "open" ||
+  value === "closed" ||
+  value === "all" ||
+  isOrderStatus(value);
+
+// ============================================================================
+// Status Badge Component
+// ============================================================================
+
+const OrderStatusBadge = ({ status }: { status: string }) => (
+  <Chip
+    label={getOrderStatusLabel(status)}
+    size="small"
+    color={getOrderStatusColor(status)}
+    variant="outlined"
+  />
+);
+
+// ============================================================================
+// Orders Page
+// ============================================================================
 
 const OrdersPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const ordersQuery = useQuery({
-    queryKey: ["orders", "summary"],
-    queryFn: fetchOrderSummary
+  const [searchParams, setSearchParams] = useSearchParams();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const [newOrderOpen, setNewOrderOpen] = useState(false);
+  const [sseError, setSseError] = useState<string | null>(null);
+
+  // Pagination state
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 25,
+  });
+
+  // Status filter from URL or default
+  const statusParam = searchParams.get("status");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
+    if (isStatusFilter(statusParam)) {
+      return statusParam;
+    }
+    return "open";
   });
 
   useEffect(() => {
-    const source = createEventSource("/orders/changes");
-    source.onmessage = (event) => {
-      const payload: OrderChangePayload = JSON.parse(event.data);
-      queryClient.setQueryData<PaginatedResult<OrderSummary>>(
-        ["orders", "summary"],
-        (current) => {
-          if (!current) {
-            return current;
-          }
+    if (isStatusFilter(statusParam)) {
+      if (statusFilter !== statusParam) {
+        setStatusFilter(statusParam);
+      }
+      return;
+    }
 
-          const existing = current.items.find(
-            (order) => order.orderId === payload.orderId
-          );
+    if (!statusParam && statusFilter !== "open") {
+      setStatusFilter("open");
+    }
+  }, [statusFilter, statusParam]);
 
-          if (!existing) {
-            return current;
-          }
+  // Build query based on filter
+  const statusArray = useMemo(
+    () => statusFilterMap[statusFilter],
+    [statusFilter],
+  );
 
-          return {
-            ...current,
-            items: current.items.map((order) =>
-              order.orderId === payload.orderId
-                ? {
-                  ...order,
-                  status: payload.status as OrderSummary["status"],
-                  lastStatusReason: payload.reason,
-                  lastUpdatedAt: payload.changedAt
-                }
-                : order
-            )
-          };
-        }
-      );
+  const {
+    data: ordersData,
+    isLoading,
+    error,
+  } = useOrders({
+    page: paginationModel.page + 1,
+    pageSize: paginationModel.pageSize,
+    status: statusArray,
+  });
+
+  // SSE for real-time updates
+  useEffect(() => {
+    let hasConnected = false;
+    const eventSource = createOrderChangesStream();
+
+    eventSource.onopen = () => {
+      hasConnected = true;
+      setSseError(null);
+    };
+
+    const handleOrderChange = (event: MessageEvent) => {
+      try {
+        const payload: OrderChangeEvent = JSON.parse(event.data);
+
+        // Update the order in cache
+        queryClient.setQueryData<PaginatedResult<OrderSummaryDto>>(
+          queryKeys.orders({
+            page: paginationModel.page + 1,
+            pageSize: paginationModel.pageSize,
+            status: statusArray,
+          }),
+          (current) => {
+            if (!current) return current;
+
+            const existingIndex = current.items.findIndex(
+              (o) => o.orderId === payload.orderId,
+            );
+
+            if (existingIndex === -1) {
+              // New order or not in current view - refetch
+              queryClient.invalidateQueries({ queryKey: ["orders"] });
+              return current;
+            }
+
+            // Update existing order
+            const updated = [...current.items];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              status: payload.status,
+              lastStatusReason: payload.reason ?? null,
+              lastUpdatedAt: payload.changedAt,
+            };
+
+            return { ...current, items: updated };
+          },
+        );
+      } catch {
+        // Ignore parse errors
+      }
+    };
+
+    eventSource.addEventListener("order.change", handleOrderChange);
+
+    eventSource.onerror = () => {
+      // Only show error if we were previously connected
+      if (hasConnected) {
+        setSseError("Live updates disconnected.");
+      }
     };
 
     return () => {
-      source.close();
+      eventSource.close();
     };
-  }, [queryClient]);
+  }, [queryClient, paginationModel, statusArray]);
 
-  const columns = useMemo<GridColDef<OrderSummary>[]>(
+  // Handlers
+  const handleStatusFilterChange = useCallback(
+    (event: SelectChangeEvent) => {
+      const newFilter = event.target.value as StatusFilter;
+      setStatusFilter(newFilter);
+      if (newFilter === "open") {
+        setSearchParams({});
+      } else {
+        setSearchParams({ status: newFilter });
+      }
+      setPaginationModel((prev) => ({ ...prev, page: 0 }));
+    },
+    [setSearchParams],
+  );
+
+  const handleRowClick = useCallback(
+    (params: GridRowParams<OrderSummaryDto>) => {
+      navigate(`/orders/${params.row.orderId}`);
+    },
+    [navigate],
+  );
+
+  const handleOrderClick = useCallback(
+    (orderId: string) => {
+      navigate(`/orders/${orderId}`);
+    },
+    [navigate],
+  );
+
+  const handleMobilePageChange = useCallback(
+    (_event: React.ChangeEvent<unknown>, page: number) => {
+      setPaginationModel((prev) => ({ ...prev, page: page - 1 }));
+    },
+    [],
+  );
+
+  // Columns
+  const columns: GridColDef<OrderSummaryDto>[] = useMemo(
     () => [
-      { field: "orderId", headerName: "Order", flex: 1, minWidth: 160 },
-      { field: "customerId", headerName: "Customer", flex: 1, minWidth: 160 },
-      { field: "subjectId", headerName: "Subject", flex: 1, minWidth: 160 },
-      { field: "policySnapshotId", headerName: "Policy", minWidth: 140 },
+      {
+        field: "orderId",
+        headerName: "Order",
+        width: 140,
+        renderCell: (params) => <MonospaceIdCell id={params.value} />,
+      },
       {
         field: "status",
         headerName: "Status",
-        minWidth: 160,
-        valueGetter: (_value, row) => row.status
+        width: 160,
+        renderCell: (params) => <OrderStatusBadge status={params.value} />,
+      },
+      {
+        field: "subjectId",
+        headerName: "Subject",
+        width: 200,
+        renderCell: (params) => <SubjectNameCell subjectId={params.value} />,
+      },
+      {
+        field: "customerId",
+        headerName: "Customer",
+        width: 200,
+        renderCell: (params) => <CustomerNameCell customerId={params.value} />,
+      },
+      {
+        field: "lastUpdatedAt",
+        headerName: "Last Updated",
+        width: 180,
+        renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
       },
       {
         field: "lastStatusReason",
         headerName: "Reason",
         flex: 1,
-        minWidth: 200
+        minWidth: 200,
       },
-      {
-        field: "lastUpdatedAt",
-        headerName: "Updated",
-        minWidth: 160,
-        valueGetter: (_value, row) =>
-          formatDistanceToNow(new Date(row.lastUpdatedAt), {
-            addSuffix: true
-          })
-      }
     ],
-    []
+    [],
   );
 
-  let errorContent: React.ReactNode = null;
+  // Mobile card list view
+  const mobileOrderList = (
+    <Stack spacing={2}>
+      {isLoading && (
+        <>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} variant="rounded" height={120} />
+          ))}
+        </>
+      )}
+      {!isLoading && ordersData?.items.length === 0 && (
+        <Box sx={{ py: 4, textAlign: "center", color: "text.secondary" }}>
+          No orders found
+        </Box>
+      )}
+      {!isLoading &&
+        ordersData?.items.map((order) => (
+          <OrderCard
+            key={order.orderId}
+            order={order}
+            onClick={handleOrderClick}
+          />
+        ))}
+      {ordersData && ordersData.totalPages > 1 && (
+        <Box sx={{ display: "flex", justifyContent: "center", pt: 2 }}>
+          <Pagination
+            count={ordersData.totalPages}
+            page={paginationModel.page + 1}
+            onChange={handleMobilePageChange}
+            color="primary"
+          />
+        </Box>
+      )}
+    </Stack>
+  );
 
-  if (ordersQuery.error) {
-    const errorMessage =
-      ordersQuery.error instanceof Error
-        ? ordersQuery.error.message
-        : "Unable to load orders.";
+  // Desktop grid view
+  const desktopOrderGrid = (
+    <DataGrid
+      rows={ordersData?.items ?? []}
+      columns={columns}
+      getRowId={(row) => row.orderId}
+      loading={isLoading}
+      paginationModel={paginationModel}
+      onPaginationModelChange={setPaginationModel}
+      pageSizeOptions={[10, 25, 50]}
+      paginationMode="server"
+      rowCount={ordersData?.totalItems ?? 0}
+      onRowClick={handleRowClick}
+      slots={{
+        noRowsOverlay: () => (
+          <DataGridNoRowsOverlay message="No orders found" />
+        ),
+      }}
+      sx={{
+        minHeight: 400,
+        "& .MuiDataGrid-row": {
+          cursor: "pointer",
+        },
+      }}
+      disableRowSelectionOnClick
+    />
+  );
 
-    errorContent = <Alert severity="error">{errorMessage}</Alert>;
-  }
+  const ordersContent = isMobile ? mobileOrderList : desktopOrderGrid;
 
   return (
-    <Stack spacing={3}>
+    <>
       <PageHeader
         title="Orders"
-        description="Track order workflow states in real time."
-        actions={
-          <Button
-            variant="outlined"
-            onClick={() => ordersQuery.refetch()}
-            disabled={ordersQuery.isFetching}
-          >
-            Refresh
+        subtitle="Monitor and manage intake and workflow progress"
+        action={
+          <Button variant="contained" onClick={() => setNewOrderOpen(true)}>
+            New Order
           </Button>
         }
       />
-      {errorContent}
-      <SectionCard title="Order Summary">
-        <Box sx={{ height: 520, width: "100%" }}>
-          <DataGrid
-            loading={ordersQuery.isLoading}
-            rows={ordersQuery.data?.items ?? []}
-            getRowId={(row) => row.orderId}
-            columns={columns}
-            disableRowSelectionOnClick
-            slots={{
-              noRowsOverlay: DataGridNoRowsOverlay
-            }}
-          />
-        </Box>
-      </SectionCard>
-    </Stack>
+
+      {sseError && (
+        <Alert
+          severity="warning"
+          onClose={() => setSseError(null)}
+          sx={{ mb: 2 }}
+        >
+          {sseError}
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Failed to load orders. Please try again.
+        </Alert>
+      )}
+
+      <Stack spacing={2}>
+        {/* Status Filter */}
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel id="status-filter-label">Status</InputLabel>
+          <Select
+            labelId="status-filter-label"
+            value={statusFilter}
+            label="Status"
+            onChange={handleStatusFilterChange}
+          >
+            <MenuItem value="open">Open Orders</MenuItem>
+            <MenuItem value="closed">Closed</MenuItem>
+            <MenuItem value="all">All</MenuItem>
+            <ListSubheader>By Status</ListSubheader>
+            {orderStatuses.map((status) => (
+              <MenuItem key={status} value={status}>
+                <Chip
+                  label={getOrderStatusLabel(status)}
+                  color={getOrderStatusColor(status)}
+                  size="small"
+                  variant="outlined"
+                  sx={{ pointerEvents: "none" }}
+                />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Orders - Grid on desktop, Cards on mobile */}
+        {ordersContent}
+      </Stack>
+
+      <NewOrderDialog
+        open={newOrderOpen}
+        onClose={() => setNewOrderOpen(false)}
+      />
+    </>
   );
 };
 

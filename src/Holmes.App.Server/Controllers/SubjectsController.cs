@@ -1,12 +1,11 @@
+using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
-using Holmes.App.Server.Mappers;
-using Holmes.App.Server.Security;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Application.Abstractions.Dtos;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
-using Holmes.Subjects.Infrastructure.Sql.Entities;
+using Holmes.Subjects.Infrastructure.Sql.Mappers;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -64,7 +63,12 @@ public sealed class SubjectsController(
             DateTimeOffset.UtcNow), cancellationToken);
 
         var directory = await dbContext.SubjectDirectory.AsNoTracking()
-            .SingleAsync(x => x.SubjectId == subjectId.ToString(), cancellationToken);
+            .SingleOrDefaultAsync(x => x.SubjectId == subjectId.ToString(), cancellationToken);
+
+        if (directory is null)
+        {
+            return Problem("Failed to load created subject.");
+        }
 
         return CreatedAtAction(nameof(GetSubjectById), new { subjectId = subjectId.ToString() },
             SubjectDtoMapper.ToSummary(directory));

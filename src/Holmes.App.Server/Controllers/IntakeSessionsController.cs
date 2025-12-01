@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Holmes.App.Server.Security;
+using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Application.Queries;
@@ -12,7 +12,7 @@ namespace Holmes.App.Server.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/intake/sessions")]
-public class IntakeSessionsController(IMediator mediator) : ControllerBase
+public sealed class IntakeSessionsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]
@@ -29,12 +29,18 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
         }
 
         var ttlHours = request.TimeToLiveHours is > 0 ? request.TimeToLiveHours.Value : 168;
+        var policySnapshotId = string.IsNullOrWhiteSpace(request.PolicySnapshotId)
+            ? "policy-default"
+            : request.PolicySnapshotId;
+        var policySchemaVersion = string.IsNullOrWhiteSpace(request.PolicySnapshotSchemaVersion)
+            ? "v1"
+            : request.PolicySnapshotSchemaVersion;
         var command = new IssueIntakeInviteCommand(
             orderId,
             subjectId,
             customerId,
-            request.PolicySnapshotId,
-            request.PolicySnapshotSchemaVersion,
+            policySnapshotId,
+            policySchemaVersion,
             request.PolicyMetadata ?? new Dictionary<string, string>(),
             request.PolicyCapturedAt ?? DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow,
@@ -275,7 +281,7 @@ public class IntakeSessionsController(IMediator mediator) : ControllerBase
         string SubjectId,
         string CustomerId,
         string PolicySnapshotId,
-        string PolicySnapshotSchemaVersion,
+        string? PolicySnapshotSchemaVersion,
         IReadOnlyDictionary<string, string>? PolicyMetadata,
         int? TimeToLiveHours,
         DateTimeOffset? PolicyCapturedAt,

@@ -49,6 +49,10 @@ public sealed class OrderChangesController(IOrderChangeBroadcaster broadcaster) 
             await heartbeatCts.CancelAsync();
             await heartbeatTask;
         }
+        catch (OperationCanceledException)
+        {
+            // Client disconnected - this is expected behavior for SSE
+        }
         finally
         {
             broadcaster.Unsubscribe(subscription.SubscriptionId);

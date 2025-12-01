@@ -4,6 +4,7 @@ using Holmes.Core.Infrastructure.Sql.Entities;
 using Holmes.Core.Infrastructure.Sql.Projections;
 using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
+using Holmes.Workflow.Infrastructure.Sql.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

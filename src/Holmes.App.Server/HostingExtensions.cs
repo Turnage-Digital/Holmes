@@ -1,3 +1,5 @@
+using Holmes.App.Infrastructure;
+using Holmes.App.Infrastructure.Security;
 using Holmes.Hosting;
 using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
@@ -13,8 +15,7 @@ internal static class HostingExtensions
         builder.Services
             .AddHolmesObservability(builder.Configuration)
             .AddHolmesWebStack()
-            .AddHolmesAuthentication(builder.Configuration, builder.Environment)
-            .AddHolmesAuthorization()
+            .AddAppInfrastructure(builder.Configuration, builder.Environment)
             .AddHolmesApplicationCore()
             .AddHolmesDataProtection(builder.Environment)
             .AddHolmesSwagger(builder.Environment)
@@ -42,7 +43,7 @@ internal static class HostingExtensions
         app.UseRouting();
 
         app.UseAuthentication();
-        app.UseMiddleware<Security.CurrentUserEnrichmentMiddleware>();
+        app.UseMiddleware<CurrentUserEnrichmentMiddleware>();
         app.UseAuthorization();
         app.MapControllers();
 

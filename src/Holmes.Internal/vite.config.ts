@@ -55,6 +55,18 @@ if (isDevelopment) {
   }
 
   proxyConfig = {
+    "^/api/orders/changes": {
+      target,
+      secure: false,
+      // SSE requires no buffering
+      configure: (proxy) => {
+        proxy.on("proxyRes", (proxyRes) => {
+          // Disable buffering for SSE
+          proxyRes.headers["X-Accel-Buffering"] = "no";
+          proxyRes.headers["Cache-Control"] = "no-cache";
+        });
+      }
+    },
     "^/api": {
       target,
       secure: false
@@ -81,15 +93,16 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@holmes/ui-core": fileURLToPath(new URL("../Holmes.Core/src", import.meta.url))
-    }
+    },
+    dedupe: ["@emotion/react", "@emotion/styled", "@mui/material", "react", "react-dom"]
   },
   server: isDevelopment
     ? {
-      port: 3000,
+      port: 3003,
       proxy: proxyConfig,
       https: httpsConfig
     }
     : {
-      port: 3000
+      port: 3003
     }
 });

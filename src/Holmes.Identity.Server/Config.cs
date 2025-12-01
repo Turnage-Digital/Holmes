@@ -68,12 +68,12 @@ internal static class Config
                 RedirectUris =
                 {
                     "https://localhost:5003/signin-oidc",
-                    "https://localhost:3000/signin-oidc"
+                    "https://localhost:3003/signin-oidc"
                 },
                 PostLogoutRedirectUris =
                 {
                     "https://localhost:5003/signout-callback-oidc",
-                    "https://localhost:3000/signout-callback-oidc"
+                    "https://localhost:3003/signout-callback-oidc"
                 },
                 AllowedScopes =
                 {

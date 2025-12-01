@@ -13,6 +13,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj"/>
+        <ProjectReference Include="..\Holmes.Users.Application.Abstractions\Holmes.Users.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Holmes.Users.Domain\Holmes.Users.Domain.csproj"/>
     </ItemGroup>
 

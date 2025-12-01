@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Modules\Intake\Holmes.Intake.Application\Holmes.Intake.Application.csproj"/>
+        <ProjectReference Include="..\Modules\Workflow\Holmes.Workflow.Application\Holmes.Workflow.Application.csproj"/>
+    </ItemGroup>
+
+</Project>

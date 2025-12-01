@@ -62,6 +62,9 @@ try
         .AddServerSideSessions()
         .AddRemoteApis();
 
+    builder.Services.AddHttpClient();
+    builder.Services.AddControllers();
+
     var app = builder.Build();
 
     if (!app.Environment.IsDevelopment())
@@ -76,6 +79,9 @@ try
     app.UseAuthentication();
     app.UseBff();
     app.UseAuthorization();
+
+    // Map local controllers first (SSE proxy needs to handle before YARP)
+    app.MapControllers();
 
     app.MapRemoteBffApiEndpoint("/api", new Uri(apiBase))
         .WithAccessToken();

@@ -45,8 +45,8 @@ public sealed class Subject : AggregateRoot
         DateTimeOffset registeredAt
     )
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(givenName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(familyName);
+        ArgumentNullException.ThrowIfNull(givenName);
+        ArgumentNullException.ThrowIfNull(familyName);
 
         var subject = new Subject();
         subject.Apply(new SubjectRegistered(
@@ -91,8 +91,8 @@ public sealed class Subject : AggregateRoot
 
     public void UpdateProfile(string givenName, string familyName, DateOnly? dateOfBirth, string? email)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(givenName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(familyName);
+        ArgumentNullException.ThrowIfNull(givenName);
+        ArgumentNullException.ThrowIfNull(familyName);
 
         if (GivenName == givenName &&
             FamilyName == familyName &&

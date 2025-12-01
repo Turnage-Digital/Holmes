@@ -129,7 +129,7 @@ public class OrdersEndpointTests
         await SeedCustomerAsync(factory, customerId, "tenant-create");
         await SeedSubjectAsync(factory, subjectId);
 
-        var request = new CreateOrderRequest(
+        var request = new OrdersController.CreateOrderRequest(
             customerId,
             subjectId,
             "policy-snapshot-v1",
@@ -162,7 +162,7 @@ public class OrdersEndpointTests
         await SeedCustomerAsync(factory, customerId, "tenant-no-access");
         await SeedSubjectAsync(factory, subjectId);
 
-        var request = new CreateOrderRequest(
+        var request = new OrdersController.CreateOrderRequest(
             customerId,
             subjectId,
             "policy-snapshot-v1");
