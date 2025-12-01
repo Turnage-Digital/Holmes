@@ -70,14 +70,15 @@ public sealed class OrdersController(
 
         var orderId = UlidId.NewUlid();
         var timestamp = DateTimeOffset.UtcNow;
-        var result = await mediator.Send(new CreateOrderCommand(
+        var command = new CreateOrderCommand(
             orderId,
             UlidId.FromUlid(parsedSubject),
             UlidId.FromUlid(parsedCustomer),
             request.PolicySnapshotId,
             timestamp,
-            request.PackageCode), cancellationToken);
-
+            request.PackageCode);
+        
+        var result = await mediator.Send(command, cancellationToken);
         if (!result.IsSuccess)
         {
             return BadRequest(result.Error);

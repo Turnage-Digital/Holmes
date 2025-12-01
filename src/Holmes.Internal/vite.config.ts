@@ -55,6 +55,18 @@ if (isDevelopment) {
   }
 
   proxyConfig = {
+    "^/api/orders/changes": {
+      target,
+      secure: false,
+      // SSE requires no buffering
+      configure: (proxy) => {
+        proxy.on("proxyRes", (proxyRes) => {
+          // Disable buffering for SSE
+          proxyRes.headers["X-Accel-Buffering"] = "no";
+          proxyRes.headers["Cache-Control"] = "no-cache";
+        });
+      },
+    },
     "^/api": {
       target,
       secure: false
@@ -85,11 +97,11 @@ export default defineConfig({
   },
   server: isDevelopment
     ? {
-      port: 3000,
+      port: 3003,
       proxy: proxyConfig,
       https: httpsConfig
     }
     : {
-      port: 3000
+      port: 3003
     }
 });

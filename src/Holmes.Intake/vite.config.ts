@@ -70,11 +70,11 @@ export default defineConfig({
   },
   server: isDevelopment
     ? {
-      port: 3001,
+      port: 3002,
       proxy: proxyConfig,
       https: httpsConfig
     }
     : {
-      port: 3001
+      port: 3002
     }
 });

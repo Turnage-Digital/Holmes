@@ -3,7 +3,6 @@ export type Ulid = string;
 // ============================================================================
 // User Types
 // ============================================================================
-
 export type UserStatus = "Invited" | "Active" | "Suspended";
 
 export type UserRole = "Admin" | "Operations";

@@ -2,6 +2,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
+using Holmes.Workflow.Infrastructure.Sql.Mappers;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;

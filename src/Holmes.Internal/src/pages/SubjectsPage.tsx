@@ -1,27 +1,19 @@
 import React, { useState } from "react";
 
-import { Alert, Chip } from "@mui/material";
+import { Alert } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { formatDistanceToNow } from "date-fns";
 
 import type { SubjectListItemDto } from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay } from "@/components/patterns";
+import {
+  DataGridNoRowsOverlay,
+  EmptyableCell,
+  MonospaceIdCell,
+  RelativeTimeCell,
+  StatusBadge,
+} from "@/components/patterns";
 import { useSubjects } from "@/hooks/api";
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Active":
-      return "success";
-    case "Merged":
-      return "warning";
-    case "Archived":
-      return "default";
-    default:
-      return "default";
-  }
-};
 
 const SubjectsPage = () => {
   const [paginationModel, setPaginationModel] = useState({
@@ -40,48 +32,39 @@ const SubjectsPage = () => {
       field: "id",
       headerName: "ID",
       width: 140,
-      renderCell: (params) => (
-        <span style={{ fontFamily: "monospace" }}>
-          {params.value?.slice(0, 12)}…
-        </span>
-      ),
-    },
-    {
-      field: "firstName",
-      headerName: "First Name",
-      width: 150,
-      renderCell: (params) => params.value || "—",
-    },
-    {
-      field: "lastName",
-      headerName: "Last Name",
-      width: 150,
-      renderCell: (params) => params.value || "—",
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      width: 220,
-      renderCell: (params) => params.value || "—",
-    },
-    {
-      field: "birthDate",
-      headerName: "DOB",
-      width: 120,
-      renderCell: (params) => params.value || "—",
+      renderCell: (params) => <MonospaceIdCell id={params.value} />,
     },
     {
       field: "status",
       headerName: "Status",
       width: 120,
       renderCell: (params) => (
-        <Chip
-          label={params.value}
-          size="small"
-          color={getStatusColor(params.value)}
-          variant="outlined"
-        />
+        <StatusBadge type="subject" status={params.value} />
       ),
+    },
+    {
+      field: "firstName",
+      headerName: "First Name",
+      width: 150,
+      renderCell: (params) => <EmptyableCell value={params.value} />,
+    },
+    {
+      field: "lastName",
+      headerName: "Last Name",
+      width: 150,
+      renderCell: (params) => <EmptyableCell value={params.value} />,
+    },
+    {
+      field: "email",
+      headerName: "Email",
+      width: 220,
+      renderCell: (params) => <EmptyableCell value={params.value} />,
+    },
+    {
+      field: "birthDate",
+      headerName: "DOB",
+      width: 120,
+      renderCell: (params) => <EmptyableCell value={params.value} />,
     },
     {
       field: "aliases",
@@ -93,8 +76,7 @@ const SubjectsPage = () => {
       field: "createdAt",
       headerName: "Created",
       width: 160,
-      renderCell: (params) =>
-        formatDistanceToNow(new Date(params.value), { addSuffix: true }),
+      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
     },
   ];
 

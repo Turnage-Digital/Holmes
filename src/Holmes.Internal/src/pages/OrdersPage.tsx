@@ -5,124 +5,79 @@ import {
   Box,
   Button,
   Chip,
+  FormControl,
+  InputLabel,
+  ListSubheader,
+  MenuItem,
+  Pagination,
+  Select,
+  type SelectChangeEvent,
+  Skeleton,
   Stack,
-  ToggleButton,
-  ToggleButtonGroup,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import type {
   OrderChangeEvent,
   OrderSummaryDto,
+  OrderStatus,
   PaginatedResult,
 } from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import NewOrderDialog from "@/components/orders/NewOrderDialog";
-import { DataGridNoRowsOverlay } from "@/components/patterns";
+import { NewOrderDialog, OrderCard } from "@/components/orders";
 import {
-  createOrderChangesStream,
-  queryKeys,
-  useCustomer,
-  useOrders,
-  useSubject,
-} from "@/hooks/api";
+  CustomerNameCell,
+  DataGridNoRowsOverlay,
+  MonospaceIdCell,
+  RelativeTimeCell,
+  SubjectNameCell,
+} from "@/components/patterns";
+import { createOrderChangesStream, queryKeys, useOrders } from "@/hooks/api";
+import {
+  closedStatuses,
+  getOrderStatusColor,
+  getOrderStatusLabel,
+  isOrderStatus,
+  openStatuses,
+  orderStatuses,
+} from "@/lib/status";
 
 // ============================================================================
 // Status Filter
 // ============================================================================
 
-type StatusFilter = "all" | "active" | "completed" | "canceled";
+type StatusFilter = OrderStatus | "open" | "closed" | "all";
 
-const statusFilterMap: Record<StatusFilter, string[] | undefined> = {
+const statusFilterMap: Record<StatusFilter, OrderStatus[] | undefined> = {
+  open: openStatuses,
+  closed: closedStatuses,
   all: undefined,
-  active: ["Invited", "IntakeInProgress", "IntakeComplete"],
-  completed: [
-    "ReadyForRouting",
-    "RoutingInProgress",
-    "ReadyForReport",
-    "Closed",
-  ],
-  canceled: ["Canceled", "Blocked"],
-};
+  ...Object.fromEntries(orderStatuses.map((s) => [s, [s]])),
+} as Record<StatusFilter, OrderStatus[] | undefined>;
+
+const isStatusFilter = (value: string | null): value is StatusFilter =>
+  value === "open" ||
+  value === "closed" ||
+  value === "all" ||
+  isOrderStatus(value);
 
 // ============================================================================
 // Status Badge Component
 // ============================================================================
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "ReadyForRouting":
-    case "Closed":
-      return "success";
-    case "IntakeComplete":
-    case "ReadyForReport":
-      return "info";
-    case "IntakeInProgress":
-    case "RoutingInProgress":
-      return "warning";
-    case "Invited":
-    case "Created":
-      return "default";
-    case "Blocked":
-      return "error";
-    case "Canceled":
-      return "default";
-    default:
-      return "default";
-  }
-};
-
-const formatStatus = (status: string) => {
-  switch (status) {
-    case "ReadyForRouting":
-      return "Ready for Routing";
-    case "IntakeComplete":
-      return "Intake Complete";
-    case "IntakeInProgress":
-      return "In Progress";
-    case "ReadyForReport":
-      return "Ready for Report";
-    case "RoutingInProgress":
-      return "Routing";
-    default:
-      return status;
-  }
-};
-
-const StatusBadge = ({ status }: { status: string }) => (
+const OrderStatusBadge = ({ status }: { status: string }) => (
   <Chip
-    label={formatStatus(status)}
+    label={getOrderStatusLabel(status)}
     size="small"
-    color={getStatusColor(status)}
+    color={getOrderStatusColor(status)}
     variant="outlined"
   />
 );
-
-// ============================================================================
-// Cell Renderers with Data Fetching
-// ============================================================================
-
-const SubjectCell = ({ subjectId }: { subjectId: string }) => {
-  const { data: subject } = useSubject(subjectId);
-
-  if (!subject) {
-    return <>{subjectId.slice(0, 8)}…</>;
-  }
-
-  const name = [subject.givenName, subject.familyName]
-    .filter(Boolean)
-    .join(" ");
-  return <>{name || subject.email || `${subjectId.slice(0, 8)}…`}</>;
-};
-
-const CustomerCell = ({ customerId }: { customerId: string }) => {
-  const { data: customer } = useCustomer(customerId);
-  return <span>{customer?.name ?? `${customerId.slice(0, 8)}…`}</span>;
-};
 
 // ============================================================================
 // Orders Page
@@ -132,6 +87,8 @@ const OrdersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const [newOrderOpen, setNewOrderOpen] = useState(false);
   const [sseError, setSseError] = useState<string | null>(null);
@@ -145,32 +102,30 @@ const OrdersPage = () => {
   // Status filter from URL or default
   const statusParam = searchParams.get("status");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
-    if (statusParam) {
-      // Check if it's a specific status
-      const validFilters: StatusFilter[] = [
-        "all",
-        "active",
-        "completed",
-        "canceled",
-      ];
-      if (validFilters.includes(statusParam as StatusFilter)) {
-        return statusParam as StatusFilter;
-      }
+    if (isStatusFilter(statusParam)) {
+      return statusParam;
     }
-    return "active";
+    return "open";
   });
 
-  // Build query based on filter
-  const statusArray = useMemo(() => {
-    // If URL has a specific status, use that
-    if (
-      statusParam &&
-      !["all", "active", "completed", "canceled"].includes(statusParam)
-    ) {
-      return [statusParam];
+  useEffect(() => {
+    if (isStatusFilter(statusParam)) {
+      if (statusFilter !== statusParam) {
+        setStatusFilter(statusParam);
+      }
+      return;
     }
-    return statusFilterMap[statusFilter];
+
+    if (!statusParam && statusFilter !== "open") {
+      setStatusFilter("open");
+    }
   }, [statusFilter, statusParam]);
+
+  // Build query based on filter
+  const statusArray = useMemo(
+    () => statusFilterMap[statusFilter],
+    [statusFilter],
+  );
 
   const {
     data: ordersData,
@@ -192,7 +147,7 @@ const OrdersPage = () => {
       setSseError(null);
     };
 
-    eventSource.onmessage = (event) => {
+    const handleOrderChange = (event: MessageEvent) => {
       try {
         const payload: OrderChangeEvent = JSON.parse(event.data);
 
@@ -233,6 +188,8 @@ const OrdersPage = () => {
       }
     };
 
+    eventSource.addEventListener("order.change", handleOrderChange);
+
     eventSource.onerror = () => {
       // Only show error if we were previously connected
       if (hasConnected) {
@@ -247,12 +204,15 @@ const OrdersPage = () => {
 
   // Handlers
   const handleStatusFilterChange = useCallback(
-    (_: React.MouseEvent<HTMLElement>, newFilter: StatusFilter | null) => {
-      if (newFilter) {
-        setStatusFilter(newFilter);
-        setSearchParams(newFilter === "active" ? {} : { status: newFilter });
-        setPaginationModel((prev) => ({ ...prev, page: 0 }));
+    (event: SelectChangeEvent) => {
+      const newFilter = event.target.value as StatusFilter;
+      setStatusFilter(newFilter);
+      if (newFilter === "open") {
+        setSearchParams({});
+      } else {
+        setSearchParams({ status: newFilter });
       }
+      setPaginationModel((prev) => ({ ...prev, page: 0 }));
     },
     [setSearchParams],
   );
@@ -264,6 +224,20 @@ const OrdersPage = () => {
     [navigate],
   );
 
+  const handleOrderClick = useCallback(
+    (orderId: string) => {
+      navigate(`/orders/${orderId}`);
+    },
+    [navigate],
+  );
+
+  const handleMobilePageChange = useCallback(
+    (_event: React.ChangeEvent<unknown>, page: number) => {
+      setPaginationModel((prev) => ({ ...prev, page: page - 1 }));
+    },
+    [],
+  );
+
   // Columns
   const columns: GridColDef<OrderSummaryDto>[] = useMemo(
     () => [
@@ -271,36 +245,31 @@ const OrdersPage = () => {
         field: "orderId",
         headerName: "Order",
         width: 140,
-        renderCell: (params) => (
-          <span style={{ fontFamily: "monospace" }}>
-            {params.value?.slice(0, 12)}…
-          </span>
-        ),
+        renderCell: (params) => <MonospaceIdCell id={params.value} />,
       },
       {
         field: "status",
         headerName: "Status",
         width: 160,
-        renderCell: (params) => <StatusBadge status={params.value} />,
+        renderCell: (params) => <OrderStatusBadge status={params.value} />,
       },
       {
         field: "subjectId",
         headerName: "Subject",
         width: 200,
-        renderCell: (params) => <SubjectCell subjectId={params.value} />,
+        renderCell: (params) => <SubjectNameCell subjectId={params.value} />,
       },
       {
         field: "customerId",
         headerName: "Customer",
         width: 200,
-        renderCell: (params) => <CustomerCell customerId={params.value} />,
+        renderCell: (params) => <CustomerNameCell customerId={params.value} />,
       },
       {
         field: "lastUpdatedAt",
         headerName: "Last Updated",
         width: 180,
-        renderCell: (params) =>
-          formatDistanceToNow(new Date(params.value), { addSuffix: true }),
+        renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
       },
       {
         field: "lastStatusReason",
@@ -311,6 +280,72 @@ const OrdersPage = () => {
     ],
     [],
   );
+
+  // Mobile card list view
+  const mobileOrderList = (
+    <Stack spacing={2}>
+      {isLoading && (
+        <>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} variant="rounded" height={120} />
+          ))}
+        </>
+      )}
+      {!isLoading && ordersData?.items.length === 0 && (
+        <Box sx={{ py: 4, textAlign: "center", color: "text.secondary" }}>
+          No orders found
+        </Box>
+      )}
+      {!isLoading &&
+        ordersData?.items.map((order) => (
+          <OrderCard
+            key={order.orderId}
+            order={order}
+            onClick={handleOrderClick}
+          />
+        ))}
+      {ordersData && ordersData.totalPages > 1 && (
+        <Box sx={{ display: "flex", justifyContent: "center", pt: 2 }}>
+          <Pagination
+            count={ordersData.totalPages}
+            page={paginationModel.page + 1}
+            onChange={handleMobilePageChange}
+            color="primary"
+          />
+        </Box>
+      )}
+    </Stack>
+  );
+
+  // Desktop grid view
+  const desktopOrderGrid = (
+    <DataGrid
+      rows={ordersData?.items ?? []}
+      columns={columns}
+      getRowId={(row) => row.orderId}
+      loading={isLoading}
+      paginationModel={paginationModel}
+      onPaginationModelChange={setPaginationModel}
+      pageSizeOptions={[10, 25, 50]}
+      paginationMode="server"
+      rowCount={ordersData?.totalItems ?? 0}
+      onRowClick={handleRowClick}
+      slots={{
+        noRowsOverlay: () => (
+          <DataGridNoRowsOverlay message="No orders found" />
+        ),
+      }}
+      sx={{
+        minHeight: 400,
+        "& .MuiDataGrid-row": {
+          cursor: "pointer",
+        },
+      }}
+      disableRowSelectionOnClick
+    />
+  );
+
+  const ordersContent = isMobile ? mobileOrderList : desktopOrderGrid;
 
   return (
     <>
@@ -342,45 +377,34 @@ const OrdersPage = () => {
 
       <Stack spacing={2}>
         {/* Status Filter */}
-        <Box>
-          <ToggleButtonGroup
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel id="status-filter-label">Status</InputLabel>
+          <Select
+            labelId="status-filter-label"
             value={statusFilter}
-            exclusive
+            label="Status"
             onChange={handleStatusFilterChange}
-            size="small"
           >
-            <ToggleButton value="active">Active</ToggleButton>
-            <ToggleButton value="completed">Completed</ToggleButton>
-            <ToggleButton value="canceled">Canceled</ToggleButton>
-            <ToggleButton value="all">All</ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
+            <MenuItem value="open">Open Orders</MenuItem>
+            <MenuItem value="closed">Closed</MenuItem>
+            <MenuItem value="all">All</MenuItem>
+            <ListSubheader>By Status</ListSubheader>
+            {orderStatuses.map((status) => (
+              <MenuItem key={status} value={status}>
+                <Chip
+                  label={getOrderStatusLabel(status)}
+                  color={getOrderStatusColor(status)}
+                  size="small"
+                  variant="outlined"
+                  sx={{ pointerEvents: "none" }}
+                />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-        {/* Orders Grid */}
-        <DataGrid
-          rows={ordersData?.items ?? []}
-          columns={columns}
-          getRowId={(row) => row.orderId}
-          loading={isLoading}
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[10, 25, 50]}
-          paginationMode="server"
-          rowCount={ordersData?.totalItems ?? 0}
-          onRowClick={handleRowClick}
-          slots={{
-            noRowsOverlay: () => (
-              <DataGridNoRowsOverlay message="No orders found" />
-            ),
-          }}
-          sx={{
-            minHeight: 400,
-            "& .MuiDataGrid-row": {
-              cursor: "pointer",
-            },
-          }}
-          disableRowSelectionOnClick
-        />
+        {/* Orders - Grid on desktop, Cards on mobile */}
+        {ordersContent}
       </Stack>
 
       <NewOrderDialog

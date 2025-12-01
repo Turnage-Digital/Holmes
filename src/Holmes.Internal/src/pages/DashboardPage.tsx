@@ -27,6 +27,7 @@ import {
   useOrderStats,
   useUsers,
 } from "@/hooks/api";
+import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
 // ============================================================================
 // Pipeline Component
@@ -128,38 +129,6 @@ interface RecentActivityProps {
   onOrderClick: (orderId: string) => void;
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "ReadyForRouting":
-      return "success";
-    case "IntakeComplete":
-      return "info";
-    case "IntakeInProgress":
-      return "warning";
-    case "Invited":
-      return "default";
-    case "Blocked":
-      return "error";
-    case "Canceled":
-      return "default";
-    default:
-      return "default";
-  }
-};
-
-const formatStatusLabel = (status: string) => {
-  switch (status) {
-    case "ReadyForRouting":
-      return "Ready for Routing";
-    case "IntakeComplete":
-      return "Intake Complete";
-    case "IntakeInProgress":
-      return "Intake In Progress";
-    default:
-      return status;
-  }
-};
-
 const RecentActivity = ({
   items,
   isLoading,
@@ -203,9 +172,9 @@ const RecentActivity = ({
         >
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Chip
-              label={formatStatusLabel(item.status)}
+              label={getOrderStatusLabel(item.status)}
               size="small"
-              color={getStatusColor(item.status)}
+              color={getOrderStatusColor(item.status)}
               variant="outlined"
             />
             <Typography variant="body2" color="text.secondary">
@@ -336,7 +305,7 @@ const DashboardPage = () => {
       setSseError(null);
     };
 
-    eventSource.onmessage = (event) => {
+    const handleOrderChange = (event: MessageEvent) => {
       try {
         const payload: OrderChangeEvent = JSON.parse(event.data);
         setRecentActivity((prev) => {
@@ -355,6 +324,8 @@ const DashboardPage = () => {
         // Ignore parse errors
       }
     };
+
+    eventSource.addEventListener("order.change", handleOrderChange);
 
     eventSource.onerror = () => {
       // Only show error if we were previously connected
@@ -400,22 +371,22 @@ const DashboardPage = () => {
   const pipelineStages: PipelineStage[] = [
     {
       status: "Invited",
-      label: "Invited",
+      label: getOrderStatusLabel("Invited"),
       count: orderStats?.invited ?? 0,
     },
     {
       status: "IntakeInProgress",
-      label: "In Progress",
+      label: getOrderStatusLabel("IntakeInProgress"),
       count: orderStats?.intakeInProgress ?? 0,
     },
     {
       status: "IntakeComplete",
-      label: "Complete",
+      label: getOrderStatusLabel("IntakeComplete"),
       count: orderStats?.intakeComplete ?? 0,
     },
     {
       status: "ReadyForRouting",
-      label: "Ready",
+      label: getOrderStatusLabel("ReadyForRouting"),
       count: orderStats?.readyForRouting ?? 0,
     },
   ];

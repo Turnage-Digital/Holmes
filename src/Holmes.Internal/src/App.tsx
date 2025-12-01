@@ -15,7 +15,7 @@ import OrdersPage from "./pages/OrdersPage";
 import SubjectsPage from "./pages/SubjectsPage";
 import UsersPage from "./pages/UsersPage";
 
-import { AppLayout } from "@/components/layout";
+import { AppShell } from "@/components/layout";
 
 const App = () => {
   const devtools = import.meta.env.DEV ? (
@@ -31,7 +31,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route element={<AuthBoundary />}>
-              <Route path="/" element={<AppLayout />}>
+              <Route path="/" element={<AppShell />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="orders/:orderId" element={<OrderDetailPage />} />

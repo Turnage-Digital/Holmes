@@ -17,7 +17,6 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { formatDistanceToNow } from "date-fns";
 
 import type {
   InviteUserRequest,
@@ -27,7 +26,12 @@ import type {
 } from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay } from "@/components/patterns";
+import {
+  DataGridNoRowsOverlay,
+  OptionalRelativeTimeCell,
+  RelativeTimeCell,
+  StatusBadge,
+} from "@/components/patterns";
 import { useInviteUser, useUsers } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
@@ -44,19 +48,6 @@ const formatRoleLabel = (assignment: RoleAssignmentDto) =>
   assignment.customerId
     ? `${assignment.role} (${assignment.customerId.slice(0, 8)}…)`
     : assignment.role;
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Active":
-      return "success";
-    case "Invited":
-      return "warning";
-    case "Suspended":
-      return "error";
-    default:
-      return "default";
-  }
-};
 
 const UsersPage = () => {
   const [paginationModel, setPaginationModel] = useState({
@@ -120,22 +111,15 @@ const UsersPage = () => {
       width: 250,
     },
     {
-      field: "displayName",
-      headerName: "Name",
-      width: 180,
-    },
-    {
       field: "status",
       headerName: "Status",
       width: 120,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          size="small"
-          color={getStatusColor(params.value)}
-          variant="outlined"
-        />
-      ),
+      renderCell: (params) => <StatusBadge type="user" status={params.value} />,
+    },
+    {
+      field: "displayName",
+      headerName: "Name",
+      width: 180,
     },
     {
       field: "roleAssignments",
@@ -145,7 +129,12 @@ const UsersPage = () => {
         const roles = params.value ?? [];
         if (roles.length === 0) return "—";
         return (
-          <Stack direction="row" spacing={0.5} flexWrap="wrap">
+          <Stack
+            direction="row"
+            spacing={0.5}
+            alignItems="center"
+            sx={{ height: "100%" }}
+          >
             {roles.slice(0, 3).map((role: RoleAssignmentDto) => (
               <Chip
                 key={role.id}
@@ -165,17 +154,15 @@ const UsersPage = () => {
       field: "lastSeenAt",
       headerName: "Last Seen",
       width: 160,
-      renderCell: (params) =>
-        params.value
-          ? formatDistanceToNow(new Date(params.value), { addSuffix: true })
-          : "Never",
+      renderCell: (params) => (
+        <OptionalRelativeTimeCell timestamp={params.value} />
+      ),
     },
     {
       field: "createdAt",
       headerName: "Created",
       width: 160,
-      renderCell: (params) =>
-        formatDistanceToNow(new Date(params.value), { addSuffix: true }),
+      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
     },
   ];
 

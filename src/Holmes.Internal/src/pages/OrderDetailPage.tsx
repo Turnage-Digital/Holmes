@@ -26,50 +26,7 @@ import {
   useOrderTimeline,
   useSubject,
 } from "@/hooks/api";
-
-// ============================================================================
-// Status Badge
-// ============================================================================
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "ReadyForRouting":
-    case "Closed":
-      return "success";
-    case "IntakeComplete":
-    case "ReadyForReport":
-      return "info";
-    case "IntakeInProgress":
-    case "RoutingInProgress":
-      return "warning";
-    case "Invited":
-    case "Created":
-      return "default";
-    case "Blocked":
-      return "error";
-    case "Canceled":
-      return "default";
-    default:
-      return "default";
-  }
-};
-
-const formatStatus = (status: string) => {
-  switch (status) {
-    case "ReadyForRouting":
-      return "Ready for Routing";
-    case "IntakeComplete":
-      return "Intake Complete";
-    case "IntakeInProgress":
-      return "In Progress";
-    case "ReadyForReport":
-      return "Ready for Report";
-    case "RoutingInProgress":
-      return "Routing";
-    default:
-      return status;
-  }
-};
+import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
 // ============================================================================
 // Timeline Component
@@ -259,9 +216,10 @@ const OrderDetailPage = () => {
             {order.orderId.slice(0, 12)}…
           </Typography>
           <Chip
-            label={formatStatus(order.status)}
-            color={getStatusColor(order.status)}
-            size="medium"
+            label={getOrderStatusLabel(order.status)}
+            color={getOrderStatusColor(order.status)}
+            size="small"
+            variant="outlined"
           />
         </Stack>
 
@@ -404,23 +362,6 @@ const OrderDetailPage = () => {
             <Timeline events={timeline ?? []} isLoading={timelineLoading} />
           </CardContent>
         </Card>
-
-        {/* Actions Card - for future use */}
-        {/* 
-        <Card variant="outlined">
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Actions
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              <Button variant="outlined">Resend Invite</Button>
-              <Button variant="outlined" color="error">
-                Cancel Order
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-        */}
       </Stack>
     </Box>
   );

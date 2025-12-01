@@ -3,7 +3,6 @@ import React, { FormEvent, useState } from "react";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import {
   Alert,
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -13,13 +12,16 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { keepPreviousData } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
 
 import type { CreateCustomerRequest, CustomerListItemDto } from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay, SectionCard } from "@/components/patterns";
+import {
+  DataGridNoRowsOverlay,
+  MonospaceIdCell,
+  RelativeTimeCell,
+  StatusBadge,
+} from "@/components/patterns";
 import { useCreateCustomer, useCustomers } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
@@ -95,14 +97,15 @@ const CustomersPage = () => {
       field: "status",
       headerName: "Status",
       width: 120,
+      renderCell: (params) => (
+        <StatusBadge type="customer" status={params.value} />
+      ),
     },
     {
       field: "policySnapshotId",
       headerName: "Policy",
       width: 200,
-      renderCell: (params) => (
-        <span style={{ fontFamily: "monospace" }}>{params.value}</span>
-      ),
+      renderCell: (params) => <MonospaceIdCell id={params.value} />,
     },
     {
       field: "billingEmail",
@@ -119,8 +122,7 @@ const CustomersPage = () => {
       field: "createdAt",
       headerName: "Created",
       width: 180,
-      renderCell: (params) =>
-        formatDistanceToNow(new Date(params.value), { addSuffix: true }),
+      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
     },
   ];
 

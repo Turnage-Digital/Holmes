@@ -2,7 +2,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
 
-namespace Holmes.Workflow.Infrastructure.Sql;
+namespace Holmes.Workflow.Infrastructure.Sql.Mappers;
 
 public static class OrderEntityMapper
 {
