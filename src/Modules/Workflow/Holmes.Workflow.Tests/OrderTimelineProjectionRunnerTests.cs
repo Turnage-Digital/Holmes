@@ -10,18 +10,18 @@ using Holmes.Workflow.Infrastructure.Sql.Entities;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace Holmes.Workflow.Tests;
 
-public sealed class OrderTimelineProjectionRunnerTests : IDisposable
+public sealed class OrderTimelineProjectionRunnerTests
 {
-    private readonly CoreDbContext _coreDbContext;
-    private readonly IntakeDbContext _intakeDbContext;
-    private readonly OrderTimelineProjectionRunner _runner;
-    private readonly WorkflowDbContext _workflowDbContext;
+    private CoreDbContext _coreDbContext = null!;
+    private IntakeDbContext _intakeDbContext = null!;
+    private OrderTimelineProjectionRunner _runner = null!;
+    private WorkflowDbContext _workflowDbContext = null!;
 
-    public OrderTimelineProjectionRunnerTests()
+    [SetUp]
+    public void SetUp()
     {
         var workflowOptions = new DbContextOptionsBuilder<WorkflowDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -53,14 +53,15 @@ public sealed class OrderTimelineProjectionRunnerTests : IDisposable
             NullLogger<OrderTimelineProjectionRunner>.Instance);
     }
 
-    public void Dispose()
+    [TearDown]
+    public void TearDown()
     {
         _workflowDbContext.Dispose();
         _intakeDbContext.Dispose();
         _coreDbContext.Dispose();
     }
 
-    [Fact]
+    [Test]
     public async Task RunAsync_RebuildsTimelineFromOrdersAndIntakeSessions()
     {
         var orderId = Ulid.NewUlid().ToString();
@@ -113,16 +114,19 @@ public sealed class OrderTimelineProjectionRunnerTests : IDisposable
 
         var result = await _runner.RunAsync(true, CancellationToken.None);
 
-        Assert.True(result.Processed >= 5);
+        Assert.That(result.Processed, Is.GreaterThanOrEqualTo(5));
         var events = await _workflowDbContext.OrderTimelineEvents
             .OrderBy(e => e.OccurredAt)
             .ToListAsync();
 
-        Assert.Contains(events, e => e.EventType == "order.status_changed");
-        Assert.Contains(events, e => e.EventType.StartsWith("intake."));
+        Assert.Multiple(() =>
+        {
+            Assert.That(events.Any(e => e.EventType == "order.status_changed"), Is.True);
+            Assert.That(events.Any(e => e.EventType.StartsWith("intake.")), Is.True);
+        });
 
-        var checkpoint = Assert.Single(_coreDbContext.ProjectionCheckpoints);
-        Assert.Equal("workflow.order_timeline", checkpoint.ProjectionName);
+        var checkpoint = _coreDbContext.ProjectionCheckpoints.Single();
+        Assert.That(checkpoint.ProjectionName, Is.EqualTo("workflow.order_timeline"));
     }
 
     private sealed record PolicySnapshotRecord(

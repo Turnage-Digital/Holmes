@@ -3,6 +3,7 @@ using Duende.IdentityServer.EntityFramework.Mappers;
 using Holmes.Identity.Server.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Holmes.Identity.Server;
 
@@ -20,13 +21,15 @@ internal static class SeedData
         var appDb = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
+        var passwordOptions = scope.ServiceProvider.GetRequiredService<IOptions<PasswordPolicyOptions>>().Value;
 
         await configurationDb.Database.MigrateAsync(cancellationToken);
         await operationalDb.Database.MigrateAsync(cancellationToken);
         await appDb.Database.MigrateAsync(cancellationToken);
 
         await SeedIdentityServerConfigAsync(configurationDb, cancellationToken);
-        await SeedDefaultUsersAsync(userManager, roleManager);
+        await SeedDefaultUsersAsync(userManager, roleManager, timeProvider, passwordOptions);
     }
 
     private static async Task SeedIdentityServerConfigAsync(
@@ -71,7 +74,9 @@ internal static class SeedData
 
     private static async Task SeedDefaultUsersAsync(
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager
+        RoleManager<IdentityRole> roleManager,
+        TimeProvider timeProvider,
+        PasswordPolicyOptions passwordOptions
     )
     {
         string[] roles = ["Admin", "Operations"];
@@ -83,6 +88,9 @@ internal static class SeedData
             }
         }
 
+        var now = timeProvider.GetUtcNow();
+        var passwordExpires = now.AddDays(passwordOptions.ExpirationDays);
+
         const string adminEmail = "admin@holmes.dev";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
         if (adminUser is null)
@@ -92,7 +100,9 @@ internal static class SeedData
                 UserName = adminEmail,
                 Email = adminEmail,
                 EmailConfirmed = true,
-                DisplayName = "Dev Admin"
+                DisplayName = "Dev Admin",
+                LastPasswordChangedAt = now,
+                PasswordExpires = passwordExpires
             };
 
             const string seedPassword = "ChangeMe123!";
@@ -115,7 +125,9 @@ internal static class SeedData
                 UserName = opsEmail,
                 Email = opsEmail,
                 EmailConfirmed = true,
-                DisplayName = "Ops User"
+                DisplayName = "Ops User",
+                LastPasswordChangedAt = now,
+                PasswordExpires = passwordExpires
             };
 
             const string seedPassword = "ChangeMe123!";

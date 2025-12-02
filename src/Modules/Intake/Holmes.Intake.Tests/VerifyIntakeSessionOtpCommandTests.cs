@@ -1,48 +1,50 @@
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Tests.TestHelpers;
-using NSubstitute;
-using Xunit;
+using Moq;
 
 namespace Holmes.Intake.Tests;
 
 public class VerifyIntakeSessionOtpCommandTests
 {
-    private readonly IIntakeSessionRepository _repository = Substitute.For<IIntakeSessionRepository>();
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
+    private Mock<IIntakeSessionRepository> _repositoryMock = null!;
+    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
-    public VerifyIntakeSessionOtpCommandTests()
+    [SetUp]
+    public void SetUp()
     {
-        _unitOfWork.IntakeSessions.Returns(_repository);
+        _repositoryMock = new Mock<IIntakeSessionRepository>();
+        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repositoryMock.Object);
     }
 
-    [Fact]
+    [Test]
     public async Task Succeeds_When_Code_Matches()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
-        _repository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IntakeSession?>(session));
-        var handler = new VerifyIntakeSessionOtpCommandHandler(_unitOfWork);
+        _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        var handler = new VerifyIntakeSessionOtpCommandHandler(_unitOfWorkMock.Object);
 
         var result = await handler.Handle(
             new VerifyIntakeSessionOtpCommand(session.Id, session.ResumeToken),
             CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
+        Assert.That(result.IsSuccess, Is.True);
     }
 
-    [Fact]
+    [Test]
     public async Task Fails_When_Code_Does_Not_Match()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
-        _repository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IntakeSession?>(session));
-        var handler = new VerifyIntakeSessionOtpCommandHandler(_unitOfWork);
+        _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        var handler = new VerifyIntakeSessionOtpCommandHandler(_unitOfWorkMock.Object);
 
         var result = await handler.Handle(
             new VerifyIntakeSessionOtpCommand(session.Id, "123456"),
             CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
+        Assert.That(result.IsSuccess, Is.False);
     }
 }

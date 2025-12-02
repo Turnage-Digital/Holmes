@@ -3,23 +3,26 @@ using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Tests.TestHelpers;
-using NSubstitute;
-using Xunit;
+using Moq;
 
 namespace Holmes.Intake.Tests;
 
 public class CaptureConsentArtifactCommandTests
 {
-    private readonly InMemoryIntakeSessionRepository _repository = new();
-    private readonly IConsentArtifactStore _store = Substitute.For<IConsentArtifactStore>();
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
+    private InMemoryIntakeSessionRepository _repository = null!;
+    private Mock<IConsentArtifactStore> _storeMock = null!;
+    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
-    public CaptureConsentArtifactCommandTests()
+    [SetUp]
+    public void SetUp()
     {
-        _unitOfWork.IntakeSessions.Returns(_repository);
+        _repository = new InMemoryIntakeSessionRepository();
+        _storeMock = new Mock<IConsentArtifactStore>();
+        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
     }
 
-    [Fact]
+    [Test]
     public async Task PersistsArtifactAndUpdatesSession()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
@@ -34,10 +37,10 @@ public class CaptureConsentArtifactCommandTests
             "SHA256",
             "schema",
             DateTimeOffset.UtcNow);
-        _store.SaveAsync(Arg.Any<ConsentArtifactWriteRequest>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-            .Returns(descriptor);
+        _storeMock.Setup(x => x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(descriptor);
 
-        var handler = new CaptureConsentArtifactCommandHandler(_store, _unitOfWork);
+        var handler = new CaptureConsentArtifactCommandHandler(_storeMock.Object, _unitOfWorkMock.Object);
         var command = new CaptureConsentArtifactCommand(
             session.Id,
             "application/pdf",
@@ -47,12 +50,14 @@ public class CaptureConsentArtifactCommandTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(descriptor, result.Value);
-        Assert.NotNull(session.ConsentArtifact);
-        await _store.Received(1)
-            .SaveAsync(Arg.Any<ConsentArtifactWriteRequest>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value, Is.EqualTo(descriptor));
+            Assert.That(session.ConsentArtifact, Is.Not.Null);
+        });
+        _storeMock.Verify(x => x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private sealed class InMemoryIntakeSessionRepository : IIntakeSessionRepository

@@ -4,39 +4,45 @@ using Holmes.Intake.Application.Gateways;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.ValueObjects;
 using Holmes.Intake.Tests.TestHelpers;
-using NSubstitute;
-using Xunit;
+using Moq;
 
 namespace Holmes.Intake.Tests;
 
 public class AcceptIntakeSubmissionCommandTests
 {
-    private readonly IOrderWorkflowGateway _gateway = Substitute.For<IOrderWorkflowGateway>();
-    private readonly InMemoryIntakeSessionRepository _repository = new();
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
+    private Mock<IOrderWorkflowGateway> _gatewayMock = null!;
+    private InMemoryIntakeSessionRepository _repository = null!;
+    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
-    public AcceptIntakeSubmissionCommandTests()
+    [SetUp]
+    public void SetUp()
     {
-        _unitOfWork.IntakeSessions.Returns(_repository);
+        _gatewayMock = new Mock<IOrderWorkflowGateway>();
+        _repository = new InMemoryIntakeSessionRepository();
+        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
     }
 
-    [Fact]
+    [Test]
     public async Task AcceptsSubmissionAndNotifiesOrder()
     {
         var session = await SeedAwaitingReviewAsync();
-        var handler = new AcceptIntakeSubmissionCommandHandler(_gateway, _unitOfWork);
+        var handler = new AcceptIntakeSubmissionCommandHandler(_gatewayMock.Object, _unitOfWorkMock.Object);
         var acceptedAt = DateTimeOffset.UtcNow;
 
         var result = await handler.Handle(new AcceptIntakeSubmissionCommand(session.Id, acceptedAt),
             CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(IntakeSessionStatus.Submitted, session.Status);
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        await _gateway.Received(1)
-            .NotifyIntakeAcceptedAsync(Arg.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
-                acceptedAt,
-                Arg.Any<CancellationToken>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.Submitted));
+        });
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _gatewayMock.Verify(x => x.NotifyIntakeAcceptedAsync(
+            It.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
+            acceptedAt,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private async Task<IntakeSession> SeedAwaitingReviewAsync()

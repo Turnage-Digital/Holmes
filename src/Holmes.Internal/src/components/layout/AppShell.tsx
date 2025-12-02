@@ -314,7 +314,7 @@ const AppShell = () => {
             <Tooltip title="Sign out">
               <IconButton
                 component="a"
-                href="/auth/logout"
+                href="/bff/logout"
                 size="small"
                 sx={{ color: "rgba(255,255,255,0.6)" }}
               >

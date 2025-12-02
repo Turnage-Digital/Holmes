@@ -83,6 +83,9 @@ try
     // Map local controllers first (SSE proxy needs to handle before YARP)
     app.MapControllers();
 
+    // BFF management endpoints (login, logout, user)
+    app.MapBffManagementEndpoints();
+
     app.MapRemoteBffApiEndpoint("/api", new Uri(apiBase))
         .WithAccessToken();
 

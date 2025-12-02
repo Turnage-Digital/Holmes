@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Core.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(CoreDbContext))]
-    [Migration("20251127201955_InitialEventStore")]
+    [Migration("20251202144453_InitialEventStore")]
     partial class InitialEventStore
     {
         /// <inheritdoc />

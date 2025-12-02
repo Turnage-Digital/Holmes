@@ -3,26 +3,29 @@ using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Holmes.Workflow.Application.Commands;
 using MediatR;
-using NSubstitute;
-using Xunit;
+using Moq;
 
 namespace Holmes.Intake.Tests;
 
 public class IssueIntakeInviteCommandTests
 {
-    private readonly IIntakeSessionRepository _repository = Substitute.For<IIntakeSessionRepository>();
-    private readonly ISender _sender = Substitute.For<ISender>();
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
+    private Mock<IIntakeSessionRepository> _repositoryMock = null!;
+    private Mock<ISender> _senderMock = null!;
+    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
-    public IssueIntakeInviteCommandTests()
+    [SetUp]
+    public void SetUp()
     {
-        _unitOfWork.IntakeSessions.Returns(_repository);
+        _repositoryMock = new Mock<IIntakeSessionRepository>();
+        _senderMock = new Mock<ISender>();
+        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repositoryMock.Object);
     }
 
-    [Fact]
+    [Test]
     public async Task CreatesSessionAndNotifiesWorkflow()
     {
-        var handler = new IssueIntakeInviteCommandHandler(_unitOfWork, _sender);
+        var handler = new IssueIntakeInviteCommandHandler(_unitOfWorkMock.Object, _senderMock.Object);
         var command = new IssueIntakeInviteCommand(
             UlidId.NewUlid(),
             UlidId.NewUlid(),
@@ -37,11 +40,11 @@ public class IssueIntakeInviteCommandTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
-        await _repository.Received(1).AddAsync(Arg.Any<IntakeSession>(), Arg.Any<CancellationToken>());
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        await _sender.Received(1)
-            .Send(Arg.Is<RecordOrderInviteCommand>(c => c.OrderId == command.OrderId),
-                Arg.Any<CancellationToken>());
+        Assert.That(result.IsSuccess, Is.True);
+        _repositoryMock.Verify(x => x.AddAsync(It.IsAny<IntakeSession>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _senderMock.Verify(x => x.Send(
+            It.Is<RecordOrderInviteCommand>(c => c.OrderId == command.OrderId),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 }

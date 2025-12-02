@@ -1,0 +1,29 @@
+@page
+@model Holmes.Identity.Server.Pages.Account.LoggedOutModel
+@{
+    ViewData["Title"] = "Signed Out";
+}
+
+<h2 class="auth-title">Signed Out</h2>
+<p class="auth-subtitle">You have been successfully signed out.</p>
+
+@if (!string.IsNullOrEmpty(Model.PostLogoutRedirectUri))
+{
+    <div class="mt-4 text-center">
+        <a href="@Model.PostLogoutRedirectUri" class="text-link">Return to @(Model.ClientName ?? "application")</a>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SignOutIframeUrl))
+{
+    <iframe width="0" height="0" class="signout" src="@Model.SignOutIframeUrl" style="display: none;"></iframe>
+}
+
+@if (Model.AutomaticRedirectAfterSignOut)
+{
+    @section Scripts {
+        <script>
+            window.location.href = '@Html.Raw(Model.PostLogoutRedirectUri)';
+        </script>
+    }
+}

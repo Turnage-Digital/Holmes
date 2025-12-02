@@ -1,0 +1,13 @@
+@page
+@model Holmes.Identity.Server.Pages.Account.LogoutModel
+@{
+    ViewData["Title"] = "Sign Out";
+}
+
+<h2 class="auth-title">Sign Out</h2>
+<p class="auth-subtitle">Are you sure you want to sign out?</p>
+
+<form method="post">
+    <input type="hidden" name="logoutId" value="@Model.LogoutId" />
+    <button type="submit" class="btn btn-primary btn-block btn-lg">Sign Out</button>
+</form>

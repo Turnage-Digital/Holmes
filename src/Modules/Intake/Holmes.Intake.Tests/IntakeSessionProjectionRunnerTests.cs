@@ -6,17 +6,17 @@ using Holmes.Intake.Infrastructure.Sql.Entities;
 using Holmes.Intake.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace Holmes.Intake.Tests;
 
-public sealed class IntakeSessionProjectionRunnerTests : IDisposable
+public sealed class IntakeSessionProjectionRunnerTests
 {
-    private readonly CoreDbContext _coreDbContext;
-    private readonly IntakeDbContext _intakeDbContext;
-    private readonly IntakeSessionProjectionRunner _runner;
+    private CoreDbContext _coreDbContext = null!;
+    private IntakeDbContext _intakeDbContext = null!;
+    private IntakeSessionProjectionRunner _runner = null!;
 
-    public IntakeSessionProjectionRunnerTests()
+    [SetUp]
+    public void SetUp()
     {
         var intakeOptions = new DbContextOptionsBuilder<IntakeDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -40,13 +40,14 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
             NullLogger<IntakeSessionProjectionRunner>.Instance);
     }
 
-    public void Dispose()
+    [TearDown]
+    public void TearDown()
     {
         _intakeDbContext.Dispose();
         _coreDbContext.Dispose();
     }
 
-    [Fact]
+    [Test]
     public async Task RunAsync_RebuildsProjectionFromCanonicalTable()
     {
         var session = CreateSession();
@@ -55,16 +56,19 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
 
         var result = await _runner.RunAsync(true, CancellationToken.None);
 
-        Assert.Equal(1, result.Processed);
-        var projection = Assert.Single(_intakeDbContext.IntakeSessionProjections);
-        Assert.Equal(session.IntakeSessionId, projection.IntakeSessionId);
-        Assert.Equal(IntakeSessionStatus.Invited.ToString(), projection.Status);
+        Assert.That(result.Processed, Is.EqualTo(1));
+        var projection = _intakeDbContext.IntakeSessionProjections.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(projection.IntakeSessionId, Is.EqualTo(session.IntakeSessionId));
+            Assert.That(projection.Status, Is.EqualTo(IntakeSessionStatus.Invited.ToString()));
+        });
 
-        var checkpoint = Assert.Single(_coreDbContext.ProjectionCheckpoints);
-        Assert.Equal("intake.sessions", checkpoint.ProjectionName);
+        var checkpoint = _coreDbContext.ProjectionCheckpoints.Single();
+        Assert.That(checkpoint.ProjectionName, Is.EqualTo("intake.sessions"));
     }
 
-    [Fact]
+    [Test]
     public async Task RunAsync_UpdatesExistingProjectionRows()
     {
         var session = CreateSession();
@@ -82,10 +86,13 @@ public sealed class IntakeSessionProjectionRunnerTests : IDisposable
 
         var result = await _runner.RunAsync(false, CancellationToken.None);
 
-        Assert.Equal(1, result.Processed);
+        Assert.That(result.Processed, Is.EqualTo(1));
         var projection = await _intakeDbContext.IntakeSessionProjections.SingleAsync();
-        Assert.Equal(IntakeSessionStatus.Submitted.ToString(), projection.Status);
-        Assert.Equal(submittedAt, projection.SubmittedAt);
+        Assert.Multiple(() =>
+        {
+            Assert.That(projection.Status, Is.EqualTo(IntakeSessionStatus.Submitted.ToString()));
+            Assert.That(projection.SubmittedAt, Is.EqualTo(submittedAt));
+        });
     }
 
     private static IntakeSessionDb CreateSession()

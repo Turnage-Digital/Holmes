@@ -1,0 +1,59 @@
+@page
+@model Holmes.Identity.Server.Pages.Account.ConfirmEmailModel
+@{
+    ViewData["Title"] = "Confirm Email";
+}
+
+<h2 class="auth-title">@(Model.RequiresPassword ? "Set Your Password" : "Email Confirmation")</h2>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert @(Model.EmailConfirmed ? "alert-success" : "alert-error")">
+        @Model.StatusMessage
+    </div>
+}
+
+@if (Model.RequiresPassword)
+{
+    <p class="auth-subtitle">Create a secure password for your account</p>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+        <div class="form-group">
+            <label asp-for="Input.Password" class="form-label">Password</label>
+            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="Input.Password" class="field-validation-error"></span>
+            <ul class="password-requirements">
+                <li>At least 12 characters</li>
+                <li>At least one uppercase letter</li>
+                <li>At least one lowercase letter</li>
+                <li>At least one number</li>
+            </ul>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" />
+            <span asp-validation-for="Input.ConfirmPassword" class="field-validation-error"></span>
+        </div>
+
+        <input type="hidden" name="userId" value="@Model.UserId" />
+        <input type="hidden" name="code" value="@Model.Code" />
+        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Set Password & Continue</button>
+    </form>
+}
+else if (Model.EmailConfirmed)
+{
+    <p class="auth-subtitle">You can now sign in to your account.</p>
+
+    <div class="mt-4 text-center">
+        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-primary btn-block btn-lg">Sign In</a>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
