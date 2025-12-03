@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Integration;
+using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Domain.Security;
@@ -16,6 +17,8 @@ using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
 using Holmes.Intake.Infrastructure.Sql.Storage;
+using Holmes.Notifications.Application.Commands;
+using Holmes.Notifications.Infrastructure.Sql;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
@@ -23,8 +26,6 @@ using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Repositories;
-using Holmes.Notifications.Application.Commands;
-using Holmes.Notifications.Infrastructure.Sql;
 using Holmes.Workflow.Application.Abstractions.Notifications;
 using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Application.Commands;
@@ -198,7 +199,7 @@ internal static class DependencyInjection
             services.AddHostedService<SeedData>();
         }
 
-        services.AddHostedService<Services.NotificationProcessingService>();
+        services.AddHostedService<NotificationProcessingService>();
 
         return services;
     }

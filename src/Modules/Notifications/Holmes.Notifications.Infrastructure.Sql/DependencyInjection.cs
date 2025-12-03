@@ -11,7 +11,8 @@ public static class DependencyInjection
     public static IServiceCollection AddNotificationsInfrastructureSql(
         this IServiceCollection services,
         string connectionString,
-        ServerVersion version)
+        ServerVersion version
+    )
     {
         services.AddDbContext<NotificationsDbContext>(options =>
             options.UseMySql(connectionString, version));

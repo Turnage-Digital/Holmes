@@ -48,7 +48,8 @@ public sealed class NotificationRequest : AggregateRoot
         DateTimeOffset? processedAt,
         DateTimeOffset? deliveredAt,
         string? correlationId,
-        IEnumerable<DeliveryAttempt> deliveryAttempts)
+        IEnumerable<DeliveryAttempt> deliveryAttempts
+    )
     {
         var request = new NotificationRequest
         {
@@ -82,7 +83,8 @@ public sealed class NotificationRequest : AggregateRoot
         NotificationPriority priority,
         bool isAdverseAction,
         DateTimeOffset createdAt,
-        string? correlationId = null)
+        string? correlationId = null
+    )
     {
         var effectiveSchedule = schedule ?? NotificationSchedule.Immediate();
         var scheduledFor = ComputeScheduledTime(effectiveSchedule, createdAt);
@@ -125,7 +127,8 @@ public sealed class NotificationRequest : AggregateRoot
         {
             ScheduleType.Immediate => null, // Process immediately, no scheduled time
             ScheduleType.Delayed when schedule.Delay.HasValue => createdAt.Add(schedule.Delay.Value),
-            ScheduleType.Daily when schedule.DailyAt.HasValue => ComputeNextDailyTime(createdAt, schedule.DailyAt.Value),
+            ScheduleType.Daily when schedule.DailyAt.HasValue =>
+                ComputeNextDailyTime(createdAt, schedule.DailyAt.Value),
             ScheduleType.Weekly when schedule is { DaysOfWeek: not null, DailyAt: not null } =>
                 ComputeNextWeeklyTime(createdAt, schedule.DaysOfWeek, schedule.DailyAt.Value),
             ScheduleType.Batched when schedule.BatchWindow.HasValue => createdAt.Add(schedule.BatchWindow.Value),
@@ -180,7 +183,8 @@ public sealed class NotificationRequest : AggregateRoot
 
     public void RecordDeliverySuccess(
         DateTimeOffset deliveredAt,
-        string? providerMessageId = null)
+        string? providerMessageId = null
+    )
     {
         if (Status == DeliveryStatus.Delivered)
         {
@@ -209,7 +213,8 @@ public sealed class NotificationRequest : AggregateRoot
     public void RecordDeliveryFailure(
         DateTimeOffset failedAt,
         string reason,
-        TimeSpan? retryAfter = null)
+        TimeSpan? retryAfter = null
+    )
     {
         if (Status == DeliveryStatus.Delivered)
         {

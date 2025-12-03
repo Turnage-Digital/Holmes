@@ -9,7 +9,8 @@ public interface INotificationProvider
     Task<NotificationSendResult> SendAsync(
         NotificationRecipient recipient,
         NotificationContent content,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     bool CanHandle(NotificationChannel channel);
 }
@@ -31,7 +32,11 @@ public sealed record NotificationSendResult
         };
     }
 
-    public static NotificationSendResult Failed(string errorMessage, bool shouldRetry = true, TimeSpan? retryAfter = null)
+    public static NotificationSendResult Failed(
+        string errorMessage,
+        bool shouldRetry = true,
+        TimeSpan? retryAfter = null
+    )
     {
         return new NotificationSendResult
         {

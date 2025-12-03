@@ -9,8 +9,8 @@ public sealed class NotificationProcessingService(
     ILogger<NotificationProcessingService> logger
 ) : BackgroundService
 {
-    private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(5);
     private const int BatchSize = 50;
+    private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
