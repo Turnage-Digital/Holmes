@@ -8,7 +8,7 @@
     "intake:build": "tsc && vite build",
     "intake:lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
     "intake:lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --report-unused-disable-directives --max-warnings 0 && eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "intake:preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
