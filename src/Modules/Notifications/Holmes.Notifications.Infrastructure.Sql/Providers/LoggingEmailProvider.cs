@@ -6,19 +6,23 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Notifications.Infrastructure.Sql.Providers;
 
 /// <summary>
-/// Stub email provider that logs instead of sending.
-/// Replace with SendGridEmailProvider when ready.
+///     Stub email provider that logs instead of sending.
+///     Replace with SendGridEmailProvider when ready.
 /// </summary>
 public sealed class LoggingEmailProvider(ILogger<LoggingEmailProvider> logger) : INotificationProvider
 {
     public NotificationChannel Channel => NotificationChannel.Email;
 
-    public bool CanHandle(NotificationChannel channel) => channel == NotificationChannel.Email;
+    public bool CanHandle(NotificationChannel channel)
+    {
+        return channel == NotificationChannel.Email;
+    }
 
     public Task<NotificationSendResult> SendAsync(
         NotificationRecipient recipient,
         NotificationContent content,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         // TODO: Replace with actual SendGrid implementation
         logger.LogDebug(

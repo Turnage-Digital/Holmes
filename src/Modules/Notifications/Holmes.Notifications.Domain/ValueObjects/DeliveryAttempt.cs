@@ -14,7 +14,8 @@ public sealed record DeliveryAttempt
         NotificationChannel channel,
         DateTimeOffset attemptedAt,
         int attemptNumber,
-        string? providerMessageId = null)
+        string? providerMessageId = null
+    )
     {
         return new DeliveryAttempt
         {
@@ -31,7 +32,8 @@ public sealed record DeliveryAttempt
         DateTimeOffset attemptedAt,
         int attemptNumber,
         string failureReason,
-        TimeSpan? retryAfter = null)
+        TimeSpan? retryAfter = null
+    )
     {
         return new DeliveryAttempt
         {
@@ -48,7 +50,8 @@ public sealed record DeliveryAttempt
         NotificationChannel channel,
         DateTimeOffset attemptedAt,
         int attemptNumber,
-        string reason)
+        string reason
+    )
     {
         return new DeliveryAttempt
         {

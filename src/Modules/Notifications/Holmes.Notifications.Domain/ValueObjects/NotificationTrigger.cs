@@ -27,7 +27,8 @@ public sealed record NotificationTrigger
         UlidId orderId,
         UlidId customerId,
         string fromState,
-        string toState)
+        string toState
+    )
     {
         return new NotificationTrigger
         {

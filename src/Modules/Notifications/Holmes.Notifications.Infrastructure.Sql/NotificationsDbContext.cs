@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Notifications.Infrastructure.Sql;
 
-public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> options) : DbContext(options)
+public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> options)
+    : DbContext(options)
 {
     public DbSet<NotificationRequestDb> NotificationRequests => Set<NotificationRequestDb>();
     public DbSet<DeliveryAttemptDb> DeliveryAttempts => Set<DeliveryAttemptDb>();

@@ -1,7 +1,4 @@
 using Holmes.Intake.Domain.Events;
-using Holmes.Notifications.Application.Commands;
-using Holmes.Notifications.Domain;
-using Holmes.Notifications.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
