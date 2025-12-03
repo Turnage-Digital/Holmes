@@ -113,7 +113,8 @@ public sealed class NotificationRequest : AggregateRoot
             request.TriggerType,
             request.Recipient.Channel,
             request.IsAdverseAction,
-            createdAt));
+            createdAt,
+            scheduledFor));
 
         return request;
     }
