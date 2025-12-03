@@ -198,6 +198,8 @@ internal static class DependencyInjection
             services.AddHostedService<SeedData>();
         }
 
+        services.AddHostedService<Services.NotificationProcessingService>();
+
         return services;
     }
 

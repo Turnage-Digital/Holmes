@@ -22,9 +22,11 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         int limit,
         CancellationToken cancellationToken = default)
     {
+        var now = DateTime.UtcNow;
         var pending = await context.NotificationRequests
             .Include(n => n.DeliveryAttempts)
             .Where(n => n.Status == (int)DeliveryStatus.Pending)
+            .Where(n => n.ScheduledFor == null || n.ScheduledFor <= now)
             .OrderBy(n => n.CreatedAt)
             .Take(limit)
             .ToListAsync(cancellationToken);
