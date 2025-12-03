@@ -1,13 +1,12 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Domain.Events;
-using Xunit;
 
 namespace Holmes.Workflow.Tests;
 
 public class OrderTests
 {
-    [Fact]
+    [Test]
     public void CreateInitializesOrder()
     {
         var orderId = UlidId.NewUlid();
@@ -17,16 +16,19 @@ public class OrderTests
 
         var order = Order.Create(orderId, subjectId, customerId, "policy-v1", createdAt);
 
-        Assert.Equal(orderId, order.Id);
-        Assert.Equal(subjectId, order.SubjectId);
-        Assert.Equal(customerId, order.CustomerId);
-        Assert.Equal("policy-v1", order.PolicySnapshotId);
-        Assert.Equal(OrderStatus.Created, order.Status);
-        var createdEvent = Assert.Single(order.DomainEvents);
-        Assert.IsType<OrderStatusChanged>(createdEvent);
+        Assert.Multiple(() =>
+        {
+            Assert.That(order.Id, Is.EqualTo(orderId));
+            Assert.That(order.SubjectId, Is.EqualTo(subjectId));
+            Assert.That(order.CustomerId, Is.EqualTo(customerId));
+            Assert.That(order.PolicySnapshotId, Is.EqualTo("policy-v1"));
+            Assert.That(order.Status, Is.EqualTo(OrderStatus.Created));
+        });
+        var createdEvent = order.DomainEvents.Single();
+        Assert.That(createdEvent, Is.TypeOf<OrderStatusChanged>());
     }
 
-    [Fact]
+    [Test]
     public void RecordInviteMovesOrderToInvited()
     {
         var order = CreateOrder();
@@ -35,12 +37,15 @@ public class OrderTests
 
         order.RecordInvite(sessionId, timestamp);
 
-        Assert.Equal(OrderStatus.Invited, order.Status);
-        Assert.Equal(sessionId, order.ActiveIntakeSessionId);
-        Assert.Equal(timestamp, order.InvitedAt);
+        Assert.Multiple(() =>
+        {
+            Assert.That(order.Status, Is.EqualTo(OrderStatus.Invited));
+            Assert.That(order.ActiveIntakeSessionId, Is.EqualTo(sessionId));
+            Assert.That(order.InvitedAt, Is.EqualTo(timestamp));
+        });
     }
 
-    [Fact]
+    [Test]
     public void IntakeProgressRequiresActiveSession()
     {
         var order = CreateOrder();
@@ -48,14 +53,14 @@ public class OrderTests
         order.RecordInvite(sessionId, DateTimeOffset.UtcNow);
 
         order.MarkIntakeInProgress(sessionId, DateTimeOffset.UtcNow);
-        Assert.Equal(OrderStatus.IntakeInProgress, order.Status);
+        Assert.That(order.Status, Is.EqualTo(OrderStatus.IntakeInProgress));
 
         var otherSession = UlidId.NewUlid();
         Assert.Throws<InvalidOperationException>(() =>
             order.MarkIntakeInProgress(otherSession, DateTimeOffset.UtcNow));
     }
 
-    [Fact]
+    [Test]
     public void IntakeSubmissionAdvancesOrder()
     {
         var order = CreateOrder();
@@ -66,12 +71,15 @@ public class OrderTests
 
         order.MarkIntakeSubmitted(sessionId, submittedAt);
 
-        Assert.Equal(OrderStatus.IntakeComplete, order.Status);
-        Assert.Equal(sessionId, order.LastCompletedIntakeSessionId);
-        Assert.Equal(submittedAt, order.IntakeCompletedAt);
+        Assert.Multiple(() =>
+        {
+            Assert.That(order.Status, Is.EqualTo(OrderStatus.IntakeComplete));
+            Assert.That(order.LastCompletedIntakeSessionId, Is.EqualTo(sessionId));
+            Assert.That(order.IntakeCompletedAt, Is.EqualTo(submittedAt));
+        });
     }
 
-    [Fact]
+    [Test]
     public void ReadyForRoutingRequiresCompletedIntake()
     {
         var order = CreateOrder();
@@ -83,11 +91,14 @@ public class OrderTests
 
         order.MarkReadyForRouting(readyAt);
 
-        Assert.Equal(OrderStatus.ReadyForRouting, order.Status);
-        Assert.Equal(readyAt, order.ReadyForRoutingAt);
+        Assert.Multiple(() =>
+        {
+            Assert.That(order.Status, Is.EqualTo(OrderStatus.ReadyForRouting));
+            Assert.That(order.ReadyForRoutingAt, Is.EqualTo(readyAt));
+        });
     }
 
-    [Fact]
+    [Test]
     public void BlockAndResumeRestoresPreviousStatus()
     {
         var order = CreateOrder();
@@ -96,13 +107,13 @@ public class OrderTests
         order.MarkIntakeInProgress(sessionId, DateTimeOffset.UtcNow);
 
         order.Block("policy gate", DateTimeOffset.UtcNow);
-        Assert.Equal(OrderStatus.Blocked, order.Status);
+        Assert.That(order.Status, Is.EqualTo(OrderStatus.Blocked));
 
         order.ResumeFromBlock("gate cleared", DateTimeOffset.UtcNow);
-        Assert.Equal(OrderStatus.IntakeInProgress, order.Status);
+        Assert.That(order.Status, Is.EqualTo(OrderStatus.IntakeInProgress));
     }
 
-    [Fact]
+    [Test]
     public void CancelStopsOrder()
     {
         var order = CreateOrder();
@@ -110,8 +121,11 @@ public class OrderTests
 
         order.Cancel("duplicate request", canceledAt);
 
-        Assert.Equal(OrderStatus.Canceled, order.Status);
-        Assert.Equal(canceledAt, order.CanceledAt);
+        Assert.Multiple(() =>
+        {
+            Assert.That(order.Status, Is.EqualTo(OrderStatus.Canceled));
+            Assert.That(order.CanceledAt, Is.EqualTo(canceledAt));
+        });
         Assert.Throws<InvalidOperationException>(() =>
             order.RecordInvite(UlidId.NewUlid(), DateTimeOffset.UtcNow));
     }

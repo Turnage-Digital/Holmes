@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Subjects.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(SubjectsDbContext))]
-    [Migration("20251127202009_InitialSubjects")]
+    [Migration("20251202201230_InitialSubjects")]
     partial class InitialSubjects
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");

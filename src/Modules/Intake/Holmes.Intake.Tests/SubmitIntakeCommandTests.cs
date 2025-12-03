@@ -4,61 +4,73 @@ using Holmes.Intake.Application.Gateways;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.ValueObjects;
 using Holmes.Intake.Tests.TestHelpers;
-using NSubstitute;
-using Xunit;
+using Moq;
 
 namespace Holmes.Intake.Tests;
 
 public class SubmitIntakeCommandTests
 {
-    private readonly IOrderWorkflowGateway _gateway = Substitute.For<IOrderWorkflowGateway>();
-    private readonly InMemoryIntakeSessionRepository _repository = new();
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
+    private Mock<IOrderWorkflowGateway> _gatewayMock = null!;
+    private InMemoryIntakeSessionRepository _repository = null!;
+    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
-    public SubmitIntakeCommandTests()
+    [SetUp]
+    public void SetUp()
     {
-        _unitOfWork.IntakeSessions.Returns(_repository);
+        _gatewayMock = new Mock<IOrderWorkflowGateway>();
+        _repository = new InMemoryIntakeSessionRepository();
+        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
     }
 
-    [Fact]
+    [Test]
     public async Task BlocksSubmissionWhenPolicyFails()
     {
         var session = await SeedReadySessionAsync();
-        _gateway.ValidateSubmissionAsync(Arg.Any<OrderIntakeSubmission>(), Arg.Any<CancellationToken>())
-            .Returns(OrderPolicyCheckResult.Blocked("policy"));
-        var handler = new SubmitIntakeCommandHandler(_gateway, _unitOfWork);
+        _gatewayMock.Setup(x =>
+                x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(OrderPolicyCheckResult.Blocked("policy"));
+        var handler = new SubmitIntakeCommandHandler(_gatewayMock.Object, _unitOfWorkMock.Object);
 
         var result = await handler.Handle(new SubmitIntakeCommand(session.Id, DateTimeOffset.UtcNow),
             CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal("policy", result.Error);
-        Assert.Equal(IntakeSessionStatus.InProgress, session.Status);
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
-        await _gateway.DidNotReceive()
-            .NotifyIntakeSubmittedAsync(Arg.Any<OrderIntakeSubmission>(), Arg.Any<DateTimeOffset>(),
-                Arg.Any<CancellationToken>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.Error, Is.EqualTo("policy"));
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.InProgress));
+        });
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _gatewayMock.Verify(x => x.NotifyIntakeSubmittedAsync(
+            It.IsAny<OrderIntakeSubmission>(),
+            It.IsAny<DateTimeOffset>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    [Fact]
+    [Test]
     public async Task AdvancesWhenPolicyAllows()
     {
         var session = await SeedReadySessionAsync();
-        _gateway.ValidateSubmissionAsync(Arg.Any<OrderIntakeSubmission>(), Arg.Any<CancellationToken>())
-            .Returns(OrderPolicyCheckResult.Allowed());
-        var handler = new SubmitIntakeCommandHandler(_gateway, _unitOfWork);
+        _gatewayMock.Setup(x =>
+                x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(OrderPolicyCheckResult.Allowed());
+        var handler = new SubmitIntakeCommandHandler(_gatewayMock.Object, _unitOfWorkMock.Object);
         var submittedAt = DateTimeOffset.UtcNow;
 
         var result = await handler.Handle(new SubmitIntakeCommand(session.Id, submittedAt),
             CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(IntakeSessionStatus.AwaitingReview, session.Status);
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
-        await _gateway.Received(1)
-            .NotifyIntakeSubmittedAsync(Arg.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
-                submittedAt,
-                Arg.Any<CancellationToken>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.AwaitingReview));
+        });
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _gatewayMock.Verify(x => x.NotifyIntakeSubmittedAsync(
+            It.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
+            submittedAt,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private async Task<IntakeSession> SeedReadySessionAsync()

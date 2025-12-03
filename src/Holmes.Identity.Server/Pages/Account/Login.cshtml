@@ -1,0 +1,43 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Sign In";
+}
+
+<h2 class="auth-title">Sign In</h2>
+<p class="auth-subtitle">Enter your credentials to access your account</p>
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+    <div class="form-group">
+        <label asp-for="Input.Email" class="form-label">Email</label>
+        <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="name@example.com" />
+        <span asp-validation-for="Input.Email" class="field-validation-error"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Input.Password" class="form-label">Password</label>
+        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
+        <span asp-validation-for="Input.Password" class="field-validation-error"></span>
+    </div>
+
+    <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.875rem;">
+            <input asp-for="Input.RememberMe" style="margin-right: 8px;" />
+            Remember me
+        </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block btn-lg">Sign In</button>
+
+    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+</form>
+
+<div class="mt-4 text-center">
+    <a asp-page="./ForgotPassword" class="text-link">Forgot your password?</a>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

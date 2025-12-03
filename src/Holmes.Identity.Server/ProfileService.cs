@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Holmes.Identity.Server;
 
-internal sealed class ProfileService(
-    UserManager<ApplicationUser> userManager
+public sealed class ProfileService(
+    UserManager<ApplicationUser> userManager,
+    TimeProvider timeProvider
 ) : IProfileService
 {
     public async Task GetProfileDataAsync(ProfileDataRequestContext context)
@@ -59,6 +60,18 @@ internal sealed class ProfileService(
         }
 
         var user = await userManager.FindByIdAsync(subjectId);
-        context.IsActive = user is not null && user.EmailConfirmed;
+        if (user is null || !user.EmailConfirmed)
+        {
+            context.IsActive = false;
+            return;
+        }
+
+        if (user.PasswordExpires.HasValue && user.PasswordExpires.Value < timeProvider.GetUtcNow())
+        {
+            context.IsActive = false;
+            return;
+        }
+
+        context.IsActive = true;
     }
 }

@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --report-unused-disable-directives --max-warnings 0 && eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0"
+    "core:build": "tsc",
+    "core:lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "core:lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --report-unused-disable-directives --max-warnings 0 && eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0"
   },
   "exports": "./src/index.ts",
   "types": "./src/index.ts",

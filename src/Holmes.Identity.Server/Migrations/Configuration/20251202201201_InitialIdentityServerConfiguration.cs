@@ -585,13 +585,13 @@ public partial class InitialIdentityServerConfiguration : Migration
         migrationBuilder.CreateIndex(
             "IX_ApiResourceClaims_ApiResourceId_Type",
             "ApiResourceClaims",
-            ["ApiResourceId", "Type"],
+            new[] { "ApiResourceId", "Type" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ApiResourceProperties_ApiResourceId_Key",
             "ApiResourceProperties",
-            ["ApiResourceId", "Key"],
+            new[] { "ApiResourceId", "Key" },
             unique: true);
 
         migrationBuilder.CreateIndex(
@@ -603,7 +603,7 @@ public partial class InitialIdentityServerConfiguration : Migration
         migrationBuilder.CreateIndex(
             "IX_ApiResourceScopes_ApiResourceId_Scope",
             "ApiResourceScopes",
-            ["ApiResourceId", "Scope"],
+            new[] { "ApiResourceId", "Scope" },
             unique: true);
 
         migrationBuilder.CreateIndex(
@@ -614,13 +614,13 @@ public partial class InitialIdentityServerConfiguration : Migration
         migrationBuilder.CreateIndex(
             "IX_ApiScopeClaims_ScopeId_Type",
             "ApiScopeClaims",
-            ["ScopeId", "Type"],
+            new[] { "ScopeId", "Type" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ApiScopeProperties_ScopeId_Key",
             "ApiScopeProperties",
-            ["ScopeId", "Key"],
+            new[] { "ScopeId", "Key" },
             unique: true);
 
         migrationBuilder.CreateIndex(
@@ -632,43 +632,43 @@ public partial class InitialIdentityServerConfiguration : Migration
         migrationBuilder.CreateIndex(
             "IX_ClientClaims_ClientId_Type_Value",
             "ClientClaims",
-            ["ClientId", "Type", "Value"],
+            new[] { "ClientId", "Type", "Value" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ClientCorsOrigins_ClientId_Origin",
             "ClientCorsOrigins",
-            ["ClientId", "Origin"],
+            new[] { "ClientId", "Origin" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ClientGrantTypes_ClientId_GrantType",
             "ClientGrantTypes",
-            ["ClientId", "GrantType"],
+            new[] { "ClientId", "GrantType" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ClientIdPRestrictions_ClientId_Provider",
             "ClientIdPRestrictions",
-            ["ClientId", "Provider"],
+            new[] { "ClientId", "Provider" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ClientPostLogoutRedirectUris_ClientId_PostLogoutRedirectUri",
             "ClientPostLogoutRedirectUris",
-            ["ClientId", "PostLogoutRedirectUri"],
+            new[] { "ClientId", "PostLogoutRedirectUri" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ClientProperties_ClientId_Key",
             "ClientProperties",
-            ["ClientId", "Key"],
+            new[] { "ClientId", "Key" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_ClientRedirectUris_ClientId_RedirectUri",
             "ClientRedirectUris",
-            ["ClientId", "RedirectUri"],
+            new[] { "ClientId", "RedirectUri" },
             unique: true);
 
         migrationBuilder.CreateIndex(
@@ -680,7 +680,7 @@ public partial class InitialIdentityServerConfiguration : Migration
         migrationBuilder.CreateIndex(
             "IX_ClientScopes_ClientId_Scope",
             "ClientScopes",
-            ["ClientId", "Scope"],
+            new[] { "ClientId", "Scope" },
             unique: true);
 
         migrationBuilder.CreateIndex(
@@ -697,13 +697,13 @@ public partial class InitialIdentityServerConfiguration : Migration
         migrationBuilder.CreateIndex(
             "IX_IdentityResourceClaims_IdentityResourceId_Type",
             "IdentityResourceClaims",
-            ["IdentityResourceId", "Type"],
+            new[] { "IdentityResourceId", "Type" },
             unique: true);
 
         migrationBuilder.CreateIndex(
             "IX_IdentityResourceProperties_IdentityResourceId_Key",
             "IdentityResourceProperties",
-            ["IdentityResourceId", "Key"],
+            new[] { "IdentityResourceId", "Key" },
             unique: true);
 
         migrationBuilder.CreateIndex(

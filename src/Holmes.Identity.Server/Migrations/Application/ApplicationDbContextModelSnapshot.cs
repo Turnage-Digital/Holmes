@@ -17,7 +17,7 @@ namespace Holmes.Identity.Server.Migrations.Application
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
@@ -44,6 +44,9 @@ namespace Holmes.Identity.Server.Migrations.Application
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTimeOffset?>("LastPasswordChangedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
 
@@ -57,6 +60,9 @@ namespace Holmes.Identity.Server.Migrations.Application
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
+
+                    b.Property<DateTimeOffset?>("PasswordExpires")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("longtext");
@@ -87,6 +93,33 @@ namespace Holmes.Identity.Server.Migrations.Application
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Identity.Server.Data.UserPreviousPassword", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("varchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("UserPreviousPasswords");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
@@ -240,6 +273,17 @@ namespace Holmes.Identity.Server.Migrations.Application
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Holmes.Identity.Server.Data.UserPreviousPassword", b =>
+                {
+                    b.HasOne("Holmes.Identity.Server.Data.ApplicationUser", "User")
+                        .WithMany("PreviousPasswords")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -289,6 +333,11 @@ namespace Holmes.Identity.Server.Migrations.Application
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Holmes.Identity.Server.Data.ApplicationUser", b =>
+                {
+                    b.Navigation("PreviousPasswords");
                 });
 #pragma warning restore 612, 618
         }

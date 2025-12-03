@@ -4,6 +4,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Holmes.Identity.Server;
 using Holmes.Identity.Server.Data;
+using Holmes.Identity.Server.Services;
+using Holmes.Identity.Server.Validation;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
@@ -54,6 +56,11 @@ try
             "Provisioning:ApiKey is required")
         .ValidateOnStart();
 
+    builder.Services.AddOptions<PasswordPolicyOptions>()
+        .Bind(builder.Configuration.GetSection(PasswordPolicyOptions.SectionName));
+
+    builder.Services.AddSingleton(TimeProvider.System);
+
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     if (string.IsNullOrWhiteSpace(connectionString))
     {
@@ -88,7 +95,9 @@ try
         })
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders()
-        .AddDefaultUI();
+        .AddPasswordValidator<PreviousPasswordValidator>();
+
+    builder.Services.AddScoped<IPasswordHistoryService, PasswordHistoryService>();
 
     builder.Services.AddIdentityServer(options =>
         {
@@ -96,8 +105,8 @@ try
             options.Events.RaiseInformationEvents = true;
             options.Events.RaiseFailureEvents = true;
             options.Events.RaiseSuccessEvents = true;
-            options.UserInteraction.LoginUrl = "/Identity/Account/Login";
-            options.UserInteraction.LogoutUrl = "/Identity/Account/Logout";
+            options.UserInteraction.LoginUrl = "/Account/Login";
+            options.UserInteraction.LogoutUrl = "/Account/Logout";
         })
         .AddConfigurationStore(options =>
         {
@@ -125,7 +134,10 @@ try
 
     var app = builder.Build();
 
-    await SeedData.EnsureSeedDataAsync(app.Services);
+    if (app.Environment.IsDevelopment())
+    {
+        await SeedData.EnsureSeedDataAsync(app.Services);
+    }
 
     app.UseHttpsRedirection();
     app.UseStaticFiles();

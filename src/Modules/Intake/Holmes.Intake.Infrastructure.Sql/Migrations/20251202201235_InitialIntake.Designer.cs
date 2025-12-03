@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Intake.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(IntakeDbContext))]
-    [Migration("20251127202013_InitialIntake")]
+    [Migration("20251202201235_InitialIntake")]
     partial class InitialIntake
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Holmes.Intake.Infrastructure.Sql.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);

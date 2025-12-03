@@ -2,13 +2,12 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.Events;
 using Holmes.Intake.Domain.ValueObjects;
-using Xunit;
 
 namespace Holmes.Intake.Tests;
 
 public class IntakeSessionTests
 {
-    [Fact]
+    [Test]
     public void Invite_CreatesSessionWithInitialState()
     {
         var snapshot = PolicySnapshot.Create("snapshot-1", "schema-1", DateTimeOffset.UtcNow);
@@ -22,23 +21,29 @@ public class IntakeSessionTests
             DateTimeOffset.UtcNow,
             TimeSpan.FromDays(3));
 
-        Assert.Equal(IntakeSessionStatus.Invited, session.Status);
-        Assert.Equal(snapshot, session.PolicySnapshot);
-        Assert.Single(session.DomainEvents, e => e is IntakeSessionInvited);
+        Assert.Multiple(() =>
+        {
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.Invited));
+            Assert.That(session.PolicySnapshot, Is.EqualTo(snapshot));
+            Assert.That(session.DomainEvents.Count(e => e is IntakeSessionInvited), Is.EqualTo(1));
+        });
     }
 
-    [Fact]
+    [Test]
     public void Start_MovesSessionToInProgress()
     {
         var session = CreateInvitedSession();
 
         session.Start(DateTimeOffset.UtcNow, "ios-17");
 
-        Assert.Equal(IntakeSessionStatus.InProgress, session.Status);
-        Assert.Contains(session.DomainEvents, e => e is IntakeSessionStarted);
+        Assert.Multiple(() =>
+        {
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.InProgress));
+            Assert.That(session.DomainEvents.Any(e => e is IntakeSessionStarted), Is.True);
+        });
     }
 
-    [Fact]
+    [Test]
     public void Submit_RequiresConsentAndAnswers()
     {
         var session = CreateInvitedSession();
@@ -54,23 +59,25 @@ public class IntakeSessionTests
             "schema", DateTimeOffset.UtcNow);
         session.CaptureConsent(artifact);
 
-        var exception = Record.Exception(() => session.Submit(DateTimeOffset.UtcNow));
-        Assert.Null(exception);
-        Assert.Equal(IntakeSessionStatus.AwaitingReview, session.Status);
+        Assert.DoesNotThrow(() => session.Submit(DateTimeOffset.UtcNow));
+        Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.AwaitingReview));
     }
 
-    [Fact]
+    [Test]
     public void AcceptSubmission_FinalizesSession()
     {
         var session = CreateSubmittedSession();
 
         session.AcceptSubmission(DateTimeOffset.UtcNow);
 
-        Assert.Equal(IntakeSessionStatus.Submitted, session.Status);
-        Assert.Contains(session.DomainEvents, e => e is IntakeSubmissionAccepted);
+        Assert.Multiple(() =>
+        {
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.Submitted));
+            Assert.That(session.DomainEvents.Any(e => e is IntakeSubmissionAccepted), Is.True);
+        });
     }
 
-    [Fact]
+    [Test]
     public void Supersede_DisallowedAfterSubmitted()
     {
         var session = CreateSubmittedSession();

@@ -38,6 +38,8 @@ public partial class InitialIdentity : Migration
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DisplayName = table.Column<string>("longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    PasswordExpires = table.Column<DateTimeOffset>("datetime(6)", nullable: true),
+                    LastPasswordChangedAt = table.Column<DateTimeOffset>("datetime(6)", nullable: true),
                     UserName = table.Column<string>("varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>("varchar(256)", maxLength: 256, nullable: true)
@@ -205,6 +207,29 @@ public partial class InitialIdentity : Migration
                 })
             .Annotation("MySql:CharSet", "utf8mb4");
 
+        migrationBuilder.CreateTable(
+                "UserPreviousPasswords",
+                table => new
+                {
+                    Id = table.Column<Guid>("char(36)", nullable: false, collation: "ascii_general_ci"),
+                    UserId = table.Column<string>("varchar(450)", maxLength: 450, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PasswordHash = table.Column<string>("longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTimeOffset>("datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPreviousPasswords", x => x.Id);
+                    table.ForeignKey(
+                        "FK_UserPreviousPasswords_AspNetUsers_UserId",
+                        x => x.UserId,
+                        "AspNetUsers",
+                        "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+            .Annotation("MySql:CharSet", "utf8mb4");
+
         migrationBuilder.CreateIndex(
             "IX_AspNetRoleClaims_RoleId",
             "AspNetRoleClaims",
@@ -241,6 +266,16 @@ public partial class InitialIdentity : Migration
             "AspNetUsers",
             "NormalizedUserName",
             unique: true);
+
+        migrationBuilder.CreateIndex(
+            "IX_UserPreviousPasswords_UserId",
+            "UserPreviousPasswords",
+            "UserId");
+
+        migrationBuilder.CreateIndex(
+            "IX_UserPreviousPasswords_UserId_CreatedAt",
+            "UserPreviousPasswords",
+            new[] { "UserId", "CreatedAt" });
     }
 
     /// <inheritdoc />
@@ -263,6 +298,9 @@ public partial class InitialIdentity : Migration
 
         migrationBuilder.DropTable(
             "DataProtectionKeys");
+
+        migrationBuilder.DropTable(
+            "UserPreviousPasswords");
 
         migrationBuilder.DropTable(
             "AspNetRoles");

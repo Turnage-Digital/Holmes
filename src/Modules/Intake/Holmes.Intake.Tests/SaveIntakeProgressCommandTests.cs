@@ -1,29 +1,31 @@
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Tests.TestHelpers;
-using NSubstitute;
-using Xunit;
+using Moq;
 
 namespace Holmes.Intake.Tests;
 
 public class SaveIntakeProgressCommandTests
 {
-    private readonly IIntakeSessionRepository _repository = Substitute.For<IIntakeSessionRepository>();
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
+    private Mock<IIntakeSessionRepository> _repositoryMock = null!;
+    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
-    public SaveIntakeProgressCommandTests()
+    [SetUp]
+    public void SetUp()
     {
-        _unitOfWork.IntakeSessions.Returns(_repository);
+        _repositoryMock = new Mock<IIntakeSessionRepository>();
+        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repositoryMock.Object);
     }
 
-    [Fact]
+    [Test]
     public async Task SavesSnapshotWhenTokenMatches()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
         session.Start(DateTimeOffset.UtcNow, null);
-        _repository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IntakeSession?>(session));
-        var handler = new SaveIntakeProgressCommandHandler(_unitOfWork);
+        _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        var handler = new SaveIntakeProgressCommandHandler(_unitOfWorkMock.Object);
         var updatedAt = DateTimeOffset.UtcNow;
 
         var result = await handler.Handle(new SaveIntakeProgressCommand(
@@ -34,19 +36,22 @@ public class SaveIntakeProgressCommandTests
             "cipher",
             updatedAt), CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(session.AnswersSnapshot);
-        Assert.Equal(updatedAt, session.AnswersSnapshot!.UpdatedAt);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(session.AnswersSnapshot, Is.Not.Null);
+            Assert.That(session.AnswersSnapshot!.UpdatedAt, Is.EqualTo(updatedAt));
+        });
     }
 
-    [Fact]
+    [Test]
     public async Task RejectsInvalidToken()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
         session.Start(DateTimeOffset.UtcNow, null);
-        _repository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IntakeSession?>(session));
-        var handler = new SaveIntakeProgressCommandHandler(_unitOfWork);
+        _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        var handler = new SaveIntakeProgressCommandHandler(_unitOfWorkMock.Object);
 
         var result = await handler.Handle(new SaveIntakeProgressCommand(
             session.Id,
@@ -56,7 +61,10 @@ public class SaveIntakeProgressCommandTests
             "cipher",
             DateTimeOffset.UtcNow), CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
-        Assert.Null(session.AnswersSnapshot);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(session.AnswersSnapshot, Is.Null);
+        });
     }
 }

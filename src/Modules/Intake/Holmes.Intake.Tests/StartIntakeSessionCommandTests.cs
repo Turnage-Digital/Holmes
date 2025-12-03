@@ -3,29 +3,32 @@ using Holmes.Intake.Domain;
 using Holmes.Intake.Tests.TestHelpers;
 using Holmes.Workflow.Application.Commands;
 using MediatR;
-using NSubstitute;
-using Xunit;
+using Moq;
 
 namespace Holmes.Intake.Tests;
 
 public class StartIntakeSessionCommandTests
 {
-    private readonly IIntakeSessionRepository _repository = Substitute.For<IIntakeSessionRepository>();
-    private readonly ISender _sender = Substitute.For<ISender>();
-    private readonly IIntakeUnitOfWork _unitOfWork = Substitute.For<IIntakeUnitOfWork>();
+    private Mock<IIntakeSessionRepository> _repositoryMock = null!;
+    private Mock<ISender> _senderMock = null!;
+    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
-    public StartIntakeSessionCommandTests()
+    [SetUp]
+    public void SetUp()
     {
-        _unitOfWork.IntakeSessions.Returns(_repository);
+        _repositoryMock = new Mock<IIntakeSessionRepository>();
+        _senderMock = new Mock<ISender>();
+        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repositoryMock.Object);
     }
 
-    [Fact]
+    [Test]
     public async Task StartsSessionAndNotifiesWorkflow()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
-        _repository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IntakeSession?>(session));
-        var handler = new StartIntakeSessionCommandHandler(_unitOfWork, _sender);
+        _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        var handler = new StartIntakeSessionCommandHandler(_unitOfWorkMock.Object, _senderMock.Object);
 
         var command = new StartIntakeSessionCommand(
             session.Id,
@@ -35,20 +38,23 @@ public class StartIntakeSessionCommandTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(IntakeSessionStatus.InProgress, session.Status);
-        await _sender.Received(1)
-            .Send(Arg.Is<MarkOrderIntakeStartedCommand>(c => c.OrderId == session.OrderId),
-                Arg.Any<CancellationToken>());
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.InProgress));
+        });
+        _senderMock.Verify(x => x.Send(
+            It.Is<MarkOrderIntakeStartedCommand>(c => c.OrderId == session.OrderId),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
+    [Test]
     public async Task RejectsInvalidResumeToken()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
-        _repository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IntakeSession?>(session));
-        var handler = new StartIntakeSessionCommandHandler(_unitOfWork, _sender);
+        _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        var handler = new StartIntakeSessionCommandHandler(_unitOfWorkMock.Object, _senderMock.Object);
 
         var result = await handler.Handle(new StartIntakeSessionCommand(
             session.Id,
@@ -56,7 +62,10 @@ public class StartIntakeSessionCommandTests
             DateTimeOffset.UtcNow,
             null), CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal(IntakeSessionStatus.Invited, session.Status);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.Invited));
+        });
     }
 }

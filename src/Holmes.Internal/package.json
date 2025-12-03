@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "tsc && vite build",
-    "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --report-unused-disable-directives --max-warnings 0 && eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "internal:dev": "vite --host",
+    "internal:build": "tsc && vite build",
+    "internal:lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "internal:lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --report-unused-disable-directives --max-warnings 0 && eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "internal:preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

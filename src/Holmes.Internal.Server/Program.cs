@@ -1,7 +1,9 @@
 using Duende.Bff;
+using Duende.Bff.EntityFramework;
 using Duende.Bff.Yarp;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
@@ -22,6 +24,23 @@ try
             .Enrich.FromLogContext();
     });
 
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException(
+            "ConnectionStrings:DefaultConnection must be configured for the Internal BFF host.");
+    }
+
+    ServerVersion serverVersion;
+    try
+    {
+        serverVersion = ServerVersion.AutoDetect(connectionString);
+    }
+    catch
+    {
+        serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
+    }
+
     var authority = builder.Configuration["Authentication:Authority"] ?? "https://localhost:5000";
     var clientId = builder.Configuration["Authentication:ClientId"] ?? "holmes_internal";
     var clientSecret = builder.Configuration["Authentication:ClientSecret"] ?? "dev-internal-secret";
@@ -31,6 +50,7 @@ try
         {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            options.DefaultSignOutScheme = OpenIdConnectDefaults.AuthenticationScheme;
         })
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
             options => { options.Cookie.SameSite = SameSiteMode.Strict; })
@@ -44,6 +64,7 @@ try
             options.SaveTokens = true;
             options.MapInboundClaims = false;
             options.GetClaimsFromUserInfoEndpoint = true;
+            options.SignedOutCallbackPath = "/signout-callback-oidc";
             options.Scope.Clear();
             options.Scope.Add("openid");
             options.Scope.Add("profile");
@@ -59,7 +80,9 @@ try
     builder.Services.AddAuthorization();
 
     builder.Services.AddBff()
-        .AddServerSideSessions()
+        .AddEntityFrameworkServerSideSessions(options =>
+            options.UseMySql(connectionString, serverVersion,
+                mySqlOptions => mySqlOptions.MigrationsAssembly(typeof(Program).Assembly.FullName)))
         .AddRemoteApis();
 
     builder.Services.AddHttpClient();
@@ -82,6 +105,9 @@ try
 
     // Map local controllers first (SSE proxy needs to handle before YARP)
     app.MapControllers();
+
+    // BFF management endpoints (login, logout, user)
+    app.MapBffManagementEndpoints();
 
     app.MapRemoteBffApiEndpoint("/api", new Uri(apiBase))
         .WithAccessToken();

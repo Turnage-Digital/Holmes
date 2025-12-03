@@ -160,12 +160,12 @@ public partial class InitialIdentityServerGrants : Migration
         migrationBuilder.CreateIndex(
             "IX_PersistedGrants_SubjectId_ClientId_Type",
             "PersistedGrants",
-            ["SubjectId", "ClientId", "Type"]);
+            new[] { "SubjectId", "ClientId", "Type" });
 
         migrationBuilder.CreateIndex(
             "IX_PersistedGrants_SubjectId_SessionId_Type",
             "PersistedGrants",
-            ["SubjectId", "SessionId", "Type"]);
+            new[] { "SubjectId", "SessionId", "Type" });
 
         migrationBuilder.CreateIndex(
             "IX_PushedAuthorizationRequests_ExpiresAtUtc",

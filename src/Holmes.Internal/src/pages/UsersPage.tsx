@@ -96,8 +96,12 @@ const UsersPage = () => {
     }
 
     try {
-      await inviteUserMutation.mutateAsync(formState);
-      setSuccessMessage(`Invitation sent to ${formState.email}.`);
+      const response = await inviteUserMutation.mutateAsync(formState);
+      const message =
+        import.meta.env.DEV && response.confirmationLink
+          ? `Invitation sent to ${formState.email}. Confirmation link: ${response.confirmationLink}`
+          : `Invitation sent to ${formState.email}.`;
+      setSuccessMessage(message);
       handleCloseDialog();
     } catch (err) {
       setClientError(getErrorMessage(err));

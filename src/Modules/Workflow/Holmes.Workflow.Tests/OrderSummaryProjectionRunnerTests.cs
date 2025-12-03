@@ -6,17 +6,17 @@ using Holmes.Workflow.Infrastructure.Sql.Mappers;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 
 namespace Holmes.Workflow.Tests;
 
-public sealed class OrderSummaryProjectionRunnerTests : IDisposable
+public sealed class OrderSummaryProjectionRunnerTests
 {
-    private readonly CoreDbContext _coreDbContext;
-    private readonly OrderSummaryProjectionRunner _runner;
-    private readonly WorkflowDbContext _workflowDbContext;
+    private CoreDbContext _coreDbContext = null!;
+    private OrderSummaryProjectionRunner _runner = null!;
+    private WorkflowDbContext _workflowDbContext = null!;
 
-    public OrderSummaryProjectionRunnerTests()
+    [SetUp]
+    public void SetUp()
     {
         var workflowOptions = new DbContextOptionsBuilder<WorkflowDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -37,13 +37,14 @@ public sealed class OrderSummaryProjectionRunnerTests : IDisposable
             NullLogger<OrderSummaryProjectionRunner>.Instance);
     }
 
-    public void Dispose()
+    [TearDown]
+    public void TearDown()
     {
         _workflowDbContext.Dispose();
         _coreDbContext.Dispose();
     }
 
-    [Fact]
+    [Test]
     public async Task Replay_WritesCanceledOrderSummary()
     {
         var order = BuildCanceledOrder(DateTimeOffset.UtcNow);
@@ -52,19 +53,25 @@ public sealed class OrderSummaryProjectionRunnerTests : IDisposable
 
         var result = await _runner.RunAsync(true, CancellationToken.None);
 
-        Assert.Equal(1, result.Processed);
-        var summary = Assert.Single(_workflowDbContext.OrderSummaries);
-        Assert.Equal(order.Id.ToString(), summary.OrderId);
-        Assert.Equal(OrderStatus.Canceled.ToString(), summary.Status);
-        Assert.Equal(order.CanceledAt, summary.CanceledAt);
-        Assert.Equal(order.ReadyForRoutingAt, summary.ReadyForRoutingAt);
+        Assert.That(result.Processed, Is.EqualTo(1));
+        var summary = _workflowDbContext.OrderSummaries.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(summary.OrderId, Is.EqualTo(order.Id.ToString()));
+            Assert.That(summary.Status, Is.EqualTo(OrderStatus.Canceled.ToString()));
+            Assert.That(summary.CanceledAt, Is.EqualTo(order.CanceledAt));
+            Assert.That(summary.ReadyForRoutingAt, Is.EqualTo(order.ReadyForRoutingAt));
+        });
 
-        var checkpoint = Assert.Single(_coreDbContext.ProjectionCheckpoints);
-        Assert.Equal("workflow.order_summary", checkpoint.ProjectionName);
-        Assert.Equal(1, checkpoint.Position);
+        var checkpoint = _coreDbContext.ProjectionCheckpoints.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(checkpoint.ProjectionName, Is.EqualTo("workflow.order_summary"));
+            Assert.That(checkpoint.Position, Is.EqualTo(1));
+        });
     }
 
-    [Fact]
+    [Test]
     public async Task Replay_ResumesFromCheckpoint()
     {
         var firstOrder = BuildCanceledOrder(DateTimeOffset.UtcNow);
@@ -78,9 +85,12 @@ public sealed class OrderSummaryProjectionRunnerTests : IDisposable
 
         var result = await _runner.RunAsync(false, CancellationToken.None);
 
-        Assert.Equal(1, result.Processed);
-        Assert.Equal(secondOrder.Id.ToString(), result.LastEntityId);
-        Assert.Equal(2, _coreDbContext.ProjectionCheckpoints.Single().Position);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Processed, Is.EqualTo(1));
+            Assert.That(result.LastEntityId, Is.EqualTo(secondOrder.Id.ToString()));
+            Assert.That(_coreDbContext.ProjectionCheckpoints.Single().Position, Is.EqualTo(2));
+        });
     }
 
     private static Order BuildCanceledOrder(DateTimeOffset baseTime)
