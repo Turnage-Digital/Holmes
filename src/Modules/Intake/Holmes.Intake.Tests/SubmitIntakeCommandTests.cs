@@ -27,7 +27,8 @@ public class SubmitIntakeCommandTests
     public async Task BlocksSubmissionWhenPolicyFails()
     {
         var session = await SeedReadySessionAsync();
-        _gatewayMock.Setup(x => x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(x =>
+                x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(OrderPolicyCheckResult.Blocked("policy"));
         var handler = new SubmitIntakeCommandHandler(_gatewayMock.Object, _unitOfWorkMock.Object);
 
@@ -51,7 +52,8 @@ public class SubmitIntakeCommandTests
     public async Task AdvancesWhenPolicyAllows()
     {
         var session = await SeedReadySessionAsync();
-        _gatewayMock.Setup(x => x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
+        _gatewayMock.Setup(x =>
+                x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(OrderPolicyCheckResult.Allowed());
         var handler = new SubmitIntakeCommandHandler(_gatewayMock.Object, _unitOfWorkMock.Object);
         var submittedAt = DateTimeOffset.UtcNow;

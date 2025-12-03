@@ -20,13 +20,6 @@ public class ForgotPasswordModel(
 
     public bool RequestSent { get; set; }
 
-    public class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-    }
-
     public void OnGet()
     {
     }
@@ -49,7 +42,8 @@ public class ForgotPasswordModel(
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
         var baseUrl = provisioningOptions.Value.BaseUrl ?? Request.Scheme + "://" + Request.Host;
-        var resetLink = $"{baseUrl}/Account/ResetPassword?email={Uri.EscapeDataString(Input.Email)}&code={encodedToken}";
+        var resetLink =
+            $"{baseUrl}/Account/ResetPassword?email={Uri.EscapeDataString(Input.Email)}&code={encodedToken}";
 
         logger.LogInformation(
             "Password reset requested for {Email}. Reset link: {ResetLink}",
@@ -58,5 +52,12 @@ public class ForgotPasswordModel(
 
         RequestSent = true;
         return Page();
+    }
+
+    public class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
     }
 }

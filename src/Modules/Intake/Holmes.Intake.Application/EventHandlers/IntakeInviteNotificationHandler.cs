@@ -5,8 +5,8 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Intake.Application.EventHandlers;
 
 /// <summary>
-/// Stub handler for sending intake invite notifications to candidates.
-/// TODO: Move to Notification Module when implemented.
+///     Stub handler for sending intake invite notifications to candidates.
+///     TODO: Move to Notification Module when implemented.
 /// </summary>
 public sealed class IntakeInviteNotificationHandler(
     ILogger<IntakeInviteNotificationHandler> logger

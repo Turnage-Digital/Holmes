@@ -24,19 +24,6 @@ public class LoginModel(
     [TempData]
     public string? ErrorMessage { get; set; }
 
-    public class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; } = string.Empty;
-
-        public bool RememberMe { get; set; }
-    }
-
     public async Task OnGetAsync(string? returnUrl = null)
     {
         if (!string.IsNullOrEmpty(ErrorMessage))
@@ -64,7 +51,7 @@ public class LoginModel(
             Input.Email,
             Input.Password,
             Input.RememberMe,
-            lockoutOnFailure: true);
+            true);
 
         if (result.Succeeded)
         {
@@ -113,5 +100,18 @@ public class LoginModel(
 
         ModelState.AddModelError(string.Empty, "Invalid email or password.");
         return Page();
+    }
+
+    public class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
     }
 }

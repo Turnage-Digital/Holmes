@@ -315,15 +315,15 @@
     </style>
 </head>
 <body>
-    <main class="auth-container">
-        <div class="auth-card">
-            <div class="auth-logo">
-                <h1>Holmes</h1>
-            </div>
-            @RenderBody()
+<main class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h1>Holmes</h1>
         </div>
-    </main>
+        @RenderBody()
+    </div>
+</main>
 
-    @await RenderSectionAsync("Scripts", required: false)
+@await RenderSectionAsync("Scripts", false)
 </body>
 </html>

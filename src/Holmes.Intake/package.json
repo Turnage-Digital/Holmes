@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "tsc && vite build",
-    "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --report-unused-disable-directives --max-warnings 0 && eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "intake:dev": "vite --host",
+    "intake:build": "tsc && vite build",
+    "intake:lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "intake:lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --report-unused-disable-directives --max-warnings 0 && eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {

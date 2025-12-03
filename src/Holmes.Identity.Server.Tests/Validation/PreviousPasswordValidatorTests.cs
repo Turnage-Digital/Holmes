@@ -10,16 +10,16 @@ namespace Holmes.Identity.Server.Tests.Validation;
 public class PreviousPasswordValidatorTests
 {
     private ApplicationDbContext _dbContext = null!;
-    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
-    private Mock<IPasswordHasher<ApplicationUser>> _passwordHasherMock = null!;
     private IOptions<PasswordPolicyOptions> _options = null!;
+    private Mock<IPasswordHasher<ApplicationUser>> _passwordHasherMock = null!;
+    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
     private PreviousPasswordValidator _validator = null!;
 
     [SetUp]
     public void SetUp()
     {
         var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         _dbContext = new ApplicationDbContext(dbOptions);
 
@@ -172,6 +172,7 @@ public class PreviousPasswordValidatorTests
                 CreatedAt = DateTimeOffset.UtcNow.AddDays(-i)
             });
         }
+
         await _dbContext.SaveChangesAsync();
 
         _passwordHasherMock

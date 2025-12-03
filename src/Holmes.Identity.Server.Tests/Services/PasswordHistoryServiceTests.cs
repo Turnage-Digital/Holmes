@@ -9,15 +9,15 @@ namespace Holmes.Identity.Server.Tests.Services;
 public class PasswordHistoryServiceTests
 {
     private ApplicationDbContext _dbContext = null!;
-    private FakeTimeProvider _timeProvider = null!;
     private IOptions<PasswordPolicyOptions> _options = null!;
     private PasswordHistoryService _service = null!;
+    private FakeTimeProvider _timeProvider = null!;
 
     [SetUp]
     public void SetUp()
     {
         var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         _dbContext = new ApplicationDbContext(dbOptions);
 
@@ -89,6 +89,7 @@ public class PasswordHistoryServiceTests
                 CreatedAt = _timeProvider.GetUtcNow().AddDays(-i - 1)
             });
         }
+
         await _dbContext.SaveChangesAsync();
 
         await _service.RecordPasswordChangeAsync(userId, "newHash");
@@ -117,6 +118,7 @@ public class PasswordHistoryServiceTests
                 CreatedAt = _timeProvider.GetUtcNow().AddDays(-i)
             });
         }
+
         await _dbContext.SaveChangesAsync();
 
         await _service.CleanupOldPasswordsAsync(userId);
@@ -151,6 +153,7 @@ public class PasswordHistoryServiceTests
                 CreatedAt = _timeProvider.GetUtcNow().AddDays(-i)
             });
         }
+
         await _dbContext.SaveChangesAsync();
 
         await _service.CleanupOldPasswordsAsync(user1);

@@ -2,26 +2,27 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Holmes.Identity.Server.Data;
 using Holmes.Identity.Server.Pages.Account;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Holmes.Identity.Server.Tests.Pages;
 
 public class LoginModelTests
 {
-    private Mock<SignInManager<ApplicationUser>> _signInManagerMock = null!;
-    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
     private Mock<IIdentityServerInteractionService> _interactionMock = null!;
-    private FakeTimeProvider _timeProvider = null!;
     private Mock<ILogger<LoginModel>> _loggerMock = null!;
     private LoginModel _pageModel = null!;
+    private Mock<SignInManager<ApplicationUser>> _signInManagerMock = null!;
+    private FakeTimeProvider _timeProvider = null!;
+    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
 
     [SetUp]
     public void SetUp()
@@ -67,7 +68,7 @@ public class LoginModelTests
 
         _signInManagerMock
             .Setup(x => x.PasswordSignInAsync("test@example.com", "password123", false, true))
-            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            .ReturnsAsync(SignInResult.Success);
         _userManagerMock
             .Setup(x => x.FindByEmailAsync("test@example.com"))
             .ReturnsAsync(user);
@@ -100,7 +101,7 @@ public class LoginModelTests
 
         _signInManagerMock
             .Setup(x => x.PasswordSignInAsync("test@example.com", "password123", false, true))
-            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            .ReturnsAsync(SignInResult.Success);
         _userManagerMock
             .Setup(x => x.FindByEmailAsync("test@example.com"))
             .ReturnsAsync(user);
@@ -125,7 +126,7 @@ public class LoginModelTests
 
         _signInManagerMock
             .Setup(x => x.PasswordSignInAsync("test@example.com", "wrongpassword", false, true))
-            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Failed);
+            .ReturnsAsync(SignInResult.Failed);
 
         var result = await _pageModel.OnPostAsync();
 
@@ -146,7 +147,7 @@ public class LoginModelTests
 
         _signInManagerMock
             .Setup(x => x.PasswordSignInAsync("test@example.com", "password123", false, true))
-            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.LockedOut);
+            .ReturnsAsync(SignInResult.LockedOut);
 
         var result = await _pageModel.OnPostAsync();
 
@@ -166,7 +167,7 @@ public class LoginModelTests
 
         _signInManagerMock
             .Setup(x => x.PasswordSignInAsync("test@example.com", "password123", false, true))
-            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.NotAllowed);
+            .ReturnsAsync(SignInResult.NotAllowed);
 
         var result = await _pageModel.OnPostAsync();
 
@@ -198,7 +199,7 @@ public class LoginModelTests
 
         _signInManagerMock
             .Setup(x => x.PasswordSignInAsync("test@example.com", "password123", false, true))
-            .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
+            .ReturnsAsync(SignInResult.Success);
         _userManagerMock
             .Setup(x => x.FindByEmailAsync("test@example.com"))
             .ReturnsAsync(user);
@@ -218,7 +219,7 @@ public class LoginModelTests
         var httpContext = new DefaultHttpContext();
         var actionContext = new ActionContext(
             httpContext,
-            new Microsoft.AspNetCore.Routing.RouteData(),
+            new RouteData(),
             new PageActionDescriptor());
 
         var urlHelperMock = new Mock<IUrlHelper>();

@@ -13,7 +13,8 @@ public class PreviousPasswordValidator(
     public async Task<IdentityResult> ValidateAsync(
         UserManager<ApplicationUser> manager,
         ApplicationUser user,
-        string? password)
+        string? password
+    )
     {
         if (string.IsNullOrEmpty(password))
         {

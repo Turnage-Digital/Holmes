@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -15,13 +15,13 @@ namespace Holmes.Identity.Server.Tests.Pages;
 
 public class ConfirmEmailModelTests
 {
-    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
-    private Mock<SignInManager<ApplicationUser>> _signInManagerMock = null!;
-    private Mock<IPasswordHistoryService> _passwordHistoryServiceMock = null!;
-    private FakeTimeProvider _timeProvider = null!;
-    private IOptions<PasswordPolicyOptions> _passwordOptions = null!;
     private Mock<ILogger<ConfirmEmailModel>> _loggerMock = null!;
     private ConfirmEmailModel _pageModel = null!;
+    private Mock<IPasswordHistoryService> _passwordHistoryServiceMock = null!;
+    private IOptions<PasswordPolicyOptions> _passwordOptions = null!;
+    private Mock<SignInManager<ApplicationUser>> _signInManagerMock = null!;
+    private FakeTimeProvider _timeProvider = null!;
+    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
 
     [SetUp]
     public void SetUp()
@@ -245,7 +245,7 @@ public class ConfirmEmailModelTests
         var httpContext = new DefaultHttpContext();
         var actionContext = new ActionContext(
             httpContext,
-            new Microsoft.AspNetCore.Routing.RouteData(),
+            new RouteData(),
             new PageActionDescriptor());
 
         var urlHelperMock = new Mock<IUrlHelper>();

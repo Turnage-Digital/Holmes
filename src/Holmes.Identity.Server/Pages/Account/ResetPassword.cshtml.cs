@@ -23,26 +23,6 @@ public class ResetPasswordModel(
 
     public bool ResetComplete { get; set; }
 
-    public class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(100, MinimumLength = 12, ErrorMessage = "Password must be at least 12 characters.")]
-        [DataType(DataType.Password)]
-        public string Password { get; set; } = string.Empty;
-
-        [Required]
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm Password")]
-        [Compare("Password", ErrorMessage = "Passwords do not match.")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-
-        public string Code { get; set; } = string.Empty;
-    }
-
     public IActionResult OnGet(string? email, string? code)
     {
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
@@ -83,6 +63,7 @@ public class ResetPasswordModel(
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
+
             return Page();
         }
 
@@ -101,5 +82,25 @@ public class ResetPasswordModel(
 
         ResetComplete = true;
         return Page();
+    }
+
+    public class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 12, ErrorMessage = "Password must be at least 12 characters.")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm Password")]
+        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        public string Code { get; set; } = string.Empty;
     }
 }

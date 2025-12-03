@@ -37,7 +37,8 @@ public class CaptureConsentArtifactCommandTests
             "SHA256",
             "schema",
             DateTimeOffset.UtcNow);
-        _storeMock.Setup(x => x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+        _storeMock.Setup(x =>
+                x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(descriptor);
 
         var handler = new CaptureConsentArtifactCommandHandler(_storeMock.Object, _unitOfWorkMock.Object);
@@ -56,7 +57,9 @@ public class CaptureConsentArtifactCommandTests
             Assert.That(result.Value, Is.EqualTo(descriptor));
             Assert.That(session.ConsentArtifact, Is.Not.Null);
         });
-        _storeMock.Verify(x => x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(), It.IsAny<CancellationToken>()), Times.Once);
+        _storeMock.Verify(
+            x => x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

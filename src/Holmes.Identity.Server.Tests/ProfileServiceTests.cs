@@ -10,9 +10,9 @@ namespace Holmes.Identity.Server.Tests;
 
 public class ProfileServiceTests
 {
-    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
-    private FakeTimeProvider _timeProvider = null!;
     private ProfileService _profileService = null!;
+    private FakeTimeProvider _timeProvider = null!;
+    private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
 
     [SetUp]
     public void SetUp()

@@ -26,30 +26,6 @@ public class ChangePasswordModel(
     public bool IsExpired { get; set; }
     public bool ChangeComplete { get; set; }
 
-    public class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        [Required]
-        [DataType(DataType.Password)]
-        [Display(Name = "Current Password")]
-        public string CurrentPassword { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(100, MinimumLength = 12, ErrorMessage = "Password must be at least 12 characters.")]
-        [DataType(DataType.Password)]
-        [Display(Name = "New Password")]
-        public string NewPassword { get; set; } = string.Empty;
-
-        [Required]
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm New Password")]
-        [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-    }
-
     public void OnGet(bool expired = false, string? returnUrl = null)
     {
         IsExpired = expired;
@@ -93,6 +69,7 @@ public class ChangePasswordModel(
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
+
             return Page();
         }
 
@@ -109,9 +86,33 @@ public class ChangePasswordModel(
 
         logger.LogInformation("User {Email} changed their password", Input.Email);
 
-        await signInManager.SignInAsync(user, isPersistent: false);
+        await signInManager.SignInAsync(user, false);
 
         ChangeComplete = true;
         return Page();
+    }
+
+    public class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Current Password")]
+        public string CurrentPassword { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 12, ErrorMessage = "Password must be at least 12 characters.")]
+        [DataType(DataType.Password)]
+        [Display(Name = "New Password")]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm New Password")]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

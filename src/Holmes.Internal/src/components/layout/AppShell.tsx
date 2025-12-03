@@ -28,6 +28,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
+import { useAuth } from "@/context/AuthContext";
 import { useCurrentUser, useIsAdmin } from "@/hooks/api";
 
 const DRAWER_WIDTH = 240;
@@ -72,6 +73,7 @@ const AppShell = () => {
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  const { logoutUrl } = useAuth();
   const { data: currentUser, isLoading } = useCurrentUser();
   const isAdmin = useIsAdmin();
 
@@ -314,7 +316,7 @@ const AppShell = () => {
             <Tooltip title="Sign out">
               <IconButton
                 component="a"
-                href="/bff/logout"
+                href={logoutUrl ?? "/bff/logout"}
                 size="small"
                 sx={{ color: "rgba(255,255,255,0.6)" }}
               >

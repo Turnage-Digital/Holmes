@@ -50,6 +50,7 @@ try
         {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            options.DefaultSignOutScheme = OpenIdConnectDefaults.AuthenticationScheme;
         })
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
             options => { options.Cookie.SameSite = SameSiteMode.Strict; })
@@ -63,6 +64,7 @@ try
             options.SaveTokens = true;
             options.MapInboundClaims = false;
             options.GetClaimsFromUserInfoEndpoint = true;
+            options.SignedOutCallbackPath = "/signout-callback-oidc";
             options.Scope.Clear();
             options.Scope.Add("openid");
             options.Scope.Add("profile");

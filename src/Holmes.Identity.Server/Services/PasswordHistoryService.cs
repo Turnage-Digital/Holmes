@@ -6,7 +6,12 @@ namespace Holmes.Identity.Server.Services;
 
 public interface IPasswordHistoryService
 {
-    Task RecordPasswordChangeAsync(string userId, string oldPasswordHash, CancellationToken cancellationToken = default);
+    Task RecordPasswordChangeAsync(
+        string userId,
+        string oldPasswordHash,
+        CancellationToken cancellationToken = default
+    );
+
     Task CleanupOldPasswordsAsync(string userId, CancellationToken cancellationToken = default);
 }
 
@@ -19,7 +24,8 @@ public class PasswordHistoryService(
     public async Task RecordPasswordChangeAsync(
         string userId,
         string oldPasswordHash,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrEmpty(oldPasswordHash))
         {
@@ -42,7 +48,8 @@ public class PasswordHistoryService(
 
     public async Task CleanupOldPasswordsAsync(
         string userId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var keepCount = options.Value.PreviousPasswordCount;
 

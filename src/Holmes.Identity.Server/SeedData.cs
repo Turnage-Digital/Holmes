@@ -105,7 +105,7 @@ internal static class SeedData
                 PasswordExpires = passwordExpires
             };
 
-            const string seedPassword = "ChangeMe123!";
+            const string seedPassword = "Pass123$56!!";
             var result = await userManager.CreateAsync(adminUser, seedPassword);
             if (!result.Succeeded)
             {
@@ -130,7 +130,7 @@ internal static class SeedData
                 PasswordExpires = passwordExpires
             };
 
-            const string seedPassword = "ChangeMe123!";
+            const string seedPassword = "Pass123$56!!";
             var result = await userManager.CreateAsync(opsUser, seedPassword);
             if (!result.Succeeded)
             {

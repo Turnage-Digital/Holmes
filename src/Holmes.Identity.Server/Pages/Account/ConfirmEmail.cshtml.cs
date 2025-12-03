@@ -29,21 +29,6 @@ public class ConfirmEmailModel(
     public bool RequiresPassword { get; set; }
     public string? StatusMessage { get; set; }
 
-    public class InputModel
-    {
-        [Required]
-        [StringLength(100, MinimumLength = 12, ErrorMessage = "Password must be at least 12 characters.")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = string.Empty;
-
-        [Required]
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm Password")]
-        [Compare("Password", ErrorMessage = "Passwords do not match.")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-    }
-
     public async Task<IActionResult> OnGetAsync(string? userId, string? code, string? returnUrl = null)
     {
         if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
@@ -129,6 +114,7 @@ public class ConfirmEmailModel(
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
+
             return Page();
         }
 
@@ -145,7 +131,7 @@ public class ConfirmEmailModel(
 
         logger.LogInformation("User {UserId} set initial password after email confirmation", user.Id);
 
-        await signInManager.SignInAsync(user, isPersistent: false);
+        await signInManager.SignInAsync(user, false);
 
         if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
         {
@@ -153,5 +139,20 @@ public class ConfirmEmailModel(
         }
 
         return Redirect("~/");
+    }
+
+    public class InputModel
+    {
+        [Required]
+        [StringLength(100, MinimumLength = 12, ErrorMessage = "Password must be at least 12 characters.")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm Password")]
+        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

@@ -1,5 +1,5 @@
 @page
-@model Holmes.Identity.Server.Pages.Account.ConfirmEmailModel
+@model ConfirmEmailModel
 @{
     ViewData["Title"] = "Confirm Email";
 }
@@ -50,7 +50,8 @@ else if (Model.EmailConfirmed)
     <p class="auth-subtitle">You can now sign in to your account.</p>
 
     <div class="mt-4 text-center">
-        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-primary btn-block btn-lg">Sign In</a>
+        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-primary btn-block btn-lg">Sign
+            In</a>
     </div>
 }
 
