@@ -79,6 +79,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Workflow.Infrastruct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Workflow.Tests", "src\Modules\Workflow\Holmes.Workflow.Tests\Holmes.Workflow.Tests.csproj", "{7E8C9DE7-F478-45B8-ADC5-40FDA2C2957D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notifications", "Notifications", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Notifications.Domain", "src\Modules\Notifications\Holmes.Notifications.Domain\Holmes.Notifications.Domain.csproj", "{D1E2F3A4-B5C6-7890-1234-567890ABCDEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Notifications.Application", "src\Modules\Notifications\Holmes.Notifications.Application\Holmes.Notifications.Application.csproj", "{E2F3A4B5-C6D7-8901-2345-67890ABCDEF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Notifications.Infrastructure.Sql", "src\Modules\Notifications\Holmes.Notifications.Infrastructure.Sql\Holmes.Notifications.Infrastructure.Sql.csproj", "{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8C26-4FC5-8448-F3247DFEDD62}"
 	ProjectSection(SolutionItems) = preProject
 		docs\ARCHITECTURE.md = docs\ARCHITECTURE.md
@@ -322,6 +330,18 @@ Global
 		{6372809D-FE47-4F11-A5E4-BE0634ABD025}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6372809D-FE47-4F11-A5E4-BE0634ABD025}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6372809D-FE47-4F11-A5E4-BE0634ABD025}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1E2F3A4-B5C6-7890-1234-567890ABCDEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1E2F3A4-B5C6-7890-1234-567890ABCDEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1E2F3A4-B5C6-7890-1234-567890ABCDEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1E2F3A4-B5C6-7890-1234-567890ABCDEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2F3A4B5-C6D7-8901-2345-67890ABCDEF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2F3A4B5-C6D7-8901-2345-67890ABCDEF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2F3A4B5-C6D7-8901-2345-67890ABCDEF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2F3A4B5-C6D7-8901-2345-67890ABCDEF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -377,5 +397,9 @@ Global
 		{F9389329-8111-4054-9AB0-CB0001B83D27} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 		{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 		{6372809D-FE47-4F11-A5E4-BE0634ABD025} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
+		{D1E2F3A4-B5C6-7890-1234-567890ABCDEF} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+		{E2F3A4B5-C6D7-8901-2345-67890ABCDEF1} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 	EndGlobalSection
 EndGlobal
