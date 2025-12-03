@@ -21,7 +21,8 @@ public sealed class ProcessNotificationCommandHandler(
 {
     public async Task<Result> Handle(
         ProcessNotificationCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var notification = await unitOfWork.NotificationRequests.GetByIdAsync(
             request.NotificationId,

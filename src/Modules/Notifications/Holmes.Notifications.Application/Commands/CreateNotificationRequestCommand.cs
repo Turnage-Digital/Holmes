@@ -31,7 +31,8 @@ public sealed class CreateNotificationRequestCommandHandler(
 {
     public async Task<Result<CreateNotificationRequestResult>> Handle(
         CreateNotificationRequestCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var now = timeProvider.GetUtcNow();
 

@@ -20,7 +20,8 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
 
     public async Task<IReadOnlyList<NotificationRequest>> GetPendingAsync(
         int limit,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var pending = await context.NotificationRequests
             .Include(n => n.DeliveryAttempts)
@@ -34,7 +35,8 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
 
     public async Task<IReadOnlyList<NotificationRequest>> GetByOrderIdAsync(
         UlidId orderId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var notifications = await context.NotificationRequests
             .Include(n => n.DeliveryAttempts)
@@ -49,7 +51,8 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         int maxAttempts,
         TimeSpan retryAfter,
         int limit,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var cutoff = DateTime.UtcNow.Subtract(retryAfter);
 

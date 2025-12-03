@@ -29,7 +29,8 @@ public sealed class GetNotificationsByOrderQueryHandler(
 {
     public async Task<IReadOnlyList<NotificationSummaryDto>> Handle(
         GetNotificationsByOrderQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var notifications = await unitOfWork.NotificationRequests.GetByOrderIdAsync(
             request.OrderId,

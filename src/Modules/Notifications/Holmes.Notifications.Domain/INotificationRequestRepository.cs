@@ -8,17 +8,20 @@ public interface INotificationRequestRepository
 
     Task<IReadOnlyList<NotificationRequest>> GetPendingAsync(
         int limit,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyList<NotificationRequest>> GetByOrderIdAsync(
         UlidId orderId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyList<NotificationRequest>> GetFailedForRetryAsync(
         int maxAttempts,
         TimeSpan retryAfter,
         int limit,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task AddAsync(NotificationRequest request, CancellationToken cancellationToken = default);
 

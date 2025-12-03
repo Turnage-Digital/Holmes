@@ -8,7 +8,8 @@ public sealed class NotificationsUnitOfWork(
     NotificationsDbContext context,
     IMediator mediator,
     NotificationRequestRepository notificationRequestRepository
-) : UnitOfWork<NotificationsDbContext>(context, mediator), INotificationsUnitOfWork
+)
+    : UnitOfWork<NotificationsDbContext>(context, mediator), INotificationsUnitOfWork
 {
     public INotificationRequestRepository NotificationRequests => notificationRequestRepository;
 }

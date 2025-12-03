@@ -7,26 +7,30 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Notifications.Infrastructure.Sql.Providers;
 
 /// <summary>
-/// Stub webhook provider that logs instead of posting.
-/// Replace with HttpWebhookProvider when ready.
+///     Stub webhook provider that logs instead of posting.
+///     Replace with HttpWebhookProvider when ready.
 /// </summary>
 public sealed class LoggingWebhookProvider(ILogger<LoggingWebhookProvider> logger) : INotificationProvider
 {
     public NotificationChannel Channel => NotificationChannel.Webhook;
 
-    public bool CanHandle(NotificationChannel channel) => channel == NotificationChannel.Webhook;
+    public bool CanHandle(NotificationChannel channel)
+    {
+        return channel == NotificationChannel.Webhook;
+    }
 
     public Task<NotificationSendResult> SendAsync(
         NotificationRecipient recipient,
         NotificationContent content,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var payload = new
         {
-            Subject = content.Subject,
-            Body = content.Body,
-            TemplateId = content.TemplateId,
-            TemplateData = content.TemplateData
+            content.Subject,
+            content.Body,
+            content.TemplateId,
+            content.TemplateData
         };
 
         // TODO: Replace with actual HTTP POST
