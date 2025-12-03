@@ -51,7 +51,10 @@ public class ForgotPasswordModel(
         var baseUrl = provisioningOptions.Value.BaseUrl ?? Request.Scheme + "://" + Request.Host;
         var resetLink = $"{baseUrl}/Account/ResetPassword?email={Uri.EscapeDataString(Input.Email)}&code={encodedToken}";
 
-        logger.LogInformation("Password reset requested for user {UserId}", user.Id);
+        logger.LogInformation(
+            "Password reset requested for {Email}. Reset link: {ResetLink}",
+            Input.Email,
+            resetLink);
 
         RequestSent = true;
         return Page();

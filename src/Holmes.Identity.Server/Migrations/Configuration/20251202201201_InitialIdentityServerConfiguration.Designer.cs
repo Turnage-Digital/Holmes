@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Identity.Server.Migrations.Configuration
 {
     [DbContext(typeof(ConfigurationDbContext))]
-    [Migration("20251202144443_InitialIdentityServerConfiguration")]
+    [Migration("20251202201201_InitialIdentityServerConfiguration")]
     partial class InitialIdentityServerConfiguration
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Holmes.Identity.Server.Migrations.Configuration
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);

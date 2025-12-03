@@ -42,6 +42,13 @@ $modules = @(
         MigrationOutputDir = "Migrations/Operational"
     },
     @{
+        Name = "BffSessions"
+        Project = "src/Holmes.Internal.Server/Holmes.Internal.Server.csproj"
+        StartupProject = "src/Holmes.Internal.Server/Holmes.Internal.Server.csproj"
+        Context = "Duende.Bff.EntityFramework.SessionDbContext"
+        MigrationName = "InitialBffSessions"
+    },
+    @{
         Name = "Core"
         Project = "src/Modules/Core/Holmes.Core.Infrastructure.Sql/Holmes.Core.Infrastructure.Sql.csproj"
         Context = "Holmes.Core.Infrastructure.Sql.CoreDbContext"

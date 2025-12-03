@@ -1,7 +1,9 @@
 using Duende.Bff;
+using Duende.Bff.EntityFramework;
 using Duende.Bff.Yarp;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 
@@ -21,6 +23,23 @@ try
                 "[{Timestamp:HH:mm:ss} {Level} {SourceContext}]{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
             .Enrich.FromLogContext();
     });
+
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException(
+            "ConnectionStrings:DefaultConnection must be configured for the Internal BFF host.");
+    }
+
+    ServerVersion serverVersion;
+    try
+    {
+        serverVersion = ServerVersion.AutoDetect(connectionString);
+    }
+    catch
+    {
+        serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
+    }
 
     var authority = builder.Configuration["Authentication:Authority"] ?? "https://localhost:5000";
     var clientId = builder.Configuration["Authentication:ClientId"] ?? "holmes_internal";
@@ -59,7 +78,9 @@ try
     builder.Services.AddAuthorization();
 
     builder.Services.AddBff()
-        .AddServerSideSessions()
+        .AddEntityFrameworkServerSideSessions(options =>
+            options.UseMySql(connectionString, serverVersion,
+                mySqlOptions => mySqlOptions.MigrationsAssembly(typeof(Program).Assembly.FullName)))
         .AddRemoteApis();
 
     builder.Services.AddHttpClient();
