@@ -23,6 +23,8 @@ using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Repositories;
+using Holmes.Notifications.Application.Commands;
+using Holmes.Notifications.Infrastructure.Sql;
 using Holmes.Workflow.Application.Abstractions.Notifications;
 using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Application.Commands;
@@ -113,6 +115,7 @@ internal static class DependencyInjection
             config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
             config.RegisterServicesFromAssemblyContaining<CreateOrderCommand>();
             config.RegisterServicesFromAssemblyContaining<IssueIntakeInviteCommand>();
+            config.RegisterServicesFromAssemblyContaining<CreateNotificationRequestCommand>();
         });
 
         return services;
@@ -221,6 +224,7 @@ internal static class DependencyInjection
         services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
         services.AddIntakeInfrastructureSql(connectionString, serverVersion);
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
+        services.AddNotificationsInfrastructureSql(connectionString, serverVersion);
 
         services.AddAppIntegration();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
