@@ -140,6 +140,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Integration", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server.Tests", "src\Holmes.Identity.Server.Tests\Holmes.Identity.Server.Tests.csproj", "{6372809D-FE47-4F11-A5E4-BE0634ABD025}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Notifications.Application.Abstractions", "src\Modules\Notifications\Holmes.Notifications.Application.Abstractions\Holmes.Notifications.Application.Abstractions.csproj", "{8CAB1015-21A4-41F5-925C-683BDE62FF0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -342,6 +344,10 @@ Global
 		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CAB1015-21A4-41F5-925C-683BDE62FF0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CAB1015-21A4-41F5-925C-683BDE62FF0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CAB1015-21A4-41F5-925C-683BDE62FF0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CAB1015-21A4-41F5-925C-683BDE62FF0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -401,5 +407,6 @@ Global
 		{D1E2F3A4-B5C6-7890-1234-567890ABCDEF} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 		{E2F3A4B5-C6D7-8901-2345-67890ABCDEF1} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 		{F3A4B5C6-D7E8-9012-3456-7890ABCDEF12} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+		{8CAB1015-21A4-41F5-925C-683BDE62FF0E} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 	EndGlobalSection
 EndGlobal

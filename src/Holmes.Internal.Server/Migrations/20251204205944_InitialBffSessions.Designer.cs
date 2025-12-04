@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Internal.Server.Migrations
 {
     [DbContext(typeof(SessionDbContext))]
-    [Migration("20251202201209_InitialBffSessions")]
+    [Migration("20251204205944_InitialBffSessions")]
     partial class InitialBffSessions
     {
         /// <inheritdoc />
