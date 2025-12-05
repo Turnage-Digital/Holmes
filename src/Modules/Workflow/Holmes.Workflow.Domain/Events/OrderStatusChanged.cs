@@ -5,6 +5,7 @@ namespace Holmes.Workflow.Domain.Events;
 
 public sealed record OrderStatusChanged(
     UlidId OrderId,
+    UlidId CustomerId,
     OrderStatus Status,
     string Reason,
     DateTimeOffset ChangedAt
