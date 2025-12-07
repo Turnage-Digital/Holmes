@@ -62,6 +62,9 @@
         <ProjectReference Include="..\Modules\Workflow\Holmes.Workflow.Infrastructure.Sql\Holmes.Workflow.Infrastructure.Sql.csproj"/>
         <ProjectReference Include="..\Modules\Notifications\Holmes.Notifications.Application\Holmes.Notifications.Application.csproj"/>
         <ProjectReference Include="..\Modules\Notifications\Holmes.Notifications.Infrastructure.Sql\Holmes.Notifications.Infrastructure.Sql.csproj"/>
+        <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application.Abstractions\Holmes.SlaClocks.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application\Holmes.SlaClocks.Application.csproj"/>
+        <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Infrastructure.Sql\Holmes.SlaClocks.Infrastructure.Sql.csproj"/>
         <ProjectReference Include="..\Holmes.Hosting\Holmes.Hosting.csproj"/>
     </ItemGroup>
 

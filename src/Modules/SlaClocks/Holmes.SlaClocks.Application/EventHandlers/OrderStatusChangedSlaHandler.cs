@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.SlaClocks.Application.EventHandlers;
 
 /// <summary>
-/// Handles OrderStatusChanged events to start, complete, pause, and resume SLA clocks.
+///     Handles OrderStatusChanged events to start, complete, pause, and resume SLA clocks.
 /// </summary>
 public sealed class OrderStatusChangedSlaHandler(
     ISlaClockUnitOfWork unitOfWork,
@@ -99,7 +99,10 @@ public sealed class OrderStatusChangedSlaHandler(
         }
     }
 
-    private async Task CompleteAllActiveClocksAsync(OrderStatusChanged notification, CancellationToken cancellationToken)
+    private async Task CompleteAllActiveClocksAsync(
+        OrderStatusChanged notification,
+        CancellationToken cancellationToken
+    )
     {
         var activeClocks = await unitOfWork.SlaClocks.GetActiveByOrderIdAsync(notification.OrderId, cancellationToken);
 

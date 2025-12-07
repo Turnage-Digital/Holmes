@@ -67,7 +67,8 @@ public sealed class Order : AggregateRoot
             LastUpdatedAt = createdAt
         };
 
-        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created", createdAt));
+        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created",
+            createdAt));
         return order;
     }
 

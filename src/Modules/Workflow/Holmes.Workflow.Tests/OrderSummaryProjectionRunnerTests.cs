@@ -48,7 +48,7 @@ public sealed class OrderSummaryProjectionRunnerTests
     public async Task Replay_WritesCanceledOrderSummary()
     {
         var order = BuildCanceledOrder(DateTimeOffset.UtcNow);
-        _workflowDbContext.Orders.Add(OrderEntityMapper.ToEntity(order));
+        _workflowDbContext.Orders.Add(OrderMapper.ToDb(order));
         await _workflowDbContext.SaveChangesAsync();
 
         var result = await _runner.RunAsync(true, CancellationToken.None);
@@ -75,12 +75,12 @@ public sealed class OrderSummaryProjectionRunnerTests
     public async Task Replay_ResumesFromCheckpoint()
     {
         var firstOrder = BuildCanceledOrder(DateTimeOffset.UtcNow);
-        _workflowDbContext.Orders.Add(OrderEntityMapper.ToEntity(firstOrder));
+        _workflowDbContext.Orders.Add(OrderMapper.ToDb(firstOrder));
         await _workflowDbContext.SaveChangesAsync();
         await _runner.RunAsync(true, CancellationToken.None);
 
         var secondOrder = BuildCanceledOrder(DateTimeOffset.UtcNow.AddHours(1));
-        _workflowDbContext.Orders.Add(OrderEntityMapper.ToEntity(secondOrder));
+        _workflowDbContext.Orders.Add(OrderMapper.ToDb(secondOrder));
         await _workflowDbContext.SaveChangesAsync();
 
         var result = await _runner.RunAsync(false, CancellationToken.None);

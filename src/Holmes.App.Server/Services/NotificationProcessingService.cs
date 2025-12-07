@@ -48,7 +48,7 @@ public sealed class NotificationProcessingService(
 
         var pending = await unitOfWork.NotificationRequests.GetPendingAsync(BatchSize, cancellationToken);
 
-        if (pending.Count == 0)
+        if (pending.Count is 0)
         {
             logger.LogTrace("No pending notifications to process");
             return;

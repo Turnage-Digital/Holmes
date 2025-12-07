@@ -17,10 +17,10 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("notifications")
                 .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.DeliveryAttemptDb", b =>
@@ -65,7 +65,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
 
                     b.HasIndex("NotificationRequestId");
 
-                    b.ToTable("delivery_attempts", "notifications");
+                    b.ToTable("delivery_attempts", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationRequestDb", b =>
@@ -166,7 +166,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
 
                     b.HasIndex("Status", "ScheduledFor");
 
-                    b.ToTable("notification_requests", "notifications");
+                    b.ToTable("notification_requests", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.DeliveryAttemptDb", b =>

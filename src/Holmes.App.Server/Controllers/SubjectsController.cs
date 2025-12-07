@@ -43,7 +43,7 @@ public sealed class SubjectsController(
             .ToListAsync(cancellationToken);
 
         var items = subjects
-            .Select(SubjectDtoMapper.ToListItem)
+            .Select(SubjectMapper.ToListItem)
             .ToList();
 
         return Ok(PaginatedResponse<SubjectListItemDto>.Create(items, page, pageSize, totalItems));
@@ -71,7 +71,7 @@ public sealed class SubjectsController(
         }
 
         return CreatedAtAction(nameof(GetSubjectById), new { subjectId = subjectId.ToString() },
-            SubjectDtoMapper.ToSummary(directory));
+            SubjectMapper.ToSummary(directory));
     }
 
     [HttpGet("{subjectId}")]
@@ -93,7 +93,7 @@ public sealed class SubjectsController(
             return NotFound();
         }
 
-        return Ok(SubjectDtoMapper.ToSummary(directory));
+        return Ok(SubjectMapper.ToSummary(directory));
     }
 
     [HttpPost("merge")]

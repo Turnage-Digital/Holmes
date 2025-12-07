@@ -63,11 +63,14 @@ public sealed class StartSlaClockCommandHandler(
         return Result.Success();
     }
 
-    private static int GetDefaultTargetDays(ClockKind kind) => kind switch
+    private static int GetDefaultTargetDays(ClockKind kind)
     {
-        ClockKind.Intake => DefaultIntakeDays,
-        ClockKind.Fulfillment => DefaultFulfillmentDays,
-        ClockKind.Overall => DefaultOverallDays,
-        _ => DefaultOverallDays
-    };
+        return kind switch
+        {
+            ClockKind.Intake => DefaultIntakeDays,
+            ClockKind.Fulfillment => DefaultFulfillmentDays,
+            ClockKind.Overall => DefaultOverallDays,
+            _ => DefaultOverallDays
+        };
+    }
 }

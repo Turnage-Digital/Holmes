@@ -7,7 +7,7 @@ namespace Holmes.SlaClocks.Infrastructure.Sql;
 public sealed class SlaClockUnitOfWork(
     SlaClockDbContext context,
     IMediator mediator,
-    SlaClockRepository slaClockRepository
+    ISlaClockRepository slaClockRepository
 )
     : UnitOfWork<SlaClockDbContext>(context, mediator), ISlaClockUnitOfWork
 {

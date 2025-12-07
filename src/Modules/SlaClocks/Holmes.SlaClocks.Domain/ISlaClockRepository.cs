@@ -11,25 +11,29 @@ public interface ISlaClockRepository
     Task<SlaClock?> GetByOrderIdAndKindAsync(
         UlidId orderId,
         ClockKind kind,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyList<SlaClock>> GetActiveByOrderIdAsync(
         UlidId orderId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
-    /// Gets running clocks that have passed their at-risk threshold but not yet marked as at-risk.
+    ///     Gets running clocks that have passed their at-risk threshold but not yet marked as at-risk.
     /// </summary>
     Task<IReadOnlyList<SlaClock>> GetRunningClocksPastThresholdAsync(
         DateTimeOffset asOf,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
-    /// Gets running or at-risk clocks that have passed their deadline but not yet marked as breached.
+    ///     Gets running or at-risk clocks that have passed their deadline but not yet marked as breached.
     /// </summary>
     Task<IReadOnlyList<SlaClock>> GetRunningClocksPastDeadlineAsync(
         DateTimeOffset asOf,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     void Add(SlaClock clock);
 

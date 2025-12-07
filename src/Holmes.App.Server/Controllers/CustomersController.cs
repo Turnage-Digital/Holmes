@@ -72,7 +72,7 @@ public sealed class CustomersController(
             {
                 profiles.TryGetValue(directory.CustomerId, out var profile);
                 contacts.TryGetValue(directory.CustomerId, out var contactList);
-                return CustomerDtoMapper.ToListItem(directory, profile, contactList ?? []);
+                return CustomerMapper.ToListItem(directory, profile, contactList ?? []);
             })
             .ToList();
 
@@ -282,7 +282,7 @@ public sealed class CustomersController(
             .SingleOrDefaultAsync(p => p.CustomerId == customerId, cancellationToken);
 
         var contacts = profile?.Contacts?.ToList() ?? [];
-        return CustomerDtoMapper.ToListItem(directory, profile, contacts);
+        return CustomerMapper.ToListItem(directory, profile, contacts);
     }
 
     public sealed record CreateCustomerRequest(

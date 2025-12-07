@@ -350,11 +350,22 @@ created → invited → intake_in_progress → intake_complete → ready_for_rou
 idle → pre_sent → [paused ←→ pre_sent] → ready_final → final_sent → closed
 ```
 
-### SLA clocks (examples)
+### SLA Clocks
 
-- **Intake SLA**: `invited → intake_complete` ≤ X business hours.
-- **Routing SLA**: `intake_complete → ready_for_routing` ≤ Y business hours.
-- **Overall SLA**: `created → ready_for_report` ≤ Z days (read-only v1).
+SLA clocks track time-bound obligations on Orders. Implemented in `Holmes.SlaClocks` module.
+
+| Clock Kind      | Trigger States                       | Default Target  |
+|-----------------|--------------------------------------|-----------------|
+| **Intake**      | `Invited` → `IntakeComplete`         | 1 business day  |
+| **Fulfillment** | `ReadyForRouting` → `ReadyForReport` | 3 business days |
+| **Overall**     | `Created` → `Closed`                 | 5 business days |
+
+**Terminology Note:** The Order state machine uses `ReadyForRouting`/`RoutingInProgress` internally, but SLA
+tracking uses **Fulfillment** to describe service execution (court searches, verifications, etc.). Default
+SLAs are fallbacks; actual targets come from customer service agreements.
+
+Clock states: `Running` → `AtRisk` (80% threshold) → `Breached` / `Completed`. Clocks can be `Paused` (e.g.,
+for disputes or holds) and `Resumed`.
 
 ---
 
@@ -369,8 +380,9 @@ intake:
   ssn_full: false
   address_years: 7
 sla:
-  intake_hours: 4
-  routing_hours: 2
+  intake_days: 1         # business days
+  fulfillment_days: 3    # business days
+  overall_days: 5        # business days
 adverse:
   start_on: sent        # or delivered
   wait_business_days: 5

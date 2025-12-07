@@ -49,9 +49,14 @@ Standing ceremonies:
 - `SlaClock` — tracks a single SLA obligation with deadline computation and state transitions
 
 **Value Objects:**
-- `ClockKind` — enum: `Intake`, `Routing`, `Overall`, `Custom`
+- `ClockKind` — enum: `Intake`, `Fulfillment`, `Overall`, `Custom`
 - `ClockState` — enum: `Running`, `AtRisk`, `Breached`, `Paused`, `Completed`
 - `Deadline` — computed deadline timestamp with jurisdiction context
+
+**Terminology Note:** The Order state machine uses `ReadyForRouting`/`RoutingInProgress` states internally,
+but SLA tracking uses **Fulfillment** to describe what's happening: executing background check services
+(court searches, employment verifications, education checks, etc.). "Fulfillment" better represents the
+service execution phase rather than reducing it to mere "routing."
 
 **Domain Events:**
 - `SlaClockStarted` — clock begins tracking
@@ -500,9 +505,15 @@ dotnet run --project src/Tools/Holmes.Projections.Runner --projection notificati
 
 ## 8. Current Status Snapshot
 
-*[Updated 2025-12-03]*
+*[Updated 2025-12-05]*
 
-- **SLA Clocks:** Not started
+- **SLA Clocks:** Module implemented
+  - Domain: `SlaClock` aggregate with `ClockKind` (Intake/Fulfillment/Overall), `ClockState`, domain events
+  - Application: Commands (`Start`, `Pause`, `Resume`, `MarkAtRisk`, `MarkBreached`, `Complete`), queries, `OrderStatusChangedSlaHandler`
+  - Infrastructure: `SlaClockDbContext`, repository, `BusinessCalendarService` (US Federal holidays 2024-2026)
+  - Watchdog: `SlaClockWatchdogService` background service for at-risk/breach detection
+  - Integration: `SlaClockAtRiskNotificationHandler`, `SlaClockBreachedNotificationHandler`
+  - Default SLAs: Intake 1 day, Fulfillment 3 days, Overall 5 days (customer-defined via service agreements)
 - **Compliance:** Not started
 - **Notifications:** Module scaffolded
   - Domain: `NotificationRequest` aggregate, enums, value objects, events, repository interface

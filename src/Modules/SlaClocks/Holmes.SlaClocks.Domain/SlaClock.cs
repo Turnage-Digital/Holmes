@@ -33,6 +33,16 @@ public sealed class SlaClock : AggregateRoot
     public int TargetBusinessDays { get; private set; }
     public decimal AtRiskThresholdPercent { get; private set; }
 
+    /// <summary>
+    ///     Returns true if the clock is in a terminal state (completed or breached).
+    /// </summary>
+    public bool IsTerminal => State is ClockState.Completed or ClockState.Breached;
+
+    /// <summary>
+    ///     Returns true if the clock is actively tracking time (running or at-risk).
+    /// </summary>
+    public bool IsActive => State is ClockState.Running or ClockState.AtRisk;
+
     public static SlaClock Start(
         UlidId id,
         UlidId orderId,
@@ -42,7 +52,8 @@ public sealed class SlaClock : AggregateRoot
         DateTimeOffset deadlineAt,
         DateTimeOffset atRiskThresholdAt,
         int targetBusinessDays,
-        decimal atRiskThresholdPercent = 0.80m)
+        decimal atRiskThresholdPercent = 0.80m
+    )
     {
         var clock = new SlaClock
         {
@@ -88,7 +99,8 @@ public sealed class SlaClock : AggregateRoot
         string? pauseReason,
         TimeSpan accumulatedPauseTime,
         int targetBusinessDays,
-        decimal atRiskThresholdPercent)
+        decimal atRiskThresholdPercent
+    )
     {
         return new SlaClock
         {
@@ -214,14 +226,4 @@ public sealed class SlaClock : AggregateRoot
             wasAtRisk,
             totalElapsed));
     }
-
-    /// <summary>
-    /// Returns true if the clock is in a terminal state (completed or breached).
-    /// </summary>
-    public bool IsTerminal => State is ClockState.Completed or ClockState.Breached;
-
-    /// <summary>
-    /// Returns true if the clock is actively tracking time (running or at-risk).
-    /// </summary>
-    public bool IsActive => State is ClockState.Running or ClockState.AtRisk;
 }
