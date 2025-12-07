@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -96,6 +96,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8
 		docs\RUNBOOKS.md = docs\RUNBOOKS.md
 		docs\Holmes.App.UI.md = docs\Holmes.App.UI.md
 		docs\PHASE_2.md = docs\PHASE_2.md
+		docs\PHASE_3.md = docs\PHASE_3.md
+		docs\SLA_CLOCKS_PLAN.md = docs\SLA_CLOCKS_PLAN.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server", "src\Holmes.Identity.Server\Holmes.Identity.Server.csproj", "{9CBFCA68-B0DD-4C70-9EF8-9526FF1F0804}"
@@ -152,15 +154,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Applicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Infrastructure.Sql", "src\Modules\SlaClocks\Holmes.SlaClocks.Infrastructure.Sql\Holmes.SlaClocks.Infrastructure.Sql.csproj", "{93A4608E-B1DF-448C-81ED-C0362F6B72B3}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{015B6B03-3CD7-4693-9F9C-30DE127D0729}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notifications", "Notifications", "{EDCFB4DF-94BC-490F-BC8F-1747DA73FFC5}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Notifications.Tests", "src\Modules\Notifications\Holmes.Notifications.Tests\Holmes.Notifications.Tests.csproj", "{704E7EF8-A8E4-4CE5-ABE3-908F81ACB95F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SlaClocks", "SlaClocks", "{AFABFE64-6DA1-4C37-B628-76EC2A4B2E7E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Tests", "src\Modules\SlaClocks\Holmes.SlaClocks.Tests\Holmes.SlaClocks.Tests.csproj", "{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "monetize", "monetize", "{F2A1738F-E327-4BF7-9C04-4D6BAB9646B0}"
+	ProjectSection(SolutionItems) = preProject
+		docs\monetize\ARCHITECTURE_COMPLIANCE_UPDATE.md = docs\monetize\ARCHITECTURE_COMPLIANCE_UPDATE.md
+		docs\monetize\PRICING.md = docs\monetize\PRICING.md
+		docs\monetize\PLAN_PHASE_3_UPDATE.md = docs\monetize\PLAN_PHASE_3_UPDATE.md
+		docs\monetize\GUARDRAILS.md = docs\monetize\GUARDRAILS.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -457,9 +461,8 @@ Global
 		{F9BFE7B6-B8DC-44CB-8678-CFA8ABF96B22} = {F64AD250-2E9E-402E-96CC-59A889894329}
 		{81A8151A-B4D5-4872-B38E-762416EA51E0} = {F64AD250-2E9E-402E-96CC-59A889894329}
 		{93A4608E-B1DF-448C-81ED-C0362F6B72B3} = {F64AD250-2E9E-402E-96CC-59A889894329}
-		{EDCFB4DF-94BC-490F-BC8F-1747DA73FFC5} = {015B6B03-3CD7-4693-9F9C-30DE127D0729}
-		{704E7EF8-A8E4-4CE5-ABE3-908F81ACB95F} = {EDCFB4DF-94BC-490F-BC8F-1747DA73FFC5}
-		{AFABFE64-6DA1-4C37-B628-76EC2A4B2E7E} = {015B6B03-3CD7-4693-9F9C-30DE127D0729}
-		{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B} = {AFABFE64-6DA1-4C37-B628-76EC2A4B2E7E}
+		{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B} = {F64AD250-2E9E-402E-96CC-59A889894329}
+		{704E7EF8-A8E4-4CE5-ABE3-908F81ACB95F} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+		{F2A1738F-E327-4BF7-9C04-4D6BAB9646B0} = {9721B5CA-8C26-4FC5-8448-F3247DFEDD62}
 	EndGlobalSection
 EndGlobal
