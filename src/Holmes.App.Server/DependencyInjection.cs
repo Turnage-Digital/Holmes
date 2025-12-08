@@ -33,7 +33,7 @@ using Holmes.Services.Infrastructure.Sql.Notifications;
 using Holmes.Services.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Commands;
-using Holmes.SlaClocks.Application.Services;
+using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
 using Holmes.SlaClocks.Infrastructure.Sql.Queries;

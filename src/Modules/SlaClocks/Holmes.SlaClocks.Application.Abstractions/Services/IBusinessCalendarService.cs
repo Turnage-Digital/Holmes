@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 
-namespace Holmes.SlaClocks.Application.Services;
+namespace Holmes.SlaClocks.Application.Abstractions.Services;
 
 /// <summary>
 ///     Service for calculating business day deadlines, accounting for weekends and holidays.

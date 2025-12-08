@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.Core.Application.Abstractions.Security;
-using Holmes.Intake.Application.Services;
+using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 

@@ -1,5 +1,5 @@
 using Holmes.SlaClocks.Application.Abstractions.Queries;
-using Holmes.SlaClocks.Application.Services;
+using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;

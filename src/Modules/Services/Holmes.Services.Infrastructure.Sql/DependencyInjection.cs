@@ -1,6 +1,6 @@
 using Holmes.Services.Application.Abstractions.Notifications;
 using Holmes.Services.Application.Abstractions.Queries;
-using Holmes.Services.Application.Vendors;
+using Holmes.Services.Application.Abstractions.Vendors;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql.Notifications;
 using Holmes.Services.Infrastructure.Sql.Queries;

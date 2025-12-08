@@ -1,6 +1,6 @@
 using Holmes.Intake.Domain.ValueObjects;
 
-namespace Holmes.Intake.Application.Services;
+namespace Holmes.Intake.Application.Abstractions.Services;
 
 public interface IIntakeAnswersDecryptor
 {

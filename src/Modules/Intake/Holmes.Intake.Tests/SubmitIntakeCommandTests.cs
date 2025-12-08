@@ -2,7 +2,7 @@ using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Application.Gateways;
-using Holmes.Intake.Application.Services;
+using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.ValueObjects;
 using Holmes.Intake.Tests.TestHelpers;

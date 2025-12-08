@@ -1,4 +1,4 @@
-using Holmes.Services.Application.Vendors;
+using Holmes.Services.Application.Abstractions.Vendors;
 using Holmes.Services.Domain;
 
 namespace Holmes.Services.Infrastructure.Sql.Vendors;
