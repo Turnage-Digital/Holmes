@@ -1,3 +1,4 @@
+using System.Text;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.Results;
 using Holmes.Core.Domain.Security;
@@ -77,7 +78,8 @@ public sealed class SubmitIntakeCommandHandler(
         UlidId subjectId,
         DecryptedIntakeAnswers answers,
         DateTimeOffset timestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         byte[]? encryptedSsn = null;
         string? ssnLast4 = null;
@@ -85,7 +87,7 @@ public sealed class SubmitIntakeCommandHandler(
         // Re-encrypt SSN for storage if present
         if (!string.IsNullOrWhiteSpace(answers.Ssn) && answers.Ssn.Length >= 4)
         {
-            var ssnBytes = System.Text.Encoding.UTF8.GetBytes(answers.Ssn);
+            var ssnBytes = Encoding.UTF8.GetBytes(answers.Ssn);
             encryptedSsn = await ssnEncryptor.EncryptAsync(ssnBytes, cancellationToken: cancellationToken);
             ssnLast4 = answers.Ssn[^4..];
         }
@@ -96,24 +98,29 @@ public sealed class SubmitIntakeCommandHandler(
             encryptedSsn,
             ssnLast4,
             answers.Addresses.Select(a => new IntakeAddressDto(
-                a.Street1, a.Street2, a.City, a.State, a.PostalCode, a.Country, a.CountyFips,
-                a.FromDate, a.ToDate, a.Type
-            )).ToList(),
+                    a.Street1, a.Street2, a.City, a.State, a.PostalCode, a.Country, a.CountyFips,
+                    a.FromDate, a.ToDate, a.Type
+                ))
+                .ToList(),
             answers.Employments.Select(e => new IntakeEmploymentDto(
-                e.EmployerName, e.EmployerPhone, e.EmployerAddress, e.JobTitle,
-                e.SupervisorName, e.SupervisorPhone, e.StartDate, e.EndDate,
-                e.ReasonForLeaving, e.CanContact
-            )).ToList(),
+                    e.EmployerName, e.EmployerPhone, e.EmployerAddress, e.JobTitle,
+                    e.SupervisorName, e.SupervisorPhone, e.StartDate, e.EndDate,
+                    e.ReasonForLeaving, e.CanContact
+                ))
+                .ToList(),
             answers.Educations.Select(e => new IntakeEducationDto(
-                e.InstitutionName, e.InstitutionAddress, e.Degree, e.Major,
-                e.AttendedFrom, e.AttendedTo, e.GraduationDate, e.Graduated
-            )).ToList(),
+                    e.InstitutionName, e.InstitutionAddress, e.Degree, e.Major,
+                    e.AttendedFrom, e.AttendedTo, e.GraduationDate, e.Graduated
+                ))
+                .ToList(),
             answers.References.Select(r => new IntakeReferenceDto(
-                r.Name, r.Phone, r.Email, r.Relationship, r.YearsKnown, r.Type
-            )).ToList(),
+                    r.Name, r.Phone, r.Email, r.Relationship, r.YearsKnown, r.Type
+                ))
+                .ToList(),
             answers.Phones.Select(p => new IntakePhoneDto(
-                p.PhoneNumber, p.Type, p.IsPrimary
-            )).ToList(),
+                    p.PhoneNumber, p.Type, p.IsPrimary
+                ))
+                .ToList(),
             timestamp
         );
 

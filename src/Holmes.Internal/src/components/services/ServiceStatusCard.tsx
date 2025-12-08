@@ -1,11 +1,11 @@
 import React from "react";
 
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
 import {
   Box,
   Card,
@@ -18,7 +18,11 @@ import {
 } from "@mui/material";
 import { formatDistanceToNow } from "date-fns";
 
-import type { ServiceCategory, ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
+import type {
+  ServiceCategory,
+  ServiceRequestSummaryDto,
+  ServiceStatus,
+} from "@/types/api";
 
 import { StatusBadge } from "@/components/patterns";
 
@@ -48,7 +52,10 @@ const statusColors: Record<ServiceStatus, string> = {
 // Category Colors
 // ============================================================================
 
-const categoryColors: Record<ServiceCategory, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
+const categoryColors: Record<
+  ServiceCategory,
+  "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"
+> = {
   Criminal: "error",
   Identity: "primary",
   Employment: "info",
@@ -75,15 +82,18 @@ const ServiceStatusCard = ({
   service,
   showCategory = true,
 }: ServiceStatusCardProps) => {
-  const isInProgress = service.status === "InProgress" || service.status === "Dispatched";
+  const isInProgress =
+    service.status === "InProgress" || service.status === "Dispatched";
   const hasError = service.status === "Failed";
   const hasRetries = service.attemptCount > 1;
 
   // Get the most relevant timestamp
   const getRelevantTimestamp = () => {
-    if (service.completedAt) return { label: "Completed", time: service.completedAt };
+    if (service.completedAt)
+      return { label: "Completed", time: service.completedAt };
     if (service.failedAt) return { label: "Failed", time: service.failedAt };
-    if (service.dispatchedAt) return { label: "Dispatched", time: service.dispatchedAt };
+    if (service.dispatchedAt)
+      return { label: "Dispatched", time: service.dispatchedAt };
     return { label: "Created", time: service.createdAt };
   };
 
@@ -164,7 +174,9 @@ const ServiceStatusCard = ({
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               {hasRetries && (
-                <Tooltip title={`Attempt ${service.attemptCount} of ${service.maxAttempts}`}>
+                <Tooltip
+                  title={`Attempt ${service.attemptCount} of ${service.maxAttempts}`}
+                >
                   <Chip
                     label={`${service.attemptCount}/${service.maxAttempts}`}
                     size="small"

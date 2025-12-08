@@ -46,7 +46,8 @@ public sealed class SubjectAddress
         DateOnly fromDate,
         DateOnly? toDate,
         AddressType type,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(street1);
         ArgumentException.ThrowIfNullOrWhiteSpace(city);
@@ -83,7 +84,8 @@ public sealed class SubjectAddress
         DateOnly fromDate,
         DateOnly? toDate,
         AddressType type,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         return new SubjectAddress
         {

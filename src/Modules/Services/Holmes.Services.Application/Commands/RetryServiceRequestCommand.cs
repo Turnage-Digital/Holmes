@@ -17,7 +17,8 @@ public sealed class RetryServiceRequestCommandHandler(
 {
     public async Task<Result> Handle(
         RetryServiceRequestCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var serviceRequest = await unitOfWork.ServiceRequests.GetByIdAsync(
             request.ServiceRequestId, cancellationToken);

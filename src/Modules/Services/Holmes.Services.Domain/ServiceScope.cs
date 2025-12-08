@@ -1,25 +1,43 @@
 namespace Holmes.Services.Domain;
 
 /// <summary>
-/// Represents the geographic or jurisdictional scope of a service request.
+///     Represents the geographic or jurisdictional scope of a service request.
 /// </summary>
 public sealed record ServiceScope
 {
-    public ServiceScopeType Type { get; }
-    public string Value { get; }
-
     private ServiceScope(ServiceScopeType type, string value)
     {
         Type = type;
         Value = value;
     }
 
-    public static ServiceScope National() => new(ServiceScopeType.National, "US");
-    public static ServiceScope State(string stateCode) => new(ServiceScopeType.State, stateCode.ToUpperInvariant());
-    public static ServiceScope County(string fipsCode) => new(ServiceScopeType.County, fipsCode);
-    public static ServiceScope International(string countryCode) => new(ServiceScopeType.International, countryCode.ToUpperInvariant());
+    public ServiceScopeType Type { get; }
+    public string Value { get; }
 
-    public override string ToString() => $"{Type}:{Value}";
+    public static ServiceScope National()
+    {
+        return new ServiceScope(ServiceScopeType.National, "US");
+    }
+
+    public static ServiceScope State(string stateCode)
+    {
+        return new ServiceScope(ServiceScopeType.State, stateCode.ToUpperInvariant());
+    }
+
+    public static ServiceScope County(string fipsCode)
+    {
+        return new ServiceScope(ServiceScopeType.County, fipsCode);
+    }
+
+    public static ServiceScope International(string countryCode)
+    {
+        return new ServiceScope(ServiceScopeType.International, countryCode.ToUpperInvariant());
+    }
+
+    public override string ToString()
+    {
+        return $"{Type}:{Value}";
+    }
 }
 
 public enum ServiceScopeType

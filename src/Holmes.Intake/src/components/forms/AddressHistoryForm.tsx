@@ -1,4 +1,7 @@
 import React from "react";
+
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Box,
   Button,
@@ -16,14 +19,12 @@ import {
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 import {
   AddressType,
+  createEmptyAddress,
   IntakeAddress,
   US_STATES,
-  createEmptyAddress,
 } from "@/types/intake";
 
 interface AddressHistoryFormProps {
@@ -61,7 +62,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
           updated.toDate = "";
         }
         return updated;
-      })
+      }),
     );
   };
 
@@ -77,8 +78,8 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
     <Stack spacing={3}>
       <Box>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Please provide your address history for the past {yearsRequired} years.
-          Start with your current address.
+          Please provide your address history for the past {yearsRequired}{" "}
+          years. Start with your current address.
         </Typography>
       </Box>
 

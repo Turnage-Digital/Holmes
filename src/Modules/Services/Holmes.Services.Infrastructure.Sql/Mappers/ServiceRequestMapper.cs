@@ -7,6 +7,12 @@ namespace Holmes.Services.Infrastructure.Sql.Mappers;
 
 public static class ServiceRequestMapper
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
+    };
+
     public static ServiceRequest ToDomain(ServiceRequestDb db)
     {
         ServiceResult? result = null;
@@ -16,28 +22,28 @@ public static class ServiceRequestMapper
         }
 
         return ServiceRequest.Rehydrate(
-            id: UlidId.Parse(db.Id),
-            orderId: UlidId.Parse(db.OrderId),
-            customerId: UlidId.Parse(db.CustomerId),
-            catalogSnapshotId: db.CatalogSnapshotId is not null ? UlidId.Parse(db.CatalogSnapshotId) : null,
-            serviceTypeCode: db.ServiceTypeCode,
-            category: db.Category,
-            tier: db.Tier,
-            scopeType: db.ScopeType,
-            scopeValue: db.ScopeValue,
-            status: db.Status,
-            vendorCode: db.VendorCode,
-            vendorReferenceId: db.VendorReferenceId,
-            attemptCount: db.AttemptCount,
-            maxAttempts: db.MaxAttempts,
-            lastError: db.LastError,
-            createdAt: DateTime.SpecifyKind(db.CreatedAt, DateTimeKind.Utc),
-            updatedAt: DateTime.SpecifyKind(db.UpdatedAt, DateTimeKind.Utc),
-            dispatchedAt: db.DispatchedAt.HasValue ? DateTime.SpecifyKind(db.DispatchedAt.Value, DateTimeKind.Utc) : null,
-            completedAt: db.CompletedAt.HasValue ? DateTime.SpecifyKind(db.CompletedAt.Value, DateTimeKind.Utc) : null,
-            failedAt: db.FailedAt.HasValue ? DateTime.SpecifyKind(db.FailedAt.Value, DateTimeKind.Utc) : null,
-            canceledAt: db.CanceledAt.HasValue ? DateTime.SpecifyKind(db.CanceledAt.Value, DateTimeKind.Utc) : null,
-            result: result);
+            UlidId.Parse(db.Id),
+            UlidId.Parse(db.OrderId),
+            UlidId.Parse(db.CustomerId),
+            db.CatalogSnapshotId is not null ? UlidId.Parse(db.CatalogSnapshotId) : null,
+            db.ServiceTypeCode,
+            db.Category,
+            db.Tier,
+            db.ScopeType,
+            db.ScopeValue,
+            db.Status,
+            db.VendorCode,
+            db.VendorReferenceId,
+            db.AttemptCount,
+            db.MaxAttempts,
+            db.LastError,
+            DateTime.SpecifyKind(db.CreatedAt, DateTimeKind.Utc),
+            DateTime.SpecifyKind(db.UpdatedAt, DateTimeKind.Utc),
+            db.DispatchedAt.HasValue ? DateTime.SpecifyKind(db.DispatchedAt.Value, DateTimeKind.Utc) : null,
+            db.CompletedAt.HasValue ? DateTime.SpecifyKind(db.CompletedAt.Value, DateTimeKind.Utc) : null,
+            db.FailedAt.HasValue ? DateTime.SpecifyKind(db.FailedAt.Value, DateTimeKind.Utc) : null,
+            db.CanceledAt.HasValue ? DateTime.SpecifyKind(db.CanceledAt.Value, DateTimeKind.Utc) : null,
+            result);
     }
 
     public static ServiceRequestDb ToDb(ServiceRequest domain)
@@ -104,13 +110,13 @@ public static class ServiceRequestMapper
         var records = DeserializeRecords(db.RecordsJson);
 
         return ServiceResult.Rehydrate(
-            id: UlidId.Parse(db.Id),
-            status: db.Status,
-            records: records,
-            rawResponseHash: db.RawResponseHash,
-            vendorReferenceId: db.VendorReferenceId,
-            receivedAt: DateTime.SpecifyKind(db.ReceivedAt, DateTimeKind.Utc),
-            normalizedAt: db.NormalizedAt.HasValue ? DateTime.SpecifyKind(db.NormalizedAt.Value, DateTimeKind.Utc) : null);
+            UlidId.Parse(db.Id),
+            db.Status,
+            records,
+            db.RawResponseHash,
+            db.VendorReferenceId,
+            DateTime.SpecifyKind(db.ReceivedAt, DateTimeKind.Utc),
+            db.NormalizedAt.HasValue ? DateTime.SpecifyKind(db.NormalizedAt.Value, DateTimeKind.Utc) : null);
     }
 
     private static ServiceResultDb ToResultDb(ServiceResult domain, string serviceRequestId)
@@ -192,10 +198,4 @@ public static class ServiceRequestMapper
 
         return records;
     }
-
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
 }

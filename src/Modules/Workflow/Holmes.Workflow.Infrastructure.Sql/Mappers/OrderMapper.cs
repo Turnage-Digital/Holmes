@@ -6,61 +6,61 @@ namespace Holmes.Workflow.Infrastructure.Sql.Mappers;
 
 public static class OrderMapper
 {
-    public static OrderDb ToDb(Order order)
-    {
-        var entity = new OrderDb();
-        Apply(order, entity);
-        return entity;
-    }
-
-    public static void Apply(Order order, OrderDb entity)
-    {
-        entity.OrderId = order.Id.ToString();
-        entity.SubjectId = order.SubjectId.ToString();
-        entity.CustomerId = order.CustomerId.ToString();
-        entity.PolicySnapshotId = order.PolicySnapshotId;
-        entity.PackageCode = order.PackageCode;
-        entity.Status = order.Status.ToString();
-        entity.BlockedFromStatus = order.BlockedFromStatus?.ToString();
-        entity.LastStatusReason = order.LastStatusReason;
-        entity.CreatedAt = order.CreatedAt;
-        entity.LastUpdatedAt = order.LastUpdatedAt;
-        entity.ActiveIntakeSessionId = order.ActiveIntakeSessionId?.ToString();
-        entity.LastCompletedIntakeSessionId = order.LastCompletedIntakeSessionId?.ToString();
-        entity.InvitedAt = order.InvitedAt;
-        entity.IntakeStartedAt = order.IntakeStartedAt;
-        entity.IntakeCompletedAt = order.IntakeCompletedAt;
-        entity.ReadyForRoutingAt = order.ReadyForRoutingAt;
-        entity.ClosedAt = order.ClosedAt;
-        entity.CanceledAt = order.CanceledAt;
-    }
-
-    public static Order ToDomain(OrderDb record)
+    public static Order ToDomain(OrderDb db)
     {
         return Order.Rehydrate(
-            UlidId.Parse(record.OrderId),
-            UlidId.Parse(record.SubjectId),
-            UlidId.Parse(record.CustomerId),
-            record.PolicySnapshotId,
-            Enum.Parse<OrderStatus>(record.Status),
-            record.CreatedAt,
-            record.LastUpdatedAt,
-            record.PackageCode,
-            record.LastStatusReason,
-            string.IsNullOrWhiteSpace(record.BlockedFromStatus)
+            UlidId.Parse(db.OrderId),
+            UlidId.Parse(db.SubjectId),
+            UlidId.Parse(db.CustomerId),
+            db.PolicySnapshotId,
+            Enum.Parse<OrderStatus>(db.Status),
+            db.CreatedAt,
+            db.LastUpdatedAt,
+            db.PackageCode,
+            db.LastStatusReason,
+            string.IsNullOrWhiteSpace(db.BlockedFromStatus)
                 ? null
-                : Enum.Parse<OrderStatus>(record.BlockedFromStatus),
-            string.IsNullOrWhiteSpace(record.ActiveIntakeSessionId)
+                : Enum.Parse<OrderStatus>(db.BlockedFromStatus),
+            string.IsNullOrWhiteSpace(db.ActiveIntakeSessionId)
                 ? null
-                : UlidId.Parse(record.ActiveIntakeSessionId),
-            string.IsNullOrWhiteSpace(record.LastCompletedIntakeSessionId)
+                : UlidId.Parse(db.ActiveIntakeSessionId),
+            string.IsNullOrWhiteSpace(db.LastCompletedIntakeSessionId)
                 ? null
-                : UlidId.Parse(record.LastCompletedIntakeSessionId),
-            record.InvitedAt,
-            record.IntakeStartedAt,
-            record.IntakeCompletedAt,
-            record.ReadyForRoutingAt,
-            record.ClosedAt,
-            record.CanceledAt);
+                : UlidId.Parse(db.LastCompletedIntakeSessionId),
+            db.InvitedAt,
+            db.IntakeStartedAt,
+            db.IntakeCompletedAt,
+            db.ReadyForRoutingAt,
+            db.ClosedAt,
+            db.CanceledAt);
+    }
+
+    public static OrderDb ToDb(Order order)
+    {
+        var db = new OrderDb();
+        UpdateDb(db, order);
+        return db;
+    }
+
+    public static void UpdateDb(OrderDb db, Order order)
+    {
+        db.OrderId = order.Id.ToString();
+        db.SubjectId = order.SubjectId.ToString();
+        db.CustomerId = order.CustomerId.ToString();
+        db.PolicySnapshotId = order.PolicySnapshotId;
+        db.PackageCode = order.PackageCode;
+        db.Status = order.Status.ToString();
+        db.BlockedFromStatus = order.BlockedFromStatus?.ToString();
+        db.LastStatusReason = order.LastStatusReason;
+        db.CreatedAt = order.CreatedAt;
+        db.LastUpdatedAt = order.LastUpdatedAt;
+        db.ActiveIntakeSessionId = order.ActiveIntakeSessionId?.ToString();
+        db.LastCompletedIntakeSessionId = order.LastCompletedIntakeSessionId?.ToString();
+        db.InvitedAt = order.InvitedAt;
+        db.IntakeStartedAt = order.IntakeStartedAt;
+        db.IntakeCompletedAt = order.IntakeCompletedAt;
+        db.ReadyForRoutingAt = order.ReadyForRoutingAt;
+        db.ClosedAt = order.ClosedAt;
+        db.CanceledAt = order.CanceledAt;
     }
 }

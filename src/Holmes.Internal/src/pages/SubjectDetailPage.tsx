@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import BusinessIcon from "@mui/icons-material/Business";
 import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
 import HomeIcon from "@mui/icons-material/Home";
 import PeopleIcon from "@mui/icons-material/People";
@@ -29,7 +28,6 @@ import {
 import { format } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { useSubject } from "@/hooks/api";
 import type {
   SubjectAddressDto,
   SubjectDetailDto,
@@ -38,6 +36,8 @@ import type {
   SubjectPhoneDto,
   SubjectReferenceDto,
 } from "@/types/api";
+
+import { useSubject } from "@/hooks/api";
 
 // ============================================================================
 // Tab Panel Component
@@ -89,7 +89,8 @@ const OverviewTab = ({ subject }: OverviewTabProps) => (
           </Typography>
           <Typography variant="body2">
             {subject.firstName}
-            {subject.middleName ? ` ${subject.middleName}` : ""} {subject.lastName}
+            {subject.middleName ? ` ${subject.middleName}` : ""}{" "}
+            {subject.lastName}
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
@@ -104,7 +105,9 @@ const OverviewTab = ({ subject }: OverviewTabProps) => (
           <Typography variant="body2" color="text.secondary">
             Email
           </Typography>
-          <Typography variant="body2">{subject.email || "Not provided"}</Typography>
+          <Typography variant="body2">
+            {subject.email || "Not provided"}
+          </Typography>
 
           <Typography variant="body2" color="text.secondary">
             SSN (last 4)
@@ -224,7 +227,9 @@ const OverviewTab = ({ subject }: OverviewTabProps) => (
 const AddressesTab = ({ addresses }: { addresses: SubjectAddressDto[] }) => {
   if (addresses.length === 0) {
     return (
-      <Alert severity="info">No address history on file for this subject.</Alert>
+      <Alert severity="info">
+        No address history on file for this subject.
+      </Alert>
     );
   }
 
@@ -257,7 +262,9 @@ const AddressesTab = ({ addresses }: { addresses: SubjectAddressDto[] }) => {
               <TableCell>
                 <Typography variant="body2">
                   {format(new Date(addr.fromDate), "MMM yyyy")} -{" "}
-                  {addr.toDate ? format(new Date(addr.toDate), "MMM yyyy") : "Present"}
+                  {addr.toDate
+                    ? format(new Date(addr.toDate), "MMM yyyy")
+                    : "Present"}
                 </Typography>
               </TableCell>
               <TableCell>
@@ -279,10 +286,16 @@ const AddressesTab = ({ addresses }: { addresses: SubjectAddressDto[] }) => {
 // Employment Tab
 // ============================================================================
 
-const EmploymentTab = ({ employments }: { employments: SubjectEmploymentDto[] }) => {
+const EmploymentTab = ({
+  employments,
+}: {
+  employments: SubjectEmploymentDto[];
+}) => {
   if (employments.length === 0) {
     return (
-      <Alert severity="info">No employment history on file for this subject.</Alert>
+      <Alert severity="info">
+        No employment history on file for this subject.
+      </Alert>
     );
   }
 
@@ -315,11 +328,15 @@ const EmploymentTab = ({ employments }: { employments: SubjectEmploymentDto[] })
 
             <Typography variant="body2" sx={{ mt: 1 }}>
               {format(new Date(emp.startDate), "MMM yyyy")} -{" "}
-              {emp.endDate ? format(new Date(emp.endDate), "MMM yyyy") : "Present"}
+              {emp.endDate
+                ? format(new Date(emp.endDate), "MMM yyyy")
+                : "Present"}
             </Typography>
 
             {(emp.supervisorName || emp.supervisorPhone) && (
-              <Box sx={{ mt: 1.5, p: 1.5, bgcolor: "grey.50", borderRadius: 1 }}>
+              <Box
+                sx={{ mt: 1.5, p: 1.5, bgcolor: "grey.50", borderRadius: 1 }}
+              >
                 <Typography variant="caption" color="text.secondary">
                   Supervisor
                 </Typography>
@@ -355,10 +372,16 @@ const EmploymentTab = ({ employments }: { employments: SubjectEmploymentDto[] })
 // Education Tab
 // ============================================================================
 
-const EducationTab = ({ educations }: { educations: SubjectEducationDto[] }) => {
+const EducationTab = ({
+  educations,
+}: {
+  educations: SubjectEducationDto[];
+}) => {
   if (educations.length === 0) {
     return (
-      <Alert severity="info">No education records on file for this subject.</Alert>
+      <Alert severity="info">
+        No education records on file for this subject.
+      </Alert>
     );
   }
 
@@ -391,16 +414,25 @@ const EducationTab = ({ educations }: { educations: SubjectEducationDto[] }) => 
             </Stack>
 
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {edu.attendedFrom && format(new Date(edu.attendedFrom), "MMM yyyy")}
+              {edu.attendedFrom &&
+                format(new Date(edu.attendedFrom), "MMM yyyy")}
               {edu.attendedFrom && edu.attendedTo && " - "}
               {edu.attendedTo && format(new Date(edu.attendedTo), "MMM yyyy")}
               {edu.graduationDate && (
-                <> (Graduated: {format(new Date(edu.graduationDate), "MMM yyyy")})</>
+                <>
+                  {" "}
+                  (Graduated: {format(new Date(edu.graduationDate), "MMM yyyy")}
+                  )
+                </>
               )}
             </Typography>
 
             {edu.institutionAddress && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
                 {edu.institutionAddress}
               </Typography>
             )}
@@ -415,9 +447,15 @@ const EducationTab = ({ educations }: { educations: SubjectEducationDto[] }) => 
 // References Tab
 // ============================================================================
 
-const ReferencesTab = ({ references }: { references: SubjectReferenceDto[] }) => {
+const ReferencesTab = ({
+  references,
+}: {
+  references: SubjectReferenceDto[];
+}) => {
   if (references.length === 0) {
-    return <Alert severity="info">No references on file for this subject.</Alert>;
+    return (
+      <Alert severity="info">No references on file for this subject.</Alert>
+    );
   }
 
   return (
@@ -472,7 +510,9 @@ const ReferencesTab = ({ references }: { references: SubjectReferenceDto[] }) =>
 
 const PhonesTab = ({ phones }: { phones: SubjectPhoneDto[] }) => {
   if (phones.length === 0) {
-    return <Alert severity="info">No phone numbers on file for this subject.</Alert>;
+    return (
+      <Alert severity="info">No phone numbers on file for this subject.</Alert>
+    );
   }
 
   return (
@@ -497,7 +537,9 @@ const PhonesTab = ({ phones }: { phones: SubjectPhoneDto[] }) => {
                 <Chip label={phone.type} size="small" variant="outlined" />
               </TableCell>
               <TableCell>
-                {phone.isPrimary && <Chip label="Primary" color="primary" size="small" />}
+                {phone.isPrimary && (
+                  <Chip label="Primary" color="primary" size="small" />
+                )}
               </TableCell>
             </TableRow>
           ))}
@@ -544,7 +586,9 @@ const SubjectDetailPage = () => {
           <ArrowBackIcon />
         </IconButton>
         <Alert severity="error">
-          {error ? "Failed to load subject. Please try again." : "Subject not found."}
+          {error
+            ? "Failed to load subject. Please try again."
+            : "Subject not found."}
         </Alert>
       </Box>
     );
@@ -570,7 +614,8 @@ const SubjectDetailPage = () => {
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
           <Typography variant="h4" component="h1">
             {subject.firstName}
-            {subject.middleName ? ` ${subject.middleName}` : ""} {subject.lastName}
+            {subject.middleName ? ` ${subject.middleName}` : ""}{" "}
+            {subject.lastName}
           </Typography>
           <Chip
             label={subject.status}

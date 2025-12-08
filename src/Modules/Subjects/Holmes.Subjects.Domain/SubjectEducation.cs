@@ -38,7 +38,8 @@ public sealed class SubjectEducation
         DateOnly? attendedTo,
         DateOnly? graduationDate,
         bool graduated,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(institutionName);
 
@@ -67,7 +68,8 @@ public sealed class SubjectEducation
         DateOnly? attendedTo,
         DateOnly? graduationDate,
         bool graduated,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         return new SubjectEducation
         {

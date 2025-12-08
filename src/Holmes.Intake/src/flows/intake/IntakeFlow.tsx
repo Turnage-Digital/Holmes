@@ -26,16 +26,9 @@ import { useMutation } from "@tanstack/react-query";
 
 import {
   AddressHistoryForm,
-  EmploymentHistoryForm,
   EducationHistoryForm,
+  EmploymentHistoryForm,
 } from "@/components/forms";
-import {
-  IntakeAddress,
-  IntakeEmployment,
-  IntakeEducation,
-  createEmptyAddress,
-} from "@/types/intake";
-
 import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
 import {
   captureConsentArtifact,
@@ -50,6 +43,12 @@ import {
   IntakeBootstrapResponse,
   SaveIntakeProgressRequest,
 } from "@/types/api";
+import {
+  createEmptyAddress,
+  IntakeAddress,
+  IntakeEducation,
+  IntakeEmployment,
+} from "@/types/intake";
 
 type IntakeStepId =
   | "verify"
@@ -374,7 +373,9 @@ const IntakeFlow = () => {
         graduationDate: e.graduationDate || null,
         graduated: e.graduated,
       })),
-      phones: [{ phoneNumber: formState.phone.trim(), type: 0, isPrimary: true }],
+      phones: [
+        { phoneNumber: formState.phone.trim(), type: 0, isPrimary: true },
+      ],
       references: [],
       consent: {
         artifactId: consentReceipt?.artifactId ?? null,
@@ -420,7 +421,7 @@ const IntakeFlow = () => {
       addresses?: IntakeAddress[];
       employments?: IntakeEmployment[];
       educations?: IntakeEducation[];
-      phones?: Array<{ phoneNumber: string }>;
+      phones?: { phoneNumber: string }[];
     }
 
     const decodeAnswers = (): DecodedAnswers | null => {
@@ -731,7 +732,8 @@ const IntakeFlow = () => {
       {
         id: "personal",
         title: "Personal Information",
-        subtitle: "We need your basic identity details for the background check.",
+        subtitle:
+          "We need your basic identity details for the background check.",
         render: () => {
           const bootstrapErrorAlert = bootstrapError ? (
             <Alert severity="warning">{bootstrapError}</Alert>
@@ -878,7 +880,9 @@ const IntakeFlow = () => {
         onPrimary: () => {
           const issues = validateAddresses();
           if (issues.length > 0) {
-            setProgressError(`Please complete: ${issues.slice(0, 3).join(", ")}${issues.length > 3 ? "..." : ""}`);
+            setProgressError(
+              `Please complete: ${issues.slice(0, 3).join(", ")}${issues.length > 3 ? "..." : ""}`,
+            );
             return false;
           }
           setProgressError(null);
@@ -981,13 +985,15 @@ const IntakeFlow = () => {
             .filter(Boolean)
             .join(" ");
 
-          const currentAddress = formState.addresses.find((a) => a.isCurrent) ||
+          const currentAddress =
+            formState.addresses.find((a) => a.isCurrent) ||
             formState.addresses[0];
           const addressDisplay = currentAddress
             ? `${currentAddress.street1}${currentAddress.street2 ? `, ${currentAddress.street2}` : ""}, ${currentAddress.city}, ${currentAddress.state} ${currentAddress.postalCode}`
             : "—";
 
-          const currentEmployer = formState.employments.find((e) => e.isCurrent) ||
+          const currentEmployer =
+            formState.employments.find((e) => e.isCurrent) ||
             formState.employments[0];
 
           return (
@@ -1005,7 +1011,12 @@ const IntakeFlow = () => {
                   </Typography>
                   {summaryRow("Name", fullName)}
                   {summaryRow("Date of birth", formState.dateOfBirth)}
-                  {summaryRow("SSN", formState.ssn ? `***-**-${formState.ssn.slice(-4)}` : "Not provided")}
+                  {summaryRow(
+                    "SSN",
+                    formState.ssn
+                      ? `***-**-${formState.ssn.slice(-4)}`
+                      : "Not provided",
+                  )}
                   {summaryRow("Email", formState.email)}
                   {summaryRow("Phone", formState.phone)}
                   <Divider sx={{ my: 1 }} />
@@ -1013,7 +1024,10 @@ const IntakeFlow = () => {
                     Address History
                   </Typography>
                   {summaryRow("Current/Primary", addressDisplay)}
-                  {summaryRow("Total addresses", `${formState.addresses.length}`)}
+                  {summaryRow(
+                    "Total addresses",
+                    `${formState.addresses.length}`,
+                  )}
                   <Divider sx={{ my: 1 }} />
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                     Employment & Education
@@ -1022,8 +1036,14 @@ const IntakeFlow = () => {
                     "Current employer",
                     currentEmployer?.employerName || "Not provided",
                   )}
-                  {summaryRow("Total employers", `${formState.employments.length}`)}
-                  {summaryRow("Education entries", `${formState.educations.length}`)}
+                  {summaryRow(
+                    "Total employers",
+                    `${formState.employments.length}`,
+                  )}
+                  {summaryRow(
+                    "Education entries",
+                    `${formState.educations.length}`,
+                  )}
                   <Divider sx={{ my: 1 }} />
                   {summaryRow("Consent", consentReceipt ? "Saved" : "Pending")}
                 </Stack>

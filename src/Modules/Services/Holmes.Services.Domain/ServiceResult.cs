@@ -3,10 +3,14 @@ using Holmes.Core.Domain.ValueObjects;
 namespace Holmes.Services.Domain;
 
 /// <summary>
-/// Represents the normalized result of a service request.
+///     Represents the normalized result of a service request.
 /// </summary>
 public sealed class ServiceResult
 {
+    private ServiceResult()
+    {
+    }
+
     public UlidId Id { get; private set; }
     public ServiceResultStatus Status { get; private set; }
     public IReadOnlyList<NormalizedRecord> Records { get; private set; } = [];
@@ -15,17 +19,14 @@ public sealed class ServiceResult
     public DateTimeOffset ReceivedAt { get; private set; }
     public DateTimeOffset? NormalizedAt { get; private set; }
 
-    private ServiceResult()
-    {
-    }
-
     public static ServiceResult Create(
         UlidId id,
         ServiceResultStatus status,
         IReadOnlyList<NormalizedRecord> records,
         string? rawResponseHash,
         string? vendorReferenceId,
-        DateTimeOffset receivedAt)
+        DateTimeOffset receivedAt
+    )
     {
         return new ServiceResult
         {
@@ -39,22 +40,31 @@ public sealed class ServiceResult
         };
     }
 
-    public static ServiceResult Clear(UlidId id, string? vendorReferenceId, DateTimeOffset receivedAt) =>
-        Create(id, ServiceResultStatus.Clear, [], null, vendorReferenceId, receivedAt);
+    public static ServiceResult Clear(UlidId id, string? vendorReferenceId, DateTimeOffset receivedAt)
+    {
+        return Create(id, ServiceResultStatus.Clear, [], null, vendorReferenceId, receivedAt);
+    }
 
     public static ServiceResult Hit(
         UlidId id,
         IReadOnlyList<NormalizedRecord> records,
         string? rawResponseHash,
         string? vendorReferenceId,
-        DateTimeOffset receivedAt) =>
-        Create(id, ServiceResultStatus.Hit, records, rawResponseHash, vendorReferenceId, receivedAt);
+        DateTimeOffset receivedAt
+    )
+    {
+        return Create(id, ServiceResultStatus.Hit, records, rawResponseHash, vendorReferenceId, receivedAt);
+    }
 
-    public static ServiceResult UnableToVerify(UlidId id, string? vendorReferenceId, DateTimeOffset receivedAt) =>
-        Create(id, ServiceResultStatus.UnableToVerify, [], null, vendorReferenceId, receivedAt);
+    public static ServiceResult UnableToVerify(UlidId id, string? vendorReferenceId, DateTimeOffset receivedAt)
+    {
+        return Create(id, ServiceResultStatus.UnableToVerify, [], null, vendorReferenceId, receivedAt);
+    }
 
-    public static ServiceResult Error(UlidId id, string? vendorReferenceId, DateTimeOffset receivedAt) =>
-        Create(id, ServiceResultStatus.Error, [], null, vendorReferenceId, receivedAt);
+    public static ServiceResult Error(UlidId id, string? vendorReferenceId, DateTimeOffset receivedAt)
+    {
+        return Create(id, ServiceResultStatus.Error, [], null, vendorReferenceId, receivedAt);
+    }
 
     public static ServiceResult Rehydrate(
         UlidId id,
@@ -63,7 +73,8 @@ public sealed class ServiceResult
         string? rawResponseHash,
         string? vendorReferenceId,
         DateTimeOffset receivedAt,
-        DateTimeOffset? normalizedAt)
+        DateTimeOffset? normalizedAt
+    )
     {
         return new ServiceResult
         {

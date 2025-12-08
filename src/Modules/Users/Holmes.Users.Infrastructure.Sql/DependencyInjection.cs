@@ -1,3 +1,4 @@
+using Holmes.Users.Application.Abstractions;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;

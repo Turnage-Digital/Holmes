@@ -16,7 +16,8 @@ public sealed class GetServiceRequestQueryHandler(
 {
     public async Task<Result<ServiceRequest>> Handle(
         GetServiceRequestQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var serviceRequest = await unitOfWork.ServiceRequests.GetByIdAsync(
             request.ServiceRequestId, cancellationToken);

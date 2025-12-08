@@ -4,7 +4,6 @@ using Holmes.Core.Domain.Results;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.ValueObjects;
-using Holmes.Workflow.Application.Commands;
 using MediatR;
 
 namespace Holmes.Intake.Application.Commands;
@@ -29,8 +28,7 @@ public sealed record IssueIntakeInviteResult(
 );
 
 public sealed class IssueIntakeInviteCommandHandler(
-    IIntakeUnitOfWork unitOfWork,
-    ISender sender
+    IIntakeUnitOfWork unitOfWork
 ) : IRequestHandler<IssueIntakeInviteCommand, Result<IssueIntakeInviteResult>>
 {
     private const int DefaultTimeToLiveHours = 168;
@@ -66,11 +64,8 @@ public sealed class IssueIntakeInviteCommandHandler(
         await unitOfWork.IntakeSessions.AddAsync(session, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await sender.Send(new RecordOrderInviteCommand(
-            request.OrderId,
-            session.Id,
-            request.InvitedAt,
-            "Intake invitation issued"), cancellationToken);
+        // IntakeSessionInvited domain event is published by UnitOfWork.SaveChangesAsync
+        // IntakeToWorkflowHandler in App.Integration listens and sends RecordOrderInviteCommand
 
         return Result.Success(new IssueIntakeInviteResult(
             session.Id,

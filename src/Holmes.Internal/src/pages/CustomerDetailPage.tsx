@@ -20,7 +20,10 @@ import {
 import { format } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { ServiceCatalogEditor, TierConfigurationEditor } from "@/components/customers";
+import {
+  ServiceCatalogEditor,
+  TierConfigurationEditor,
+} from "@/components/customers";
 import { useCustomer, useCustomerCatalog } from "@/hooks/api";
 import { getCustomerStatusColor, getCustomerStatusLabel } from "@/lib/status";
 
@@ -115,7 +118,9 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
           Contacts ({customer.contacts.length})
         </Typography>
         {customer.contacts.length === 0 ? (
-          <Typography color="text.secondary">No contacts configured.</Typography>
+          <Typography color="text.secondary">
+            No contacts configured.
+          </Typography>
         ) : (
           <Stack spacing={2}>
             {customer.contacts.map((contact) => (
@@ -179,8 +184,7 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
                   {admin.userId}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Assigned{" "}
-                  {format(new Date(admin.assignedAt), "MMM d, yyyy")}
+                  Assigned {format(new Date(admin.assignedAt), "MMM d, yyyy")}
                 </Typography>
               </Box>
             ))}
@@ -242,7 +246,9 @@ const CustomerDetailPage = () => {
           <ArrowBackIcon />
         </IconButton>
         <Alert severity="error">
-          {customerError ? "Failed to load customer. Please try again." : "Customer not found."}
+          {customerError
+            ? "Failed to load customer. Please try again."
+            : "Customer not found."}
         </Alert>
       </Box>
     );
@@ -277,19 +283,16 @@ const CustomerDetailPage = () => {
           />
         </Stack>
         <Typography variant="body2" color="text.secondary">
-          {customer.contacts.length} contact{customer.contacts.length !== 1 ? "s" : ""} •{" "}
-          Policy {customer.policySnapshotId.slice(0, 12)}…
+          {customer.contacts.length} contact
+          {customer.contacts.length !== 1 ? "s" : ""} • Policy{" "}
+          {customer.policySnapshotId.slice(0, 12)}…
         </Typography>
       </Box>
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs value={activeTab} onChange={handleTabChange}>
-          <Tab
-            icon={<BusinessIcon />}
-            iconPosition="start"
-            label="Overview"
-          />
+          <Tab icon={<BusinessIcon />} iconPosition="start" label="Overview" />
           <Tab
             icon={<CategoryIcon />}
             iconPosition="start"

@@ -2,9 +2,12 @@
 
 ## Overview
 
-SLA Clocks track time-bound obligations on Orders. They start when an order enters specific states, pause when blocked, and complete or breach based on deadlines. The module integrates with Workflow via domain events and triggers Notifications on at-risk/breach conditions.
+SLA Clocks track time-bound obligations on Orders. They start when an order enters specific states, pause when blocked,
+and complete or breach based on deadlines. The module integrates with Workflow via domain events and triggers
+Notifications on at-risk/breach conditions.
 
 **Key Design Decisions:**
+
 - SLA targets are **customer-defined** (from service agreements) - defaults are fallbacks only
 - Business day calculations from the start (not calendar days)
 - 80% at-risk threshold as default
@@ -15,12 +18,14 @@ SLA Clocks track time-bound obligations on Orders. They start when an order ente
 **Decision: New `Holmes.SlaClocks` module**
 
 Reasons:
+
 - SLA logic is complex enough to warrant isolation (business calendar, watchdog service, jurisdiction rules)
 - Clean separation of concerns - Workflow owns state transitions, SlaClocks owns time tracking
 - Follows existing module pattern (Domain → Application → Infrastructure.Sql)
 - Can evolve independently (future: adverse action clocks in Phase 4)
 
 Integration via:
+
 - Subscribe to `OrderStatusChanged` events (no direct Workflow dependency)
 - Emit `SlaClockAtRisk`/`SlaClockBreached` events (consumed by Notifications)
 
@@ -88,7 +93,9 @@ public enum ClockKind
 }
 ```
 
-**Terminology Note:** The Order state machine uses `ReadyForRouting`/`RoutingInProgress` states, but the SLA clock uses `Fulfillment` to better describe what's happening: executing background check services (court searches, verifications, etc.).
+**Terminology Note:** The Order state machine uses `ReadyForRouting`/`RoutingInProgress` states, but the SLA clock uses
+`Fulfillment` to better describe what's happening: executing background check services (court searches, verifications,
+etc.).
 
 ### ClockState Enum
 
@@ -153,27 +160,27 @@ public sealed class SlaClock : AggregateRoot
 
 ### Clock Lifecycle by Order Status
 
-| Order Status Change | Clock Action |
-|---------------------|--------------|
-| Created | Start `Overall` clock |
-| Invited | Start `Intake` clock |
-| IntakeComplete | Complete `Intake` clock |
-| ReadyForRouting | Start `Fulfillment` clock |
-| ReadyForReport | Complete `Fulfillment` clock |
-| Closed | Complete `Overall` clock |
-| Blocked | Pause ALL running clocks for this order |
-| ResumeFromBlock | Resume ALL paused clocks for this order |
-| Canceled | Complete ALL clocks (no breach) |
+| Order Status Change | Clock Action                            |
+|---------------------|-----------------------------------------|
+| Created             | Start `Overall` clock                   |
+| Invited             | Start `Intake` clock                    |
+| IntakeComplete      | Complete `Intake` clock                 |
+| ReadyForRouting     | Start `Fulfillment` clock               |
+| ReadyForReport      | Complete `Fulfillment` clock            |
+| Closed              | Complete `Overall` clock                |
+| Blocked             | Pause ALL running clocks for this order |
+| ResumeFromBlock     | Resume ALL paused clocks for this order |
+| Canceled            | Complete ALL clocks (no breach)         |
 
 ### Default SLA Targets
 
 These are fallback defaults when customer service agreement doesn't specify:
 
-| Clock Kind | Default Target | At-Risk Threshold |
-|------------|---------------|-------------------|
-| Intake | 1 business day | 80% (19.2 hours) |
-| Fulfillment | 3 business days | 80% (2.4 days) |
-| Overall | 5 business days | 80% (4 days) |
+| Clock Kind  | Default Target  | At-Risk Threshold |
+|-------------|-----------------|-------------------|
+| Intake      | 1 business day  | 80% (19.2 hours)  |
+| Fulfillment | 3 business days | 80% (2.4 days)    |
+| Overall     | 5 business days | 80% (4 days)      |
 
 **Note:** Real SLA targets come from the customer's service agreement. These defaults exist only as fallbacks.
 
@@ -211,11 +218,13 @@ public interface IBusinessCalendarService
 ### Implementation Strategy
 
 Phase 1 (this PR):
+
 - Weekend exclusion (Saturday/Sunday are not business days)
 - US Federal holidays (hardcoded list for 2024-2026)
 - Customer-specific holidays stored in `holidays` table
 
 Future enhancements:
+
 - Jurisdiction-specific calendars
 - Business hours (not just days)
 - Timezone-aware calculations
@@ -353,35 +362,36 @@ public sealed class SlaClockWatchdogService(
 
 SlaClocks emits events → Notifications module subscribes via handler in `App.Integration/NotificationHandlers/`:
 
-| SLA Event | Notification Trigger | Priority |
-|-----------|---------------------|----------|
-| `SlaClockAtRisk` | `SlaClockAtRisk` to ops + customer | High |
+| SLA Event          | Notification Trigger                              | Priority |
+|--------------------|---------------------------------------------------|----------|
+| `SlaClockAtRisk`   | `SlaClockAtRisk` to ops + customer                | High     |
 | `SlaClockBreached` | `SlaClockBreached` to ops + customer + compliance | Critical |
 
 ## Database Schema
 
 ### Table: `sla_clocks`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | CHAR(26) | ULID primary key |
-| order_id | CHAR(26) | Associated order |
-| customer_id | CHAR(26) | Tenant |
-| kind | INT | ClockKind enum |
-| state | INT | ClockState enum |
-| started_at | DATETIME(6) | When clock started |
-| deadline_at | DATETIME(6) | Computed deadline |
-| at_risk_threshold_at | DATETIME(6) | When 80% point occurs |
-| at_risk_at | DATETIME(6) | When marked at-risk |
-| breached_at | DATETIME(6) | When breached |
-| paused_at | DATETIME(6) | Current pause start |
-| completed_at | DATETIME(6) | When completed |
-| pause_reason | VARCHAR(256) | Why paused |
-| accumulated_pause_ms | BIGINT | Total pause time in ms |
-| target_business_days | INT | SLA target in business days |
-| at_risk_threshold_percent | DECIMAL(3,2) | e.g., 0.80 |
+| Column                    | Type         | Description                 |
+|---------------------------|--------------|-----------------------------|
+| id                        | CHAR(26)     | ULID primary key            |
+| order_id                  | CHAR(26)     | Associated order            |
+| customer_id               | CHAR(26)     | Tenant                      |
+| kind                      | INT          | ClockKind enum              |
+| state                     | INT          | ClockState enum             |
+| started_at                | DATETIME(6)  | When clock started          |
+| deadline_at               | DATETIME(6)  | Computed deadline           |
+| at_risk_threshold_at      | DATETIME(6)  | When 80% point occurs       |
+| at_risk_at                | DATETIME(6)  | When marked at-risk         |
+| breached_at               | DATETIME(6)  | When breached               |
+| paused_at                 | DATETIME(6)  | Current pause start         |
+| completed_at              | DATETIME(6)  | When completed              |
+| pause_reason              | VARCHAR(256) | Why paused                  |
+| accumulated_pause_ms      | BIGINT       | Total pause time in ms      |
+| target_business_days      | INT          | SLA target in business days |
+| at_risk_threshold_percent | DECIMAL(3,2) | e.g., 0.80                  |
 
 **Indexes:**
+
 - `(order_id)` - find clocks for an order
 - `(state, at_risk_threshold_at)` - watchdog at-risk queries
 - `(state, deadline_at)` - watchdog breach queries

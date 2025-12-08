@@ -4,8 +4,8 @@ using Holmes.Services.Application.Vendors;
 namespace Holmes.Services.Infrastructure.Sql.Vendors;
 
 /// <summary>
-/// In-memory credential store for development and testing.
-/// Production should use Key Vault or similar.
+///     In-memory credential store for development and testing.
+///     Production should use Key Vault or similar.
 /// </summary>
 public sealed class InMemoryVendorCredentialStore : IVendorCredentialStore
 {
@@ -14,7 +14,8 @@ public sealed class InMemoryVendorCredentialStore : IVendorCredentialStore
     public Task<VendorCredential?> GetAsync(
         UlidId customerId,
         string vendorCode,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var key = (customerId.ToString(), vendorCode.ToUpperInvariant());
 
@@ -27,10 +28,10 @@ public sealed class InMemoryVendorCredentialStore : IVendorCredentialStore
         if (vendorCode.Equals("STUB", StringComparison.OrdinalIgnoreCase))
         {
             return Task.FromResult<VendorCredential?>(new VendorCredential(
-                ApiKey: "stub-api-key",
-                AccountId: "stub-account",
-                SecretKey: null,
-                Metadata: null));
+                "stub-api-key",
+                "stub-account",
+                null,
+                null));
         }
 
         return Task.FromResult<VendorCredential?>(null);

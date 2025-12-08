@@ -5,8 +5,8 @@ using Holmes.Services.Domain;
 namespace Holmes.Services.Infrastructure.Sql.Vendors;
 
 /// <summary>
-/// Stub vendor adapter for development and testing.
-/// Returns fixture data with simulated delays.
+///     Stub vendor adapter for development and testing.
+///     Returns fixture data with simulated delays.
 /// </summary>
 public sealed class StubVendorAdapter : IVendorAdapter
 {
@@ -17,7 +17,8 @@ public sealed class StubVendorAdapter : IVendorAdapter
 
     public async Task<DispatchResult> DispatchAsync(
         ServiceRequest request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         // Simulate network delay
         await Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken);
@@ -25,15 +26,16 @@ public sealed class StubVendorAdapter : IVendorAdapter
         var referenceId = $"STUB-{Guid.NewGuid():N}";
 
         return new DispatchResult(
-            Success: true,
-            VendorReferenceId: referenceId,
-            ErrorMessage: null,
-            EstimatedTurnaround: TimeSpan.FromSeconds(5));
+            true,
+            referenceId,
+            null,
+            TimeSpan.FromSeconds(5));
     }
 
     public Task<ServiceResult> ParseCallbackAsync(
         string callbackPayload,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         // Return fixture data based on service type embedded in payload
         var resultId = UlidId.NewUlid();
@@ -71,14 +73,15 @@ public sealed class StubVendorAdapter : IVendorAdapter
 
     public async Task<ServiceStatusResult> GetStatusAsync(
         string vendorReferenceId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
 
         // Stub always returns complete
         return new ServiceStatusResult(
-            Status: ServiceResultStatus.Clear,
-            IsComplete: true,
-            StatusMessage: "Completed");
+            ServiceResultStatus.Clear,
+            true,
+            "Completed");
     }
 }

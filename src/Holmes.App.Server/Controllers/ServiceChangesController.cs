@@ -15,8 +15,8 @@ public sealed class ServiceChangesController(IServiceChangeBroadcaster broadcast
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// SSE endpoint for real-time service status updates.
-    /// Filter by orderId query parameter to receive updates for specific orders only.
+    ///     SSE endpoint for real-time service status updates.
+    ///     Filter by orderId query parameter to receive updates for specific orders only.
     /// </summary>
     [HttpGet]
     public async Task GetAsync(CancellationToken cancellationToken)

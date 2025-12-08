@@ -8,12 +8,12 @@ namespace Holmes.Subjects.Domain;
 
 public sealed class Subject : AggregateRoot
 {
-    private readonly List<SubjectAlias> _aliases = [];
     private readonly List<SubjectAddress> _addresses = [];
-    private readonly List<SubjectEmployment> _employments = [];
+    private readonly List<SubjectAlias> _aliases = [];
     private readonly List<SubjectEducation> _educations = [];
-    private readonly List<SubjectReference> _references = [];
+    private readonly List<SubjectEmployment> _employments = [];
     private readonly List<SubjectPhone> _phones = [];
+    private readonly List<SubjectReference> _references = [];
 
     private Subject()
     {
@@ -51,7 +51,8 @@ public sealed class Subject : AggregateRoot
 
     public IReadOnlyCollection<SubjectAddress> Addresses => new ReadOnlyCollection<SubjectAddress>(_addresses);
 
-    public IReadOnlyCollection<SubjectEmployment> Employments => new ReadOnlyCollection<SubjectEmployment>(_employments);
+    public IReadOnlyCollection<SubjectEmployment> Employments =>
+        new ReadOnlyCollection<SubjectEmployment>(_employments);
 
     public IReadOnlyCollection<SubjectEducation> Educations => new ReadOnlyCollection<SubjectEducation>(_educations);
 

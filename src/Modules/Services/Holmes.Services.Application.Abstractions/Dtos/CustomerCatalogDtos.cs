@@ -3,7 +3,7 @@ using Holmes.Services.Domain;
 namespace Holmes.Services.Application.Abstractions.Dtos;
 
 /// <summary>
-/// A service item in a customer's catalog.
+///     A service item in a customer's catalog.
 /// </summary>
 public sealed record CatalogServiceItemDto(
     string ServiceTypeCode,
@@ -15,7 +15,7 @@ public sealed record CatalogServiceItemDto(
 );
 
 /// <summary>
-/// Tier configuration within a customer catalog.
+///     Tier configuration within a customer catalog.
 /// </summary>
 public sealed record TierConfigurationDto(
     int Tier,
@@ -28,7 +28,7 @@ public sealed record TierConfigurationDto(
 );
 
 /// <summary>
-/// Full customer service catalog including all services and tier configurations.
+///     Full customer service catalog including all services and tier configurations.
 /// </summary>
 public sealed record CustomerServiceCatalogDto(
     string CustomerId,

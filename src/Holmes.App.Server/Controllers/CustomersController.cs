@@ -12,6 +12,7 @@ using Holmes.Customers.Infrastructure.Sql.Specifications;
 using Holmes.Services.Application.Abstractions.Dtos;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
+using Holmes.Services.Infrastructure.Sql.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,12 @@ public sealed class CustomersController(
     ICurrentUserAccess currentUserAccess
 ) : ControllerBase
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
+    };
+
     [HttpGet]
     public async Task<ActionResult<PaginatedResponse<CustomerListItemDto>>> GetCustomers(
         [FromQuery] PaginationQuery query,
@@ -365,22 +372,24 @@ public sealed class CustomersController(
         return new CustomerServiceCatalogDto(
             customerId,
             config.Services.Select(s => new CatalogServiceItemDto(
-                s.ServiceTypeCode,
-                s.DisplayName,
-                s.Category,
-                s.IsEnabled,
-                s.Tier,
-                s.VendorCode
-            )).ToList(),
+                    s.ServiceTypeCode,
+                    s.DisplayName,
+                    s.Category,
+                    s.IsEnabled,
+                    s.Tier,
+                    s.VendorCode
+                ))
+                .ToList(),
             config.Tiers.Select(t => new TierConfigurationDto(
-                t.Tier,
-                t.Name,
-                t.Description,
-                t.RequiredServices,
-                t.OptionalServices,
-                t.AutoDispatch,
-                t.WaitForPreviousTier
-            )).ToList(),
+                    t.Tier,
+                    t.Name,
+                    t.Description,
+                    t.RequiredServices,
+                    t.OptionalServices,
+                    t.AutoDispatch,
+                    t.WaitForPreviousTier
+                ))
+                .ToList(),
             DateTimeOffset.UtcNow
         );
     }
@@ -407,7 +416,7 @@ public sealed class CustomersController(
             new("DRUG_10", "10-Panel Drug Screen", ServiceCategory.Drug, false, 4, null),
             new("CIVIL_COURT", "Civil Court Search", ServiceCategory.Civil, false, 2, null),
             new("BANKRUPTCY", "Bankruptcy Search", ServiceCategory.Civil, false, 2, null),
-            new("HEALTHCARE_SANCTION", "Healthcare Sanctions Check", ServiceCategory.Healthcare, false, 2, null),
+            new("HEALTHCARE_SANCTION", "Healthcare Sanctions Check", ServiceCategory.Healthcare, false, 2, null)
         };
 
         var tiers = new List<TierConfig>
@@ -415,11 +424,12 @@ public sealed class CustomersController(
             new(1, "Identity & Preliminary Checks", "Initial identity verification and basic searches",
                 ["SSN_TRACE", "NATL_CRIM", "SEX_OFFENDER", "GLOBAL_WATCH"], [], true, false),
             new(2, "Criminal & Driving", "Detailed criminal and motor vehicle checks",
-                ["STATE_CRIM", "FED_CRIM"], ["COUNTY_CRIM", "MVR", "CIVIL_COURT", "BANKRUPTCY", "HEALTHCARE_SANCTION"], true, true),
+                ["STATE_CRIM", "FED_CRIM"], ["COUNTY_CRIM", "MVR", "CIVIL_COURT", "BANKRUPTCY", "HEALTHCARE_SANCTION"],
+                true, true),
             new(3, "Employment & Education", "Employment and education verifications",
                 [], ["TWN_EMP", "MANUAL_EMP", "EDU_VERIFY", "PRO_LICENSE", "CREDIT_CHECK"], false, true),
             new(4, "Additional Checks", "Drug screening and reference checks",
-                [], ["REF_CHECK", "DRUG_5", "DRUG_10"], false, true),
+                [], ["REF_CHECK", "DRUG_5", "DRUG_10"], false, true)
         };
 
         return new CatalogConfig(services, tiers);
@@ -427,29 +437,32 @@ public sealed class CustomersController(
 
     private static CustomerServiceCatalogDto ParseCatalogFromSnapshot(
         string customerId,
-        Holmes.Services.Infrastructure.Sql.Entities.ServiceCatalogSnapshotDb snapshot)
+        ServiceCatalogSnapshotDb snapshot
+    )
     {
         var config = ParseCatalogConfig(snapshot.ConfigJson);
 
         return new CustomerServiceCatalogDto(
             customerId,
             config.Services.Select(s => new CatalogServiceItemDto(
-                s.ServiceTypeCode,
-                s.DisplayName,
-                s.Category,
-                s.IsEnabled,
-                s.Tier,
-                s.VendorCode
-            )).ToList(),
+                    s.ServiceTypeCode,
+                    s.DisplayName,
+                    s.Category,
+                    s.IsEnabled,
+                    s.Tier,
+                    s.VendorCode
+                ))
+                .ToList(),
             config.Tiers.Select(t => new TierConfigurationDto(
-                t.Tier,
-                t.Name,
-                t.Description,
-                t.RequiredServices,
-                t.OptionalServices,
-                t.AutoDispatch,
-                t.WaitForPreviousTier
-            )).ToList(),
+                    t.Tier,
+                    t.Name,
+                    t.Description,
+                    t.RequiredServices,
+                    t.OptionalServices,
+                    t.AutoDispatch,
+                    t.WaitForPreviousTier
+                ))
+                .ToList(),
             new DateTimeOffset(snapshot.CreatedAt, TimeSpan.Zero)
         );
     }
@@ -457,18 +470,19 @@ public sealed class CustomersController(
     private static CatalogConfig ParseCatalogConfig(string configJson)
     {
         return JsonSerializer.Deserialize<CatalogConfig>(configJson, _jsonOptions)
-            ?? BuildDefaultCatalogConfig();
+               ?? BuildDefaultCatalogConfig();
     }
 
     private async Task SaveCatalogSnapshotAsync(
         string customerId,
         CatalogConfig config,
         int currentVersion,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var caller = await currentUserAccess.GetUserIdAsync(cancellationToken);
 
-        var snapshot = new Holmes.Services.Infrastructure.Sql.Entities.ServiceCatalogSnapshotDb
+        var snapshot = new ServiceCatalogSnapshotDb
         {
             Id = Ulid.NewUlid().ToString(),
             CustomerId = customerId,
@@ -481,37 +495,6 @@ public sealed class CustomersController(
         servicesDbContext.ServiceCatalogSnapshots.Add(snapshot);
         await servicesDbContext.SaveChangesAsync(cancellationToken);
     }
-
-    private static readonly JsonSerializerOptions _jsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
-
-    // Internal records for catalog configuration storage
-    private sealed record ServiceConfig(
-        string ServiceTypeCode,
-        string DisplayName,
-        ServiceCategory Category,
-        bool IsEnabled,
-        int Tier,
-        string? VendorCode
-    );
-
-    private sealed record TierConfig(
-        int Tier,
-        string Name,
-        string? Description,
-        IReadOnlyCollection<string> RequiredServices,
-        IReadOnlyCollection<string> OptionalServices,
-        bool AutoDispatch,
-        bool WaitForPreviousTier
-    );
-
-    private sealed record CatalogConfig(
-        List<ServiceConfig> Services,
-        List<TierConfig> Tiers
-    );
 
     private async Task<bool> HasCustomerAccessAsync(Ulid customerId, CancellationToken cancellationToken)
     {
@@ -595,6 +578,31 @@ public sealed class CustomersController(
         var contacts = profile?.Contacts?.ToList() ?? [];
         return CustomerMapper.ToListItem(directory, profile, contacts);
     }
+
+    // Internal records for catalog configuration storage
+    private sealed record ServiceConfig(
+        string ServiceTypeCode,
+        string DisplayName,
+        ServiceCategory Category,
+        bool IsEnabled,
+        int Tier,
+        string? VendorCode
+    );
+
+    private sealed record TierConfig(
+        int Tier,
+        string Name,
+        string? Description,
+        IReadOnlyCollection<string> RequiredServices,
+        IReadOnlyCollection<string> OptionalServices,
+        bool AutoDispatch,
+        bool WaitForPreviousTier
+    );
+
+    private sealed record CatalogConfig(
+        List<ServiceConfig> Services,
+        List<TierConfig> Tiers
+    );
 
     public sealed record CreateCustomerRequest(
         string Name,

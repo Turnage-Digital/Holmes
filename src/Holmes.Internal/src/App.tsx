@@ -39,11 +39,20 @@ const App = () => {
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="orders/:orderId" element={<OrderDetailPage />} />
                 <Route path="subjects" element={<SubjectsPage />} />
-                <Route path="subjects/:subjectId" element={<SubjectDetailPage />} />
+                <Route
+                  path="subjects/:subjectId"
+                  element={<SubjectDetailPage />}
+                />
                 <Route path="customers" element={<CustomersPage />} />
-                <Route path="customers/:customerId" element={<CustomerDetailPage />} />
+                <Route
+                  path="customers/:customerId"
+                  element={<CustomerDetailPage />}
+                />
                 <Route path="users" element={<UsersPage />} />
-                <Route path="fulfillment" element={<FulfillmentDashboardPage />} />
+                <Route
+                  path="fulfillment"
+                  element={<FulfillmentDashboardPage />}
+                />
                 {/* Redirect old default to dashboard */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>

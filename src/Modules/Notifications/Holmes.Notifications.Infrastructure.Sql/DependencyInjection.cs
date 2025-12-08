@@ -15,7 +15,7 @@ public static class DependencyInjection
         services.AddDbContext<NotificationsDbContext>(options =>
             options.UseMySql(connectionString, version));
 
-        services.AddScoped<NotificationRequestRepository>();
+        services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
 
         // Stub providers - replace these with real implementations when ready

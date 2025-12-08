@@ -222,7 +222,7 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
               <Typography variant="body2">
                 {format(
                   new Date(order.readyForRoutingAt),
-                  "MMM d, yyyy 'at' h:mm a"
+                  "MMM d, yyyy 'at' h:mm a",
                 )}
               </Typography>
             </>
@@ -264,11 +264,7 @@ interface ServicesTabProps {
 }
 
 const ServicesTab = ({ orderId }: ServicesTabProps) => {
-  const {
-    data: orderServices,
-    isLoading,
-    error,
-  } = useOrderServices(orderId);
+  const { data: orderServices, isLoading, error } = useOrderServices(orderId);
 
   if (isLoading) {
     return (
@@ -280,17 +276,13 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
 
   if (error) {
     return (
-      <Alert severity="error">
-        Failed to load services. Please try again.
-      </Alert>
+      <Alert severity="error">Failed to load services. Please try again.</Alert>
     );
   }
 
   if (!orderServices) {
     return (
-      <Alert severity="info">
-        No service data available for this order.
-      </Alert>
+      <Alert severity="info">No service data available for this order.</Alert>
     );
   }
 
@@ -371,7 +363,9 @@ const OrderDetailPage = () => {
           Back to Orders
         </Button>
         <Alert severity="error">
-          {orderError ? "Failed to load order. Please try again." : "Order not found."}
+          {orderError
+            ? "Failed to load order. Please try again."
+            : "Order not found."}
         </Alert>
       </Box>
     );

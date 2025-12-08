@@ -8,4 +8,5 @@ public sealed record SubjectEducationAdded(
     UlidId EducationId,
     string InstitutionName,
     string? Degree,
-    DateTimeOffset Timestamp) : INotification;
+    DateTimeOffset Timestamp
+) : INotification;

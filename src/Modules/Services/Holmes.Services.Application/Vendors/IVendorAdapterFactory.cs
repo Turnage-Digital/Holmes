@@ -3,7 +3,7 @@ using Holmes.Services.Domain;
 namespace Holmes.Services.Application.Vendors;
 
 /// <summary>
-/// Factory for resolving vendor adapters by code.
+///     Factory for resolving vendor adapters by code.
 /// </summary>
 public interface IVendorAdapterFactory
 {

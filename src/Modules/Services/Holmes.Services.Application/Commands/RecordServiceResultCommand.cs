@@ -18,7 +18,8 @@ public sealed class RecordServiceResultCommandHandler(
 {
     public async Task<Result> Handle(
         RecordServiceResultCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var serviceRequest = await unitOfWork.ServiceRequests.GetByIdAsync(
             request.ServiceRequestId, cancellationToken);

@@ -332,8 +332,7 @@ export const useIssueIntakeInvite = () => {
 // Services
 // ============================================================================
 
-const fetchServiceTypes = () =>
-  apiFetch<ServiceTypeDto[]>("/services/types");
+const fetchServiceTypes = () => apiFetch<ServiceTypeDto[]>("/services/types");
 
 export const useServiceTypes = () =>
   useQuery({

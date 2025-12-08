@@ -1,7 +1,8 @@
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Services.Domain;
-using Holmes.Services.Infrastructure.Sql.Entities;
 using Holmes.Services.Infrastructure.Sql.Mappers;
+using Holmes.Services.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Services.Infrastructure.Sql;
@@ -25,9 +26,11 @@ public class ServiceRequestRepository : IServiceRequestRepository
             return tracked;
         }
 
+        var spec = new ServiceRequestByIdSpec(idStr);
+
         var db = await _context.ServiceRequests
-            .Include(r => r.Result)
-            .FirstOrDefaultAsync(r => r.Id == idStr, cancellationToken);
+            .ApplySpecification(spec)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (db is null)
         {
@@ -39,109 +42,118 @@ public class ServiceRequestRepository : IServiceRequestRepository
         return domain;
     }
 
-    public async Task<IReadOnlyList<ServiceRequest>> GetByOrderIdAsync(UlidId orderId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ServiceRequest>> GetByOrderIdAsync(
+        UlidId orderId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var orderIdStr = orderId.ToString();
+        var spec = new ServiceRequestsByOrderIdSpec(orderId.ToString());
 
         var dbs = await _context.ServiceRequests
-            .Include(r => r.Result)
-            .Where(r => r.OrderId == orderIdStr)
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return dbs.Select(db =>
-        {
-            if (_tracked.TryGetValue(db.Id, out var tracked))
             {
-                return tracked;
-            }
+                if (_tracked.TryGetValue(db.Id, out var tracked))
+                {
+                    return tracked;
+                }
 
-            var domain = ServiceRequestMapper.ToDomain(db);
-            _tracked[db.Id] = domain;
-            return domain;
-        }).ToList();
+                var domain = ServiceRequestMapper.ToDomain(db);
+                _tracked[db.Id] = domain;
+                return domain;
+            })
+            .ToList();
     }
 
     public async Task<IReadOnlyList<ServiceRequest>> GetPendingByTierAsync(
         UlidId orderId,
         int tier,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        var orderIdStr = orderId.ToString();
+        var spec = new PendingServiceRequestsByTierSpec(orderId.ToString(), tier);
 
         var dbs = await _context.ServiceRequests
-            .Include(r => r.Result)
-            .Where(r => r.OrderId == orderIdStr && r.Tier == tier && r.Status == ServiceStatus.Pending)
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return dbs.Select(db =>
-        {
-            if (_tracked.TryGetValue(db.Id, out var tracked))
             {
-                return tracked;
-            }
+                if (_tracked.TryGetValue(db.Id, out var tracked))
+                {
+                    return tracked;
+                }
 
-            var domain = ServiceRequestMapper.ToDomain(db);
-            _tracked[db.Id] = domain;
-            return domain;
-        }).ToList();
+                var domain = ServiceRequestMapper.ToDomain(db);
+                _tracked[db.Id] = domain;
+                return domain;
+            })
+            .ToList();
     }
 
     public async Task<IReadOnlyList<ServiceRequest>> GetPendingForDispatchAsync(
         int batchSize,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
+        var spec = new PendingServiceRequestsForDispatchSpec(batchSize);
+
         var dbs = await _context.ServiceRequests
-            .Where(r => r.Status == ServiceStatus.Pending && r.VendorCode != null)
-            .OrderBy(r => r.CreatedAt)
-            .Take(batchSize)
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return dbs.Select(db =>
-        {
-            if (_tracked.TryGetValue(db.Id, out var tracked))
             {
-                return tracked;
-            }
+                if (_tracked.TryGetValue(db.Id, out var tracked))
+                {
+                    return tracked;
+                }
 
-            var domain = ServiceRequestMapper.ToDomain(db);
-            _tracked[db.Id] = domain;
-            return domain;
-        }).ToList();
+                var domain = ServiceRequestMapper.ToDomain(db);
+                _tracked[db.Id] = domain;
+                return domain;
+            })
+            .ToList();
     }
 
     public async Task<IReadOnlyList<ServiceRequest>> GetRetryableAsync(
         int batchSize,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
+        var spec = new RetryableServiceRequestsSpec(batchSize);
+
         var dbs = await _context.ServiceRequests
-            .Where(r => r.Status == ServiceStatus.Failed && r.AttemptCount < r.MaxAttempts)
-            .OrderBy(r => r.FailedAt)
-            .Take(batchSize)
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return dbs.Select(db =>
-        {
-            if (_tracked.TryGetValue(db.Id, out var tracked))
             {
-                return tracked;
-            }
+                if (_tracked.TryGetValue(db.Id, out var tracked))
+                {
+                    return tracked;
+                }
 
-            var domain = ServiceRequestMapper.ToDomain(db);
-            _tracked[db.Id] = domain;
-            return domain;
-        }).ToList();
+                var domain = ServiceRequestMapper.ToDomain(db);
+                _tracked[db.Id] = domain;
+                return domain;
+            })
+            .ToList();
     }
 
     public async Task<ServiceRequest?> GetByVendorReferenceAsync(
         string vendorCode,
         string vendorReferenceId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
+        var spec = new ServiceRequestByVendorReferenceSpec(vendorCode, vendorReferenceId);
+
         var db = await _context.ServiceRequests
-            .Include(r => r.Result)
-            .FirstOrDefaultAsync(
-                r => r.VendorCode == vendorCode && r.VendorReferenceId == vendorReferenceId,
-                cancellationToken);
+            .ApplySpecification(spec)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (db is null)
         {
@@ -164,7 +176,8 @@ public class ServiceRequestRepository : IServiceRequestRepository
 
         return await _context.ServiceRequests
             .Where(r => r.OrderId == orderIdStr)
-            .AllAsync(r => r.Status == ServiceStatus.Completed || r.Status == ServiceStatus.Canceled, cancellationToken);
+            .AllAsync(r => r.Status == ServiceStatus.Completed || r.Status == ServiceStatus.Canceled,
+                cancellationToken);
     }
 
     public async Task<bool> TierCompletedAsync(UlidId orderId, int tier, CancellationToken cancellationToken = default)
@@ -173,7 +186,8 @@ public class ServiceRequestRepository : IServiceRequestRepository
 
         return await _context.ServiceRequests
             .Where(r => r.OrderId == orderIdStr && r.Tier == tier)
-            .AllAsync(r => r.Status == ServiceStatus.Completed || r.Status == ServiceStatus.Canceled, cancellationToken);
+            .AllAsync(r => r.Status == ServiceStatus.Completed || r.Status == ServiceStatus.Canceled,
+                cancellationToken);
     }
 
     public void Add(ServiceRequest request)

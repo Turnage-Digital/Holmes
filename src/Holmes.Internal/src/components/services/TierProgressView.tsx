@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import {
   Accordion,
@@ -13,11 +14,10 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
-import type { ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
 
 import ServiceStatusCard from "./ServiceStatusCard";
+
+import type { ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
 
 // ============================================================================
 // Tier Summary Component
@@ -30,7 +30,7 @@ interface TierSummaryProps {
 }
 
 const getTierStatus = (
-  services: ServiceRequestSummaryDto[]
+  services: ServiceRequestSummaryDto[],
 ): {
   label: string;
   color: "success" | "warning" | "error" | "default";
@@ -46,7 +46,7 @@ const getTierStatus = (
 
   const hasFailures = services.some((s) => s.status === "Failed");
   const allComplete = services.every(
-    (s) => s.status === "Completed" || s.status === "Canceled"
+    (s) => s.status === "Completed" || s.status === "Canceled",
   );
   const allPending = services.every((s) => s.status === "Pending");
 
@@ -90,7 +90,7 @@ const TierAccordion = ({
 
   // Calculate progress
   const completedCount = services.filter(
-    (s) => s.status === "Completed"
+    (s) => s.status === "Completed",
   ).length;
   const progressPercent =
     services.length > 0 ? (completedCount / services.length) * 100 : 0;
@@ -101,7 +101,7 @@ const TierAccordion = ({
       acc[s.status] = (acc[s.status] || 0) + 1;
       return acc;
     },
-    {} as Record<ServiceStatus, number>
+    {} as Record<ServiceStatus, number>,
   );
 
   return (
@@ -176,7 +176,7 @@ const TierAccordion = ({
             <ServiceStatusCard
               key={service.id}
               service={service}
-              showCategory={true}
+              showCategory
             />
           ))}
         </Stack>
@@ -210,11 +210,11 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
   // Calculate overall stats
   const totalServices = services.length;
   const completedServices = services.filter(
-    (s) => s.status === "Completed"
+    (s) => s.status === "Completed",
   ).length;
   const failedServices = services.filter((s) => s.status === "Failed").length;
   const inProgressServices = services.filter(
-    (s) => s.status === "InProgress" || s.status === "Dispatched"
+    (s) => s.status === "InProgress" || s.status === "Dispatched",
   ).length;
 
   if (services.length === 0) {

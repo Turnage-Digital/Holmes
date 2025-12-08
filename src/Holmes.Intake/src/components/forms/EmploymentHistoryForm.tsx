@@ -1,4 +1,7 @@
 import React from "react";
+
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Box,
   Button,
@@ -12,10 +15,8 @@ import {
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
-import { IntakeEmployment, createEmptyEmployment } from "@/types/intake";
+import { createEmptyEmployment, IntakeEmployment } from "@/types/intake";
 
 interface EmploymentHistoryFormProps {
   employments: IntakeEmployment[];
@@ -44,7 +45,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
 
   const handleUpdateEmployment = (
     id: string,
-    updates: Partial<IntakeEmployment>
+    updates: Partial<IntakeEmployment>,
   ) => {
     onChange(
       employments.map((e) => {
@@ -56,13 +57,13 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
           updated.reasonForLeaving = "";
         }
         return updated;
-      })
+      }),
     );
   };
 
   const formatEmploymentLabel = (
     index: number,
-    employment: IntakeEmployment
+    employment: IntakeEmployment,
   ) => {
     if (employment.isCurrent) return "Current Employer";
     if (employment.employerName) return employment.employerName;
@@ -84,8 +85,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) =>
-              alpha(theme.palette.action.hover, 0.02),
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
           }}
         >
           <Typography color="text.secondary" gutterBottom>

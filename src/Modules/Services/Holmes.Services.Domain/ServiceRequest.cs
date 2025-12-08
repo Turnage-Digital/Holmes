@@ -5,7 +5,7 @@ using Holmes.Services.Domain.Events;
 namespace Holmes.Services.Domain;
 
 /// <summary>
-/// Aggregate root representing a single background check service request.
+///     Aggregate root representing a single background check service request.
 /// </summary>
 public sealed class ServiceRequest : AggregateRoot
 {
@@ -53,12 +53,12 @@ public sealed class ServiceRequest : AggregateRoot
     public ServiceResult? Result { get; private set; }
 
     /// <summary>
-    /// Returns true if the request is in a terminal state.
+    ///     Returns true if the request is in a terminal state.
     /// </summary>
     public bool IsTerminal => Status is ServiceStatus.Completed or ServiceStatus.Failed or ServiceStatus.Canceled;
 
     /// <summary>
-    /// Returns true if the request can be retried.
+    ///     Returns true if the request can be retried.
     /// </summary>
     public bool CanRetry => Status == ServiceStatus.Failed && AttemptCount < MaxAttempts;
 
@@ -71,7 +71,8 @@ public sealed class ServiceRequest : AggregateRoot
         ServiceScope? scope,
         UlidId? catalogSnapshotId,
         DateTimeOffset createdAt,
-        int maxAttempts = DefaultMaxAttempts)
+        int maxAttempts = DefaultMaxAttempts
+    )
     {
         var request = new ServiceRequest
         {
@@ -221,7 +222,8 @@ public sealed class ServiceRequest : AggregateRoot
     {
         if (!CanRetry)
         {
-            throw new InvalidOperationException($"Cannot retry: status={Status}, attempts={AttemptCount}/{MaxAttempts}.");
+            throw new InvalidOperationException(
+                $"Cannot retry: status={Status}, attempts={AttemptCount}/{MaxAttempts}.");
         }
 
         Status = ServiceStatus.Pending;
@@ -286,7 +288,8 @@ public sealed class ServiceRequest : AggregateRoot
         DateTimeOffset? completedAt,
         DateTimeOffset? failedAt,
         DateTimeOffset? canceledAt,
-        ServiceResult? result)
+        ServiceResult? result
+    )
     {
         return new ServiceRequest
         {

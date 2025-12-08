@@ -5,10 +5,11 @@ using Holmes.Workflow.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Holmes.SlaClocks.Application.EventHandlers;
+namespace Holmes.App.Integration.NotificationHandlers;
 
 /// <summary>
 ///     Handles OrderStatusChanged events to start, complete, pause, and resume SLA clocks.
+///     Lives in App.Integration because it crosses the Workflow → SlaClocks boundary.
 /// </summary>
 public sealed class OrderStatusChangedSlaHandler(
     ISlaClockUnitOfWork unitOfWork,

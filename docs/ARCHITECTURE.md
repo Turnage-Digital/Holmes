@@ -125,9 +125,11 @@ handlers consult the read models to enforce policies.
 ### Services Module (Phase 3.1)
 
 **Bounded context goal:** Manage the lifecycle of background check service requests, orchestrate vendor integrations
-via an anti-corruption layer, normalize results into a canonical schema, and provide visibility into fulfillment progress.
+via an anti-corruption layer, normalize results into a canonical schema, and provide visibility into fulfillment
+progress.
 
 **Why Services is a Separate Bounded Context:**
+
 - Services have independent lifecycles (vendor callbacks, retries, completion at different times)
 - Variety of service types with different semantics (criminal vs employment vs education)
 - Need to scale independently from Order aggregate
@@ -135,6 +137,7 @@ via an anti-corruption layer, normalize results into a canonical schema, and pro
 - SLA clocks can track individual services, not just overall order
 
 **Service Types (non-exhaustive):**
+
 - **Criminal:** Federal, Statewide, County, Municipal searches
 - **Identity:** SSN Verification, Address Verification, OFAC/Sanctions
 - **Employment:** Employment Verification (TWN, direct), Income Verification
@@ -357,6 +360,23 @@ pipeline and no additional queueing infrastructure is necessary.
   `*.Application` and `*.Infrastructure`.
 - Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.
 
+**Cross-module boundary rule (CRITICAL)**
+
+A module **MUST NEVER** directly reference another module's `*.Domain` or `*.Application` projects. This is a
+fundamental DDD principle — bounded contexts communicate through explicit contracts, not internal implementation
+details.
+
+| Reference Type | Allowed? | Example |
+|----------------|----------|---------|
+| `ModuleA.Application` → `ModuleB.Domain` | ❌ NO | SlaClocks.App → Workflow.Domain |
+| `ModuleA.Application` → `ModuleB.Application` | ❌ NO | Services.App → Subjects.App |
+| `ModuleA.Application` → `ModuleB.Application.Abstractions` | ✅ YES | SlaClocks.App → Workflow.App.Abstractions |
+| `ModuleA.Infrastructure` → `ModuleB.Application.Abstractions` | ✅ YES | Intake.Infra → Workflow.App.Abstractions |
+
+When a module needs types from another bounded context, the owning module must expose them via
+`*.Application.Abstractions` (DTOs, interfaces, integration events). See `docs/MODULE_TEMPLATE.md` for detailed
+guidance and examples.
+
 ---
 
 ## 4) Ubiquitous Language (DDD)
@@ -425,7 +445,8 @@ pipeline and no additional queueing infrastructure is necessary.
 - States: `pending → dispatched → in_progress → completed | failed | canceled`.
 - Must bind to an Order and specify a `ServiceType`.
 - Results normalized into standard schema regardless of vendor.
-  **Events:** ServiceRequest.Created, ServiceRequest.Dispatched, ServiceRequest.ResultReceived, ServiceRequest.Completed, ServiceRequest.Failed, ServiceRequest.Canceled.
+  **Events:** ServiceRequest.Created, ServiceRequest.Dispatched, ServiceRequest.ResultReceived,
+  ServiceRequest.Completed, ServiceRequest.Failed, ServiceRequest.Canceled.
 
 ### Clock (Root; SLA & Adverse)
 
@@ -861,7 +882,8 @@ Last-Event-ID resume.
 - Notification rules v1 for email/SMS/webhook with history + retries.
 - Read models: `sla_clocks`, `notifications_history`.
 
-**Acceptance**: Intake/Fulfillment/Overall SLA clocks flip to at_risk/breached, notifications fire with idempotent delivery.
+**Acceptance**: Intake/Fulfillment/Overall SLA clocks flip to at_risk/breached, notifications fire with idempotent
+delivery.
 
 ### Phase 3.1 (Weeks 8–10): Services & Fulfillment
 

@@ -5,7 +5,7 @@ using Holmes.Notifications.Infrastructure.Sql.Entities;
 namespace Holmes.Notifications.Infrastructure.Sql.Specifications;
 
 /// <summary>
-/// Finds failed notifications that are eligible for retry (under max attempts and past retry delay).
+///     Finds failed notifications that are eligible for retry (under max attempts and past retry delay).
 /// </summary>
 public sealed class FailedNotificationsForRetrySpec : Specification<NotificationRequestDb>
 {
