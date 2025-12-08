@@ -1,7 +1,7 @@
 using System.Text;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.Results;
-using Holmes.Core.Domain.Security;
+using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Gateways;
 using Holmes.Intake.Application.Services;

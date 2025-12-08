@@ -4,7 +4,7 @@ using Holmes.App.Integration;
 using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
-using Holmes.Core.Domain.Security;
+using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Infrastructure.Security;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Customers.Application.Abstractions.Queries;
