@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import BuildIcon from "@mui/icons-material/Build";
+import InfoIcon from "@mui/icons-material/Info";
+import TimelineIcon from "@mui/icons-material/Timeline";
 import {
   Alert,
   Box,
@@ -12,6 +15,8 @@ import {
   IconButton,
   Skeleton,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { format, formatDistanceToNow } from "date-fns";
@@ -19,13 +24,31 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import type { OrderTimelineEntryDto } from "@/types/api";
 
+import { TierProgressView } from "@/components/services";
 import {
   useCustomer,
   useOrder,
+  useOrderServices,
   useOrderTimeline,
   useSubject,
 } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
+
+// ============================================================================
+// Tab Panel Component
+// ============================================================================
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+const TabPanel = ({ children, value, index }: TabPanelProps) => (
+  <div role="tabpanel" hidden={value !== index}>
+    {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+  </div>
+);
 
 // ============================================================================
 // Timeline Component
@@ -126,12 +149,185 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
 };
 
 // ============================================================================
+// Details Tab Content
+// ============================================================================
+
+interface DetailsTabProps {
+  order: NonNullable<ReturnType<typeof useOrder>["data"]>;
+}
+
+const DetailsTab = ({ order }: DetailsTabProps) => (
+  <Card variant="outlined">
+    <CardContent>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Order Details
+      </Typography>
+      <Stack spacing={2}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "140px 1fr",
+            gap: 1,
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Order ID
+          </Typography>
+          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+            {order.orderId}
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary">
+            Subject ID
+          </Typography>
+          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+            {order.subjectId}
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary">
+            Customer ID
+          </Typography>
+          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+            {order.customerId}
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary">
+            Policy
+          </Typography>
+          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+            {order.policySnapshotId}
+          </Typography>
+
+          {order.packageCode && (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                Package
+              </Typography>
+              <Typography variant="body2">{order.packageCode}</Typography>
+            </>
+          )}
+
+          <Typography variant="body2" color="text.secondary">
+            Last Updated
+          </Typography>
+          <Typography variant="body2">
+            {format(new Date(order.lastUpdatedAt), "MMM d, yyyy 'at' h:mm a")}
+          </Typography>
+
+          {order.readyForRoutingAt && (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                Ready for Routing
+              </Typography>
+              <Typography variant="body2">
+                {format(
+                  new Date(order.readyForRoutingAt),
+                  "MMM d, yyyy 'at' h:mm a"
+                )}
+              </Typography>
+            </>
+          )}
+
+          {order.canceledAt && (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                Canceled
+              </Typography>
+              <Typography variant="body2">
+                {format(new Date(order.canceledAt), "MMM d, yyyy 'at' h:mm a")}
+              </Typography>
+            </>
+          )}
+
+          {order.closedAt && (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                Closed
+              </Typography>
+              <Typography variant="body2">
+                {format(new Date(order.closedAt), "MMM d, yyyy 'at' h:mm a")}
+              </Typography>
+            </>
+          )}
+        </Box>
+      </Stack>
+    </CardContent>
+  </Card>
+);
+
+// ============================================================================
+// Services Tab Content
+// ============================================================================
+
+interface ServicesTabProps {
+  orderId: string;
+}
+
+const ServicesTab = ({ orderId }: ServicesTabProps) => {
+  const {
+    data: orderServices,
+    isLoading,
+    error,
+  } = useOrderServices(orderId);
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error">
+        Failed to load services. Please try again.
+      </Alert>
+    );
+  }
+
+  if (!orderServices) {
+    return (
+      <Alert severity="info">
+        No service data available for this order.
+      </Alert>
+    );
+  }
+
+  return <TierProgressView services={orderServices.services} />;
+};
+
+// ============================================================================
+// Timeline Tab Content
+// ============================================================================
+
+interface TimelineTabProps {
+  orderId: string;
+}
+
+const TimelineTab = ({ orderId }: TimelineTabProps) => {
+  const { data: timeline, isLoading } = useOrderTimeline(orderId);
+
+  return (
+    <Card variant="outlined">
+      <CardContent>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Activity Timeline
+        </Typography>
+        <Timeline events={timeline ?? []} isLoading={isLoading} />
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============================================================================
 // Order Detail Page
 // ============================================================================
 
 const OrderDetailPage = () => {
   const navigate = useNavigate();
   const { orderId } = useParams<{ orderId: string }>();
+  const [activeTab, setActiveTab] = useState(0);
 
   // Fetch order data
   const {
@@ -140,14 +336,12 @@ const OrderDetailPage = () => {
     error: orderError,
   } = useOrder(orderId!);
 
-  // Fetch timeline
-  const { data: timeline, isLoading: timelineLoading } = useOrderTimeline(
-    orderId!,
-  );
-
   // Fetch related entities
   const { data: subject } = useSubject(order?.subjectId ?? "");
   const { data: customer } = useCustomer(order?.customerId ?? "");
+
+  // Fetch services for badge count
+  const { data: orderServices } = useOrderServices(orderId!);
 
   // Loading state
   if (orderLoading) {
@@ -177,8 +371,7 @@ const OrderDetailPage = () => {
           Back to Orders
         </Button>
         <Alert severity="error">
-          {orderError && <>Failed to load order. Please try again.</>}
-          {!orderError && <>Order not found.</>}
+          {orderError ? "Failed to load order. Please try again." : "Order not found."}
         </Alert>
       </Box>
     );
@@ -189,6 +382,14 @@ const OrderDetailPage = () => {
     ? [subject.givenName, subject.familyName].filter(Boolean).join(" ") ||
       subject.email
     : null;
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
+  // Service count badge
+  const serviceCount = orderServices?.totalServices ?? 0;
+  const completedCount = orderServices?.completedServices ?? 0;
 
   return (
     <Box>
@@ -202,7 +403,7 @@ const OrderDetailPage = () => {
       </IconButton>
 
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
           <Typography variant="h4" component="h1">
             Order
@@ -244,124 +445,35 @@ const OrderDetailPage = () => {
         )}
       </Box>
 
-      <Stack spacing={3}>
-        {/* Order Details Card */}
-        <Card variant="outlined">
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Details
-            </Typography>
-            <Stack spacing={2}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "140px 1fr",
-                  gap: 1,
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  Order ID
-                </Typography>
-                <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                  {order.orderId}
-                </Typography>
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Tabs value={activeTab} onChange={handleTabChange}>
+          <Tab icon={<InfoIcon />} iconPosition="start" label="Details" />
+          <Tab
+            icon={<BuildIcon />}
+            iconPosition="start"
+            label={
+              serviceCount > 0
+                ? `Services (${completedCount}/${serviceCount})`
+                : "Services"
+            }
+          />
+          <Tab icon={<TimelineIcon />} iconPosition="start" label="Timeline" />
+        </Tabs>
+      </Box>
 
-                <Typography variant="body2" color="text.secondary">
-                  Subject ID
-                </Typography>
-                <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                  {order.subjectId}
-                </Typography>
+      {/* Tab Content */}
+      <TabPanel value={activeTab} index={0}>
+        <DetailsTab order={order} />
+      </TabPanel>
 
-                <Typography variant="body2" color="text.secondary">
-                  Customer ID
-                </Typography>
-                <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                  {order.customerId}
-                </Typography>
+      <TabPanel value={activeTab} index={1}>
+        <ServicesTab orderId={orderId!} />
+      </TabPanel>
 
-                <Typography variant="body2" color="text.secondary">
-                  Policy
-                </Typography>
-                <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                  {order.policySnapshotId}
-                </Typography>
-
-                {order.packageCode && (
-                  <>
-                    <Typography variant="body2" color="text.secondary">
-                      Package
-                    </Typography>
-                    <Typography variant="body2">{order.packageCode}</Typography>
-                  </>
-                )}
-
-                <Typography variant="body2" color="text.secondary">
-                  Last Updated
-                </Typography>
-                <Typography variant="body2">
-                  {format(
-                    new Date(order.lastUpdatedAt),
-                    "MMM d, yyyy 'at' h:mm a",
-                  )}
-                </Typography>
-
-                {order.readyForRoutingAt && (
-                  <>
-                    <Typography variant="body2" color="text.secondary">
-                      Ready for Routing
-                    </Typography>
-                    <Typography variant="body2">
-                      {format(
-                        new Date(order.readyForRoutingAt),
-                        "MMM d, yyyy 'at' h:mm a",
-                      )}
-                    </Typography>
-                  </>
-                )}
-
-                {order.canceledAt && (
-                  <>
-                    <Typography variant="body2" color="text.secondary">
-                      Canceled
-                    </Typography>
-                    <Typography variant="body2">
-                      {format(
-                        new Date(order.canceledAt),
-                        "MMM d, yyyy 'at' h:mm a",
-                      )}
-                    </Typography>
-                  </>
-                )}
-
-                {order.closedAt && (
-                  <>
-                    <Typography variant="body2" color="text.secondary">
-                      Closed
-                    </Typography>
-                    <Typography variant="body2">
-                      {format(
-                        new Date(order.closedAt),
-                        "MMM d, yyyy 'at' h:mm a",
-                      )}
-                    </Typography>
-                  </>
-                )}
-              </Box>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {/* Timeline Card */}
-        <Card variant="outlined">
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Timeline
-            </Typography>
-            <Timeline events={timeline ?? []} isLoading={timelineLoading} />
-          </CardContent>
-        </Card>
-      </Stack>
+      <TabPanel value={activeTab} index={2}>
+        <TimelineTab orderId={orderId!} />
+      </TabPanel>
     </Box>
   );
 };

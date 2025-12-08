@@ -122,6 +122,107 @@ tenant-scoped policies without ever persisting credentials.
 This module sits orthogonally to authentication middleware: the HTTP pipeline validates access tokens, then Application
 handlers consult the read models to enforce policies.
 
+### Services Module (Phase 3.1)
+
+**Bounded context goal:** Manage the lifecycle of background check service requests, orchestrate vendor integrations
+via an anti-corruption layer, normalize results into a canonical schema, and provide visibility into fulfillment progress.
+
+**Why Services is a Separate Bounded Context:**
+- Services have independent lifecycles (vendor callbacks, retries, completion at different times)
+- Variety of service types with different semantics (criminal vs employment vs education)
+- Need to scale independently from Order aggregate
+- Anti-corruption layer isolates vendor-specific protocols
+- SLA clocks can track individual services, not just overall order
+
+**Service Types (non-exhaustive):**
+- **Criminal:** Federal, Statewide, County, Municipal searches
+- **Identity:** SSN Verification, Address Verification, OFAC/Sanctions
+- **Employment:** Employment Verification (TWN, direct), Income Verification
+- **Education:** Education Verification, Professional License
+- **Driving:** MVR, CDL Verification
+- **Credit:** Credit Check (soft pull), Credit Header
+- **Drug:** Drug Screen, MRO Review
+- **Other:** Reference Check, Civil Records, Healthcare Sanctions
+
+- **Aggregates**
+    - `ServiceRequest`: Individual service tied to an Order with state machine (pending → dispatched → in_progress →
+      completed/failed/canceled), vendor assignment, result storage, and SLA tracking.
+    - `ServiceCatalog`: Defines available service types, their configurations, and vendor mappings per customer.
+
+- **Infrastructure Services**
+    - `IVendorCredentialStore`: Retrieves encrypted vendor credentials (API keys, account IDs) at dispatch time.
+      Implementation may use Key Vault, Secrets Manager, or encrypted database. Credentials are operational
+      infrastructure, not domain aggregates.
+
+- **Value Objects**
+    - `ServiceType`: Enum with category (Criminal, Employment, etc.) and specific type (CountySearch, TWN, etc.).
+    - `ServiceScope`: Geographic/jurisdictional scope (county FIPS, state, federal, international).
+    - `ServiceTier`: Execution priority tier (1 = first, 2 = after tier 1 completes, etc.). Customer-defined.
+    - `VendorAssignment`: Which vendor handles this request, with fallback chain.
+    - `ServiceResult`: Normalized result with status, records found, hit/clear, raw response hash.
+    - `NormalizedRecord`: Canonical record schema (criminal charge, employment history, etc.).
+
+- **Service Tiering (Customer-Defined)**
+    - Services execute in tiers to optimize cost and fail-fast on disqualifying results.
+    - **Tier 1 (Identity/Validation):** SSN Trace, Address Verification, OFAC — cheap, fast, gates further work.
+    - **Tier 2 (Core Searches):** Criminal (federal, state, county), Employment, Education — bulk of the work.
+    - **Tier 3 (Expensive/Slow):** Drug Test, Physical, MVR, Credit — only if earlier tiers pass.
+    - Tier boundaries are customer-configurable; some customers may run everything in parallel.
+    - If a tier produces a "stop" result (e.g., SSN mismatch), subsequent tiers can be skipped or require review.
+    - `ServiceCatalog` stores tier assignments per service type per customer.
+
+- **Domain Events**
+    - `ServiceRequestCreated` – request queued for dispatch.
+    - `ServiceRequestDispatched` – sent to vendor.
+    - `ServiceResultReceived` – raw result from vendor callback.
+    - `ServiceRequestCompleted` – result normalized and ready.
+    - `ServiceRequestFailed` – vendor error or timeout.
+    - `ServiceRequestCanceled` – order canceled or service no longer needed.
+    - `ServiceRequestRetried` – retry attempt after transient failure.
+
+- **Commands**
+    - `CreateServiceRequestCommand` – queue a new service (from Order routing).
+    - `DispatchServiceRequestCommand` – send to vendor via adapter.
+    - `RecordServiceResultCommand` – capture vendor callback.
+    - `CompleteServiceRequestCommand` – mark as done after normalization.
+    - `RetryServiceRequestCommand` – retry failed request.
+    - `CancelServiceRequestCommand` – cancel pending/in-progress request.
+
+- **Queries**
+    - `GetServiceRequestsByOrderQuery` – all services for an order.
+    - `GetPendingServiceRequestsQuery` – services awaiting dispatch.
+    - `GetServiceRequestStatusQuery` – current status of a service.
+
+- **Integration with Order Workflow**
+    - When Order reaches `ReadyForRouting`, the `OrderRoutingService` determines which services are needed based on
+      the package and policy, then emits `CreateServiceRequestCommand` for each.
+    - When Order enters `RoutingInProgress`, individual services are dispatched.
+    - Order transitions to `ReadyForReport` only when all required services are `Completed` (or explicitly waived).
+    - `ServiceRequestCompleted` events trigger `CheckOrderReadyForReportCommand` to evaluate if Order can advance.
+
+- **Integration with SLA Clocks**
+    - Individual services can have their own SLA clocks (e.g., county search 3-day SLA).
+    - Fulfillment clock on Order tracks aggregate service completion.
+    - Service-level SLAs are optional and customer-defined.
+
+- **Anti-Corruption Layer (Vendor Adapters)**
+    - `IVendorAdapter` interface with `DispatchAsync`, `ParseCallbackAsync`, `GetStatusAsync`.
+    - Each vendor has its own adapter implementation (e.g., `SterlingAdapter`, `GoodHireAdapter`).
+    - Adapters translate between vendor-specific protocols and Holmes canonical schema.
+    - Phase 3.1 uses `StubVendorAdapter` that returns fixture data after configurable delay.
+
+- **Read Models**
+    - `service_requests` – current state of all service requests.
+    - `service_results` – normalized results for reporting.
+    - `vendor_activity` – dispatch/callback audit trail.
+    - `fulfillment_dashboard` – aggregate view of in-flight services.
+
+- **Address History (Subject Enhancement)**
+    - Subject module extended with `AddressHistory` collection.
+    - Each `Address` has: street, city, state, postal, country, from_date, to_date, is_current.
+    - Policy defines `address_years` lookback (e.g., 7 years) for county determination.
+    - `GetCountiesForAddressHistoryQuery` returns FIPS codes for criminal searches.
+
 ### Solution Layout & Layering
 
 - `Holmes.sln` ties all .NET projects (hosts, modules, tooling) into one solution.
@@ -275,18 +376,19 @@ pipeline and no additional queueing infrastructure is necessary.
 ## 5) Bounded Contexts
 
 1) **Core Kernel** — Shared primitives, integration events, pipeline behaviors, crypto helpers.
-2) **Subjects** — Canonical identity, aliases, merges, lineage.
+2) **Subjects** — Canonical identity, aliases, address history, merges, lineage.
 3) **Users** — Operator accounts, roles, audit actors, tenant membership.
 4) **Customers** — CRA client organizations, policy mapping, billing profile, contacts.
 5) **Intake** — Invites, OTP verification, consents, PII capture, optional IDV.
 6) **Order Workflow** — State machines, transitions, package routing (abstract).
-7) **SLA/Clocks** — Business calendars, deadlines, at-risk/breach detection.
-8) **Compliance Policy** — FCRA/EEOC/613/611, Fair-Chance, ICRAA, DOT overlays, policy packs.
-9) **Notifications** — Rules, channels (email/SMS/webhook), delivery proofs.
-10) **Adverse Action** — Two-step process, notices, evidence packs, disputes integration.
-11) **Adjudication** — RuleSets, Assessments, Charge Taxonomy, human-in-the-loop.
-12) **Audit/Ledger** — Event store, WORM artifacts, projections.
-13) **Provider Adapters** — Anti-corruption layer; stubs for v1.
+7) **Services** — Background check service requests, vendor orchestration, results normalization.
+8) **SLA/Clocks** — Business calendars, deadlines, at-risk/breach detection.
+9) **Compliance Policy** — FCRA/EEOC/613/611, Fair-Chance, ICRAA, DOT overlays, policy packs.
+10) **Notifications** — Rules, channels (email/SMS/webhook), delivery proofs.
+11) **Adverse Action** — Two-step process, notices, evidence packs, disputes integration.
+12) **Adjudication** — RuleSets, Assessments, Charge Taxonomy, human-in-the-loop.
+13) **Audit/Ledger** — Event store, WORM artifacts, projections.
+14) **Provider Adapters** — Anti-corruption layer; stubs for v1.
 
 ---
 
@@ -317,9 +419,17 @@ pipeline and no additional queueing infrastructure is necessary.
 - Must bind a Subject and a **policy_snapshot_id**.  
   **Events:** Order.Created, Invite.Sent, Consent.Captured, Intake.Submitted, Order.StateChanged, Order.Canceled.
 
+### ServiceRequest (Root)
+
+- Represents a single background check service (criminal search, employment verification, etc.) tied to an Order.
+- States: `pending → dispatched → in_progress → completed | failed | canceled`.
+- Must bind to an Order and specify a `ServiceType`.
+- Results normalized into standard schema regardless of vendor.
+  **Events:** ServiceRequest.Created, ServiceRequest.Dispatched, ServiceRequest.ResultReceived, ServiceRequest.Completed, ServiceRequest.Failed, ServiceRequest.Canceled.
+
 ### Clock (Root; SLA & Adverse)
 
-- Deterministic deadlines with business-day math; pausable; visible index.  
+- Deterministic deadlines with business-day math; pausable; visible index.
   **Events:** Clock.Started, Clock.AtRisk, Clock.Breached, Clock.Paused, Clock.Resumed, Clock.ReadyToAdvance.
 
 ### Notice (Entity under Adverse)
@@ -745,17 +855,37 @@ shareable; UI architecture notes checked into `/docs`; readiness review signed o
 **Acceptance**: End-to-end intake completes, order advances to `ready_for_routing`, and SSE streams events with
 Last-Event-ID resume.
 
-### Phase 3 (Weeks 7–9): SLA, Compliance & Notifications
+### Phase 3 (Weeks 7–8): SLA Clocks & Notifications Foundation
 
-- Business calendar service, SLA watchdog, regulatory/adverse clock aggregates.
-- Compliance policy gating (PP grants, disclosure acceptance, fair-chance overlays).
+- Business calendar service, SLA watchdog for order-level clocks.
 - Notification rules v1 for email/SMS/webhook with history + retries.
-- Read models: `sla_clocks`, `adverse_action_clocks`, `notifications_history`.
+- Read models: `sla_clocks`, `notifications_history`.
 
-**Acceptance**: Intake SLA flips to at_risk/breached, compliance gates block unauthorized progression, notifications
-fire with idempotent delivery.
+**Acceptance**: Intake/Fulfillment/Overall SLA clocks flip to at_risk/breached, notifications fire with idempotent delivery.
 
-### Phase 4 (Weeks 9–10): Adverse Action & Evidence Packs
+### Phase 3.1 (Weeks 8–10): Services & Fulfillment
+
+- `ServiceRequest` aggregate with state machine and vendor assignment.
+- Service catalog with type taxonomy (Criminal, Employment, Education, etc.).
+- Anti-corruption layer with `IVendorAdapter` and stub implementations.
+- Address history on Subject for county determination.
+- Order routing logic: package → service requests.
+- Service-level SLA clocks (optional, customer-defined).
+- Read models: `service_requests`, `service_results`, `fulfillment_dashboard`.
+
+**Acceptance**: Order routes to services based on package, stub vendors return results, Order advances to ReadyForReport
+when all services complete, service-level SLAs track individual components.
+
+### Phase 3.2 (Weeks 10–11): Compliance & Policy Gates
+
+- Compliance policy gating (PP grants, disclosure acceptance, fair-chance overlays).
+- Regulatory/adverse clock aggregates for pre-adverse timing.
+- Read models: `compliance_grants`, `adverse_action_clocks`.
+
+**Acceptance**: Compliance gates block unauthorized progression, PP required for order creation, disclosure required
+before intake completion.
+
+### Phase 4 (Weeks 11–12): Adverse Action & Evidence Packs
 
 - Adverse action state machine with pause/resume + dispute linkage.
 - WORM artifact store + evidence pack bundler (zip + manifest).
@@ -763,7 +893,7 @@ fire with idempotent delivery.
 
 **Acceptance**: Pre/final adverse timelines recompute after pause, evidence pack download verifies hash manifest.
 
-### Phase 5 (Weeks 10–12): Adjudication Engine
+### Phase 5 (Weeks 12–14): Adjudication Engine
 
 - Charge taxonomy ingestion + normalization for assessments.
 - RuleSet authoring + publish workflow; deterministic recommendation engine.
@@ -772,7 +902,7 @@ fire with idempotent delivery.
 **Acceptance**: Assessment recommendations return consistent reason codes, overrides require justification and emit
 audit trail.
 
-### Phase 6 (Weeks 12–13): Hardening & Pilot
+### Phase 6 (Weeks 14–15): Hardening & Pilot
 
 - Tenant branding + locale hooks; policy snapshot UI contract finalized.
 - SLA/adverse/adjudication dashboards; audit export; SLO tracking.

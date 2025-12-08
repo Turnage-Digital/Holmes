@@ -1,6 +1,8 @@
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql.Mappers;
+using Holmes.SlaClocks.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql;
@@ -20,8 +22,10 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         CancellationToken cancellationToken = default
     )
     {
+        var spec = new SlaClockByOrderIdSpec(orderId.ToString());
+
         var entities = await context.SlaClocks
-            .Where(c => c.OrderId == orderId.ToString())
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return entities.Select(SlaClockMapper.ToDomain).ToList();
@@ -33,9 +37,10 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         CancellationToken cancellationToken = default
     )
     {
+        var spec = new SlaClockByOrderIdAndKindSpec(orderId.ToString(), kind);
+
         var entity = await context.SlaClocks
-            .Where(c => c.OrderId == orderId.ToString() && c.Kind == (int)kind)
-            .OrderByDescending(c => c.StartedAt)
+            .ApplySpecification(spec)
             .FirstOrDefaultAsync(cancellationToken);
 
         return entity is null ? null : SlaClockMapper.ToDomain(entity);
@@ -46,10 +51,10 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         CancellationToken cancellationToken = default
     )
     {
-        var activeStates = new[] { (int)ClockState.Running, (int)ClockState.AtRisk };
+        var spec = new ActiveSlaClocksByOrderIdSpec(orderId.ToString());
 
         var entities = await context.SlaClocks
-            .Where(c => c.OrderId == orderId.ToString() && activeStates.Contains(c.State))
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return entities.Select(SlaClockMapper.ToDomain).ToList();
@@ -60,12 +65,10 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         CancellationToken cancellationToken = default
     )
     {
-        var asOfUtc = asOf.UtcDateTime;
+        var spec = new RunningClocksPastThresholdSpec(asOf.UtcDateTime);
 
         var entities = await context.SlaClocks
-            .Where(c => c.State == (int)ClockState.Running)
-            .Where(c => c.AtRiskAt == null)
-            .Where(c => c.AtRiskThresholdAt <= asOfUtc)
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return entities.Select(SlaClockMapper.ToDomain).ToList();
@@ -76,13 +79,10 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         CancellationToken cancellationToken = default
     )
     {
-        var asOfUtc = asOf.UtcDateTime;
-        var activeStates = new[] { (int)ClockState.Running, (int)ClockState.AtRisk };
+        var spec = new RunningClocksPastDeadlineSpec(asOf.UtcDateTime);
 
         var entities = await context.SlaClocks
-            .Where(c => activeStates.Contains(c.State))
-            .Where(c => c.BreachedAt == null)
-            .Where(c => c.DeadlineAt <= asOfUtc)
+            .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
         return entities.Select(SlaClockMapper.ToDomain).ToList();

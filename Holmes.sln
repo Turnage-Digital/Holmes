@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-#
+# 
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -98,6 +98,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8
 		docs\PHASE_2.md = docs\PHASE_2.md
 		docs\PHASE_3.md = docs\PHASE_3.md
 		docs\SLA_CLOCKS_PLAN.md = docs\SLA_CLOCKS_PLAN.md
+		docs\PHASE_3_1.md = docs\PHASE_3_1.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server", "src\Holmes.Identity.Server\Holmes.Identity.Server.csproj", "{9CBFCA68-B0DD-4C70-9EF8-9526FF1F0804}"
@@ -165,6 +166,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "monetize", "monetize", "{F2
 		docs\monetize\PLAN_PHASE_3_UPDATE.md = docs\monetize\PLAN_PHASE_3_UPDATE.md
 		docs\monetize\GUARDRAILS.md = docs\monetize\GUARDRAILS.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Domain", "src\Modules\Services\Holmes.Services.Domain\Holmes.Services.Domain.csproj", "{57EFE438-CE4A-42BA-8762-875AF1733849}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Application", "src\Modules\Services\Holmes.Services.Application\Holmes.Services.Application.csproj", "{4CDFC999-C612-4F52-A626-1F918F52F2DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Application.Abstractions", "src\Modules\Services\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj", "{4702AAC4-F557-4CA2-A139-F55061F8C08B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Infrastructure.Sql", "src\Modules\Services\Holmes.Services.Infrastructure.Sql\Holmes.Services.Infrastructure.Sql.csproj", "{AFA751FF-8289-48AF-A099-9FCD5E0627D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Tests", "src\Modules\Services\Holmes.Services.Tests\Holmes.Services.Tests.csproj", "{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -396,6 +409,26 @@ Global
 		{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57EFE438-CE4A-42BA-8762-875AF1733849}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57EFE438-CE4A-42BA-8762-875AF1733849}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57EFE438-CE4A-42BA-8762-875AF1733849}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57EFE438-CE4A-42BA-8762-875AF1733849}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CDFC999-C612-4F52-A626-1F918F52F2DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CDFC999-C612-4F52-A626-1F918F52F2DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CDFC999-C612-4F52-A626-1F918F52F2DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CDFC999-C612-4F52-A626-1F918F52F2DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4702AAC4-F557-4CA2-A139-F55061F8C08B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4702AAC4-F557-4CA2-A139-F55061F8C08B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4702AAC4-F557-4CA2-A139-F55061F8C08B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4702AAC4-F557-4CA2-A139-F55061F8C08B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFA751FF-8289-48AF-A099-9FCD5E0627D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFA751FF-8289-48AF-A099-9FCD5E0627D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFA751FF-8289-48AF-A099-9FCD5E0627D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFA751FF-8289-48AF-A099-9FCD5E0627D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -464,5 +497,11 @@ Global
 		{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B} = {F64AD250-2E9E-402E-96CC-59A889894329}
 		{704E7EF8-A8E4-4CE5-ABE3-908F81ACB95F} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 		{F2A1738F-E327-4BF7-9C04-4D6BAB9646B0} = {9721B5CA-8C26-4FC5-8448-F3247DFEDD62}
+		{3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
+		{57EFE438-CE4A-42BA-8762-875AF1733849} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
+		{4CDFC999-C612-4F52-A626-1F918F52F2DC} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
+		{4702AAC4-F557-4CA2-A139-F55061F8C08B} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
+		{AFA751FF-8289-48AF-A099-9FCD5E0627D3} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
+		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
 	EndGlobalSection
 EndGlobal

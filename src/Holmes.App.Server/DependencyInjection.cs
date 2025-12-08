@@ -20,6 +20,10 @@ using Holmes.Intake.Infrastructure.Sql.Storage;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql;
+using Holmes.Services.Application.Abstractions.Notifications;
+using Holmes.Services.Domain;
+using Holmes.Services.Infrastructure.Sql;
+using Holmes.Services.Infrastructure.Sql.Notifications;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Application.Services;
 using Holmes.SlaClocks.Domain;
@@ -237,6 +241,7 @@ internal static class DependencyInjection
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
         services.AddNotificationsInfrastructureSql(connectionString, serverVersion);
         services.AddSlaClockInfrastructureSql(connectionString, serverVersion);
+        services.AddServicesInfrastructureSql(connectionString, serverVersion);
 
         services.AddAppIntegration();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
@@ -255,6 +260,7 @@ internal static class DependencyInjection
         services.AddDbContext<IntakeDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
         services.AddDbContext<WorkflowDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
         services.AddDbContext<SlaClockDbContext>(options => options.UseInMemoryDatabase("holmes-slaclocks"));
+        services.AddDbContext<ServicesDbContext>(options => options.UseInMemoryDatabase("holmes-services"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
@@ -267,6 +273,7 @@ internal static class DependencyInjection
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
+        services.AddSingleton<IServiceChangeBroadcaster, ServiceChangeBroadcaster>();
         services.AddDbContext<NotificationsDbContext>(options => options.UseInMemoryDatabase("holmes-notifications"));
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
         services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();

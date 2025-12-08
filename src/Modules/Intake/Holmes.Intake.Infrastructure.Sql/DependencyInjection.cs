@@ -1,8 +1,10 @@
 using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Application.Abstractions.Sessions;
+using Holmes.Intake.Application.Services;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql.Projections;
+using Holmes.Intake.Infrastructure.Sql.Services;
 using Holmes.Intake.Infrastructure.Sql.Sessions;
 using Holmes.Intake.Infrastructure.Sql.Storage;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
         services.AddScoped<IIntakeSessionReplaySource, SqlIntakeSessionReplaySource>();
         services.AddScoped<IntakeSessionProjectionRunner>();
+        services.AddScoped<IIntakeAnswersDecryptor, IntakeAnswersDecryptor>();
 
         return services;
     }

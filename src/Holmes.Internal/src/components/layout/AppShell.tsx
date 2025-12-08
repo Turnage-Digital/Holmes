@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import BuildIcon from "@mui/icons-material/Build";
 import BusinessIcon from "@mui/icons-material/Business";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -52,6 +53,7 @@ const navSections: NavSection[] = [
     items: [
       { label: "Dashboard", path: "/", icon: <DashboardIcon /> },
       { label: "Orders", path: "/orders", icon: <AssignmentIcon /> },
+      { label: "Fulfillment", path: "/fulfillment", icon: <BuildIcon /> },
     ],
   },
   {
