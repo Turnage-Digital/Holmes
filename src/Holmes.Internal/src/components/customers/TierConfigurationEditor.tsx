@@ -49,7 +49,7 @@ const TierCard = ({
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [localName, setLocalName] = useState(tier.name);
   const [localDescription, setLocalDescription] = useState(
-    tier.description ?? ""
+    tier.description ?? "",
   );
   const [errorMessage, setErrorMessage] = useState<string>();
   const [successMessage, setSuccessMessage] = useState<string>();
@@ -58,7 +58,7 @@ const TierCard = ({
 
   // Get service display names by code
   const serviceNameMap = new Map(
-    availableServices.map((s) => [s.serviceTypeCode, s.displayName])
+    availableServices.map((s) => [s.serviceTypeCode, s.displayName]),
   );
 
   const handleUpdate = async (
@@ -67,7 +67,7 @@ const TierCard = ({
       description: string;
       autoDispatch: boolean;
       waitForPreviousTier: boolean;
-    }>
+    }>,
   ) => {
     setErrorMessage(undefined);
     setSuccessMessage(undefined);
@@ -180,9 +180,15 @@ const TierCard = ({
             {tier.name}
           </Typography>
           <Stack direction="row" spacing={1}>
-            <Tooltip title={tier.autoDispatch ? "Auto-dispatch enabled" : "Manual dispatch"}>
+            <Tooltip
+              title={
+                tier.autoDispatch ? "Auto-dispatch enabled" : "Manual dispatch"
+              }
+            >
               <Chip
-                icon={tier.autoDispatch ? <AutorenewIcon /> : <PlayCircleIcon />}
+                icon={
+                  tier.autoDispatch ? <AutorenewIcon /> : <PlayCircleIcon />
+                }
                 label={tier.autoDispatch ? "Auto" : "Manual"}
                 size="small"
                 variant="outlined"
@@ -223,7 +229,10 @@ const TierCard = ({
         <Stack spacing={3}>
           {/* Alerts */}
           {successMessage && (
-            <Alert severity="success" onClose={() => setSuccessMessage(undefined)}>
+            <Alert
+              severity="success"
+              onClose={() => setSuccessMessage(undefined)}
+            >
               {successMessage}
             </Alert>
           )}
@@ -354,7 +363,7 @@ const TierConfigurationEditor = ({
   // Count total services
   const totalConfigured = tiers.reduce(
     (acc, t) => acc + t.requiredServices.length + t.optionalServices.length,
-    0
+    0,
   );
 
   return (

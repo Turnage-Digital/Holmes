@@ -18,7 +18,8 @@ public sealed class CancelServiceRequestCommandHandler(
 {
     public async Task<Result> Handle(
         CancelServiceRequestCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var serviceRequest = await unitOfWork.ServiceRequests.GetByIdAsync(
             request.ServiceRequestId, cancellationToken);

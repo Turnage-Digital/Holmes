@@ -11,7 +11,7 @@ namespace Holmes.App.Server.Controllers;
 public sealed class ServicesController : ControllerBase
 {
     /// <summary>
-    /// Returns all available service types.
+    ///     Returns all available service types.
     /// </summary>
     [HttpGet("types")]
     public ActionResult<IReadOnlyCollection<ServiceTypeDto>> GetServiceTypes()
@@ -37,7 +37,7 @@ public sealed class ServicesController : ControllerBase
             new("DRUG_10", "10-Panel Drug Screen", ServiceCategory.Drug, 4),
             new("CIVIL_COURT", "Civil Court Search", ServiceCategory.Civil, 2),
             new("BANKRUPTCY", "Bankruptcy Search", ServiceCategory.Civil, 2),
-            new("HEALTHCARE_SANCTION", "Healthcare Sanctions Check", ServiceCategory.Healthcare, 2),
+            new("HEALTHCARE_SANCTION", "Healthcare Sanctions Check", ServiceCategory.Healthcare, 2)
         };
 
         return Ok(types);

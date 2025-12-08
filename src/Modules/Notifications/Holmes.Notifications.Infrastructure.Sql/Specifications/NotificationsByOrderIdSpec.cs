@@ -4,7 +4,7 @@ using Holmes.Notifications.Infrastructure.Sql.Entities;
 namespace Holmes.Notifications.Infrastructure.Sql.Specifications;
 
 /// <summary>
-/// Finds all notifications for a specific order, ordered by creation date descending.
+///     Finds all notifications for a specific order, ordered by creation date descending.
 /// </summary>
 public sealed class NotificationsByOrderIdSpec : Specification<NotificationRequestDb>
 {

@@ -42,6 +42,78 @@ src/Modules/<Feature>/
 Tests reference the Application layer (for handlers) plus Infrastructure for
 integration scenarios.
 
+## Cross-Module Boundaries (CRITICAL)
+
+**A module MUST NEVER directly reference another module's Domain or Application projects.**
+
+This is a fundamental DDD rule that preserves bounded context independence:
+
+### ❌ FORBIDDEN References
+
+```
+Holmes.SlaClocks.Application → Holmes.Workflow.Domain        # NO!
+Holmes.Services.Application  → Holmes.Subjects.Domain        # NO!
+Holmes.Intake.Infrastructure → Holmes.Workflow.Application   # NO!
+```
+
+### ✅ ALLOWED Cross-Module Communication
+
+When Module A needs data or behavior from Module B:
+
+1. **Module B exposes an `*.Application.Abstractions` project** containing:
+   - DTOs (data transfer objects)
+   - Query interfaces (e.g., `IOrderReadModel`)
+   - Event contracts for integration events
+   - Broadcaster/notification interfaces
+
+2. **Module A references only `Holmes.ModuleB.Application.Abstractions`** — never
+   the Domain or Application implementation.
+
+3. **The host wires up the implementations** via DI, keeping modules decoupled.
+
+### Example: SlaClocks needs Order status
+
+```
+# WRONG - direct domain reference
+Holmes.SlaClocks.Application → Holmes.Workflow.Domain
+
+# RIGHT - abstraction reference
+Holmes.Workflow.Application.Abstractions/
+  └── IOrderStatusProvider.cs
+  └── Dtos/OrderStatusDto.cs
+
+Holmes.SlaClocks.Application → Holmes.Workflow.Application.Abstractions
+Holmes.Workflow.Infrastructure.Sql implements IOrderStatusProvider
+Host registers IOrderStatusProvider in DI
+```
+
+### Why This Matters
+
+- **Testability**: Modules can be tested in isolation with mocks
+- **Deployability**: Modules could theoretically be deployed independently
+- **Evolvability**: Internal domain changes don't cascade across modules
+- **Clarity**: Dependencies are explicit contracts, not hidden couplings
+
+### Cross-Module Event Handlers
+
+When a domain event from Module A needs to trigger behavior in Module B, the handler belongs in
+`Holmes.App.Integration`, NOT in either module's Application project.
+
+```
+# Example: OrderStatusChanged (Workflow) → Start SLA clocks (SlaClocks)
+
+Holmes.App.Integration/
+  └── NotificationHandlers/
+      └── OrderStatusChangedSlaHandler.cs  # Handles Workflow event, sends SlaClocks commands
+
+Holmes.App.Integration.csproj references:
+  - Holmes.Workflow.Application (for OrderStatusChanged event)
+  - Holmes.SlaClocks.Application (for StartSlaClockCommand)
+```
+
+This keeps each module internally cohesive and places cross-cutting orchestration in the integration layer
+where it can see all modules.
+
 ## Unit of Work Pattern
 
 Each feature exposes an interface in Domain:

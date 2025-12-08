@@ -23,6 +23,7 @@ Background screening is fundamentally about **services**: discrete units of work
 **Answer:** Services are a **separate bounded context** (`Holmes.Services`) with `ServiceRequest` as an aggregate root.
 
 **Why not child entities of Order?**
+
 - Services have independent lifecycles (async vendor callbacks, retries at different times)
 - Order aggregate would become massive with N service types
 - Contention: updates to one service shouldn't lock the entire Order
@@ -30,6 +31,7 @@ Background screening is fundamentally about **services**: discrete units of work
 - Anti-corruption layer is cleaner as a separate concern
 
 **Relationship to Order:**
+
 - Order *references* ServiceRequests by ID
 - `OrderRoutingService` creates ServiceRequests when Order reaches `ReadyForRouting`
 - Order subscribes to `ServiceRequestCompleted` events to know when to advance
@@ -53,17 +55,17 @@ Standing ceremonies:
 
 ## 3. Scope Breakdown
 
-| Track | Deliverables | Definition of Done |
-|-------|--------------|-------------------|
-| **ServiceRequest Aggregate** | `ServiceRequest` with state machine, tier assignment, vendor assignment, result storage | State transitions fire domain events; results stored in normalized schema; aggregate replayable |
-| **Service Tiering** | Customer-defined execution tiers with stop conditions | Tier 1 completes before Tier 2 dispatches; stop conditions halt downstream tiers; parallel mode option |
-| **Service Type Taxonomy** | `ServiceType` enum/value object with categories and specific types | All common service types defined; extensible for custom types |
-| **Service Catalog** | `ServiceCatalog` aggregate for customer-specific service configurations | Customer can enable/disable service types; tier assignments; vendor mappings per customer |
-| **Vendor Adapter Layer** | `IVendorAdapter` interface, `IVendorCredentialStore`, `StubVendorAdapter` | Adapters translate vendor protocols; credentials fetched from secure store; stub returns fixture data |
-| **Order Routing** | `OrderRoutingService` that determines services from package + policy | Package code maps to service list; services created with tier assignments when Order ready for routing |
-| **Service SLA Clocks** | Optional service-level SLA tracking | Clock starts on dispatch; at-risk/breach detection; customer-configurable targets |
-| **Address History** | Subject enhancement with address collection | Addresses captured during intake; county FIPS derivation for criminal searches |
-| **Read Models** | `service_requests`, `service_results`, `fulfillment_dashboard` | Projections replayable; dashboard shows in-flight services by tier |
+| Track                        | Deliverables                                                                            | Definition of Done                                                                                     |
+|------------------------------|-----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| **ServiceRequest Aggregate** | `ServiceRequest` with state machine, tier assignment, vendor assignment, result storage | State transitions fire domain events; results stored in normalized schema; aggregate replayable        |
+| **Service Tiering**          | Customer-defined execution tiers with stop conditions                                   | Tier 1 completes before Tier 2 dispatches; stop conditions halt downstream tiers; parallel mode option |
+| **Service Type Taxonomy**    | `ServiceType` enum/value object with categories and specific types                      | All common service types defined; extensible for custom types                                          |
+| **Service Catalog**          | `ServiceCatalog` aggregate for customer-specific service configurations                 | Customer can enable/disable service types; tier assignments; vendor mappings per customer              |
+| **Vendor Adapter Layer**     | `IVendorAdapter` interface, `IVendorCredentialStore`, `StubVendorAdapter`               | Adapters translate vendor protocols; credentials fetched from secure store; stub returns fixture data  |
+| **Order Routing**            | `OrderRoutingService` that determines services from package + policy                    | Package code maps to service list; services created with tier assignments when Order ready for routing |
+| **Service SLA Clocks**       | Optional service-level SLA tracking                                                     | Clock starts on dispatch; at-risk/breach detection; customer-configurable targets                      |
+| **Address History**          | Subject enhancement with address collection                                             | Addresses captured during intake; county FIPS derivation for criminal searches                         |
+| **Read Models**              | `service_requests`, `service_results`, `fulfillment_dashboard`                          | Projections replayable; dashboard shows in-flight services by tier                                     |
 
 ## 4. Domain Model
 
@@ -104,6 +106,7 @@ Holmes.Services.Infrastructure.Sql/
 > Secrets Manager, encrypted DB) without domain changes.
 
 **States:**
+
 ```
 Pending → Dispatched → InProgress → Completed
                    ↘            ↗
@@ -113,6 +116,7 @@ Pending → Dispatched → InProgress → Completed
 ```
 
 **Invariants:**
+
 - Must have OrderId and ServiceType
 - Cannot dispatch without VendorAssignment
 - Cannot complete without ServiceResult
@@ -125,6 +129,7 @@ Pending → Dispatched → InProgress → Completed
 Services execute in **customer-defined tiers** to optimize cost and enable fail-fast behavior.
 
 **Why Tiering Matters:**
+
 - **Cost optimization:** Don't pay $50 for a drug test if the $2 SSN trace returns no-match
 - **Fail-fast:** Disqualifying results in early tiers can halt expensive downstream work
 - **Compliance gates:** Some jurisdictions require identity verification before criminal checks
@@ -132,12 +137,12 @@ Services execute in **customer-defined tiers** to optimize cost and enable fail-
 
 **Default Tier Structure (customer-overridable):**
 
-| Tier | Services | Rationale |
-|------|----------|-----------|
-| **1** | SSN Trace, SSN Verification, Address Verification, OFAC/Sanctions | Cheap, fast, identity validation |
-| **2** | Federal Criminal, Statewide, County Searches, Sex Offender | Core criminal screening |
-| **3** | Employment Verification, Education Verification | Slower, requires outreach |
-| **4** | Drug Test, Physical, MVR, Credit Check | Expensive, only if earlier tiers pass |
+| Tier  | Services                                                          | Rationale                             |
+|-------|-------------------------------------------------------------------|---------------------------------------|
+| **1** | SSN Trace, SSN Verification, Address Verification, OFAC/Sanctions | Cheap, fast, identity validation      |
+| **2** | Federal Criminal, Statewide, County Searches, Sex Offender        | Core criminal screening               |
+| **3** | Employment Verification, Education Verification                   | Slower, requires outreach             |
+| **4** | Drug Test, Physical, MVR, Credit Check                            | Expensive, only if earlier tiers pass |
 
 **Tier Execution Logic:**
 
@@ -173,6 +178,7 @@ public sealed class TierExecutionService
 ```
 
 **Stop Conditions (customer-defined):**
+
 - `SSNMismatch` — SSN doesn't match provided info
 - `DeceasedRecord` — Subject appears on Death Master File
 - `SanctionsHit` — OFAC/watchlist match requires manual review
@@ -201,7 +207,8 @@ parallel_mode: false  # true = ignore tiers, run everything at once
 
 ### 4.2.1 ServiceCatalog Snapshotting
 
-**Why Snapshot?** Customer configuration changes over time — adding services, reordering tiers, adjusting stop conditions. Like `PolicySnapshotId` on Order, we snapshot the ServiceCatalog at routing time so:
+**Why Snapshot?** Customer configuration changes over time — adding services, reordering tiers, adjusting stop
+conditions. Like `PolicySnapshotId` on Order, we snapshot the ServiceCatalog at routing time so:
 
 - **In-flight orders are immutable** — config changes don't affect orders already routing
 - **Audit trail** — reconstruct exactly which services/tiers were configured for any order
@@ -265,12 +272,12 @@ ALTER TABLE services.service_requests
 
 **Analogy to PolicySnapshotId:**
 
-| Concept | Policy | ServiceCatalog |
-|---------|--------|----------------|
+| Concept          | Policy                                              | ServiceCatalog                                            |
+|------------------|-----------------------------------------------------|-----------------------------------------------------------|
 | What it captures | SLA rules, intake requirements, adjudication matrix | Tiers, stop conditions, vendor mappings, enabled services |
-| When snapshotted | Order creation | Order routing |
-| Stored on | `Order.PolicySnapshotId` | `ServiceRequest.CatalogSnapshotId` |
-| Ensures | Policy changes don't affect in-flight orders | Service config changes don't affect in-flight orders |
+| When snapshotted | Order creation                                      | Order routing                                             |
+| Stored on        | `Order.PolicySnapshotId`                            | `ServiceRequest.CatalogSnapshotId`                        |
+| Ensures          | Policy changes don't affect in-flight orders        | Service config changes don't affect in-flight orders      |
 
 ### 4.3 Service Type Taxonomy
 
@@ -773,65 +780,66 @@ PUT  /api/admin/customers/{id}/services/{type} # Update service config
 ## 11. Acceptance Checklist
 
 1. **ServiceRequest Aggregate:**
-   - [ ] State machine enforces valid transitions
-   - [ ] Domain events fire on state changes
-   - [ ] Results stored in normalized schema
-   - [ ] Retry logic respects max attempts
-   - [ ] Tier assignment stored and queryable
+    - [ ] State machine enforces valid transitions
+    - [ ] Domain events fire on state changes
+    - [ ] Results stored in normalized schema
+    - [ ] Retry logic respects max attempts
+    - [ ] Tier assignment stored and queryable
 
 2. **Service Tiering:**
-   - [ ] Tier 1 services dispatch immediately on routing
-   - [ ] Tier N waits for Tier N-1 completion
-   - [ ] Stop conditions halt downstream tiers
-   - [ ] Parallel mode bypasses tier ordering
-   - [ ] Customer-specific tier configuration honored
-   - [ ] ServiceCatalog snapshotted at routing time
-   - [ ] ServiceRequests reference catalog snapshot ID
+    - [ ] Tier 1 services dispatch immediately on routing
+    - [ ] Tier N waits for Tier N-1 completion
+    - [ ] Stop conditions halt downstream tiers
+    - [ ] Parallel mode bypasses tier ordering
+    - [ ] Customer-specific tier configuration honored
+    - [ ] ServiceCatalog snapshotted at routing time
+    - [ ] ServiceRequests reference catalog snapshot ID
 
 3. **Service Type Taxonomy:**
-   - [ ] All common service types defined
-   - [ ] Category/type hierarchy queryable
-   - [ ] Extensible for custom types
+    - [ ] All common service types defined
+    - [ ] Category/type hierarchy queryable
+    - [ ] Extensible for custom types
 
 4. **Vendor Adapter Layer:**
-   - [ ] `IVendorAdapter` contract supports real vendors
-   - [ ] `StubVendorAdapter` returns fixture data
-   - [ ] Callback webhook receives and routes payloads
-   - [ ] Dispatch service polls and dispatches
+    - [ ] `IVendorAdapter` contract supports real vendors
+    - [ ] `StubVendorAdapter` returns fixture data
+    - [ ] Callback webhook receives and routes payloads
+    - [ ] Dispatch service polls and dispatches
 
 5. **Order Integration:**
-   - [ ] Package routes to correct services with tier assignments
-   - [ ] Services created on `ReadyForRouting`
-   - [ ] Order advances when all services complete
-   - [ ] Canceled services don't block Order
+    - [ ] Package routes to correct services with tier assignments
+    - [ ] Services created on `ReadyForRouting`
+    - [ ] Order advances when all services complete
+    - [ ] Canceled services don't block Order
 
 6. **Address History:**
-   - [ ] Subject stores address collection
-   - [ ] Intake captures addresses per policy
-   - [ ] County FIPS derived for criminal searches
-   - [ ] Address years lookback respected
+    - [ ] Subject stores address collection
+    - [ ] Intake captures addresses per policy
+    - [ ] County FIPS derived for criminal searches
+    - [ ] Address years lookback respected
 
 7. **Service SLA Clocks:**
-   - [ ] Clock starts on dispatch (if configured)
-   - [ ] At-risk/breach detection works
-   - [ ] Clock completes when service completes
+    - [ ] Clock starts on dispatch (if configured)
+    - [ ] At-risk/breach detection works
+    - [ ] Clock completes when service completes
 
 8. **Read Models:**
-   - [ ] `service_requests` projection accurate (includes tier)
-   - [ ] `service_results` stores normalized data
-   - [ ] `fulfillment_dashboard` shows in-flight services by tier
+    - [ ] `service_requests` projection accurate (includes tier)
+    - [ ] `service_results` stores normalized data
+    - [ ] `fulfillment_dashboard` shows in-flight services by tier
 
 9. **Observability:**
-   - [ ] Service status metrics exposed
-   - [ ] Vendor health dashboard
-   - [ ] Alerts for stuck/failed services
+    - [ ] Service status metrics exposed
+    - [ ] Vendor health dashboard
+    - [ ] Alerts for stuck/failed services
 
 ## 12. Risks & Mitigations
 
 - **Vendor Contract Complexity:** Start with StubVendorAdapter; defer real vendor integrations to Phase 4+.
 - **County Resolution Accuracy:** ZIP-to-County covers 95%; add geocoding later.
 - **Service Explosion:** Limit initial taxonomy to most common types; add as needed.
-- **Tier Stop Conditions:** Carefully define what constitutes a "stop" vs "review required" to avoid blocking orders unnecessarily.
+- **Tier Stop Conditions:** Carefully define what constitutes a "stop" vs "review required" to avoid blocking orders
+  unnecessarily.
 
 ## 13. Dependencies
 

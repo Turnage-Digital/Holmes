@@ -100,7 +100,7 @@ public sealed record SubjectPhoneDto(
 );
 
 /// <summary>
-/// Full subject detail including all history collections.
+///     Full subject detail including all history collections.
 /// </summary>
 public sealed record SubjectDetailDto(
     string Id,

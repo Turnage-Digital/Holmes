@@ -14,7 +14,6 @@ import {
   CardContent,
   Chip,
   FormControl,
-  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -31,7 +30,11 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
-import type { ServiceCategory, ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
+import type {
+  ServiceCategory,
+  ServiceRequestSummaryDto,
+  ServiceStatus,
+} from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
 import {
@@ -142,7 +145,10 @@ const StatCard = ({ label, value, icon, color }: StatCardProps) => (
 // Category Chip Component
 // ============================================================================
 
-const categoryColors: Record<ServiceCategory, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
+const categoryColors: Record<
+  ServiceCategory,
+  "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"
+> = {
   Criminal: "error",
   Identity: "primary",
   Employment: "info",
@@ -162,8 +168,12 @@ const categoryColors: Record<ServiceCategory, "default" | "primary" | "secondary
 
 const FulfillmentDashboardPage = () => {
   const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState<ServiceStatus | "all">("all");
-  const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<ServiceStatus | "all">(
+    "all",
+  );
+  const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | "all">(
+    "all",
+  );
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 25,
@@ -178,7 +188,8 @@ const FulfillmentDashboardPage = () => {
   const filteredQueue = useMemo(() => {
     return fulfillmentQueue.filter((item) => {
       if (statusFilter !== "all" && item.status !== statusFilter) return false;
-      if (categoryFilter !== "all" && item.category !== categoryFilter) return false;
+      if (categoryFilter !== "all" && item.category !== categoryFilter)
+        return false;
       return true;
     });
   }, [fulfillmentQueue, statusFilter, categoryFilter]);
@@ -188,7 +199,7 @@ const FulfillmentDashboardPage = () => {
     return {
       pending: fulfillmentQueue.filter((s) => s.status === "Pending").length,
       inProgress: fulfillmentQueue.filter(
-        (s) => s.status === "InProgress" || s.status === "Dispatched"
+        (s) => s.status === "InProgress" || s.status === "Dispatched",
       ).length,
       failed: fulfillmentQueue.filter((s) => s.status === "Failed").length,
       total: fulfillmentQueue.length,

@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <SpaRoot>..\Holmes.Intake</SpaRoot>
-        <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+        <SpaProxyLaunchCommand>npm run intake:dev</SpaProxyLaunchCommand>
         <SpaProxyServerUrl>https://localhost:3002</SpaProxyServerUrl>
     </PropertyGroup>
 

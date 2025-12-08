@@ -5,7 +5,8 @@ namespace Holmes.Services.Infrastructure.Sql;
 
 public class ServicesDbContext : DbContext
 {
-    public ServicesDbContext(DbContextOptions<ServicesDbContext> options) : base(options)
+    public ServicesDbContext(DbContextOptions<ServicesDbContext> options)
+        : base(options)
     {
     }
 
@@ -19,7 +20,7 @@ public class ServicesDbContext : DbContext
 
         modelBuilder.Entity<ServiceRequestDb>(entity =>
         {
-            entity.ToTable("service_requests", "services");
+            entity.ToTable("service_requests");
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id).HasMaxLength(26).IsFixedLength();
@@ -60,7 +61,7 @@ public class ServicesDbContext : DbContext
 
         modelBuilder.Entity<ServiceResultDb>(entity =>
         {
-            entity.ToTable("service_results", "services");
+            entity.ToTable("service_results");
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id).HasMaxLength(26).IsFixedLength();
@@ -77,7 +78,7 @@ public class ServicesDbContext : DbContext
 
         modelBuilder.Entity<ServiceCatalogSnapshotDb>(entity =>
         {
-            entity.ToTable("service_catalog_snapshots", "services");
+            entity.ToTable("service_catalog_snapshots");
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id).HasMaxLength(26).IsFixedLength();

@@ -12,7 +12,8 @@ public sealed record OrderCompletionStatus(
     int CompletedServices,
     int PendingServices,
     int InProgressServices,
-    int FailedServices);
+    int FailedServices
+);
 
 public sealed record GetOrderCompletionStatusQuery(
     UlidId OrderId
@@ -24,7 +25,8 @@ public sealed class GetOrderCompletionStatusQueryHandler(
 {
     public async Task<Result<OrderCompletionStatus>> Handle(
         GetOrderCompletionStatusQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var services = await unitOfWork.ServiceRequests.GetByOrderIdAsync(
             request.OrderId, cancellationToken);
@@ -32,25 +34,26 @@ public sealed class GetOrderCompletionStatusQueryHandler(
         if (services.Count == 0)
         {
             return Result.Success(new OrderCompletionStatus(
-                AllCompleted: true,
-                TotalServices: 0,
-                CompletedServices: 0,
-                PendingServices: 0,
-                InProgressServices: 0,
-                FailedServices: 0));
+                true,
+                0,
+                0,
+                0,
+                0,
+                0));
         }
 
         var completed = services.Count(s => s.Status == ServiceStatus.Completed || s.Status == ServiceStatus.Canceled);
         var pending = services.Count(s => s.Status == ServiceStatus.Pending);
-        var inProgress = services.Count(s => s.Status == ServiceStatus.Dispatched || s.Status == ServiceStatus.InProgress);
+        var inProgress =
+            services.Count(s => s.Status == ServiceStatus.Dispatched || s.Status == ServiceStatus.InProgress);
         var failed = services.Count(s => s.Status == ServiceStatus.Failed);
 
         return Result.Success(new OrderCompletionStatus(
-            AllCompleted: completed == services.Count,
-            TotalServices: services.Count,
-            CompletedServices: completed,
-            PendingServices: pending,
-            InProgressServices: inProgress,
-            FailedServices: failed));
+            completed == services.Count,
+            services.Count,
+            completed,
+            pending,
+            inProgress,
+            failed));
     }
 }

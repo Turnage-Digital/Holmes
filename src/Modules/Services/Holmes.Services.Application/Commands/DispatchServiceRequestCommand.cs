@@ -19,7 +19,8 @@ public sealed class DispatchServiceRequestCommandHandler(
 {
     public async Task<Result> Handle(
         DispatchServiceRequestCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var serviceRequest = await unitOfWork.ServiceRequests.GetByIdAsync(
             request.ServiceRequestId, cancellationToken);
@@ -31,7 +32,7 @@ public sealed class DispatchServiceRequestCommandHandler(
 
         if (serviceRequest.Status != ServiceStatus.Pending)
         {
-            return Result.Fail($"Service request is not in Pending status");
+            return Result.Fail("Service request is not in Pending status");
         }
 
         // If no vendor assigned, select one based on category
@@ -55,7 +56,6 @@ public sealed class DispatchServiceRequestCommandHandler(
 
         // Dispatch to vendor
         var dispatchResult = await vendorAdapter.DispatchAsync(serviceRequest, cancellationToken);
-
         if (!dispatchResult.Success)
         {
             serviceRequest.Fail(dispatchResult.ErrorMessage ?? "Dispatch failed", request.DispatchedAt);

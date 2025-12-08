@@ -8,7 +8,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
-        <ProjectReference Include="..\..\Workflow\Holmes.Workflow.Domain\Holmes.Workflow.Domain.csproj"/>
         <ProjectReference Include="..\Holmes.SlaClocks.Domain\Holmes.SlaClocks.Domain.csproj"/>
     </ItemGroup>
 

@@ -10,7 +10,6 @@
         <ProjectReference Include="..\..\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
         <ProjectReference Include="..\Holmes.Intake.Application.Abstractions\Holmes.Intake.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\..\Workflow\Holmes.Workflow.Application.Abstractions\Holmes.Workflow.Application.Abstractions.csproj"/>
-        <ProjectReference Include="..\..\Workflow\Holmes.Workflow.Application\Holmes.Workflow.Application.csproj"/>
         <ProjectReference Include="..\Holmes.Intake.Domain\Holmes.Intake.Domain.csproj"/>
     </ItemGroup>
 

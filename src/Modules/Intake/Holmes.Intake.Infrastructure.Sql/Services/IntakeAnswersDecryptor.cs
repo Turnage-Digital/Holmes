@@ -22,7 +22,8 @@ public sealed class IntakeAnswersDecryptor(
 
     public async Task<DecryptedIntakeAnswers?> DecryptAsync(
         IntakeAnswersSnapshot snapshot,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         try
         {
@@ -54,8 +55,9 @@ public sealed class IntakeAnswersDecryptor(
         }
     }
 
-    private static DecryptedAddress MapAddress(IntakeAddressPayload a) =>
-        new(
+    private static DecryptedAddress MapAddress(IntakeAddressPayload a)
+    {
+        return new DecryptedAddress(
             a.Street1 ?? string.Empty,
             a.Street2,
             a.City ?? string.Empty,
@@ -67,9 +69,11 @@ public sealed class IntakeAnswersDecryptor(
             a.ToDate,
             a.Type ?? 0
         );
+    }
 
-    private static DecryptedEmployment MapEmployment(IntakeEmploymentPayload e) =>
-        new(
+    private static DecryptedEmployment MapEmployment(IntakeEmploymentPayload e)
+    {
+        return new DecryptedEmployment(
             e.EmployerName ?? string.Empty,
             e.EmployerPhone,
             e.EmployerAddress,
@@ -81,9 +85,11 @@ public sealed class IntakeAnswersDecryptor(
             e.ReasonForLeaving,
             e.CanContact ?? false
         );
+    }
 
-    private static DecryptedEducation MapEducation(IntakeEducationPayload e) =>
-        new(
+    private static DecryptedEducation MapEducation(IntakeEducationPayload e)
+    {
+        return new DecryptedEducation(
             e.InstitutionName ?? string.Empty,
             e.InstitutionAddress,
             e.Degree,
@@ -93,9 +99,11 @@ public sealed class IntakeAnswersDecryptor(
             e.GraduationDate,
             e.Graduated ?? false
         );
+    }
 
-    private static DecryptedReference MapReference(IntakeReferencePayload r) =>
-        new(
+    private static DecryptedReference MapReference(IntakeReferencePayload r)
+    {
+        return new DecryptedReference(
             r.Name ?? string.Empty,
             r.Phone,
             r.Email,
@@ -103,13 +111,16 @@ public sealed class IntakeAnswersDecryptor(
             r.YearsKnown,
             r.Type ?? 0
         );
+    }
 
-    private static DecryptedPhone MapPhone(IntakePhonePayload p) =>
-        new(
+    private static DecryptedPhone MapPhone(IntakePhonePayload p)
+    {
+        return new DecryptedPhone(
             p.PhoneNumber ?? string.Empty,
             p.Type ?? 0,
             p.IsPrimary ?? false
         );
+    }
 
     // Internal payload models matching JSON structure from frontend
     private sealed record IntakeAnswersPayload

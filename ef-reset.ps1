@@ -85,6 +85,12 @@ $modules = @(
         MigrationName = "InitialWorkflow"
     },
     @{
+        Name = "Services"
+        Project = "src/Modules/Services/Holmes.Services.Infrastructure.Sql/Holmes.Services.Infrastructure.Sql.csproj"
+        Context = "Holmes.Services.Infrastructure.Sql.ServicesDbContext"
+        MigrationName = "InitialServices"
+    },
+    @{
         Name = "Notifications"
         Project = "src/Modules/Notifications/Holmes.Notifications.Infrastructure.Sql/Holmes.Notifications.Infrastructure.Sql.csproj"
         Context = "Holmes.Notifications.Infrastructure.Sql.NotificationsDbContext"

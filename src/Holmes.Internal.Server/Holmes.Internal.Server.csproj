@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>false</IsPackable>
         <SpaRoot>..\Holmes.Internal</SpaRoot>
-        <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+        <SpaProxyLaunchCommand>npm run internal:dev</SpaProxyLaunchCommand>
         <SpaProxyServerUrl>https://localhost:3003</SpaProxyServerUrl>
     </PropertyGroup>
 

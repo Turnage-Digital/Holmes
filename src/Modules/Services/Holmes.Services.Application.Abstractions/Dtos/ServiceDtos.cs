@@ -3,7 +3,7 @@ using Holmes.Services.Domain;
 namespace Holmes.Services.Application.Abstractions.Dtos;
 
 /// <summary>
-/// Summary DTO for a service request, used in list views and order services.
+///     Summary DTO for a service request, used in list views and order services.
 /// </summary>
 public sealed record ServiceRequestSummaryDto(
     string Id,
@@ -28,7 +28,7 @@ public sealed record ServiceRequestSummaryDto(
 );
 
 /// <summary>
-/// Response containing all services for an order with aggregated counts.
+///     Response containing all services for an order with aggregated counts.
 /// </summary>
 public sealed record OrderServicesDto(
     string OrderId,
@@ -40,7 +40,7 @@ public sealed record OrderServicesDto(
 );
 
 /// <summary>
-/// DTO representing a service type definition.
+///     DTO representing a service type definition.
 /// </summary>
 public sealed record ServiceTypeDto(
     string Code,

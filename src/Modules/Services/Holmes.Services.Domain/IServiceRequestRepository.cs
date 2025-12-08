@@ -6,25 +6,32 @@ public interface IServiceRequestRepository
 {
     Task<ServiceRequest?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ServiceRequest>> GetByOrderIdAsync(UlidId orderId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ServiceRequest>> GetByOrderIdAsync(
+        UlidId orderId,
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyList<ServiceRequest>> GetPendingByTierAsync(
         UlidId orderId,
         int tier,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyList<ServiceRequest>> GetPendingForDispatchAsync(
         int batchSize,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task<IReadOnlyList<ServiceRequest>> GetRetryableAsync(
         int batchSize,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task<ServiceRequest?> GetByVendorReferenceAsync(
         string vendorCode,
         string vendorReferenceId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 
     Task<bool> AllCompletedForOrderAsync(UlidId orderId, CancellationToken cancellationToken = default);
 

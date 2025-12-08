@@ -1,4 +1,7 @@
 import React from "react";
+
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Box,
   Button,
@@ -12,10 +15,8 @@ import {
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
-import { IntakeEducation, createEmptyEducation } from "@/types/intake";
+import { createEmptyEducation, IntakeEducation } from "@/types/intake";
 
 interface EducationHistoryFormProps {
   educations: IntakeEducation[];
@@ -42,13 +43,13 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
 
   const handleUpdateEducation = (
     id: string,
-    updates: Partial<IntakeEducation>
+    updates: Partial<IntakeEducation>,
   ) => {
     onChange(
       educations.map((e) => {
         if (e.id !== id) return e;
         return { ...e, ...updates };
-      })
+      }),
     );
   };
 
@@ -73,8 +74,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) =>
-              alpha(theme.palette.action.hover, 0.02),
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
           }}
         >
           <Typography color="text.secondary" gutterBottom>

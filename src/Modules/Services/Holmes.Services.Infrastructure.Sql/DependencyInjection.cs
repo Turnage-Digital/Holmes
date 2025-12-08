@@ -13,7 +13,8 @@ public static class DependencyInjection
     public static IServiceCollection AddServicesInfrastructureSql(
         this IServiceCollection services,
         string connectionString,
-        ServerVersion serverVersion)
+        ServerVersion serverVersion
+    )
     {
         services.AddDbContext<ServicesDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>

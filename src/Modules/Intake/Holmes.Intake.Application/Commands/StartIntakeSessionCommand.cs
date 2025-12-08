@@ -2,7 +2,6 @@ using Holmes.Core.Application;
 using Holmes.Core.Domain.Results;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Domain;
-using Holmes.Workflow.Application.Commands;
 using MediatR;
 
 namespace Holmes.Intake.Application.Commands;
@@ -15,8 +14,7 @@ public sealed record StartIntakeSessionCommand(
 ) : RequestBase<Result>;
 
 public sealed class StartIntakeSessionCommandHandler(
-    IIntakeUnitOfWork unitOfWork,
-    ISender sender
+    IIntakeUnitOfWork unitOfWork
 ) : IRequestHandler<StartIntakeSessionCommand, Result>
 {
     public async Task<Result> Handle(StartIntakeSessionCommand request, CancellationToken cancellationToken)
@@ -44,11 +42,8 @@ public sealed class StartIntakeSessionCommandHandler(
         await unitOfWork.IntakeSessions.UpdateAsync(session, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await sender.Send(new MarkOrderIntakeStartedCommand(
-            session.OrderId,
-            request.IntakeSessionId,
-            request.StartedAt,
-            "Subject resumed intake"), cancellationToken);
+        // IntakeSessionStarted domain event is published by UnitOfWork.SaveChangesAsync
+        // IntakeToWorkflowHandler in App.Integration listens and sends MarkOrderIntakeStartedCommand
 
         return Result.Success();
     }

@@ -16,7 +16,8 @@ public sealed class GetServiceRequestsByOrderQueryHandler(
 {
     public async Task<Result<IReadOnlyList<ServiceRequest>>> Handle(
         GetServiceRequestsByOrderQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var serviceRequests = await unitOfWork.ServiceRequests.GetByOrderIdAsync(
             request.OrderId, cancellationToken);

@@ -32,6 +32,6 @@ public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepo
             throw new InvalidOperationException($"Order '{order.Id}' not found.");
         }
 
-        OrderMapper.Apply(order, record);
+        OrderMapper.UpdateDb(record, order);
     }
 }

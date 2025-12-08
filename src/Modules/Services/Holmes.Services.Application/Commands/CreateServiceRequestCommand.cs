@@ -22,7 +22,8 @@ public sealed class CreateServiceRequestCommandHandler(
 {
     public async Task<Result<UlidId>> Handle(
         CreateServiceRequestCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var serviceType = ServiceType.FromCode(request.ServiceTypeCode);
         if (serviceType is null)

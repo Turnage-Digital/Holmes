@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Domain;
+using Holmes.Users.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Users.Infrastructure.Sql.Repositories;

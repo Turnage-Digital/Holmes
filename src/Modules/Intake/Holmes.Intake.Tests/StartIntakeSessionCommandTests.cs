@@ -1,8 +1,6 @@
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Tests.TestHelpers;
-using Holmes.Workflow.Application.Commands;
-using MediatR;
 using Moq;
 
 namespace Holmes.Intake.Tests;
@@ -10,25 +8,23 @@ namespace Holmes.Intake.Tests;
 public class StartIntakeSessionCommandTests
 {
     private Mock<IIntakeSessionRepository> _repositoryMock = null!;
-    private Mock<ISender> _senderMock = null!;
     private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
     {
         _repositoryMock = new Mock<IIntakeSessionRepository>();
-        _senderMock = new Mock<ISender>();
         _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repositoryMock.Object);
     }
 
     [Test]
-    public async Task StartsSessionAndNotifiesWorkflow()
+    public async Task StartsSession()
     {
         var session = IntakeSessionTestFactory.CreateInvitedSession();
         _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
-        var handler = new StartIntakeSessionCommandHandler(_unitOfWorkMock.Object, _senderMock.Object);
+        var handler = new StartIntakeSessionCommandHandler(_unitOfWorkMock.Object);
 
         var command = new StartIntakeSessionCommand(
             session.Id,
@@ -43,9 +39,8 @@ public class StartIntakeSessionCommandTests
             Assert.That(result.IsSuccess, Is.True);
             Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.InProgress));
         });
-        _senderMock.Verify(x => x.Send(
-            It.Is<MarkOrderIntakeStartedCommand>(c => c.OrderId == session.OrderId),
-            It.IsAny<CancellationToken>()), Times.Once);
+        // Note: Workflow notification now happens via IntakeSessionStarted domain event
+        // handled by IntakeToWorkflowHandler in App.Integration
     }
 
     [Test]
@@ -54,7 +49,7 @@ public class StartIntakeSessionCommandTests
         var session = IntakeSessionTestFactory.CreateInvitedSession();
         _repositoryMock.Setup(x => x.GetByIdAsync(session.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
-        var handler = new StartIntakeSessionCommandHandler(_unitOfWorkMock.Object, _senderMock.Object);
+        var handler = new StartIntakeSessionCommandHandler(_unitOfWorkMock.Object);
 
         var result = await handler.Handle(new StartIntakeSessionCommand(
             session.Id,

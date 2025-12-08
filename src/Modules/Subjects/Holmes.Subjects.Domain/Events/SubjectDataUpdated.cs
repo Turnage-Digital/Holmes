@@ -11,4 +11,5 @@ public sealed record SubjectDataUpdated(
     int ReferenceCount,
     int PhoneCount,
     bool HasSsn,
-    DateTimeOffset Timestamp) : INotification;
+    DateTimeOffset Timestamp
+) : INotification;

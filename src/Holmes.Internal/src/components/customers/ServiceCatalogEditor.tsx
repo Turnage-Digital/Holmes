@@ -3,11 +3,9 @@ import React, { useMemo, useState } from "react";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import SaveIcon from "@mui/icons-material/Save";
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
@@ -37,7 +35,10 @@ import { getErrorMessage } from "@/utils/errorMessage";
 // Category Chip Component
 // ============================================================================
 
-const categoryColors: Record<ServiceCategory, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
+const categoryColors: Record<
+  ServiceCategory,
+  "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"
+> = {
   Criminal: "error",
   Identity: "primary",
   Employment: "info",
@@ -176,11 +177,11 @@ const ServiceCatalogEditor = ({
   services,
 }: ServiceCatalogEditorProps) => {
   const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | "all">(
-    "all"
+    "all",
   );
-  const [enabledFilter, setEnabledFilter] = useState<"all" | "enabled" | "disabled">(
-    "all"
-  );
+  const [enabledFilter, setEnabledFilter] = useState<
+    "all" | "enabled" | "disabled"
+  >("all");
   const [successMessage, setSuccessMessage] = useState<string>();
   const [errorMessage, setErrorMessage] = useState<string>();
 
@@ -217,7 +218,7 @@ const ServiceCatalogEditor = ({
       isEnabled: boolean;
       tier: number;
       vendorCode: string | undefined;
-    }>
+    }>,
   ) => {
     setErrorMessage(undefined);
     setSuccessMessage(undefined);
@@ -301,7 +302,7 @@ const ServiceCatalogEditor = ({
                 label="Status"
                 onChange={(e) =>
                   setEnabledFilter(
-                    e.target.value as "all" | "enabled" | "disabled"
+                    e.target.value as "all" | "enabled" | "disabled",
                   )
                 }
               >

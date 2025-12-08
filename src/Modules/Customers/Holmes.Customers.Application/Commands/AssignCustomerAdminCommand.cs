@@ -2,7 +2,7 @@ using Holmes.Core.Application;
 using Holmes.Core.Domain.Results;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
-using Holmes.Users.Domain;
+using Holmes.Users.Application.Abstractions;
 using MediatR;
 
 namespace Holmes.Customers.Application.Commands;

@@ -23,6 +23,73 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectAddressDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<int>("AddressType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("varchar(3)");
+
+                    b.Property<string>("CountyFips")
+                        .HasMaxLength(5)
+                        .HasColumnType("varchar(5)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<DateOnly>("FromDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Street1")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Street2")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("SubjectId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateOnly?>("ToDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("SubjectId", "FromDate", "ToDate");
+
+                    b.ToTable("subject_addresses", (string)null);
+                });
+
             modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectAliasDb", b =>
                 {
                     b.Property<long>("Id")
@@ -75,6 +142,10 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("varchar(320)");
 
+                    b.Property<byte[]>("EncryptedSsn")
+                        .HasMaxLength(256)
+                        .HasColumnType("varbinary(256)");
+
                     b.Property<string>("FamilyName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -95,6 +166,15 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                     b.Property<string>("MergedIntoSubjectId")
                         .HasMaxLength(26)
                         .HasColumnType("varchar(26)");
+
+                    b.Property<string>("MiddleName")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("SsnLast4")
+                        .HasMaxLength(4)
+                        .HasColumnType("char(4)")
+                        .IsFixedLength();
 
                     b.HasKey("SubjectId");
 
@@ -142,6 +222,210 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                     b.ToTable("subject_directory", (string)null);
                 });
 
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectEducationDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateOnly?>("AttendedFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("AttendedTo")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("Degree")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<bool>("Graduated")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateOnly?>("GraduationDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("InstitutionAddress")
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)");
+
+                    b.Property<string>("InstitutionName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Major")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("SubjectId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("subject_educations", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectEmploymentDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<bool>("CanContact")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("EmployerAddress")
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)");
+
+                    b.Property<string>("EmployerName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("EmployerPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("ReasonForLeaving")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("SubjectId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<string>("SupervisorName")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("SupervisorPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("subject_employments", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectPhoneDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("PhoneType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubjectId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("subject_phones", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectReferenceDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("ReferenceType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Relationship")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("SubjectId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<int?>("YearsKnown")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("subject_references", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectAddressDb", b =>
+                {
+                    b.HasOne("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDb", "Subject")
+                        .WithMany("Addresses")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+                });
+
             modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectAliasDb", b =>
                 {
                     b.HasOne("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDb", "Subject")
@@ -153,9 +437,63 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                     b.Navigation("Subject");
                 });
 
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectEducationDb", b =>
+                {
+                    b.HasOne("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDb", "Subject")
+                        .WithMany("Educations")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectEmploymentDb", b =>
+                {
+                    b.HasOne("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDb", "Subject")
+                        .WithMany("Employments")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectPhoneDb", b =>
+                {
+                    b.HasOne("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDb", "Subject")
+                        .WithMany("Phones")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectReferenceDb", b =>
+                {
+                    b.HasOne("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDb", "Subject")
+                        .WithMany("References")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+                });
+
             modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDb", b =>
                 {
+                    b.Navigation("Addresses");
+
                     b.Navigation("Aliases");
+
+                    b.Navigation("Educations");
+
+                    b.Navigation("Employments");
+
+                    b.Navigation("Phones");
+
+                    b.Navigation("References");
                 });
 #pragma warning restore 612, 618
         }

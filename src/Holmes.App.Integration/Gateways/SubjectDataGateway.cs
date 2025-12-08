@@ -13,7 +13,8 @@ public sealed class SubjectDataGateway(
 {
     public async Task UpdateSubjectIntakeDataAsync(
         SubjectIntakeDataUpdate update,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         logger.LogInformation(
             "Updating subject {SubjectId} with intake data: {AddressCount} addresses, {EmploymentCount} employments, {EducationCount} educations",
@@ -28,52 +29,57 @@ public sealed class SubjectDataGateway(
             update.EncryptedSsn,
             update.SsnLast4,
             update.Addresses.Select(a => new SubjectIntakeAddress(
-                a.Street1,
-                a.Street2,
-                a.City,
-                a.State,
-                a.PostalCode,
-                a.Country,
-                a.CountyFips,
-                a.FromDate,
-                a.ToDate,
-                (AddressType)a.Type
-            )).ToList(),
+                    a.Street1,
+                    a.Street2,
+                    a.City,
+                    a.State,
+                    a.PostalCode,
+                    a.Country,
+                    a.CountyFips,
+                    a.FromDate,
+                    a.ToDate,
+                    (AddressType)a.Type
+                ))
+                .ToList(),
             update.Employments.Select(e => new SubjectIntakeEmployment(
-                e.EmployerName,
-                e.EmployerPhone,
-                e.EmployerAddress,
-                e.JobTitle,
-                e.SupervisorName,
-                e.SupervisorPhone,
-                e.StartDate,
-                e.EndDate,
-                e.ReasonForLeaving,
-                e.CanContact
-            )).ToList(),
+                    e.EmployerName,
+                    e.EmployerPhone,
+                    e.EmployerAddress,
+                    e.JobTitle,
+                    e.SupervisorName,
+                    e.SupervisorPhone,
+                    e.StartDate,
+                    e.EndDate,
+                    e.ReasonForLeaving,
+                    e.CanContact
+                ))
+                .ToList(),
             update.Educations.Select(e => new SubjectIntakeEducation(
-                e.InstitutionName,
-                e.InstitutionAddress,
-                e.Degree,
-                e.Major,
-                e.AttendedFrom,
-                e.AttendedTo,
-                e.GraduationDate,
-                e.Graduated
-            )).ToList(),
+                    e.InstitutionName,
+                    e.InstitutionAddress,
+                    e.Degree,
+                    e.Major,
+                    e.AttendedFrom,
+                    e.AttendedTo,
+                    e.GraduationDate,
+                    e.Graduated
+                ))
+                .ToList(),
             update.References.Select(r => new SubjectIntakeReference(
-                r.Name,
-                r.Phone,
-                r.Email,
-                r.Relationship,
-                r.YearsKnown,
-                (ReferenceType)r.Type
-            )).ToList(),
+                    r.Name,
+                    r.Phone,
+                    r.Email,
+                    r.Relationship,
+                    r.YearsKnown,
+                    (ReferenceType)r.Type
+                ))
+                .ToList(),
             update.Phones.Select(p => new SubjectIntakePhone(
-                p.PhoneNumber,
-                (PhoneType)p.Type,
-                p.IsPrimary
-            )).ToList(),
+                    p.PhoneNumber,
+                    (PhoneType)p.Type,
+                    p.IsPrimary
+                ))
+                .ToList(),
             update.UpdatedAt
         );
 

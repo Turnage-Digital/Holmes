@@ -20,7 +20,8 @@ public sealed class ProcessVendorCallbackCommandHandler(
 {
     public async Task<Result> Handle(
         ProcessVendorCallbackCommand request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var vendorAdapter = vendorAdapterFactory.GetAdapter(request.VendorCode);
         if (vendorAdapter is null)

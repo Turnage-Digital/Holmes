@@ -46,7 +46,8 @@ public sealed class SubjectEmployment
         DateOnly? endDate,
         string? reasonForLeaving,
         bool canContact,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(employerName);
 
@@ -84,7 +85,8 @@ public sealed class SubjectEmployment
         DateOnly? endDate,
         string? reasonForLeaving,
         bool canContact,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         return new SubjectEmployment
         {

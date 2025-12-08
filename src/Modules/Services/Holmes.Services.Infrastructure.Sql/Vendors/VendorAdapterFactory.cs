@@ -15,11 +15,18 @@ public sealed class VendorAdapterFactory : IVendorAdapterFactory
             StringComparer.OrdinalIgnoreCase);
     }
 
-    public IVendorAdapter? GetAdapter(string vendorCode) =>
-        _adapters.TryGetValue(vendorCode, out var adapter) ? adapter : null;
+    public IVendorAdapter? GetAdapter(string vendorCode)
+    {
+        return _adapters.TryGetValue(vendorCode, out var adapter) ? adapter : null;
+    }
 
-    public IVendorAdapter? GetAdapterForCategory(ServiceCategory category) =>
-        _adapters.Values.FirstOrDefault(a => a.SupportedCategories.Contains(category));
+    public IVendorAdapter? GetAdapterForCategory(ServiceCategory category)
+    {
+        return _adapters.Values.FirstOrDefault(a => a.SupportedCategories.Contains(category));
+    }
 
-    public IEnumerable<IVendorAdapter> GetAll() => _adapters.Values;
+    public IEnumerable<IVendorAdapter> GetAll()
+    {
+        return _adapters.Values;
+    }
 }

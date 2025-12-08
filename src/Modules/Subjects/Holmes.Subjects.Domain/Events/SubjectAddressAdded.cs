@@ -10,4 +10,5 @@ public sealed record SubjectAddressAdded(
     string State,
     DateOnly FromDate,
     DateOnly? ToDate,
-    DateTimeOffset Timestamp) : INotification;
+    DateTimeOffset Timestamp
+) : INotification;

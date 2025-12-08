@@ -23,7 +23,8 @@ public sealed class SubjectPhone
         string phoneNumber,
         PhoneType type,
         bool isPrimary,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(phoneNumber);
 
@@ -42,7 +43,8 @@ public sealed class SubjectPhone
         string phoneNumber,
         PhoneType type,
         bool isPrimary,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         return new SubjectPhone
         {

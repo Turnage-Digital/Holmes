@@ -6,16 +6,18 @@ namespace Holmes.Services.Tests;
 
 public sealed class ServiceRequestTests
 {
-    private static ServiceRequest CreatePendingRequest() =>
-        ServiceRequest.Create(
+    private static ServiceRequest CreatePendingRequest()
+    {
+        return ServiceRequest.Create(
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             ServiceType.SsnTrace,
-            tier: 1,
-            scope: null,
-            catalogSnapshotId: null,
+            1,
+            null,
+            null,
             DateTimeOffset.UtcNow);
+    }
 
     [Test]
     public void Create_InitializesWithPendingStatus()
@@ -29,9 +31,9 @@ public sealed class ServiceRequestTests
             orderId,
             customerId,
             ServiceType.FederalCriminal,
-            tier: 2,
-            scope: ServiceScope.National(),
-            catalogSnapshotId: null,
+            2,
+            ServiceScope.National(),
+            null,
             now);
 
         Assert.Multiple(() =>
@@ -257,11 +259,11 @@ public sealed class ServiceRequestTests
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             ServiceType.SsnTrace,
-            tier: 1,
-            scope: null,
-            catalogSnapshotId: null,
+            1,
+            null,
+            null,
             DateTimeOffset.UtcNow,
-            maxAttempts: 1);
+            1);
 
         request.AssignVendor("STUB", DateTimeOffset.UtcNow);
         request.Dispatch("REF-123", DateTimeOffset.UtcNow);
@@ -316,11 +318,11 @@ public sealed class ServiceRequestTests
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             ServiceType.SsnTrace,
-            tier: 1,
-            scope: null,
-            catalogSnapshotId: null,
+            1,
+            null,
+            null,
             DateTimeOffset.UtcNow,
-            maxAttempts: 1);
+            1);
 
         request.AssignVendor("STUB", DateTimeOffset.UtcNow);
         request.Dispatch("REF-123", DateTimeOffset.UtcNow);

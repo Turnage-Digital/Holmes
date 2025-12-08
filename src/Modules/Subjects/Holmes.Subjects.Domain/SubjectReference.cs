@@ -32,7 +32,8 @@ public sealed class SubjectReference
         string? relationship,
         int? yearsKnown,
         ReferenceType type,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -57,7 +58,8 @@ public sealed class SubjectReference
         string? relationship,
         int? yearsKnown,
         ReferenceType type,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt
+    )
     {
         return new SubjectReference
         {

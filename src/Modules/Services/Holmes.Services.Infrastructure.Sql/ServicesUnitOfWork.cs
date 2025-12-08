@@ -8,8 +8,8 @@ public class ServicesUnitOfWork : IServicesUnitOfWork
 {
     private readonly ServicesDbContext _context;
     private readonly IMediator _mediator;
-    private ServiceRequestRepository? _serviceRequests;
     private bool _disposed;
+    private ServiceRequestRepository? _serviceRequests;
 
     public ServicesUnitOfWork(ServicesDbContext context, IMediator mediator)
     {
@@ -24,19 +24,6 @@ public class ServicesUnitOfWork : IServicesUnitOfWork
     {
         Dispose(true);
         GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                _context.Dispose();
-            }
-
-            _disposed = true;
-        }
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -68,5 +55,18 @@ public class ServicesUnitOfWork : IServicesUnitOfWork
         }
 
         return result;
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _context.Dispose();
+            }
+
+            _disposed = true;
+        }
     }
 }

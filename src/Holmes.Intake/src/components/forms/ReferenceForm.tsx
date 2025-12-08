@@ -1,4 +1,7 @@
 import React from "react";
+
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Box,
   Button,
@@ -13,10 +16,12 @@ import {
   Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
-import { IntakeReference, ReferenceType, createEmptyReference } from "@/types/intake";
+import {
+  createEmptyReference,
+  IntakeReference,
+  ReferenceType,
+} from "@/types/intake";
 
 interface ReferenceFormProps {
   references: IntakeReference[];
@@ -49,11 +54,9 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
 
   const handleUpdateReference = (
     id: string,
-    updates: Partial<IntakeReference>
+    updates: Partial<IntakeReference>,
   ) => {
-    onChange(
-      references.map((r) => (r.id === id ? { ...r, ...updates } : r))
-    );
+    onChange(references.map((r) => (r.id === id ? { ...r, ...updates } : r)));
   };
 
   const formatReferenceLabel = (index: number, reference: IntakeReference) => {
@@ -66,10 +69,10 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
   };
 
   const personalCount = references.filter(
-    (r) => r.type === ReferenceType.Personal
+    (r) => r.type === ReferenceType.Personal,
   ).length;
   const professionalCount = references.filter(
-    (r) => r.type === ReferenceType.Professional
+    (r) => r.type === ReferenceType.Professional,
   ).length;
 
   const needsPersonal = requiredTypes.includes(ReferenceType.Personal);
@@ -84,8 +87,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
         </Typography>
         {(needsPersonal || needsProfessional) && (
           <Typography variant="body2" color="text.secondary">
-            Required:{" "}
-            {needsPersonal && `at least 1 personal reference`}
+            Required: {needsPersonal && `at least 1 personal reference`}
             {needsPersonal && needsProfessional && " and "}
             {needsProfessional && `at least 1 professional reference`}
           </Typography>
@@ -98,8 +100,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) =>
-              alpha(theme.palette.action.hover, 0.02),
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
           }}
         >
           <Typography color="text.secondary" gutterBottom>

@@ -9,4 +9,5 @@ public sealed record SubjectEmploymentAdded(
     string EmployerName,
     DateOnly StartDate,
     DateOnly? EndDate,
-    DateTimeOffset Timestamp) : INotification;
+    DateTimeOffset Timestamp
+) : INotification;

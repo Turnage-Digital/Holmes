@@ -13,11 +13,11 @@ namespace Holmes.Intake.Tests;
 
 public class SubmitIntakeCommandTests
 {
-    private Mock<IOrderWorkflowGateway> _orderGatewayMock = null!;
-    private Mock<ISubjectDataGateway> _subjectGatewayMock = null!;
     private Mock<IIntakeAnswersDecryptor> _decryptorMock = null!;
     private Mock<IAeadEncryptor> _encryptorMock = null!;
+    private Mock<IOrderWorkflowGateway> _orderGatewayMock = null!;
     private InMemoryIntakeSessionRepository _repository = null!;
+    private Mock<ISubjectDataGateway> _subjectGatewayMock = null!;
     private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
@@ -36,8 +36,9 @@ public class SubmitIntakeCommandTests
             .ReturnsAsync((DecryptedIntakeAnswers?)null);
     }
 
-    private SubmitIntakeCommandHandler CreateHandler() =>
-        new(
+    private SubmitIntakeCommandHandler CreateHandler()
+    {
+        return new SubmitIntakeCommandHandler(
             _orderGatewayMock.Object,
             _subjectGatewayMock.Object,
             _decryptorMock.Object,
@@ -45,6 +46,7 @@ public class SubmitIntakeCommandTests
             _unitOfWorkMock.Object,
             NullLogger<SubmitIntakeCommandHandler>.Instance
         );
+    }
 
     [Test]
     public async Task BlocksSubmissionWhenPolicyFails()
