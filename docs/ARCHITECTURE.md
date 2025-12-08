@@ -235,13 +235,14 @@ progress.
 
 #### Module Conventions
 
-Every bounded context ships the same three projects so dependencies remain predictable:
+Every bounded context ships four projects to support CQRS and database swappability:
 
-| Project                               | Responsibilities                                            | References                                           |
-|---------------------------------------|-------------------------------------------------------------|------------------------------------------------------|
-| `Holmes.<Feature>.Domain`             | Aggregates, domain events, `I<Feature>UnitOfWork`, policies | `Holmes.Core.Domain`                                 |
-| `Holmes.<Feature>.Application`        | Commands, queries, handlers, DTOs                           | `<Feature>.Domain`, `Holmes.Core.Application`        |
-| `Holmes.<Feature>.Infrastructure.Sql` | DbContext, repositories, UnitOfWork, DI helpers             | `<Feature>.Domain`, `Holmes.Core.Infrastructure.Sql` |
+| Project                                      | Responsibilities                                              | References                                                          |
+|----------------------------------------------|---------------------------------------------------------------|---------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`                    | Aggregates, domain events, `I<Feature>UnitOfWork`, write-focused repository interfaces | `Holmes.Core.Domain`                                                |
+| `Holmes.<Feature>.Application.Abstractions`  | DTOs, query interfaces (`I<Feature>Queries`), broadcasters    | `<Feature>.Domain`, `Holmes.Core.Domain`                            |
+| `Holmes.<Feature>.Application`               | Commands, query handlers, MediatR handlers                    | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Application` |
+| `Holmes.<Feature>.Infrastructure.Sql`        | DbContext, repositories, query implementations (`Sql<Feature>Queries`), Specifications | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
 
 Additional infrastructure (e.g., caching, queues) follows the same naming pattern
 (`Infrastructure.Redis`, `Infrastructure.Search`, etc.) but **never** references the Application layer.
@@ -257,7 +258,12 @@ public static IServiceCollection Add<Feature>InfrastructureSql(
     services.AddDbContext<<Feature>DbContext>(options =>
         options.UseMySql(connectionString, version));
 
+    // Write side
     services.AddScoped<I<Feature>UnitOfWork, <Feature>UnitOfWork>();
+
+    // Read side (CQRS)
+    services.AddScoped<I<Feature>Queries, Sql<Feature>Queries>();
+
     return services;
 }
 ```
@@ -346,18 +352,22 @@ pipeline and no additional queueing infrastructure is necessary.
 - `Holmes.Core.*` is the kernel module; all feature modules depend on it for primitives, cross-cutting behaviors, and
   shared integrations.
 - A module's `*.Domain` project is pure (no Infrastructure or Application dependencies) and may depend only on
-  `Holmes.Core.Domain`.
-- Each module exposes `*.Application.Abstractions` for DTOs, projection contracts, broadcasters, and other ports the
-  host or Infrastructure must consume. These assemblies depend on the module's `*.Domain` (and `Holmes.Core.Domain`)
-  but contain no handlers.
+  `Holmes.Core.Domain`. Repository interfaces here are **write-focused** (`GetByIdAsync`, `Add`, `Update`).
+- Each module exposes `*.Application.Abstractions` for DTOs, **query interfaces** (`I<Feature>Queries`), projection
+  contracts, broadcasters, and other ports the host or Infrastructure must consume. These assemblies depend on the
+  module's `*.Domain` (and `Holmes.Core.Domain`) but contain no handlers.
 - `*.Application` projects depend on their matching `*.Domain`, their module's `*.Application.Abstractions`, and
-  `Holmes.Core.Application`; they expose commands, queries, and pipelines for the host.
-- `*.Infrastructure` projects depend on `*.Domain`, the module's `*.Application.Abstractions`, and
-  `Holmes.Core.Infrastructure.*`. They never reference the module's `*.Application`, and `*.Application` cannot
-  reference `*.Infrastructure`. Cross-module calls flow only through other modules' `*.Application.Abstractions`
-  (e.g., Workflow consumes the Intake replay source interface rather than its EF DbContext).
+  `Holmes.Core.Application`; they expose commands and query handlers for the host. Query handlers delegate to
+  `I<Feature>Queries` interfaces—they do not access DbContext directly.
+- `*.Infrastructure.Sql` projects depend on `*.Domain`, the module's `*.Application.Abstractions`, and
+  `Holmes.Core.Infrastructure.Sql`. They implement both repository interfaces (write side) and query interfaces
+  (read side via `Sql<Feature>Queries`). They never reference the module's `*.Application`, and `*.Application` cannot
+  reference `*.Infrastructure`. Cross-module calls flow only through other modules' `*.Application.Abstractions`.
+- `Holmes.App.Infrastructure` references **only** `*.Application.Abstractions` projects—never `*.Infrastructure.Sql`.
+  This ensures middleware and security code remain database-agnostic.
 - Host projects (`Holmes.App.Server`) wire modules through DI by referencing each module's
-  `*.Application` and `*.Infrastructure`.
+  `*.Application` and `*.Infrastructure.Sql`.
+- Controllers inject query interfaces (`IUserQueries`, `ICustomerQueries`) and MediatR—never DbContext.
 - Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.
 
 **Cross-module boundary rule (CRITICAL)**
@@ -366,12 +376,15 @@ A module **MUST NEVER** directly reference another module's `*.Domain` or `*.App
 fundamental DDD principle — bounded contexts communicate through explicit contracts, not internal implementation
 details.
 
-| Reference Type                                                | Allowed? | Example                                   |
-|---------------------------------------------------------------|----------|-------------------------------------------|
-| `ModuleA.Application` → `ModuleB.Domain`                      | ❌ NO     | SlaClocks.App → Workflow.Domain           |
-| `ModuleA.Application` → `ModuleB.Application`                 | ❌ NO     | Services.App → Subjects.App               |
-| `ModuleA.Application` → `ModuleB.Application.Abstractions`    | ✅ YES    | SlaClocks.App → Workflow.App.Abstractions |
-| `ModuleA.Infrastructure` → `ModuleB.Application.Abstractions` | ✅ YES    | Intake.Infra → Workflow.App.Abstractions  |
+| Reference Type                                                     | Allowed? | Example                                      |
+|--------------------------------------------------------------------|----------|----------------------------------------------|
+| `ModuleA.Application` → `ModuleB.Domain`                           | ❌ NO     | SlaClocks.App → Workflow.Domain              |
+| `ModuleA.Application` → `ModuleB.Application`                      | ❌ NO     | Services.App → Subjects.App                  |
+| `ModuleA.Infrastructure.Sql` → `ModuleB.Infrastructure.Sql`        | ❌ NO     | Customers.Infra.Sql → Users.Infra.Sql        |
+| `ModuleA.Application` → `ModuleB.Application.Abstractions`         | ✅ YES    | SlaClocks.App → Workflow.App.Abstractions    |
+| `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions`  | ✅ YES    | Intake.Infra.Sql → Workflow.App.Abstractions |
+| `App.Infrastructure` → `Module.Application.Abstractions`           | ✅ YES    | App.Infra → Users.App.Abstractions           |
+| `App.Infrastructure` → `Module.Infrastructure.Sql`                 | ❌ NO     | App.Infra → Users.Infra.Sql                  |
 
 When a module needs types from another bounded context, the owning module must expose them via
 `*.Application.Abstractions` (DTOs, interfaces, integration events). See `docs/MODULE_TEMPLATE.md` for detailed

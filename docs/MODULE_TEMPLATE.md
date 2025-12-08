@@ -11,18 +11,28 @@ src/Modules/<Feature>/
   Holmes.<Feature>.Domain/
     <feature>.csproj
     - Aggregates/Entities/ValueObjects
-    - Domain events and interfaces (e.g., I<Feature>UnitOfWork)
+    - Domain events and repository interfaces (write-focused)
+    - I<Feature>UnitOfWork interface
+
+  Holmes.<Feature>.Application.Abstractions/
+    <feature>.Application.Abstractions.csproj
+    - DTOs for queries and cross-module contracts
+    - Query interfaces (I<Feature>Queries)
+    - Broadcaster/notification interfaces
+    - Integration event contracts
 
   Holmes.<Feature>.Application/
     <feature>.Application.csproj
-    - Commands, queries, validators
-    - MediatR handlers, pipeline behaviors
-    - DTOs specific to the feature
+    - Commands and command handlers (write side)
+    - Query handlers (delegate to I<Feature>Queries)
+    - MediatR pipeline behaviors
 
   Holmes.<Feature>.Infrastructure.Sql/
     <feature>.Infrastructure.Sql.csproj
     - DbContext + EF mappings
-    - Repository/UnitOfWork implementations
+    - Repository implementations (write-focused)
+    - Query implementations (Sql<Feature>Queries)
+    - Specifications for query logic
     - DependencyInjection.cs (`Add<Feature>InfrastructureSql`)
 ```
 
@@ -32,15 +42,19 @@ src/Modules/<Feature>/
 
 ## Project References
 
-| Project                             | References                                                                              |
-|-------------------------------------|-----------------------------------------------------------------------------------------|
-| `Holmes.<Feature>.Domain`           | `Holmes.Core.Domain` only.                                                              |
-| `Holmes.<Feature>.Application`      | `Holmes.<Feature>.Domain`, `Holmes.Core.Application`                                    |
-| `Holmes.<Feature>.Infrastructure.*` | `Holmes.<Feature>.Domain`, `Holmes.Core.Infrastructure.*` (never reference Application) |
+| Project                                  | References                                                                                            |
+|------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`                | `Holmes.Core.Domain` only                                                                             |
+| `Holmes.<Feature>.Application.Abstractions` | `Holmes.<Feature>.Domain`, `Holmes.Core.Domain`                                                    |
+| `Holmes.<Feature>.Application`           | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Application`     |
+| `Holmes.<Feature>.Infrastructure.Sql`    | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
+
+**Critical**: Infrastructure projects reference `Application.Abstractions` (for query interfaces and DTOs),
+but NEVER reference the `Application` project directly. This enables database swappability.
 
 `Holmes.App.Server` references the Application + Infrastructure projects only.
-Tests reference the Application layer (for handlers) plus Infrastructure for
-integration scenarios.
+`Holmes.App.Infrastructure` references only `Application.Abstractions` projects (never Infrastructure.Sql).
+Tests reference the Application layer (for handlers) plus Infrastructure for integration scenarios.
 
 ## Cross-Module Boundaries (CRITICAL)
 
@@ -62,7 +76,7 @@ When Module A needs data or behavior from Module B:
 
 1. **Module B exposes an `*.Application.Abstractions` project** containing:
     - DTOs (data transfer objects)
-    - Query interfaces (e.g., `IOrderReadModel`)
+    - Query interfaces (e.g., `IOrderQueries`, `IUserQueries`)
     - Event contracts for integration events
     - Broadcaster/notification interfaces
 
@@ -70,6 +84,8 @@ When Module A needs data or behavior from Module B:
    the Domain or Application implementation.
 
 3. **The host wires up the implementations** via DI, keeping modules decoupled.
+
+4. **Controllers and middleware** inject query interfaces (e.g., `IUserQueries`), never DbContexts.
 
 ### Example: SlaClocks needs Order status
 
@@ -113,6 +129,57 @@ Holmes.App.Integration.csproj references:
 
 This keeps each module internally cohesive and places cross-cutting orchestration in the integration layer
 where it can see all modules.
+
+## CQRS Pattern
+
+Holmes uses Command Query Responsibility Segregation (CQRS) to separate read and write concerns:
+
+### Write Side (Domain + Repository)
+- **Repository interfaces** in Domain are write-focused: `GetByIdAsync`, `Add`, `Update`, `Delete`
+- **Commands** mutate state through the UnitOfWork and repositories
+- Repositories return domain entities for mutation
+
+### Read Side (Queries)
+- **Query interfaces** (`I<Feature>Queries`) live in `Application.Abstractions`
+- **Query implementations** (`Sql<Feature>Queries`) live in `Infrastructure.Sql`
+- Queries return **DTOs only** — never domain entities
+- Use **Specifications** for reusable query logic
+
+### Example Query Interface
+
+```csharp
+// In Application.Abstractions/Queries/IUserQueries.cs
+public interface IUserQueries
+{
+    Task<UserDto?> GetByIdAsync(string userId, CancellationToken ct);
+    Task<UserDto?> GetByEmailAsync(string email, CancellationToken ct);
+    Task<IReadOnlyList<UserDto>> GetAllAsync(CancellationToken ct);
+}
+```
+
+### Example Query Implementation
+
+```csharp
+// In Infrastructure.Sql/Queries/SqlUserQueries.cs
+public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
+{
+    public async Task<UserDto?> GetByIdAsync(string userId, CancellationToken ct)
+    {
+        var spec = new UserByIdSpec(userId);
+        return await dbContext.Users
+            .AsNoTracking()
+            .ApplySpecification(spec)
+            .Select(u => new UserDto(u.Id, u.Email, u.DisplayName))
+            .FirstOrDefaultAsync(ct);
+    }
+}
+```
+
+### Why CQRS?
+- **Database swappability**: Swap `Infrastructure.Sql` for `Infrastructure.MsSql` without touching Application
+- **Performance**: Read models can be optimized independently (no tracking, projections)
+- **Testability**: Query interfaces can be mocked in tests
+- **Security**: Controllers never see DbContext or domain internals
 
 ## Unit of Work Pattern
 
