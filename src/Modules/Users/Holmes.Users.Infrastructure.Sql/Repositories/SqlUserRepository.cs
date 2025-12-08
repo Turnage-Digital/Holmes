@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Users.Infrastructure.Sql.Repositories;
 
+/// <summary>
+///     Write-focused repository for User aggregate.
+///     Query methods are in SqlUserQueries (CQRS pattern).
+/// </summary>
 public class SqlUserRepository(UsersDbContext dbContext) : IUserRepository
 {
     public Task AddAsync(User user, CancellationToken cancellationToken)
@@ -21,32 +25,6 @@ public class SqlUserRepository(UsersDbContext dbContext) : IUserRepository
     public async Task<User?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
     {
         var spec = new UserWithDetailsByIdSpecification(id.ToString());
-
-        var db = await dbContext.Users
-            .ApplySpecification(spec)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return db is null ? null : UserMapper.ToDomain(db);
-    }
-
-    public async Task<User?> GetByExternalIdentityAsync(
-        string issuer,
-        string subject,
-        CancellationToken cancellationToken
-    )
-    {
-        var spec = new UserByExternalIdentitySpec(issuer, subject);
-
-        var identity = await dbContext.UserExternalIdentities
-            .ApplySpecification(spec)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return identity is null ? null : UserMapper.ToDomain(identity.User);
-    }
-
-    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
-    {
-        var spec = new UserByEmailSpec(email);
 
         var db = await dbContext.Users
             .ApplySpecification(spec)

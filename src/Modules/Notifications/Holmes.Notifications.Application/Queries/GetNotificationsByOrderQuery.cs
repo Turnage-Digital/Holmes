@@ -1,7 +1,7 @@
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Notifications.Application.Abstractions.Dtos;
-using Holmes.Notifications.Domain;
+using Holmes.Notifications.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Notifications.Application.Queries;
@@ -11,7 +11,7 @@ public sealed record GetNotificationsByOrderQuery(
 ) : RequestBase<IReadOnlyList<NotificationSummaryDto>>;
 
 public sealed class GetNotificationsByOrderQueryHandler(
-    INotificationsUnitOfWork unitOfWork
+    INotificationQueries notificationQueries
 ) : IRequestHandler<GetNotificationsByOrderQuery, IReadOnlyList<NotificationSummaryDto>>
 {
     public async Task<IReadOnlyList<NotificationSummaryDto>> Handle(
@@ -19,23 +19,8 @@ public sealed class GetNotificationsByOrderQueryHandler(
         CancellationToken cancellationToken
     )
     {
-        var notifications = await unitOfWork.NotificationRequests.GetByOrderIdAsync(
-            request.OrderId,
+        return await notificationQueries.GetByOrderIdAsync(
+            request.OrderId.ToString(),
             cancellationToken);
-
-        return notifications
-            .Select(n => new NotificationSummaryDto(
-                n.Id,
-                n.CustomerId,
-                n.OrderId,
-                n.TriggerType,
-                n.Recipient.Channel,
-                n.Recipient.Address,
-                n.Status,
-                n.IsAdverseAction,
-                n.CreatedAt,
-                n.DeliveredAt,
-                n.DeliveryAttempts.Count))
-            .ToList();
     }
 }

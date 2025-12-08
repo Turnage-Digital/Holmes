@@ -1,3 +1,4 @@
+using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;
 using Holmes.Workflow.Domain;
@@ -12,7 +13,7 @@ namespace Holmes.App.Integration.NotificationHandlers;
 ///     Lives in App.Integration because it crosses the Workflow → SlaClocks boundary.
 /// </summary>
 public sealed class OrderStatusChangedSlaHandler(
-    ISlaClockUnitOfWork unitOfWork,
+    ISlaClockQueries slaClockQueries,
     ISender sender,
     ILogger<OrderStatusChangedSlaHandler> logger
 ) : INotificationHandler<OrderStatusChanged>
@@ -89,7 +90,8 @@ public sealed class OrderStatusChangedSlaHandler(
 
     private async Task PauseAllActiveClocksAsync(OrderStatusChanged notification, CancellationToken cancellationToken)
     {
-        var activeClocks = await unitOfWork.SlaClocks.GetActiveByOrderIdAsync(notification.OrderId, cancellationToken);
+        var activeClocks = await slaClockQueries.GetActiveByOrderIdAsync(
+            notification.OrderId.ToString(), cancellationToken);
 
         foreach (var clock in activeClocks)
         {
@@ -105,7 +107,8 @@ public sealed class OrderStatusChangedSlaHandler(
         CancellationToken cancellationToken
     )
     {
-        var activeClocks = await unitOfWork.SlaClocks.GetActiveByOrderIdAsync(notification.OrderId, cancellationToken);
+        var activeClocks = await slaClockQueries.GetActiveByOrderIdAsync(
+            notification.OrderId.ToString(), cancellationToken);
 
         foreach (var clock in activeClocks)
         {
@@ -118,7 +121,8 @@ public sealed class OrderStatusChangedSlaHandler(
 
     private async Task ResumeAnyPausedClocksAsync(OrderStatusChanged notification, CancellationToken cancellationToken)
     {
-        var clocks = await unitOfWork.SlaClocks.GetByOrderIdAsync(notification.OrderId, cancellationToken);
+        var clocks = await slaClockQueries.GetByOrderIdAsync(
+            notification.OrderId.ToString(), cancellationToken);
         var pausedClocks = clocks.Where(c => c.State == ClockState.Paused);
 
         foreach (var clock in pausedClocks)

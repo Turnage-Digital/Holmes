@@ -12,7 +12,7 @@ import {
   Chip,
   LinearProgress,
   Stack,
-  Typography,
+  Typography
 } from "@mui/material";
 
 import ServiceStatusCard from "./ServiceStatusCard";
@@ -30,7 +30,7 @@ interface TierSummaryProps {
 }
 
 const getTierStatus = (
-  services: ServiceRequestSummaryDto[],
+  services: ServiceRequestSummaryDto[]
 ): {
   label: string;
   color: "success" | "warning" | "error" | "default";
@@ -40,13 +40,13 @@ const getTierStatus = (
     return {
       label: "Empty",
       color: "default",
-      icon: <HourglassEmptyIcon />,
+      icon: <HourglassEmptyIcon />
     };
   }
 
   const hasFailures = services.some((s) => s.status === "Failed");
   const allComplete = services.every(
-    (s) => s.status === "Completed" || s.status === "Canceled",
+    (s) => s.status === "Completed" || s.status === "Canceled"
   );
   const allPending = services.every((s) => s.status === "Pending");
 
@@ -54,7 +54,7 @@ const getTierStatus = (
     return {
       label: "Has Failures",
       color: "error",
-      icon: <ErrorOutlineIcon />,
+      icon: <ErrorOutlineIcon />
     };
   }
 
@@ -62,7 +62,7 @@ const getTierStatus = (
     return {
       label: "Complete",
       color: "success",
-      icon: <CheckCircleOutlineIcon />,
+      icon: <CheckCircleOutlineIcon />
     };
   }
 
@@ -70,27 +70,27 @@ const getTierStatus = (
     return {
       label: "Pending",
       color: "default",
-      icon: <HourglassEmptyIcon />,
+      icon: <HourglassEmptyIcon />
     };
   }
 
   return {
     label: "In Progress",
     color: "warning",
-    icon: <HourglassEmptyIcon />,
+    icon: <HourglassEmptyIcon />
   };
 };
 
 const TierAccordion = ({
-  tier,
-  services,
-  defaultExpanded = false,
-}: TierSummaryProps) => {
+                         tier,
+                         services,
+                         defaultExpanded = false
+                       }: TierSummaryProps) => {
   const status = getTierStatus(services);
 
   // Calculate progress
   const completedCount = services.filter(
-    (s) => s.status === "Completed",
+    (s) => s.status === "Completed"
   ).length;
   const progressPercent =
     services.length > 0 ? (completedCount / services.length) * 100 : 0;
@@ -101,7 +101,7 @@ const TierAccordion = ({
       acc[s.status] = (acc[s.status] || 0) + 1;
       return acc;
     },
-    {} as Record<ServiceStatus, number>,
+    {} as Record<ServiceStatus, number>
   );
 
   return (
@@ -112,7 +112,7 @@ const TierAccordion = ({
             display: "flex",
             alignItems: "center",
             width: "100%",
-            gap: 2,
+            gap: 2
           }}
         >
           <Chip
@@ -210,11 +210,11 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
   // Calculate overall stats
   const totalServices = services.length;
   const completedServices = services.filter(
-    (s) => s.status === "Completed",
+    (s) => s.status === "Completed"
   ).length;
   const failedServices = services.filter((s) => s.status === "Failed").length;
   const inProgressServices = services.filter(
-    (s) => s.status === "InProgress" || s.status === "Dispatched",
+    (s) => s.status === "InProgress" || s.status === "Dispatched"
   ).length;
 
   if (services.length === 0) {
@@ -234,7 +234,7 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
           gap: 3,
           p: 2,
           bgcolor: "grey.50",
-          borderRadius: 1,
+          borderRadius: 1
         }}
       >
         <Box>

@@ -1,5 +1,6 @@
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Users.Application.Abstractions.Queries;
 using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Domain.Events;
@@ -17,7 +18,11 @@ public sealed record RegisterExternalUserCommand(
     bool AllowAutoProvision = false
 ) : RequestBase<UlidId>, ISkipUserAssignment;
 
-public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWork, IPublisher publisher)
+public sealed class RegisterExternalUserCommandHandler(
+    IUsersUnitOfWork unitOfWork,
+    IUserQueries userQueries,
+    IPublisher publisher
+)
     : IRequestHandler<RegisterExternalUserCommand, UlidId>
 {
     public async Task<UlidId> Handle(RegisterExternalUserCommand request, CancellationToken cancellationToken)
@@ -25,11 +30,17 @@ public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWo
         var repository = unitOfWork.Users;
         var identity = new ExternalIdentity(request.Issuer, request.Subject, request.AuthenticationMethod,
             request.AuthenticatedAt);
-        var existing = await repository.GetByExternalIdentityAsync(request.Issuer, request.Subject, cancellationToken);
-        if (existing is null)
+
+        // Check if user exists by external identity (query side)
+        var existingByIdentity = await userQueries.GetByExternalIdentityAsync(
+            request.Issuer, request.Subject, cancellationToken);
+
+        if (existingByIdentity is null)
         {
-            existing = await repository.GetByEmailAsync(request.Email, cancellationToken);
-            if (existing is null)
+            // Check by email (query side)
+            var existingByEmail = await userQueries.GetByEmailAsync(request.Email, cancellationToken);
+
+            if (existingByEmail is null)
             {
                 if (!request.AllowAutoProvision)
                 {
@@ -48,7 +59,33 @@ public sealed class RegisterExternalUserCommandHandler(IUsersUnitOfWork unitOfWo
                 return user.Id;
             }
 
-            existing.LinkExternalIdentity(identity);
+            // Re-fetch for mutation via repository (command side)
+            var existingUser = await repository.GetByIdAsync(
+                UlidId.Parse(existingByEmail.Id), cancellationToken);
+            if (existingUser is null)
+            {
+                throw new InvalidOperationException($"User '{existingByEmail.Id}' not found after query.");
+            }
+
+            existingUser.LinkExternalIdentity(identity);
+            existingUser.MarkIdentitySeen(request.Issuer, request.Subject, request.AuthenticatedAt);
+            existingUser.UpdateProfile(request.Email, request.DisplayName, request.AuthenticatedAt);
+            if (existingUser.Status == UserStatus.Invited)
+            {
+                existingUser.ActivatePendingInvitation(request.AuthenticatedAt);
+            }
+
+            await repository.UpdateAsync(existingUser, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return existingUser.Id;
+        }
+
+        // Re-fetch for mutation via repository (command side)
+        var existing = await repository.GetByIdAsync(
+            UlidId.Parse(existingByIdentity.Id), cancellationToken);
+        if (existing is null)
+        {
+            throw new InvalidOperationException($"User '{existingByIdentity.Id}' not found after query.");
         }
 
         existing.MarkIdentitySeen(request.Issuer, request.Subject, request.AuthenticatedAt);

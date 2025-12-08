@@ -17,7 +17,7 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography,
+  Typography
 } from "@mui/material";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,13 +25,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { OrderTimelineEntryDto } from "@/types/api";
 
 import { TierProgressView } from "@/components/services";
-import {
-  useCustomer,
-  useOrder,
-  useOrderServices,
-  useOrderTimeline,
-  useSubject,
-} from "@/hooks/api";
+import { useCustomer, useOrder, useOrderServices, useOrderTimeline, useSubject } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
 // ============================================================================
@@ -88,7 +82,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
             gap: 2,
             py: 2,
             borderBottom: index < events.length - 1 ? "1px solid" : "none",
-            borderColor: "divider",
+            borderColor: "divider"
           }}
         >
           {/* Timeline dot and line */}
@@ -97,7 +91,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              pt: 0.5,
+              pt: 0.5
             }}
           >
             <Box
@@ -105,7 +99,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
                 width: 10,
                 height: 10,
                 borderRadius: "50%",
-                bgcolor: index === 0 ? "primary.main" : "grey.400",
+                bgcolor: index === 0 ? "primary.main" : "grey.400"
               }}
             />
             {index < events.length - 1 && (
@@ -114,7 +108,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
                   width: 2,
                   flexGrow: 1,
                   bgcolor: "grey.200",
-                  mt: 0.5,
+                  mt: 0.5
                 }}
               />
             )}
@@ -138,7 +132,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
               {format(new Date(event.occurredAt), "MMM d, yyyy 'at' h:mm a")}
               {" · "}
               {formatDistanceToNow(new Date(event.occurredAt), {
-                addSuffix: true,
+                addSuffix: true
               })}
             </Typography>
           </Box>
@@ -167,7 +161,7 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
           sx={{
             display: "grid",
             gridTemplateColumns: "140px 1fr",
-            gap: 1,
+            gap: 1
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -222,7 +216,7 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
               <Typography variant="body2">
                 {format(
                   new Date(order.readyForRoutingAt),
-                  "MMM d, yyyy 'at' h:mm a",
+                  "MMM d, yyyy 'at' h:mm a"
                 )}
               </Typography>
             </>
@@ -325,7 +319,7 @@ const OrderDetailPage = () => {
   const {
     data: order,
     isLoading: orderLoading,
-    error: orderError,
+    error: orderError
   } = useOrder(orderId!);
 
   // Fetch related entities
@@ -343,7 +337,7 @@ const OrderDetailPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: 400,
+          minHeight: 400
         }}
       >
         <CircularProgress />
@@ -374,7 +368,7 @@ const OrderDetailPage = () => {
   // Build subject display name
   const subjectName = subject
     ? [subject.givenName, subject.familyName].filter(Boolean).join(" ") ||
-      subject.email
+    subject.email
     : null;
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {

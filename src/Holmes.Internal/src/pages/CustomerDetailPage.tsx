@@ -15,15 +15,12 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography,
+  Typography
 } from "@mui/material";
 import { format } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
-import {
-  ServiceCatalogEditor,
-  TierConfigurationEditor,
-} from "@/components/customers";
+import { ServiceCatalogEditor, TierConfigurationEditor } from "@/components/customers";
 import { useCustomer, useCustomerCatalog } from "@/hooks/api";
 import { getCustomerStatusColor, getCustomerStatusLabel } from "@/lib/status";
 
@@ -63,7 +60,7 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
           sx={{
             display: "grid",
             gridTemplateColumns: "160px 1fr",
-            gap: 1.5,
+            gap: 1.5
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -129,7 +126,7 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
                 sx={{
                   p: 2,
                   borderRadius: 1,
-                  bgcolor: "grey.50",
+                  bgcolor: "grey.50"
                 }}
               >
                 <Typography variant="subtitle2">{contact.name}</Typography>
@@ -177,7 +174,7 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
                   alignItems: "center",
                   p: 1.5,
                   borderRadius: 1,
-                  bgcolor: "grey.50",
+                  bgcolor: "grey.50"
                 }}
               >
                 <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
@@ -208,14 +205,14 @@ const CustomerDetailPage = () => {
   const {
     data: customer,
     isLoading: customerLoading,
-    error: customerError,
+    error: customerError
   } = useCustomer(customerId!);
 
   // Fetch service catalog
   const {
     data: catalog,
     isLoading: catalogLoading,
-    error: catalogError,
+    error: catalogError
   } = useCustomerCatalog(customerId!);
 
   // Loading state
@@ -226,7 +223,7 @@ const CustomerDetailPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: 400,
+          minHeight: 400
         }}
       >
         <CircularProgress />

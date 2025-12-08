@@ -61,10 +61,10 @@ Holmes.Intake.Infrastructure → Holmes.Workflow.Application   # NO!
 When Module A needs data or behavior from Module B:
 
 1. **Module B exposes an `*.Application.Abstractions` project** containing:
-   - DTOs (data transfer objects)
-   - Query interfaces (e.g., `IOrderReadModel`)
-   - Event contracts for integration events
-   - Broadcaster/notification interfaces
+    - DTOs (data transfer objects)
+    - Query interfaces (e.g., `IOrderReadModel`)
+    - Event contracts for integration events
+    - Broadcaster/notification interfaces
 
 2. **Module A references only `Holmes.ModuleB.Application.Abstractions`** — never
    the Domain or Application implementation.

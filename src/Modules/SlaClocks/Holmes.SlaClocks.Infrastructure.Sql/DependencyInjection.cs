@@ -1,5 +1,7 @@
+using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Services;
 using Holmes.SlaClocks.Domain;
+using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<SlaClockRepository>();
         services.AddScoped<ISlaClockRepository>(sp => sp.GetRequiredService<SlaClockRepository>());
         services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
+        services.AddScoped<ISlaClockQueries, SqlSlaClockQueries>();
         services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
 
         return services;

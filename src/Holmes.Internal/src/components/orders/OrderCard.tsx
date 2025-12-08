@@ -4,11 +4,7 @@ import { Card, CardActionArea, Chip, Stack, Typography } from "@mui/material";
 
 import type { OrderSummaryDto } from "@/types/api";
 
-import {
-  CustomerNameCell,
-  RelativeTimeCell,
-  SubjectNameCell,
-} from "@/components/patterns";
+import { CustomerNameCell, RelativeTimeCell, SubjectNameCell } from "@/components/patterns";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
 interface OrderCardProps {
@@ -68,7 +64,7 @@ const OrderCard = ({ order, onClick }: OrderCardProps) => {
               sx={{
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                whiteSpace: "nowrap"
               }}
             >
               {order.lastStatusReason}

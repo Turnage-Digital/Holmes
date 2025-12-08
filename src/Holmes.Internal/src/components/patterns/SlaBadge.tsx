@@ -13,18 +13,18 @@ const statusConfig: Record<
   on_track: {
     label: "On Track",
     color: "success",
-    icon: <AccessTimeIcon fontSize="small" />,
+    icon: <AccessTimeIcon fontSize="small" />
   },
   at_risk: {
     label: "At Risk",
     color: "warning",
-    icon: <WarningAmberIcon fontSize="small" />,
+    icon: <WarningAmberIcon fontSize="small" />
   },
   breached: {
     label: "Breached",
     color: "error",
-    icon: <WarningAmberIcon fontSize="small" />,
-  },
+    icon: <WarningAmberIcon fontSize="small" />
+  }
 };
 
 interface SlaBadgeProps {

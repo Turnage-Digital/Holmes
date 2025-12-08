@@ -1,9 +1,8 @@
 using System.Security.Claims;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Infrastructure.Sql;
+using Holmes.Users.Application.Abstractions.Queries;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.App.Infrastructure.Security;
 
@@ -14,7 +13,7 @@ public sealed class CurrentUserEnrichmentMiddleware(RequestDelegate next)
     public async Task InvokeAsync(
         HttpContext context,
         ICurrentUserInitializer currentUserInitializer,
-        UsersDbContext usersDbContext
+        IUserAccessQueries userAccessQueries
     )
     {
         var principal = context.User;
@@ -31,7 +30,7 @@ public sealed class CurrentUserEnrichmentMiddleware(RequestDelegate next)
         }
 
         var userId = await EnsureUserIdClaimAsync(identity, currentUserInitializer, context.RequestAborted);
-        await EnrichRoleClaimsAsync(identity, usersDbContext, userId, context.RequestAborted);
+        await EnrichRoleClaimsAsync(identity, userAccessQueries, userId, context.RequestAborted);
 
         await next(context);
     }
@@ -55,7 +54,7 @@ public sealed class CurrentUserEnrichmentMiddleware(RequestDelegate next)
 
     private static async Task EnrichRoleClaimsAsync(
         ClaimsIdentity identity,
-        UsersDbContext usersDbContext,
+        IUserAccessQueries userAccessQueries,
         UlidId userId,
         CancellationToken cancellationToken
     )
@@ -65,12 +64,7 @@ public sealed class CurrentUserEnrichmentMiddleware(RequestDelegate next)
             .Select(c => c.Value)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var roles = await usersDbContext.UserRoleMemberships
-            .AsNoTracking()
-            .Where(x => x.UserId == userId.ToString() && x.CustomerId == null)
-            .Select(x => x.Role.ToString())
-            .Distinct()
-            .ToListAsync(cancellationToken);
+        var roles = await userAccessQueries.GetGlobalRolesAsync(userId, cancellationToken);
 
         foreach (var role in roles)
         {

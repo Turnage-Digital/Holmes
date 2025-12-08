@@ -2,13 +2,13 @@ using Holmes.Core.Domain.ValueObjects;
 
 namespace Holmes.Users.Domain;
 
+/// <summary>
+///     Write-focused repository for User aggregate.
+///     Query methods have been moved to IUserQueries in Application.Abstractions.
+/// </summary>
 public interface IUserRepository
 {
     Task<User?> GetByIdAsync(UlidId id, CancellationToken cancellationToken);
-
-    Task<User?> GetByExternalIdentityAsync(string issuer, string subject, CancellationToken cancellationToken);
-
-    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken);
 
     Task AddAsync(User user, CancellationToken cancellationToken);
 

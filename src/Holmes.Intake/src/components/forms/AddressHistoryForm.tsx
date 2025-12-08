@@ -16,16 +16,11 @@ import {
   Select,
   Stack,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
-import {
-  AddressType,
-  createEmptyAddress,
-  IntakeAddress,
-  US_STATES,
-} from "@/types/intake";
+import { AddressType, createEmptyAddress, IntakeAddress, US_STATES } from "@/types/intake";
 
 interface AddressHistoryFormProps {
   addresses: IntakeAddress[];
@@ -36,12 +31,12 @@ interface AddressHistoryFormProps {
 }
 
 const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
-  addresses,
-  onChange,
-  minAddresses = 1,
-  maxAddresses = 10,
-  yearsRequired = 7,
-}) => {
+                                                                 addresses,
+                                                                 onChange,
+                                                                 minAddresses = 1,
+                                                                 maxAddresses = 10,
+                                                                 yearsRequired = 7
+                                                               }) => {
   const handleAddAddress = () => {
     if (addresses.length >= maxAddresses) return;
     onChange([...addresses, createEmptyAddress()]);
@@ -62,7 +57,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
           updated.toDate = "";
         }
         return updated;
-      }),
+      })
     );
   };
 
@@ -92,7 +87,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
             backgroundColor: (theme) =>
               address.isCurrent
                 ? alpha(theme.palette.primary.main, 0.02)
-                : "transparent",
+                : "transparent"
           }}
         >
           <Stack spacing={2}>
@@ -121,7 +116,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
                   checked={address.isCurrent}
                   onChange={(e) =>
                     handleUpdateAddress(address.id, {
-                      isCurrent: e.target.checked,
+                      isCurrent: e.target.checked
                     })
                   }
                 />
@@ -165,7 +160,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
                   label="State"
                   onChange={(e) =>
                     handleUpdateAddress(address.id, {
-                      state: e.target.value as string,
+                      state: e.target.value as string
                     })
                   }
                 >
@@ -183,7 +178,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
                   handleUpdateAddress(address.id, {
                     postalCode: e.target.value
                       .replace(/[^\dA-Za-z-]/g, "")
-                      .slice(0, 10),
+                      .slice(0, 10)
                   })
                 }
                 fullWidth
@@ -232,7 +227,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
                 label="Address type"
                 onChange={(e) =>
                   handleUpdateAddress(address.id, {
-                    type: e.target.value as AddressType,
+                    type: e.target.value as AddressType
                   })
                 }
               >
@@ -252,7 +247,7 @@ const AddressHistoryForm: React.FC<AddressHistoryFormProps> = ({
           onClick={handleAddAddress}
           sx={{
             borderStyle: "dashed",
-            color: (theme) => theme.palette.text.secondary,
+            color: (theme) => theme.palette.text.secondary
           }}
         >
           Add another address

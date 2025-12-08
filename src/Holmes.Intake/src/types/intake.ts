@@ -109,7 +109,7 @@ export const createEmptyAddress = (): IntakeAddress => ({
   fromDate: "",
   toDate: "",
   type: AddressType.Residential,
-  isCurrent: false,
+  isCurrent: false
 });
 
 export const createEmptyEmployment = (): IntakeEmployment => ({
@@ -124,7 +124,7 @@ export const createEmptyEmployment = (): IntakeEmployment => ({
   endDate: "",
   reasonForLeaving: "",
   canContact: false,
-  isCurrent: false,
+  isCurrent: false
 });
 
 export const createEmptyEducation = (): IntakeEducation => ({
@@ -136,7 +136,7 @@ export const createEmptyEducation = (): IntakeEducation => ({
   attendedFrom: "",
   attendedTo: "",
   graduationDate: "",
-  graduated: false,
+  graduated: false
 });
 
 export const createEmptyReference = (): IntakeReference => ({
@@ -146,14 +146,14 @@ export const createEmptyReference = (): IntakeReference => ({
   email: "",
   relationship: "",
   yearsKnown: null,
-  type: ReferenceType.Personal,
+  type: ReferenceType.Personal
 });
 
 export const createEmptyPhone = (): IntakePhone => ({
   id: crypto.randomUUID(),
   phoneNumber: "",
   type: PhoneType.Mobile,
-  isPrimary: false,
+  isPrimary: false
 });
 
 // US State options for dropdowns
@@ -208,5 +208,5 @@ export const US_STATES = [
   { value: "WV", label: "West Virginia" },
   { value: "WI", label: "Wisconsin" },
   { value: "WY", label: "Wyoming" },
-  { value: "DC", label: "District of Columbia" },
+  { value: "DC", label: "District of Columbia" }
 ];

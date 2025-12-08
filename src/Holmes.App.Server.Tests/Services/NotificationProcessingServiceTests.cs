@@ -1,9 +1,9 @@
 using Holmes.App.Server.Services;
 using Holmes.Core.Domain.Results;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Notifications.Application.Abstractions.Queries;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
-using Holmes.Notifications.Domain.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,24 +14,21 @@ namespace Holmes.App.Server.Tests.Services;
 public sealed class NotificationProcessingServiceTests
 {
     private Mock<ILogger<NotificationProcessingService>> _loggerMock = null!;
-    private Mock<INotificationRequestRepository> _repositoryMock = null!;
+    private Mock<INotificationQueries> _notificationQueriesMock = null!;
     private IServiceScopeFactory _scopeFactory = null!;
     private Mock<ISender> _senderMock = null!;
 
     [SetUp]
     public void Setup()
     {
-        _repositoryMock = new Mock<INotificationRequestRepository>();
+        _notificationQueriesMock = new Mock<INotificationQueries>();
         _senderMock = new Mock<ISender>();
         _loggerMock = new Mock<ILogger<NotificationProcessingService>>();
 
-        var unitOfWorkMock = new Mock<INotificationsUnitOfWork>();
-        unitOfWorkMock.Setup(u => u.NotificationRequests).Returns(_repositoryMock.Object);
-
         var serviceProviderMock = new Mock<IServiceProvider>();
         serviceProviderMock
-            .Setup(sp => sp.GetService(typeof(INotificationsUnitOfWork)))
-            .Returns(unitOfWorkMock.Object);
+            .Setup(sp => sp.GetService(typeof(INotificationQueries)))
+            .Returns(_notificationQueriesMock.Object);
         serviceProviderMock
             .Setup(sp => sp.GetService(typeof(ISender)))
             .Returns(_senderMock.Object);
@@ -49,12 +46,12 @@ public sealed class NotificationProcessingServiceTests
     public async Task ExecuteAsync_ProcessesPendingNotifications()
     {
         // Arrange
-        var notification = CreateTestNotification();
-        var notificationId = notification.Id;
+        var notification = CreateTestPendingDto();
+        var notificationId = UlidId.Parse(notification.Id);
 
-        _repositoryMock
+        _notificationQueriesMock
             .Setup(r => r.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<NotificationRequest> { notification });
+            .ReturnsAsync(new List<NotificationPendingDto> { notification });
 
         _senderMock
             .Setup(s => s.Send(It.IsAny<ProcessNotificationCommand>(), It.IsAny<CancellationToken>()))
@@ -82,9 +79,9 @@ public sealed class NotificationProcessingServiceTests
     public async Task ExecuteAsync_DoesNothing_WhenNoPendingNotifications()
     {
         // Arrange
-        _repositoryMock
+        _notificationQueriesMock
             .Setup(r => r.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<NotificationRequest>());
+            .ReturnsAsync(new List<NotificationPendingDto>());
 
         var service = new NotificationProcessingService(_scopeFactory, _loggerMock.Object);
 
@@ -106,12 +103,12 @@ public sealed class NotificationProcessingServiceTests
     public async Task ExecuteAsync_ContinuesOnError_WhenProcessingFails()
     {
         // Arrange
-        var notification1 = CreateTestNotification();
-        var notification2 = CreateTestNotification();
+        var notification1 = CreateTestPendingDto();
+        var notification2 = CreateTestPendingDto();
 
-        _repositoryMock
+        _notificationQueriesMock
             .Setup(r => r.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<NotificationRequest> { notification1, notification2 });
+            .ReturnsAsync(new List<NotificationPendingDto> { notification1, notification2 });
 
         var callCount = 0;
         _senderMock
@@ -147,11 +144,11 @@ public sealed class NotificationProcessingServiceTests
     public async Task ExecuteAsync_LogsWarning_WhenProcessingReturnsFailure()
     {
         // Arrange
-        var notification = CreateTestNotification();
+        var notification = CreateTestPendingDto();
 
-        _repositoryMock
+        _notificationQueriesMock
             .Setup(r => r.GetPendingAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<NotificationRequest> { notification });
+            .ReturnsAsync(new List<NotificationPendingDto> { notification });
 
         _senderMock
             .Setup(s => s.Send(It.IsAny<ProcessNotificationCommand>(), It.IsAny<CancellationToken>()))
@@ -173,25 +170,20 @@ public sealed class NotificationProcessingServiceTests
             Times.AtLeastOnce());
     }
 
-    private static NotificationRequest CreateTestNotification()
+    private static NotificationPendingDto CreateTestPendingDto()
     {
         var customerId = UlidId.NewUlid();
-        var trigger = NotificationTrigger.OrderStateChanged(
-            UlidId.NewUlid(),
-            customerId,
-            "Created",
-            "Invited");
-        var recipient = NotificationRecipient.Email("test@example.com", "Test User");
-        var content = new NotificationContent { Subject = "Test", Body = "Test body" };
+        var orderId = UlidId.NewUlid();
 
-        return NotificationRequest.Create(
-            customerId,
-            trigger,
-            recipient,
-            content,
-            null,
-            NotificationPriority.Normal,
-            false,
-            DateTimeOffset.UtcNow);
+        return new NotificationPendingDto(
+            UlidId.NewUlid().ToString(),
+            customerId.ToString(),
+            orderId.ToString(),
+            NotificationTriggerType.OrderStateChanged,
+            NotificationChannel.Email,
+            "test@example.com",
+            DeliveryStatus.Pending,
+            0,
+            null);
     }
 }

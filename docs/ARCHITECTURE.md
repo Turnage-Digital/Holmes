@@ -366,12 +366,12 @@ A module **MUST NEVER** directly reference another module's `*.Domain` or `*.App
 fundamental DDD principle — bounded contexts communicate through explicit contracts, not internal implementation
 details.
 
-| Reference Type | Allowed? | Example |
-|----------------|----------|---------|
-| `ModuleA.Application` → `ModuleB.Domain` | ❌ NO | SlaClocks.App → Workflow.Domain |
-| `ModuleA.Application` → `ModuleB.Application` | ❌ NO | Services.App → Subjects.App |
-| `ModuleA.Application` → `ModuleB.Application.Abstractions` | ✅ YES | SlaClocks.App → Workflow.App.Abstractions |
-| `ModuleA.Infrastructure` → `ModuleB.Application.Abstractions` | ✅ YES | Intake.Infra → Workflow.App.Abstractions |
+| Reference Type                                                | Allowed? | Example                                   |
+|---------------------------------------------------------------|----------|-------------------------------------------|
+| `ModuleA.Application` → `ModuleB.Domain`                      | ❌ NO     | SlaClocks.App → Workflow.Domain           |
+| `ModuleA.Application` → `ModuleB.Application`                 | ❌ NO     | Services.App → Subjects.App               |
+| `ModuleA.Application` → `ModuleB.Application.Abstractions`    | ✅ YES    | SlaClocks.App → Workflow.App.Abstractions |
+| `ModuleA.Infrastructure` → `ModuleB.Application.Abstractions` | ✅ YES    | Intake.Infra → Workflow.App.Abstractions  |
 
 When a module needs types from another bounded context, the owning module must expose them via
 `*.Application.Abstractions` (DTOs, interfaces, integration events). See `docs/MODULE_TEMPLATE.md` for detailed
