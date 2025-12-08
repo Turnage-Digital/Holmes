@@ -12,19 +12,25 @@ import type {
   CurrentUserDto,
   CustomerDetailDto,
   CustomerListItemDto,
+  CustomerServiceCatalogDto,
   GrantUserRoleRequest,
   InviteUserRequest,
   InviteUserResponse,
   IssueIntakeInviteRequest,
+  OrderServicesDto,
   OrderStatsDto,
   OrderSummaryDto,
   OrderSummaryQuery,
   OrderTimelineEntryDto,
   PaginatedResult,
   RegisterSubjectRequest,
+  ServiceTypeDto,
+  SubjectDetailDto,
   SubjectListItemDto,
   SubjectSummaryDto,
   Ulid,
+  UpdateCatalogServiceRequest,
+  UpdateTierConfigurationRequest,
   UserDto,
 } from "@/types/api";
 
@@ -38,13 +44,16 @@ export const queryKeys = {
   customers: (page: number, pageSize: number) =>
     ["customers", page, pageSize] as const,
   customer: (id: Ulid) => ["customers", id] as const,
+  customerCatalog: (id: Ulid) => ["customers", id, "catalog"] as const,
   subjects: (page: number, pageSize: number) =>
     ["subjects", page, pageSize] as const,
   subject: (id: Ulid) => ["subjects", id] as const,
   orders: (query: OrderSummaryQuery) => ["orders", query] as const,
   order: (id: Ulid) => ["orders", "detail", id] as const,
   orderTimeline: (id: Ulid) => ["orders", "timeline", id] as const,
+  orderServices: (id: Ulid) => ["orders", id, "services"] as const,
   orderStats: ["orders", "stats"] as const,
+  serviceTypes: ["services", "types"] as const,
 };
 
 // ============================================================================
@@ -213,7 +222,7 @@ export const useSubjects = (page: number, pageSize: number) =>
   });
 
 const fetchSubject = (subjectId: Ulid) =>
-  apiFetch<SubjectSummaryDto>(`/subjects/${subjectId}`);
+  apiFetch<SubjectDetailDto>(`/subjects/${subjectId}`);
 
 export const useSubject = (subjectId: Ulid) =>
   useQuery({
@@ -315,6 +324,92 @@ export const useIssueIntakeInvite = () => {
     mutationFn: issueIntakeInvite,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+// ============================================================================
+// Services
+// ============================================================================
+
+const fetchServiceTypes = () =>
+  apiFetch<ServiceTypeDto[]>("/services/types");
+
+export const useServiceTypes = () =>
+  useQuery({
+    queryKey: queryKeys.serviceTypes,
+    queryFn: fetchServiceTypes,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+const fetchOrderServices = (orderId: Ulid) =>
+  apiFetch<OrderServicesDto>(`/orders/${orderId}/services`);
+
+export const useOrderServices = (orderId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.orderServices(orderId),
+    queryFn: () => fetchOrderServices(orderId),
+    enabled: !!orderId,
+  });
+
+// ============================================================================
+// Customer Service Catalog
+// ============================================================================
+
+const fetchCustomerCatalog = (customerId: Ulid) =>
+  apiFetch<CustomerServiceCatalogDto>(`/customers/${customerId}/catalog`);
+
+export const useCustomerCatalog = (customerId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.customerCatalog(customerId),
+    queryFn: () => fetchCustomerCatalog(customerId),
+    enabled: !!customerId,
+  });
+
+const updateCatalogService = ({
+  customerId,
+  payload,
+}: {
+  customerId: Ulid;
+  payload: UpdateCatalogServiceRequest;
+}) =>
+  apiFetch<void>(`/customers/${customerId}/catalog/services`, {
+    method: "PUT",
+    body: payload,
+  });
+
+export const useUpdateCatalogService = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateCatalogService,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.customerCatalog(variables.customerId),
+      });
+    },
+  });
+};
+
+const updateTierConfiguration = ({
+  customerId,
+  payload,
+}: {
+  customerId: Ulid;
+  payload: UpdateTierConfigurationRequest;
+}) =>
+  apiFetch<void>(`/customers/${customerId}/catalog/tiers`, {
+    method: "PUT",
+    body: payload,
+  });
+
+export const useUpdateTierConfiguration = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateTierConfiguration,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.customerCatalog(variables.customerId),
+      });
     },
   });
 };

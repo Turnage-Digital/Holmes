@@ -184,6 +184,95 @@ export interface MergeSubjectsRequest {
   reason?: string;
 }
 
+// Subject Detail Types (returned by GET /subjects/{id})
+export type AddressType = "Residential" | "Mailing" | "Business" | "Unknown";
+export type PhoneType = "Mobile" | "Home" | "Work" | "Unknown";
+export type ReferenceType = "Personal" | "Professional" | "Unknown";
+
+export interface SubjectAddressDto {
+  id: Ulid;
+  street1: string;
+  street2?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  countyFips?: string;
+  fromDate: string;
+  toDate?: string;
+  isCurrent: boolean;
+  type: AddressType;
+  createdAt: string;
+}
+
+export interface SubjectEmploymentDto {
+  id: Ulid;
+  employerName: string;
+  employerPhone?: string;
+  employerAddress?: string;
+  jobTitle?: string;
+  supervisorName?: string;
+  supervisorPhone?: string;
+  startDate: string;
+  endDate?: string;
+  isCurrent: boolean;
+  reasonForLeaving?: string;
+  canContact: boolean;
+  createdAt: string;
+}
+
+export interface SubjectEducationDto {
+  id: Ulid;
+  institutionName: string;
+  institutionAddress?: string;
+  degree?: string;
+  major?: string;
+  attendedFrom?: string;
+  attendedTo?: string;
+  graduationDate?: string;
+  graduated: boolean;
+  createdAt: string;
+}
+
+export interface SubjectReferenceDto {
+  id: Ulid;
+  name: string;
+  phone?: string;
+  email?: string;
+  relationship?: string;
+  yearsKnown?: number;
+  type: ReferenceType;
+  createdAt: string;
+}
+
+export interface SubjectPhoneDto {
+  id: Ulid;
+  phoneNumber: string;
+  type: PhoneType;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+export interface SubjectDetailDto {
+  id: Ulid;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  birthDate?: string;
+  email?: string;
+  ssnLast4?: string;
+  status: SubjectStatus;
+  mergeParentId?: Ulid | null;
+  aliases: SubjectAliasDto[];
+  addresses: SubjectAddressDto[];
+  employments: SubjectEmploymentDto[];
+  educations: SubjectEducationDto[];
+  references: SubjectReferenceDto[];
+  phones: SubjectPhoneDto[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ============================================================================
 // Order Types
 // ============================================================================
@@ -294,4 +383,114 @@ export interface OrderChangeEvent {
   status: string;
   reason?: string;
   changedAt: string;
+}
+
+// ============================================================================
+// Service Types
+// ============================================================================
+
+export type ServiceCategory =
+  | "Criminal"
+  | "Identity"
+  | "Employment"
+  | "Education"
+  | "Driving"
+  | "Credit"
+  | "Drug"
+  | "Civil"
+  | "Reference"
+  | "Healthcare"
+  | "Custom";
+
+export type ServiceStatus =
+  | "Pending"
+  | "Dispatched"
+  | "InProgress"
+  | "Completed"
+  | "Failed"
+  | "Canceled";
+
+export interface ServiceTypeDto {
+  code: string;
+  displayName: string;
+  category: ServiceCategory;
+  defaultTier: number;
+}
+
+export interface ServiceRequestSummaryDto {
+  id: Ulid;
+  orderId: Ulid;
+  customerId: Ulid;
+  serviceTypeCode: string;
+  category: ServiceCategory;
+  tier: number;
+  status: ServiceStatus;
+  vendorCode?: string;
+  vendorReferenceId?: string;
+  attemptCount: number;
+  maxAttempts: number;
+  lastError?: string;
+  scopeType?: string;
+  scopeValue?: string;
+  createdAt: string;
+  dispatchedAt?: string;
+  completedAt?: string;
+  failedAt?: string;
+  canceledAt?: string;
+}
+
+export interface OrderServicesDto {
+  orderId: Ulid;
+  services: ServiceRequestSummaryDto[];
+  totalServices: number;
+  completedServices: number;
+  pendingServices: number;
+  failedServices: number;
+}
+
+// ============================================================================
+// Customer Service Catalog Types
+// ============================================================================
+
+export interface CatalogServiceItemDto {
+  serviceTypeCode: string;
+  displayName: string;
+  category: ServiceCategory;
+  isEnabled: boolean;
+  tier: number;
+  vendorCode?: string;
+}
+
+export interface TierConfigurationDto {
+  tier: number;
+  name: string;
+  description?: string;
+  requiredServices: string[];
+  optionalServices: string[];
+  autoDispatch: boolean;
+  waitForPreviousTier: boolean;
+}
+
+export interface CustomerServiceCatalogDto {
+  customerId: Ulid;
+  services: CatalogServiceItemDto[];
+  tiers: TierConfigurationDto[];
+  updatedAt: string;
+}
+
+export interface UpdateCatalogServiceRequest {
+  serviceTypeCode: string;
+  isEnabled: boolean;
+  tier?: number;
+  vendorCode?: string;
+}
+
+export interface UpdateTierConfigurationRequest {
+  tier: number;
+  name?: string;
+  description?: string;
+  requiredServices?: string[];
+  optionalServices?: string[];
+  autoDispatch?: boolean;
+  waitForPreviousTier?: boolean;
 }

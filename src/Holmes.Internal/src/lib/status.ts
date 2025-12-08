@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@/types/api";
+import type { OrderStatus, ServiceStatus } from "@/types/api";
 import type { ChipProps } from "@mui/material";
 
 type StatusColor = ChipProps["color"];
@@ -161,10 +161,49 @@ export const getCustomerStatusColor = (status: string): StatusColor => {
 };
 
 // ============================================================================
+// Service Status
+// ============================================================================
+
+const serviceStatuses: ServiceStatus[] = [
+  "Pending",
+  "Dispatched",
+  "InProgress",
+  "Completed",
+  "Failed",
+  "Canceled",
+];
+
+const serviceStatusMeta: Record<ServiceStatus, StatusMeta> = {
+  Pending: { label: "Pending", chipColor: "default" },
+  Dispatched: { label: "Dispatched", chipColor: "info" },
+  InProgress: { label: "In Progress", chipColor: "warning" },
+  Completed: { label: "Completed", chipColor: "success" },
+  Failed: { label: "Failed", chipColor: "error" },
+  Canceled: { label: "Canceled", chipColor: "default" },
+};
+
+const isServiceStatus = (value: string): value is ServiceStatus =>
+  serviceStatuses.includes(value as ServiceStatus);
+
+export const getServiceStatusLabel = (status: string): string => {
+  if (isServiceStatus(status)) {
+    return serviceStatusMeta[status].label;
+  }
+  return status;
+};
+
+export const getServiceStatusColor = (status: string): StatusColor => {
+  if (isServiceStatus(status)) {
+    return serviceStatusMeta[status].chipColor;
+  }
+  return "default";
+};
+
+// ============================================================================
 // Unified Status API
 // ============================================================================
 
-export type EntityType = "order" | "user" | "subject" | "customer";
+export type EntityType = "order" | "user" | "subject" | "customer" | "service";
 
 export const getStatusLabel = (type: EntityType, status: string): string => {
   switch (type) {
@@ -176,6 +215,8 @@ export const getStatusLabel = (type: EntityType, status: string): string => {
       return getSubjectStatusLabel(status);
     case "customer":
       return getCustomerStatusLabel(status);
+    case "service":
+      return getServiceStatusLabel(status);
     default:
       return status;
   }
@@ -194,6 +235,8 @@ export const getStatusColor = (
       return getSubjectStatusColor(status);
     case "customer":
       return getCustomerStatusColor(status);
+    case "service":
+      return getServiceStatusColor(status);
     default:
       return "default";
   }

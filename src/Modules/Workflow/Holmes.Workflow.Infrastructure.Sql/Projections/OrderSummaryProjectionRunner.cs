@@ -43,7 +43,7 @@ public sealed class OrderSummaryProjectionRunner(
             foreach (var entity in batch)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var order = OrderEntityMapper.Rehydrate(entity);
+                var order = OrderMapper.ToDomain(entity);
                 await orderSummaryWriter.UpsertAsync(order, cancellationToken);
                 processed++;
                 position++;

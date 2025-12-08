@@ -9,6 +9,7 @@ public static class DependencyInjection
     public static IServiceCollection AddAppIntegration(this IServiceCollection services)
     {
         services.AddScoped<IOrderWorkflowGateway, OrderWorkflowGateway>();
+        services.AddScoped<ISubjectDataGateway, SubjectDataGateway>();
 
         return services;
     }

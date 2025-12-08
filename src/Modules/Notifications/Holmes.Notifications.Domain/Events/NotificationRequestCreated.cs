@@ -11,5 +11,6 @@ public sealed record NotificationRequestCreated(
     NotificationTriggerType TriggerType,
     NotificationChannel Channel,
     bool IsAdverseAction,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? ScheduledFor
 ) : INotification;

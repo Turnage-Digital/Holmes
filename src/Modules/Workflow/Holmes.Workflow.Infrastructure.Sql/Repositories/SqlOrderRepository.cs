@@ -9,7 +9,7 @@ public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepo
 {
     public Task AddAsync(Order order, CancellationToken cancellationToken)
     {
-        dbContext.Orders.Add(OrderEntityMapper.ToEntity(order));
+        dbContext.Orders.Add(OrderMapper.ToDb(order));
         return Task.CompletedTask;
     }
 
@@ -19,7 +19,7 @@ public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepo
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.OrderId == id.ToString(), cancellationToken);
 
-        return record is null ? null : OrderEntityMapper.Rehydrate(record);
+        return record is null ? null : OrderMapper.ToDomain(record);
     }
 
     public async Task UpdateAsync(Order order, CancellationToken cancellationToken)
@@ -32,6 +32,6 @@ public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepo
             throw new InvalidOperationException($"Order '{order.Id}' not found.");
         }
 
-        OrderEntityMapper.Apply(order, record);
+        OrderMapper.Apply(order, record);
     }
 }

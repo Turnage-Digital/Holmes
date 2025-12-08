@@ -1,6 +1,4 @@
 using Holmes.Notifications.Domain;
-using Holmes.Notifications.Domain.Storage;
-using Holmes.Notifications.Infrastructure.Sql.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

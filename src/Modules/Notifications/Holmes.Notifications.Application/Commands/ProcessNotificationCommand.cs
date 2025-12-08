@@ -2,7 +2,6 @@ using Holmes.Core.Application;
 using Holmes.Core.Domain.Results;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Notifications.Domain;
-using Holmes.Notifications.Domain.Storage;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

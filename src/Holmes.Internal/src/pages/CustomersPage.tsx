@@ -11,7 +11,8 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
+import { useNavigate } from "react-router-dom";
 
 import type { CreateCustomerRequest, CustomerListItemDto } from "@/types/api";
 
@@ -33,6 +34,7 @@ const initialFormState: CreateCustomerRequest = {
 };
 
 const CustomersPage = () => {
+  const navigate = useNavigate();
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 25,
@@ -50,6 +52,10 @@ const CustomersPage = () => {
   } = useCustomers(paginationModel.page + 1, paginationModel.pageSize);
 
   const createCustomerMutation = useCreateCustomer();
+
+  const handleRowClick = (params: GridRowParams<CustomerListItemDto>) => {
+    navigate(`/customers/${params.row.id}`);
+  };
 
   const handleOpenDialog = () => {
     setDialogOpen(true);
@@ -168,12 +174,16 @@ const CustomersPage = () => {
         pageSizeOptions={[10, 25, 50]}
         paginationMode="server"
         rowCount={customersData?.totalItems ?? 0}
+        onRowClick={handleRowClick}
         slots={{
           noRowsOverlay: () => (
             <DataGridNoRowsOverlay message="No customers yet. Add your first customer to get started." />
           ),
         }}
-        sx={{ minHeight: 400 }}
+        sx={{
+          minHeight: 400,
+          "& .MuiDataGrid-row": { cursor: "pointer" },
+        }}
         disableRowSelectionOnClick
       />
 

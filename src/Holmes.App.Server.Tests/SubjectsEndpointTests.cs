@@ -48,20 +48,18 @@ public class SubjectsEndpointTests
     }
 
     [Test]
-    public async Task GetSubjectById_Returns_Summary()
+    public async Task GetSubjectById_Returns_Detail()
     {
         await using var factory = new HolmesWebApplicationFactory();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
         var subjectId = Ulid.NewUlid().ToString();
-        db.SubjectDirectory.Add(new SubjectDirectoryDb
+        db.Subjects.Add(new SubjectDb
         {
             SubjectId = subjectId,
             GivenName = "John",
             FamilyName = "Smith",
-            CreatedAt = DateTimeOffset.UtcNow,
-            AliasCount = 0,
-            IsMerged = false
+            CreatedAt = DateTimeOffset.UtcNow
         });
         await db.SaveChangesAsync();
 
@@ -74,9 +72,12 @@ public class SubjectsEndpointTests
         var response = await client.GetAsync($"/api/subjects/{subjectId}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var summary = await response.Content.ReadFromJsonAsync<SubjectSummaryDto>();
-        Assert.That(summary, Is.Not.Null);
-        Assert.That(summary!.GivenName, Is.EqualTo("John"));
+        var detail = await response.Content.ReadFromJsonAsync<SubjectDetailDto>();
+        Assert.That(detail, Is.Not.Null);
+        Assert.That(detail!.FirstName, Is.EqualTo("John"));
+        Assert.That(detail.LastName, Is.EqualTo("Smith"));
+        Assert.That(detail.Addresses, Is.Empty);
+        Assert.That(detail.Employments, Is.Empty);
     }
 
     private sealed record RegisterSubjectRequest(

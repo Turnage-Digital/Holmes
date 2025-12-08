@@ -3,6 +3,9 @@ using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Services.Application.Abstractions.Dtos;
+using Holmes.Services.Domain;
+using Holmes.Services.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Workflow.Application.Abstractions.Dtos;
 using Holmes.Workflow.Application.Commands;
@@ -23,6 +26,7 @@ public sealed class OrdersController(
     WorkflowDbContext workflowDbContext,
     CustomersDbContext customersDbContext,
     SubjectsDbContext subjectsDbContext,
+    ServicesDbContext servicesDbContext,
     ICurrentUserAccess currentUserAccess
 ) : ControllerBase
 {
@@ -301,6 +305,82 @@ public sealed class OrdersController(
             .ToListAsync(cancellationToken);
 
         return Ok(events);
+    }
+
+    [HttpGet("{orderId}/services")]
+    public async Task<ActionResult<OrderServicesDto>> GetServicesAsync(
+        string orderId,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!Ulid.TryParse(orderId, out var parsedOrder))
+        {
+            return BadRequest("Invalid order id format.");
+        }
+
+        var targetOrderId = parsedOrder.ToString();
+
+        // Verify order exists and user has access
+        var orderSummary = await workflowDbContext.OrderSummaries
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.OrderId == targetOrderId, cancellationToken);
+
+        if (orderSummary is null)
+        {
+            return NotFound();
+        }
+
+        if (!await currentUserAccess.HasCustomerAccessAsync(orderSummary.CustomerId, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        // Fetch all service requests for this order
+        var services = await servicesDbContext.ServiceRequests
+            .AsNoTracking()
+            .Where(s => s.OrderId == targetOrderId)
+            .OrderBy(s => s.Tier)
+            .ThenBy(s => s.CreatedAt)
+            .Select(s => new ServiceRequestSummaryDto(
+                s.Id,
+                s.OrderId,
+                s.CustomerId,
+                s.ServiceTypeCode,
+                s.Category,
+                s.Tier,
+                s.Status,
+                s.VendorCode,
+                s.VendorReferenceId,
+                s.AttemptCount,
+                s.MaxAttempts,
+                s.LastError,
+                s.ScopeType,
+                s.ScopeValue,
+                new DateTimeOffset(s.CreatedAt, TimeSpan.Zero),
+                s.DispatchedAt.HasValue ? new DateTimeOffset(s.DispatchedAt.Value, TimeSpan.Zero) : null,
+                s.CompletedAt.HasValue ? new DateTimeOffset(s.CompletedAt.Value, TimeSpan.Zero) : null,
+                s.FailedAt.HasValue ? new DateTimeOffset(s.FailedAt.Value, TimeSpan.Zero) : null,
+                s.CanceledAt.HasValue ? new DateTimeOffset(s.CanceledAt.Value, TimeSpan.Zero) : null
+            ))
+            .ToListAsync(cancellationToken);
+
+        // Calculate counts
+        var totalServices = services.Count;
+        var completedServices = services.Count(s =>
+            s.Status == ServiceStatus.Completed || s.Status == ServiceStatus.Canceled);
+        var pendingServices = services.Count(s => s.Status == ServiceStatus.Pending);
+        var failedServices = services.Count(s => s.Status == ServiceStatus.Failed);
+
+        var result = new OrderServicesDto(
+            targetOrderId,
+            services,
+            totalServices,
+            completedServices,
+            pendingServices,
+            failedServices
+        );
+
+        return Ok(result);
     }
 
     private static IReadOnlyCollection<string> NormalizeStatuses(IReadOnlyCollection<string>? statuses)

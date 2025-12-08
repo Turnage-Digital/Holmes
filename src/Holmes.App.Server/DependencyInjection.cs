@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Integration;
+using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Domain.Security;
@@ -17,7 +18,17 @@ using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
 using Holmes.Intake.Infrastructure.Sql.Storage;
 using Holmes.Notifications.Application.Commands;
+using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql;
+using Holmes.Services.Application.Abstractions.Notifications;
+using Holmes.Services.Domain;
+using Holmes.Services.Infrastructure.Sql;
+using Holmes.Services.Infrastructure.Sql.Notifications;
+using Holmes.SlaClocks.Application.Commands;
+using Holmes.SlaClocks.Application.Services;
+using Holmes.SlaClocks.Domain;
+using Holmes.SlaClocks.Infrastructure.Sql;
+using Holmes.SlaClocks.Infrastructure.Sql.Services;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
@@ -116,6 +127,7 @@ internal static class DependencyInjection
             config.RegisterServicesFromAssemblyContaining<CreateOrderCommand>();
             config.RegisterServicesFromAssemblyContaining<IssueIntakeInviteCommand>();
             config.RegisterServicesFromAssemblyContaining<CreateNotificationRequestCommand>();
+            config.RegisterServicesFromAssemblyContaining<StartSlaClockCommand>();
         });
 
         return services;
@@ -198,6 +210,9 @@ internal static class DependencyInjection
             services.AddHostedService<SeedData>();
         }
 
+        services.AddHostedService<NotificationProcessingService>();
+        services.AddHostedService<SlaClockWatchdogService>();
+
         return services;
     }
 
@@ -225,6 +240,8 @@ internal static class DependencyInjection
         services.AddIntakeInfrastructureSql(connectionString, serverVersion);
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
         services.AddNotificationsInfrastructureSql(connectionString, serverVersion);
+        services.AddSlaClockInfrastructureSql(connectionString, serverVersion);
+        services.AddServicesInfrastructureSql(connectionString, serverVersion);
 
         services.AddAppIntegration();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
@@ -242,6 +259,8 @@ internal static class DependencyInjection
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddDbContext<IntakeDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
         services.AddDbContext<WorkflowDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
+        services.AddDbContext<SlaClockDbContext>(options => options.UseInMemoryDatabase("holmes-slaclocks"));
+        services.AddDbContext<ServicesDbContext>(options => options.UseInMemoryDatabase("holmes-services"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
@@ -254,6 +273,13 @@ internal static class DependencyInjection
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
+        services.AddSingleton<IServiceChangeBroadcaster, ServiceChangeBroadcaster>();
+        services.AddDbContext<NotificationsDbContext>(options => options.UseInMemoryDatabase("holmes-notifications"));
+        services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
+        services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
+        services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
+        services.AddScoped<ISlaClockRepository, SlaClockRepository>();
+        services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
         services.AddAppIntegration();
         return services;
     }

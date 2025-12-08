@@ -13,7 +13,7 @@ public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> opt
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.HasDefaultSchema("notifications");
+        modelBuilder.HasCharSet("utf8mb4");
 
         modelBuilder.Entity<NotificationRequestDb>(entity =>
         {

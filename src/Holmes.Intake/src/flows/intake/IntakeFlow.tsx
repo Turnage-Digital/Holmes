@@ -24,6 +24,18 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import { alpha } from "@mui/material/styles";
 import { useMutation } from "@tanstack/react-query";
 
+import {
+  AddressHistoryForm,
+  EmploymentHistoryForm,
+  EducationHistoryForm,
+} from "@/components/forms";
+import {
+  IntakeAddress,
+  IntakeEmployment,
+  IntakeEducation,
+  createEmptyAddress,
+} from "@/types/intake";
+
 import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
 import {
   captureConsentArtifact,
@@ -43,7 +55,10 @@ type IntakeStepId =
   | "verify"
   | "otp"
   | "consent"
-  | "data"
+  | "personal"
+  | "addresses"
+  | "employment"
+  | "education"
   | "review"
   | "success";
 
@@ -61,34 +76,32 @@ interface StepDefinition {
 interface IntakeFormState {
   firstName: string;
   lastName: string;
+  middleName: string;
   dateOfBirth: string;
   email: string;
   phone: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  region: string;
-  postalCode: string;
-  ssnLast4: string;
+  ssn: string;
   consentAccepted: boolean;
+  addresses: IntakeAddress[];
+  employments: IntakeEmployment[];
+  educations: IntakeEducation[];
 }
 
-const formSchemaVersion = "intake-basic-v1";
+const formSchemaVersion = "intake-extended-v2";
 const consentSchemaVersion = "consent-basic-v1";
 
 const initialFormState: IntakeFormState = {
   firstName: "",
   lastName: "",
+  middleName: "",
   dateOfBirth: "",
   email: "",
   phone: "",
-  addressLine1: "",
-  addressLine2: "",
-  city: "",
-  region: "",
-  postalCode: "",
-  ssnLast4: "",
+  ssn: "",
   consentAccepted: false,
+  addresses: [createEmptyAddress()],
+  employments: [],
+  educations: [],
 };
 
 const CONSENT_TEXT = `I authorize Holmes to obtain and share consumer reports for employment purposes.
@@ -213,7 +226,7 @@ const IntakeFlow = () => {
 
     setFormState((current) => {
       const next = { ...current };
-      (["firstName", "lastName", "email", "phone", "city", "region"] as const)
+      (["firstName", "lastName", "email", "phone"] as const)
         .filter((field) => !current[field] && envPrefill[field])
         .forEach((field) => {
           next[field] = envPrefill[field];
@@ -292,38 +305,77 @@ const IntakeFlow = () => {
     [],
   );
 
-  const validateForm = useCallback(() => {
+  const validatePersonalInfo = useCallback(() => {
     const missingFields: string[] = [];
     if (!formState.firstName.trim()) missingFields.push("First name");
     if (!formState.lastName.trim()) missingFields.push("Last name");
     if (!formState.dateOfBirth.trim()) missingFields.push("Date of birth");
     if (!formState.email.trim()) missingFields.push("Email");
     if (!formState.phone.trim()) missingFields.push("Phone");
-    if (!formState.addressLine1.trim()) missingFields.push("Street");
-    if (!formState.city.trim()) missingFields.push("City");
-    if (!formState.region.trim()) missingFields.push("State");
-    if (!formState.postalCode.trim()) missingFields.push("Postal code");
-
     return missingFields;
   }, [formState]);
 
+  const validateAddresses = useCallback(() => {
+    if (formState.addresses.length === 0) {
+      return ["At least one address is required"];
+    }
+    const issues: string[] = [];
+    formState.addresses.forEach((addr, i) => {
+      const label = addr.isCurrent ? "Current address" : `Address ${i + 1}`;
+      if (!addr.street1.trim()) issues.push(`${label}: street address`);
+      if (!addr.city.trim()) issues.push(`${label}: city`);
+      if (!addr.state.trim()) issues.push(`${label}: state`);
+      if (!addr.postalCode.trim()) issues.push(`${label}: ZIP code`);
+      if (!addr.fromDate) issues.push(`${label}: from date`);
+      if (!addr.isCurrent && !addr.toDate) issues.push(`${label}: to date`);
+    });
+    return issues;
+  }, [formState.addresses]);
+
+  const validateForm = useCallback(() => {
+    return [...validatePersonalInfo(), ...validateAddresses()];
+  }, [validatePersonalInfo, validateAddresses]);
+
   const buildAnswersPayload = useCallback(
     () => ({
-      subject: {
-        firstName: formState.firstName.trim(),
-        lastName: formState.lastName.trim(),
-        dateOfBirth: formState.dateOfBirth.trim(),
-        ssnLast4: formState.ssnLast4.trim(),
-      },
-      contact: {
-        email: formState.email.trim(),
-        phone: formState.phone.trim(),
-        addressLine1: formState.addressLine1.trim(),
-        addressLine2: formState.addressLine2.trim(),
-        city: formState.city.trim(),
-        region: formState.region.trim(),
-        postalCode: formState.postalCode.trim(),
-      },
+      middleName: formState.middleName.trim() || null,
+      ssn: formState.ssn.trim() || null,
+      addresses: formState.addresses.map((a) => ({
+        street1: a.street1.trim(),
+        street2: a.street2?.trim() || null,
+        city: a.city.trim(),
+        state: a.state.trim(),
+        postalCode: a.postalCode.trim(),
+        country: a.country || "USA",
+        countyFips: a.countyFips?.trim() || null,
+        fromDate: a.fromDate || null,
+        toDate: a.isCurrent ? null : a.toDate || null,
+        type: a.type,
+      })),
+      employments: formState.employments.map((e) => ({
+        employerName: e.employerName.trim(),
+        employerPhone: e.employerPhone?.trim() || null,
+        employerAddress: e.employerAddress?.trim() || null,
+        jobTitle: e.jobTitle?.trim() || null,
+        supervisorName: e.supervisorName?.trim() || null,
+        supervisorPhone: e.supervisorPhone?.trim() || null,
+        startDate: e.startDate || null,
+        endDate: e.isCurrent ? null : e.endDate || null,
+        reasonForLeaving: e.reasonForLeaving?.trim() || null,
+        canContact: e.canContact,
+      })),
+      educations: formState.educations.map((e) => ({
+        institutionName: e.institutionName.trim(),
+        institutionAddress: e.institutionAddress?.trim() || null,
+        degree: e.degree?.trim() || null,
+        major: e.major?.trim() || null,
+        attendedFrom: e.attendedFrom || null,
+        attendedTo: e.attendedTo || null,
+        graduationDate: e.graduationDate || null,
+        graduated: e.graduated,
+      })),
+      phones: [{ phoneNumber: formState.phone.trim(), type: 0, isPrimary: true }],
+      references: [],
       consent: {
         artifactId: consentReceipt?.artifactId ?? null,
         acceptedAt: consentReceipt?.createdAt ?? null,
@@ -362,16 +414,22 @@ const IntakeFlow = () => {
       });
     }
 
-    const decodeAnswers = () => {
+    interface DecodedAnswers {
+      middleName?: string;
+      ssn?: string;
+      addresses?: IntakeAddress[];
+      employments?: IntakeEmployment[];
+      educations?: IntakeEducation[];
+      phones?: Array<{ phoneNumber: string }>;
+    }
+
+    const decodeAnswers = (): DecodedAnswers | null => {
       if (!bootstrap.answers?.payloadCipherText) {
         return null;
       }
       try {
         const json = fromBase64(bootstrap.answers.payloadCipherText);
-        return JSON.parse(json) as {
-          subject?: Partial<IntakeFormState>;
-          contact?: Partial<IntakeFormState>;
-        };
+        return JSON.parse(json) as DecodedAnswers;
       } catch {
         setBootstrapError(
           "We could not load your saved answers. You can re-enter them.",
@@ -391,17 +449,12 @@ const IntakeFlow = () => {
 
     setFormState((prev) => ({
       ...prev,
-      firstName: decoded.subject?.firstName ?? prev.firstName,
-      lastName: decoded.subject?.lastName ?? prev.lastName,
-      dateOfBirth: decoded.subject?.dateOfBirth ?? prev.dateOfBirth,
-      ssnLast4: decoded.subject?.ssnLast4 ?? prev.ssnLast4,
-      email: decoded.contact?.email ?? prev.email,
-      phone: decoded.contact?.phone ?? prev.phone,
-      addressLine1: decoded.contact?.addressLine1 ?? prev.addressLine1,
-      addressLine2: decoded.contact?.addressLine2 ?? prev.addressLine2,
-      city: decoded.contact?.city ?? prev.city,
-      region: decoded.contact?.region ?? prev.region,
-      postalCode: decoded.contact?.postalCode ?? prev.postalCode,
+      middleName: decoded.middleName ?? prev.middleName,
+      ssn: decoded.ssn ?? prev.ssn,
+      phone: decoded.phones?.[0]?.phoneNumber ?? prev.phone,
+      addresses: decoded.addresses?.length ? decoded.addresses : prev.addresses,
+      employments: decoded.employments ?? prev.employments,
+      educations: decoded.educations ?? prev.educations,
       consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
     }));
   }, []);
@@ -676,9 +729,9 @@ const IntakeFlow = () => {
         primaryButtonDisabled: isCapturingConsent,
       },
       {
-        id: "data",
-        title: "Provide required info",
-        subtitle: "We only ask for what the check needs—nothing more.",
+        id: "personal",
+        title: "Personal Information",
+        subtitle: "We need your basic identity details for the background check.",
         render: () => {
           const bootstrapErrorAlert = bootstrapError ? (
             <Alert severity="warning">{bootstrapError}</Alert>
@@ -690,9 +743,9 @@ const IntakeFlow = () => {
           return (
             <Stack spacing={2}>
               <StepCopy
-                heading="Share the basics"
-                body="We’ll collect your legal name, date of birth, and current city."
-                helper="This form stays lightweight and should take less than a minute."
+                heading="Share your identity details"
+                body="We'll collect your legal name, date of birth, and contact information."
+                helper="This information helps us verify your identity accurately."
               />
               {bootstrapErrorAlert}
               {progressErrorAlert}
@@ -706,6 +759,15 @@ const IntakeFlow = () => {
                       setProgressError(null);
                     }}
                     fullWidth
+                    required
+                  />
+                  <TextField
+                    label="Middle name (optional)"
+                    value={formState.middleName}
+                    onChange={(event) =>
+                      updateField("middleName", event.target.value)
+                    }
+                    fullWidth
                   />
                   <TextField
                     label="Last name"
@@ -715,6 +777,7 @@ const IntakeFlow = () => {
                       setProgressError(null);
                     }}
                     fullWidth
+                    required
                   />
                 </Stack>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
@@ -726,21 +789,28 @@ const IntakeFlow = () => {
                       updateField("dateOfBirth", event.target.value)
                     }
                     fullWidth
+                    required
                     InputLabelProps={{ shrink: true }}
                   />
                   <TextField
-                    label="SSN (last 4, optional)"
-                    value={formState.ssnLast4}
+                    label="Social Security Number"
+                    value={formState.ssn}
                     onChange={(event) =>
                       updateField(
-                        "ssnLast4",
-                        event.target.value.replace(/\D/g, "").slice(0, 4),
+                        "ssn",
+                        event.target.value.replace(/\D/g, "").slice(0, 9),
                       )
                     }
-                    inputProps={{ inputMode: "numeric", maxLength: 4 }}
+                    inputProps={{ inputMode: "numeric", maxLength: 9 }}
                     fullWidth
+                    placeholder="Optional - helps with accuracy"
+                    helperText="9 digits, no dashes. Used for identity verification only."
                   />
                 </Stack>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Contact Information
+                </Typography>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                   <TextField
                     label="Email"
@@ -750,6 +820,7 @@ const IntakeFlow = () => {
                       updateField("email", event.target.value)
                     }
                     fullWidth
+                    required
                   />
                   <TextField
                     label="Mobile phone"
@@ -762,66 +833,121 @@ const IntakeFlow = () => {
                     }
                     inputProps={{ inputMode: "tel" }}
                     fullWidth
-                  />
-                </Stack>
-                <TextField
-                  label="Street address"
-                  value={formState.addressLine1}
-                  onChange={(event) =>
-                    updateField("addressLine1", event.target.value)
-                  }
-                  fullWidth
-                />
-                <TextField
-                  label="Apartment, suite (optional)"
-                  value={formState.addressLine2}
-                  onChange={(event) =>
-                    updateField("addressLine2", event.target.value)
-                  }
-                  fullWidth
-                />
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                  <TextField
-                    label="City"
-                    value={formState.city}
-                    onChange={(event) =>
-                      updateField("city", event.target.value)
-                    }
-                    fullWidth
-                  />
-                  <TextField
-                    label="State"
-                    value={formState.region}
-                    onChange={(event) =>
-                      updateField("region", event.target.value)
-                    }
-                    fullWidth
-                  />
-                  <TextField
-                    label="Postal code"
-                    value={formState.postalCode}
-                    onChange={(event) =>
-                      updateField(
-                        "postalCode",
-                        event.target.value
-                          .replace(/[^\dA-Za-z- ]/g, "")
-                          .slice(0, 10),
-                      )
-                    }
-                    fullWidth
+                    required
                   />
                 </Stack>
               </Stack>
             </Stack>
           );
         },
-        primaryCtaLabel: "Review",
+        primaryCtaLabel: "Continue",
         onPrimary: () => {
-          const missingFields = validateForm();
+          const missingFields = validatePersonalInfo();
           if (missingFields.length > 0) {
-            setProgressError(`Add: ${missingFields.join(", ")}`);
+            setProgressError(`Please add: ${missingFields.join(", ")}`);
             return false;
           }
+          setProgressError(null);
+          return true;
+        },
+      },
+      {
+        id: "addresses",
+        title: "Address History",
+        subtitle: "We need your residential history for the past 7 years.",
+        render: () => {
+          const progressErrorAlert = progressError ? (
+            <Alert severity="error">{progressError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              {progressErrorAlert}
+              <AddressHistoryForm
+                addresses={formState.addresses}
+                onChange={(addresses) => {
+                  updateField("addresses", addresses);
+                  setProgressError(null);
+                }}
+                yearsRequired={7}
+              />
+            </Stack>
+          );
+        },
+        primaryCtaLabel: "Continue",
+        onPrimary: () => {
+          const issues = validateAddresses();
+          if (issues.length > 0) {
+            setProgressError(`Please complete: ${issues.slice(0, 3).join(", ")}${issues.length > 3 ? "..." : ""}`);
+            return false;
+          }
+          setProgressError(null);
+          return true;
+        },
+      },
+      {
+        id: "employment",
+        title: "Employment History",
+        subtitle: "Tell us about your work experience.",
+        render: () => {
+          const progressErrorAlert = progressError ? (
+            <Alert severity="error">{progressError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="Your work history"
+                body="List your employers for the past 7 years, starting with your current or most recent."
+                helper="This helps verify your employment claims on your application."
+              />
+              {progressErrorAlert}
+              <EmploymentHistoryForm
+                employments={formState.employments}
+                onChange={(employments) => {
+                  updateField("employments", employments);
+                  setProgressError(null);
+                }}
+                yearsRequired={7}
+              />
+            </Stack>
+          );
+        },
+        primaryCtaLabel: "Continue",
+        onPrimary: () => {
+          setProgressError(null);
+          return true;
+        },
+      },
+      {
+        id: "education",
+        title: "Education History",
+        subtitle: "Share your educational background.",
+        render: () => {
+          const progressErrorAlert = progressError ? (
+            <Alert severity="error">{progressError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="Your education"
+                body="Add any schools, colleges, or training programs you've attended."
+                helper="Only add institutions if education verification was requested."
+              />
+              {progressErrorAlert}
+              <EducationHistoryForm
+                educations={formState.educations}
+                onChange={(educations) => {
+                  updateField("educations", educations);
+                  setProgressError(null);
+                }}
+              />
+            </Stack>
+          );
+        },
+        primaryCtaLabel: "Review",
+        onPrimary: () => {
           setProgressError(null);
           return true;
         },
@@ -843,10 +969,26 @@ const IntakeFlow = () => {
             </Stack>
           );
 
-          const answers = buildAnswersPayload();
           const submissionErrorAlert = submissionError ? (
             <Alert severity="error">{submissionError}</Alert>
           ) : null;
+
+          const fullName = [
+            formState.firstName,
+            formState.middleName,
+            formState.lastName,
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          const currentAddress = formState.addresses.find((a) => a.isCurrent) ||
+            formState.addresses[0];
+          const addressDisplay = currentAddress
+            ? `${currentAddress.street1}${currentAddress.street2 ? `, ${currentAddress.street2}` : ""}, ${currentAddress.city}, ${currentAddress.state} ${currentAddress.postalCode}`
+            : "—";
+
+          const currentEmployer = formState.employments.find((e) => e.isCurrent) ||
+            formState.employments[0];
 
           return (
             <Stack spacing={2}>
@@ -858,21 +1000,31 @@ const IntakeFlow = () => {
               {submissionErrorAlert}
               <Paper variant="outlined" sx={{ p: 2 }}>
                 <Stack spacing={1.25}>
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    Personal Information
+                  </Typography>
+                  {summaryRow("Name", fullName)}
+                  {summaryRow("Date of birth", formState.dateOfBirth)}
+                  {summaryRow("SSN", formState.ssn ? `***-**-${formState.ssn.slice(-4)}` : "Not provided")}
+                  {summaryRow("Email", formState.email)}
+                  {summaryRow("Phone", formState.phone)}
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    Address History
+                  </Typography>
+                  {summaryRow("Current/Primary", addressDisplay)}
+                  {summaryRow("Total addresses", `${formState.addresses.length}`)}
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    Employment & Education
+                  </Typography>
                   {summaryRow(
-                    "Name",
-                    `${answers.subject.firstName} ${answers.subject.lastName}`.trim(),
+                    "Current employer",
+                    currentEmployer?.employerName || "Not provided",
                   )}
-                  {summaryRow("Date of birth", answers.subject.dateOfBirth)}
-                  {summaryRow("Email", answers.contact.email)}
-                  {summaryRow("Mobile", answers.contact.phone)}
-                  {summaryRow(
-                    "Address",
-                    `${answers.contact.addressLine1}${
-                      answers.contact.addressLine2
-                        ? `, ${answers.contact.addressLine2}`
-                        : ""
-                    }, ${answers.contact.city}, ${answers.contact.region} ${answers.contact.postalCode}`,
-                  )}
+                  {summaryRow("Total employers", `${formState.employments.length}`)}
+                  {summaryRow("Education entries", `${formState.educations.length}`)}
+                  <Divider sx={{ my: 1 }} />
                   {summaryRow("Consent", consentReceipt ? "Saved" : "Pending")}
                 </Stack>
               </Paper>

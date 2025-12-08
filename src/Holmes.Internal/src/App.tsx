@@ -8,10 +8,13 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AuthBoundary from "./components/AuthBoundary";
 import { queryClient } from "./lib/queryClient";
+import CustomerDetailPage from "./pages/CustomerDetailPage";
 import CustomersPage from "./pages/CustomersPage";
 import DashboardPage from "./pages/DashboardPage";
+import FulfillmentDashboardPage from "./pages/FulfillmentDashboardPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import OrdersPage from "./pages/OrdersPage";
+import SubjectDetailPage from "./pages/SubjectDetailPage";
 import SubjectsPage from "./pages/SubjectsPage";
 import UsersPage from "./pages/UsersPage";
 
@@ -36,8 +39,11 @@ const App = () => {
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="orders/:orderId" element={<OrderDetailPage />} />
                 <Route path="subjects" element={<SubjectsPage />} />
+                <Route path="subjects/:subjectId" element={<SubjectDetailPage />} />
                 <Route path="customers" element={<CustomersPage />} />
+                <Route path="customers/:customerId" element={<CustomerDetailPage />} />
                 <Route path="users" element={<UsersPage />} />
+                <Route path="fulfillment" element={<FulfillmentDashboardPage />} />
                 {/* Redirect old default to dashboard */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>

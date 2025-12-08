@@ -67,7 +67,8 @@ public sealed class Order : AggregateRoot
             LastUpdatedAt = createdAt
         };
 
-        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.Status, "Order created", createdAt));
+        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created",
+            createdAt));
         return order;
     }
 
@@ -228,7 +229,7 @@ public sealed class Order : AggregateRoot
         Status = OrderStatus.Blocked;
         LastStatusReason = reason;
         LastUpdatedAt = blockedAt;
-        AddDomainEvent(new OrderStatusChanged(Id, Status, reason, blockedAt));
+        AddDomainEvent(new OrderStatusChanged(Id, CustomerId, Status, reason, blockedAt));
     }
 
     public void ResumeFromBlock(string reason, DateTimeOffset timestamp)
@@ -298,7 +299,7 @@ public sealed class Order : AggregateRoot
         Status = newStatus;
         LastStatusReason = reason;
         LastUpdatedAt = timestamp;
-        AddDomainEvent(new OrderStatusChanged(Id, newStatus, reason, timestamp));
+        AddDomainEvent(new OrderStatusChanged(Id, CustomerId, newStatus, reason, timestamp));
     }
 
     private void EnsureActiveSession(UlidId sessionId)

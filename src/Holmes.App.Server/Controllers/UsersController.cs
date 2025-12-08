@@ -56,7 +56,7 @@ public sealed class UsersController(
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
 
         var items = users
-            .Select(u => UserDtoMapper.ToDto(u, directoryEntries.GetValueOrDefault(u.UserId)))
+            .Select(u => UserMapper.ToDto(u, directoryEntries.GetValueOrDefault(u.UserId)))
             .ToList();
 
         return Ok(PaginatedResponse<UserDto>.Create(items, page, pageSize, totalItems));
@@ -135,7 +135,7 @@ public sealed class UsersController(
             return Problem("Failed to load invited user.");
         }
 
-        var mappedUser = UserDtoMapper.ToDto(user, directory);
+        var mappedUser = UserMapper.ToDto(user, directory);
 
         var provisioning = await identityProvisioningClient.ProvisionUserAsync(
             new ProvisionIdentityUserRequest(invitedUserId, mappedUser.Email, mappedUser.DisplayName),
