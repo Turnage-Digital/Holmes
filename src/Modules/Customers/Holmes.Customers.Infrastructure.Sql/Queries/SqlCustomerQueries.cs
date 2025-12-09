@@ -95,7 +95,7 @@ public sealed class SqlCustomerQueries(CustomersDbContext dbContext) : ICustomer
             .Include(p => p.Contacts)
             .SingleOrDefaultAsync(p => p.CustomerId == customerId, cancellationToken);
 
-        var contactList = profile?.Contacts?.ToList() ?? [];
+        var contactList = profile?.Contacts.ToList() ?? [];
         return CustomerMapper.ToListItem(directory, profile, contactList);
     }
 

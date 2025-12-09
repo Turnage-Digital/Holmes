@@ -28,9 +28,6 @@
         <ProjectReference Include="..\Holmes.Intake.Infrastructure.Sql\Holmes.Intake.Infrastructure.Sql.csproj"/>
         <ProjectReference Include="..\Holmes.Intake.Domain\Holmes.Intake.Domain.csproj"/>
         <ProjectReference Include="..\Holmes.Intake.Application\Holmes.Intake.Application.csproj"/>
-        <ProjectReference Include="..\..\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj"/>
-        <ProjectReference Include="..\..\Workflow\Holmes.Workflow.Application\Holmes.Workflow.Application.csproj"/>
-        <ProjectReference Include="..\..\Core\Holmes.Core.Domain\Holmes.Core.Domain.csproj"/>
     </ItemGroup>
 
 </Project>
