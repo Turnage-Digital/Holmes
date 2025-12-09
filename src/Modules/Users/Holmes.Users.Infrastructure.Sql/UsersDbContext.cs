@@ -11,7 +11,7 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options)
 
     public DbSet<UserExternalIdentityDb> UserExternalIdentities { get; set; } = null!;
 
-    public DbSet<UserDirectoryDb> UserDirectory { get; set; } = null!;
+    public DbSet<UserProjectionDb> UserProjections { get; set; } = null!;
 
     public DbSet<UserRoleMembershipDb> UserRoleMemberships { get; set; } = null!;
 
@@ -92,9 +92,9 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options)
                 .IsUnique();
         });
 
-        modelBuilder.Entity<UserDirectoryDb>(builder =>
+        modelBuilder.Entity<UserProjectionDb>(builder =>
         {
-            builder.ToTable("user_directory");
+            builder.ToTable("user_projections");
             builder.HasKey(x => x.UserId);
 
             builder.Property(x => x.UserId)

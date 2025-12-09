@@ -11,7 +11,7 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
 
     public DbSet<CustomerAdminDb> CustomerAdmins { get; set; } = null!;
 
-    public DbSet<CustomerDirectoryDb> CustomerDirectory { get; set; } = null!;
+    public DbSet<CustomerProjectionDb> CustomerProjections { get; set; } = null!;
 
     public DbSet<CustomerProfileDb> CustomerProfiles { get; set; } = null!;
 
@@ -80,9 +80,9 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
                 .IsUnique();
         });
 
-        modelBuilder.Entity<CustomerDirectoryDb>(builder =>
+        modelBuilder.Entity<CustomerProjectionDb>(builder =>
         {
-            builder.ToTable("customer_directory");
+            builder.ToTable("customer_projections");
             builder.HasKey(x => x.CustomerId);
 
             builder.Property(x => x.CustomerId)

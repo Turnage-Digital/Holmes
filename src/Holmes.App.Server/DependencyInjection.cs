@@ -1,16 +1,22 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Integration;
+using Holmes.App.Server.Infrastructure;
 using Holmes.App.Server.Services;
 using Holmes.Core.Application;
+using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Infrastructure.Security;
 using Holmes.Core.Infrastructure.Sql;
+using Holmes.Core.Infrastructure.Sql.Events;
+using Holmes.Customers.Application.Abstractions.Projections;
 using Holmes.Customers.Application.Abstractions.Queries;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Customers.Infrastructure.Sql.Projections;
 using Holmes.Customers.Infrastructure.Sql.Queries;
 using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Holmes.Intake.Application.Abstractions.Projections;
@@ -38,16 +44,20 @@ using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
 using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
+using Holmes.Subjects.Application.Abstractions.Projections;
 using Holmes.Subjects.Application.Abstractions.Queries;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
+using Holmes.Subjects.Infrastructure.Sql.Projections;
 using Holmes.Subjects.Infrastructure.Sql.Queries;
 using Holmes.Users.Application.Abstractions;
+using Holmes.Users.Application.Abstractions.Projections;
 using Holmes.Users.Application.Abstractions.Queries;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
+using Holmes.Users.Infrastructure.Sql.Projections;
 using Holmes.Users.Infrastructure.Sql.Queries;
 using Holmes.Users.Infrastructure.Sql.Repositories;
 using Holmes.Workflow.Application.Abstractions.Notifications;
@@ -249,6 +259,7 @@ internal static class DependencyInjection
 
         services.AddCoreInfrastructureSql(connectionString, serverVersion);
         services.AddCoreInfrastructureSecurity();
+        services.AddScoped<ITenantContext, HttpTenantContext>();
 
         services.AddUsersInfrastructureSql(connectionString, serverVersion);
         services.AddCustomersInfrastructureSql(connectionString, serverVersion);
@@ -278,15 +289,24 @@ internal static class DependencyInjection
         services.AddDbContext<SlaClockDbContext>(options => options.UseInMemoryDatabase("holmes-slaclocks"));
         services.AddDbContext<ServicesDbContext>(options => options.UseInMemoryDatabase("holmes-services"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
+
+        // Event store infrastructure (for testing)
+        services.AddScoped<IEventStore, SqlEventStore>();
+        services.AddSingleton<IDomainEventSerializer, DomainEventSerializer>();
+        services.AddScoped<ITenantContext, HttpTenantContext>();
+
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
         services.AddScoped<IUserAccessQueries, SqlUserAccessQueries>();
         services.AddScoped<IUserQueries, SqlUserQueries>();
+        services.AddScoped<IUserProjectionWriter, SqlUserProjectionWriter>();
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
         services.AddScoped<ICustomerAccessQueries, SqlCustomerAccessQueries>();
         services.AddScoped<ICustomerQueries, SqlCustomerQueries>();
+        services.AddScoped<ICustomerProjectionWriter, SqlCustomerProjectionWriter>();
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         services.AddScoped<ISubjectQueries, SqlSubjectQueries>();
+        services.AddScoped<ISubjectProjectionWriter, SqlSubjectProjectionWriter>();
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();

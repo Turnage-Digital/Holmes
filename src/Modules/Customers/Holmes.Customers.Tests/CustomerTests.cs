@@ -1,6 +1,9 @@
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Application.EventHandlers;
 using Holmes.Customers.Domain;
+using Holmes.Customers.Domain.Events;
 using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Customers.Infrastructure.Sql.Projections;
 using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,73 +36,72 @@ public class CustomerTests
     }
 
     [Test]
-    public async Task SqlRepository_AddAsync_WritesDirectoryEntry()
+    public async Task CustomerProjectionHandler_CustomerRegistered_WritesProjection()
     {
         await using var context = CreateCustomersDbContext();
-        var repository = new SqlCustomerRepository(context);
-        var customer = Customer.Register(UlidId.NewUlid(), "Acme Corp", DateTimeOffset.UtcNow);
-        var admin = UlidId.NewUlid();
-        customer.AssignAdmin(admin, admin, DateTimeOffset.UtcNow);
+        var writer = new SqlCustomerProjectionWriter(context);
+        var handler = new CustomerProjectionHandler(writer);
+        var customerId = UlidId.NewUlid();
 
-        await repository.AddAsync(customer, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
+        var @event = new CustomerRegistered(customerId, "Acme Corp", DateTimeOffset.UtcNow);
+        await handler.Handle(@event, CancellationToken.None);
 
-        var directory = await context.CustomerDirectory.SingleAsync();
+        var projection = await context.CustomerProjections.SingleAsync();
         Assert.Multiple(() =>
         {
-            Assert.That(directory.CustomerId, Is.EqualTo(customer.Id.ToString()));
-            Assert.That(directory.Name, Is.EqualTo("Acme Corp"));
-            Assert.That(directory.AdminCount, Is.EqualTo(1));
+            Assert.That(projection.CustomerId, Is.EqualTo(customerId.ToString()));
+            Assert.That(projection.Name, Is.EqualTo("Acme Corp"));
+            Assert.That(projection.Status, Is.EqualTo(CustomerStatus.Active));
+            Assert.That(projection.AdminCount, Is.EqualTo(0));
         });
     }
 
     [Test]
-    public async Task SqlRepository_UpdateAsync_RefreshesDirectory()
+    public async Task CustomerProjectionHandler_CustomerRenamed_UpdatesProjection()
     {
         await using var context = CreateCustomersDbContext();
-        var repository = new SqlCustomerRepository(context);
-        var customer = Customer.Register(UlidId.NewUlid(), "Acme Corp", DateTimeOffset.UtcNow);
-        var firstAdmin = UlidId.NewUlid();
-        customer.AssignAdmin(firstAdmin, firstAdmin, DateTimeOffset.UtcNow);
+        var writer = new SqlCustomerProjectionWriter(context);
+        var handler = new CustomerProjectionHandler(writer);
+        var customerId = UlidId.NewUlid();
 
-        await repository.AddAsync(customer, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
+        // First create the projection
+        var registered = new CustomerRegistered(customerId, "Acme Corp", DateTimeOffset.UtcNow);
+        await handler.Handle(registered, CancellationToken.None);
 
-        customer.Rename("Acme Holdings", DateTimeOffset.UtcNow);
-        var secondAdmin = UlidId.NewUlid();
-        customer.AssignAdmin(secondAdmin, secondAdmin, DateTimeOffset.UtcNow);
+        // Then rename
+        var renamed = new CustomerRenamed(customerId, "Acme Holdings", DateTimeOffset.UtcNow);
+        await handler.Handle(renamed, CancellationToken.None);
 
-        await repository.UpdateAsync(customer, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
-
-        var directory = await context.CustomerDirectory.SingleAsync();
-        Assert.Multiple(() =>
-        {
-            Assert.That(directory.Name, Is.EqualTo("Acme Holdings"));
-            Assert.That(directory.AdminCount, Is.EqualTo(2));
-        });
+        var projection = await context.CustomerProjections.SingleAsync();
+        Assert.That(projection.Name, Is.EqualTo("Acme Holdings"));
     }
 
     [Test]
-    public async Task SqlRepository_RemoveAdmin_UpdatesDirectoryCount()
+    public async Task CustomerProjectionHandler_AdminAssigned_UpdatesAdminCount()
     {
         await using var context = CreateCustomersDbContext();
-        var repository = new SqlCustomerRepository(context);
-        var customer = Customer.Register(UlidId.NewUlid(), "Acme Corp", DateTimeOffset.UtcNow);
+        var writer = new SqlCustomerProjectionWriter(context);
+        var handler = new CustomerProjectionHandler(writer);
+        var customerId = UlidId.NewUlid();
+
+        // Create the projection
+        var registered = new CustomerRegistered(customerId, "Acme Corp", DateTimeOffset.UtcNow);
+        await handler.Handle(registered, CancellationToken.None);
+
+        // Assign two admins
         var admin1 = UlidId.NewUlid();
         var admin2 = UlidId.NewUlid();
-        customer.AssignAdmin(admin1, admin1, DateTimeOffset.UtcNow);
-        customer.AssignAdmin(admin2, admin2, DateTimeOffset.UtcNow);
+        await handler.Handle(new CustomerAdminAssigned(customerId, admin1, admin1, DateTimeOffset.UtcNow), CancellationToken.None);
+        await handler.Handle(new CustomerAdminAssigned(customerId, admin2, admin2, DateTimeOffset.UtcNow), CancellationToken.None);
 
-        await repository.AddAsync(customer, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
+        var projection = await context.CustomerProjections.SingleAsync();
+        Assert.That(projection.AdminCount, Is.EqualTo(2));
 
-        customer.RemoveAdmin(admin1, admin2, DateTimeOffset.UtcNow);
-        await repository.UpdateAsync(customer, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
+        // Remove one admin
+        await handler.Handle(new CustomerAdminRemoved(customerId, admin1, admin2, DateTimeOffset.UtcNow), CancellationToken.None);
 
-        var directory = await context.CustomerDirectory.SingleAsync();
-        Assert.That(directory.AdminCount, Is.EqualTo(1));
+        projection = await context.CustomerProjections.SingleAsync();
+        Assert.That(projection.AdminCount, Is.EqualTo(1));
     }
 
     [Test]

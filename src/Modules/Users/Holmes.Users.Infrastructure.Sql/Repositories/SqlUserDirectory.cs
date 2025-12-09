@@ -9,7 +9,7 @@ public sealed class SqlUserDirectory(UsersDbContext dbContext) : IUserDirectory
     public Task<bool> ExistsAsync(UlidId userId, CancellationToken cancellationToken)
     {
         var id = userId.ToString();
-        return dbContext.UserDirectory
+        return dbContext.UserProjections
             .AsNoTracking()
             .AnyAsync(x => x.UserId == id, cancellationToken);
     }

@@ -1,5 +1,7 @@
+using Holmes.Customers.Application.Abstractions.Projections;
 using Holmes.Customers.Application.Abstractions.Queries;
 using Holmes.Customers.Domain;
+using Holmes.Customers.Infrastructure.Sql.Projections;
 using Holmes.Customers.Infrastructure.Sql.Queries;
 using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<ICustomerAccessQueries, SqlCustomerAccessQueries>();
         services.AddScoped<ICustomerQueries, SqlCustomerQueries>();
         services.AddScoped<ICustomerProfileRepository, SqlCustomerProfileRepository>();
+        services.AddScoped<ICustomerProjectionWriter, SqlCustomerProjectionWriter>();
 
         return services;
     }

@@ -9,6 +9,18 @@ public abstract class AggregateRoot : IHasDomainEvents
 
     public IReadOnlyCollection<INotification> DomainEvents => new ReadOnlyCollection<INotification>(_domainEvents);
 
+    /// <summary>
+    /// Gets the unique identifier for this aggregate's event stream.
+    /// Format: "{StreamType}:{AggregateId}" (e.g., "Order:01ARZ3NDEKTSV4RRFFQ69G5FAV")
+    /// </summary>
+    public abstract string GetStreamId();
+
+    /// <summary>
+    /// Gets the type name for this aggregate's event stream.
+    /// Used for filtering events during projection replay.
+    /// </summary>
+    public abstract string GetStreamType();
+
     public void ClearDomainEvents()
     {
         _domainEvents.Clear();

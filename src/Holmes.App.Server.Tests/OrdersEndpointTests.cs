@@ -336,7 +336,7 @@ public class OrdersEndpointTests
             UpdatedAt = DateTimeOffset.UtcNow
         });
 
-        customersDb.CustomerDirectory.Add(new CustomerDirectoryDb
+        customersDb.CustomerProjections.Add(new CustomerProjectionDb
         {
             CustomerId = customerId,
             Name = $"Customer {customerId}",
@@ -365,7 +365,7 @@ public class OrdersEndpointTests
             AssignedAt = DateTimeOffset.UtcNow
         });
 
-        var directory = await customersDb.CustomerDirectory.SingleAsync(d => d.CustomerId == customerId);
+        var directory = await customersDb.CustomerProjections.SingleAsync(d => d.CustomerId == customerId);
         directory.AdminCount += 1;
         await customersDb.SaveChangesAsync();
     }
@@ -382,7 +382,7 @@ public class OrdersEndpointTests
             CreatedAt = DateTimeOffset.UtcNow
         });
 
-        subjectsDb.SubjectDirectory.Add(new SubjectDirectoryDb
+        subjectsDb.SubjectProjections.Add(new SubjectProjectionDb
         {
             SubjectId = subjectId,
             GivenName = "Test",

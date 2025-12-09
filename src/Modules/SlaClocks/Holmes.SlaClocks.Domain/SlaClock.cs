@@ -226,4 +226,8 @@ public sealed class SlaClock : AggregateRoot
             wasAtRisk,
             totalElapsed));
     }
+
+    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+
+    public override string GetStreamType() => "SlaClock";
 }

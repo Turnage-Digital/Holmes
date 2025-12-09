@@ -50,7 +50,7 @@ public static class CustomerMapper
     }
 
     public static CustomerListItemDto ToListItem(
-        CustomerDirectoryDb directory,
+        CustomerProjectionDb directory,
         CustomerProfileDb? profile,
         IReadOnlyCollection<CustomerContactDb> contacts
     )

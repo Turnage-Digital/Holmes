@@ -20,12 +20,12 @@ public sealed class SqlCustomerQueries(CustomersDbContext dbContext) : ICustomer
         var listingSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds, page, pageSize);
         var countSpec = new CustomersVisibleToUserSpecification(allowedCustomerIds);
 
-        var totalItems = await dbContext.CustomerDirectory
+        var totalItems = await dbContext.CustomerProjections
             .AsNoTracking()
             .ApplySpecification(countSpec)
             .CountAsync(cancellationToken);
 
-        var directories = await dbContext.CustomerDirectory
+        var directories = await dbContext.CustomerProjections
             .AsNoTracking()
             .ApplySpecification(listingSpec)
             .ToListAsync(cancellationToken);
@@ -83,7 +83,7 @@ public sealed class SqlCustomerQueries(CustomersDbContext dbContext) : ICustomer
 
     public async Task<CustomerListItemDto?> GetListItemByIdAsync(string customerId, CancellationToken cancellationToken)
     {
-        var directory = await dbContext.CustomerDirectory.AsNoTracking()
+        var directory = await dbContext.CustomerProjections.AsNoTracking()
             .SingleOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken);
 
         if (directory is null)
@@ -101,7 +101,7 @@ public sealed class SqlCustomerQueries(CustomersDbContext dbContext) : ICustomer
 
     public async Task<bool> ExistsAsync(string customerId, CancellationToken cancellationToken)
     {
-        return await dbContext.CustomerDirectory
+        return await dbContext.CustomerProjections
             .AsNoTracking()
             .AnyAsync(c => c.CustomerId == customerId, cancellationToken);
     }

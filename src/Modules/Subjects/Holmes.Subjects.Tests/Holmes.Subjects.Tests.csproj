@@ -25,6 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj"/>
         <ProjectReference Include="..\Holmes.Subjects.Infrastructure.Sql\Holmes.Subjects.Infrastructure.Sql.csproj"/>
     </ItemGroup>
 

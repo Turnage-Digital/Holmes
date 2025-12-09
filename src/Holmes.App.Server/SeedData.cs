@@ -134,7 +134,7 @@ public sealed class SeedData(
     )
     {
         const string demoCustomerName = "Holmes Demo Customer";
-        var directory = await customersDb.CustomerDirectory
+        var directory = await customersDb.CustomerProjections
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Name == demoCustomerName, cancellationToken);
 
@@ -211,7 +211,7 @@ public sealed class SeedData(
     {
         const string demoGivenName = "Casey";
         const string demoFamilyName = "Holmes";
-        var existing = await subjectsDb.SubjectDirectory
+        var existing = await subjectsDb.SubjectProjections
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.GivenName == demoGivenName && s.FamilyName == demoFamilyName,
                 cancellationToken);

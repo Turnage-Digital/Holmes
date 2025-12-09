@@ -1,3 +1,5 @@
+using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Infrastructure.Sql.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +16,10 @@ public static class DependencyInjection
         services.AddDbContext<CoreDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(CoreDbContext).Assembly.FullName)));
+
+        // Event store infrastructure
+        services.AddScoped<IEventStore, SqlEventStore>();
+        services.AddSingleton<IDomainEventSerializer, DomainEventSerializer>();
 
         return services;
     }

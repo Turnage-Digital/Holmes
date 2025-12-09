@@ -75,7 +75,7 @@ public static class UserMapper
         SyncRoles(db, user);
     }
 
-    public static UserDto ToDto(UserDb user, UserDirectoryDb? directory)
+    public static UserDto ToDto(UserDb user, UserProjectionDb? directory)
     {
         var primaryIdentity = user.ExternalIdentities
             .OrderByDescending(x => x.LastSeenAt)

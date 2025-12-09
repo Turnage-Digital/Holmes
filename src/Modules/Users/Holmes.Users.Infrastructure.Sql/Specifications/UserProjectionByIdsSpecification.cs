@@ -3,9 +3,9 @@ using Holmes.Users.Infrastructure.Sql.Entities;
 
 namespace Holmes.Users.Infrastructure.Sql.Specifications;
 
-public sealed class UserDirectoryByIdsSpecification : Specification<UserDirectoryDb>
+public sealed class UserProjectionByIdsSpecification : Specification<UserProjectionDb>
 {
-    public UserDirectoryByIdsSpecification(IEnumerable<string> userIds)
+    public UserProjectionByIdsSpecification(IEnumerable<string> userIds)
     {
         var ids = userIds.ToArray();
         if (ids.Length > 0)

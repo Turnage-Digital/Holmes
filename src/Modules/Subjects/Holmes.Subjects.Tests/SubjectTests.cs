@@ -1,7 +1,9 @@
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Subjects.Application.EventHandlers;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Domain.Events;
 using Holmes.Subjects.Infrastructure.Sql;
+using Holmes.Subjects.Infrastructure.Sql.Projections;
 using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -112,55 +114,53 @@ public class SubjectTests
     }
 
     [Test]
-    public async Task SqlRepository_AddAsync_PopulatesDirectory()
+    public async Task SubjectProjectionHandler_SubjectRegistered_WritesProjection()
     {
         await using var context = CreateSubjectsDbContext();
-        var repository = new SqlSubjectRepository(context);
-        var subject = Subject.Register(UlidId.NewUlid(), "Avery", "Nguyen", null, "avery@example.com",
-            DateTimeOffset.UtcNow);
-        subject.AddAlias(new SubjectAlias("Ava", "Nguyen", null), DateTimeOffset.UtcNow, UlidId.NewUlid());
+        var writer = new SqlSubjectProjectionWriter(context);
+        var handler = new SubjectProjectionHandler(writer);
+        var subjectId = UlidId.NewUlid();
 
-        await repository.AddAsync(subject, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
+        var @event = new SubjectRegistered(subjectId, "Avery", "Nguyen", null, "avery@example.com", DateTimeOffset.UtcNow);
+        await handler.Handle(@event, CancellationToken.None);
 
-        var directory = await context.SubjectDirectory.SingleAsync();
+        var projection = await context.SubjectProjections.SingleAsync();
         Assert.Multiple(() =>
         {
-            Assert.That(directory.SubjectId, Is.EqualTo(subject.Id.ToString()));
-            Assert.That(directory.AliasCount, Is.EqualTo(1));
-            Assert.That(directory.IsMerged, Is.False);
+            Assert.That(projection.SubjectId, Is.EqualTo(subjectId.ToString()));
+            Assert.That(projection.GivenName, Is.EqualTo("Avery"));
+            Assert.That(projection.FamilyName, Is.EqualTo("Nguyen"));
+            Assert.That(projection.AliasCount, Is.EqualTo(0));
+            Assert.That(projection.IsMerged, Is.False);
         });
     }
 
     [Test]
-    public async Task SqlRepository_UpdateAsync_RefreshesDirectory()
+    public async Task SubjectProjectionHandler_AliasAndMerge_UpdatesProjection()
     {
         await using var context = CreateSubjectsDbContext();
-        var repository = new SqlSubjectRepository(context);
-        var subject = Subject.Register(UlidId.NewUlid(), "Avery", "Nguyen", null, null, DateTimeOffset.UtcNow);
-        await repository.AddAsync(subject, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
+        var writer = new SqlSubjectProjectionWriter(context);
+        var handler = new SubjectProjectionHandler(writer);
+        var subjectId = UlidId.NewUlid();
 
-        subject.AddAlias(new SubjectAlias("Avery", "Perez", null), DateTimeOffset.UtcNow, UlidId.NewUlid());
+        // First create the projection
+        var registered = new SubjectRegistered(subjectId, "Avery", "Nguyen", null, null, DateTimeOffset.UtcNow);
+        await handler.Handle(registered, CancellationToken.None);
+
+        // Add an alias
+        var aliasEvent = new SubjectAliasAdded(subjectId, "Avery", "Perez", null, UlidId.NewUlid(), DateTimeOffset.UtcNow);
+        await handler.Handle(aliasEvent, CancellationToken.None);
+
+        // Merge the subject
         var mergeTarget = UlidId.NewUlid();
-        subject.MergeInto(mergeTarget, UlidId.NewUlid(), DateTimeOffset.UtcNow);
+        var mergeEvent = new SubjectMerged(subjectId, mergeTarget, UlidId.NewUlid(), DateTimeOffset.UtcNow);
+        await handler.Handle(mergeEvent, CancellationToken.None);
 
-        await repository.UpdateAsync(subject, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
-
-        var directory = await context.SubjectDirectory.SingleAsync();
+        var projection = await context.SubjectProjections.SingleAsync();
         Assert.Multiple(() =>
         {
-            Assert.That(directory.AliasCount, Is.EqualTo(1));
-            Assert.That(directory.IsMerged, Is.True);
-        });
-
-        var fetched = await repository.GetByIdAsync(subject.Id, CancellationToken.None);
-        Assert.That(fetched, Is.Not.Null);
-        Assert.Multiple(() =>
-        {
-            Assert.That(fetched!.IsMerged, Is.True);
-            Assert.That(fetched.MergedIntoSubjectId, Is.EqualTo(mergeTarget));
+            Assert.That(projection.AliasCount, Is.EqualTo(1));
+            Assert.That(projection.IsMerged, Is.True);
         });
     }
 

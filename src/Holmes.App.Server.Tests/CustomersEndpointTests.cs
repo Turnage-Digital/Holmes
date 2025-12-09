@@ -77,7 +77,7 @@ public class CustomersEndpointTests
 
         using var scope = factory.Services.CreateScope();
         var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
-        var directory = await customersDb.CustomerDirectory.AsNoTracking()
+        var directory = await customersDb.CustomerProjections.AsNoTracking()
             .SingleAsync(c => c.CustomerId == customerId);
         Assert.That(directory.AdminCount, Is.EqualTo(1));
     }

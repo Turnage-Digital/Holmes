@@ -27,8 +27,8 @@ public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
             return null;
         }
 
-        var directorySpec = new UserDirectoryByIdsSpecification([identity.User.UserId]);
-        var directory = await dbContext.UserDirectory
+        var directorySpec = new UserProjectionByIdsSpecification([identity.User.UserId]);
+        var directory = await dbContext.UserProjections
             .AsNoTracking()
             .ApplySpecification(directorySpec)
             .SingleOrDefaultAsync(cancellationToken);
@@ -51,8 +51,8 @@ public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
             return null;
         }
 
-        var directorySpec = new UserDirectoryByIdsSpecification([db.UserId]);
-        var directory = await dbContext.UserDirectory
+        var directorySpec = new UserProjectionByIdsSpecification([db.UserId]);
+        var directory = await dbContext.UserProjections
             .AsNoTracking()
             .ApplySpecification(directorySpec)
             .SingleOrDefaultAsync(cancellationToken);
@@ -73,8 +73,8 @@ public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
             return null;
         }
 
-        var directorySpec = new UserDirectoryByIdsSpecification([db.UserId]);
-        var directory = await dbContext.UserDirectory
+        var directorySpec = new UserProjectionByIdsSpecification([db.UserId]);
+        var directory = await dbContext.UserProjections
             .AsNoTracking()
             .ApplySpecification(directorySpec)
             .SingleOrDefaultAsync(cancellationToken);
@@ -91,8 +91,8 @@ public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
             .ToListAsync(cancellationToken);
 
         var userIds = users.Select(u => u.UserId).ToList();
-        var directorySpec = new UserDirectoryByIdsSpecification(userIds);
-        var directoryEntries = await dbContext.UserDirectory
+        var directorySpec = new UserProjectionByIdsSpecification(userIds);
+        var directoryEntries = await dbContext.UserProjections
             .AsNoTracking()
             .ApplySpecification(directorySpec)
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
@@ -115,8 +115,8 @@ public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
             .ToListAsync(cancellationToken);
 
         var userIds = users.Select(u => u.UserId).ToList();
-        var directorySpec = new UserDirectoryByIdsSpecification(userIds);
-        var directoryEntries = await dbContext.UserDirectory
+        var directorySpec = new UserProjectionByIdsSpecification(userIds);
+        var directoryEntries = await dbContext.UserProjections
             .AsNoTracking()
             .ApplySpecification(directorySpec)
             .ToDictionaryAsync(x => x.UserId, cancellationToken);
@@ -130,8 +130,8 @@ public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
 
     public async Task<CurrentUserDto?> GetCurrentUserAsync(string userId, CancellationToken cancellationToken)
     {
-        var directorySpec = new UserDirectoryByIdsSpecification([userId]);
-        var projection = await dbContext.UserDirectory
+        var directorySpec = new UserProjectionByIdsSpecification([userId]);
+        var projection = await dbContext.UserProjections
             .AsNoTracking()
             .ApplySpecification(directorySpec)
             .SingleOrDefaultAsync(cancellationToken);

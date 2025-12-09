@@ -131,4 +131,8 @@ public sealed class Customer : AggregateRoot
     {
         AddDomainEvent(@event);
     }
+
+    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+
+    public override string GetStreamType() => "Customer";
 }

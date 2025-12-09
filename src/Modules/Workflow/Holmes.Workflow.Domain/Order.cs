@@ -329,4 +329,8 @@ public sealed class Order : AggregateRoot
             throw new InvalidOperationException("Order is no longer active.");
         }
     }
+
+    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+
+    public override string GetStreamType() => "Order";
 }

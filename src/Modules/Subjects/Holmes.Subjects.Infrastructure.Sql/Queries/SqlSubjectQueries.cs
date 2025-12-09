@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Subjects.Infrastructure.Sql.Queries;
 
+/// <summary>
+/// Read-side queries for Subjects using projection tables (CQRS pattern).
+/// </summary>
 public sealed class SqlSubjectQueries(SubjectsDbContext dbContext) : ISubjectQueries
 {
     public async Task<SubjectPagedResult> GetSubjectsPagedAsync(
@@ -13,20 +16,19 @@ public sealed class SqlSubjectQueries(SubjectsDbContext dbContext) : ISubjectQue
         CancellationToken cancellationToken
     )
     {
-        var baseQuery = dbContext.Subjects
-            .AsNoTracking()
-            .Include(x => x.Aliases);
+        // Read from projection table (read model) for list view
+        var baseQuery = dbContext.SubjectProjections.AsNoTracking();
 
         var totalItems = await baseQuery.CountAsync(cancellationToken);
-        var subjects = await baseQuery
+        var projections = await baseQuery
             .OrderBy(x => x.FamilyName)
             .ThenBy(x => x.GivenName)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var items = subjects
-            .Select(SubjectMapper.ToListItem)
+        var items = projections
+            .Select(SubjectMapper.ToListItemFromProjection)
             .ToList();
 
         return new SubjectPagedResult(items, totalItems);
@@ -34,7 +36,7 @@ public sealed class SqlSubjectQueries(SubjectsDbContext dbContext) : ISubjectQue
 
     public async Task<SubjectSummaryDto?> GetSummaryByIdAsync(string subjectId, CancellationToken cancellationToken)
     {
-        var directory = await dbContext.SubjectDirectory.AsNoTracking()
+        var directory = await dbContext.SubjectProjections.AsNoTracking()
             .SingleOrDefaultAsync(x => x.SubjectId == subjectId, cancellationToken);
 
         return directory is null ? null : SubjectMapper.ToSummary(directory);

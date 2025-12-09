@@ -98,9 +98,9 @@ tenant-scoped policies without ever persisting credentials.
     - `RequireCustomerRolePolicy(role, customerId)` – ensures caller is assigned role scoped to target customer.
     - Invariants like “a user cannot hold both Admin and CustomerAdmin for different tenants” expressed via aggregate
       guards.
-- **Read models**
-    - `user_directory` – flattened profile plus `Issuer`, `Subject`, last seen, statuses for quick lookup & API
-      responses.
+- **Read models (projections)**
+    - `user_projections` – flattened profile plus `Issuer`, `Subject`, last seen, statuses for quick lookup & API
+      responses. Updated via `UserProjectionHandler` event handler.
     - `user_role_memberships` – per `(userId, role, customerId)` rows to power authorization checks and UI.
     - `user_login_audit` – append-only event projection capturing login timestamps from `UserRegistered` +
       `UserProfileUpdated`.
@@ -299,6 +299,45 @@ pipeline and no additional queueing infrastructure is necessary.
 > See `Holmes.Core.Tests/UnitOfWorkDomainEventsTests` for integration coverage of
 > multi-aggregate commits and failure paths. Future modules should add similar
 > tests whenever they extend the UnitOfWork abstraction.
+
+### Event Persistence & Projections
+
+Domain events are persisted to the `EventRecord` table during `SaveChangesAsync()` within the same database transaction
+as the aggregate state changes. This ensures atomicity between state and events.
+
+**Event Flow:**
+
+1. Aggregate emits domain events via `AddDomainEvent()`
+2. `UnitOfWork.SaveChangesAsync()` begins a transaction
+3. Aggregate state is saved to the database
+4. Events are serialized and written to `EventRecord` table via `IEventStore`
+5. Transaction commits
+6. Events are dispatched via MediatR to handlers (including projection handlers)
+
+**Projection Architecture:**
+
+Read models (projections) are updated via MediatR event handlers rather than synchronous writes in repositories. This
+provides clear separation between write-side (aggregates) and read-side (projections) updates.
+
+| Module    | Projection Table         | Handler                       | Events Handled                                           |
+|-----------|--------------------------|-------------------------------|----------------------------------------------------------|
+| Users     | `user_projections`       | `UserProjectionHandler`       | UserInvited, UserRegistered, UserProfileUpdated, etc.    |
+| Customers | `customer_projections`   | `CustomerProjectionHandler`   | CustomerRegistered, CustomerRenamed, CustomerSuspended   |
+| Subjects  | `subject_projections`    | `SubjectProjectionHandler`    | SubjectRegistered, SubjectMerged, SubjectAliasAdded      |
+| Workflow  | `order_summaries`        | `OrderSummaryHandler`         | Various Order events                                     |
+| Intake    | `intake_session_projections` | `IntakeSessionProjectionHandler` | IntakeSession events                              |
+
+**Benefits:**
+- Events are the source of truth and can be replayed to rebuild projections
+- Projections can be rebuilt from event history at any time
+- Clear audit trail of all state changes
+- Consistent architecture across all modules
+
+**Projection Writers:**
+
+Each projection has a corresponding writer interface (e.g., `IUserProjectionWriter`, `ICustomerProjectionWriter`)
+implemented in the Infrastructure layer. These writers handle the actual database operations for maintaining projection
+tables.
 
 ### Client Application (Holmes.Internal)
 
@@ -842,7 +881,7 @@ create table adverse_action_clocks(
 - Subject registry aggregates + merge flows; canonical identity read model.
 - Users module (invite, activate, suspend) with tenant membership + role claims.
 - Customers module (register, assign policy snapshot, contact roster) tied to tenants.
-- Read models: `subject_summary`, `user_directory`, `customer_registry`.
+- Read models: `subject_projections`, `user_projections`, `customer_projections`.
 - Integration tests for user activation, subject merge, and customer linkage.
 
 **Acceptance**: Tenant admin can invite a user, activate, assign roles, and create a customer bound to policy snapshot.

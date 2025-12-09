@@ -3,7 +3,7 @@ using Holmes.Customers.Infrastructure.Sql.Entities;
 
 namespace Holmes.Customers.Infrastructure.Sql.Specifications;
 
-public sealed class CustomersVisibleToUserSpecification : Specification<CustomerDirectoryDb>
+public sealed class CustomersVisibleToUserSpecification : Specification<CustomerProjectionDb>
 {
     public CustomersVisibleToUserSpecification(
         IEnumerable<string>? allowedCustomerIds,

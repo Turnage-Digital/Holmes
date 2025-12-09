@@ -328,4 +328,8 @@ public sealed class Subject : AggregateRoot
     {
         AddDomainEvent(@event);
     }
+
+    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+
+    public override string GetStreamType() => "Subject";
 }
