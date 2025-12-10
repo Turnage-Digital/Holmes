@@ -12,7 +12,7 @@ import {
   Paper,
   Stack,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
@@ -26,11 +26,11 @@ interface EducationHistoryFormProps {
 }
 
 const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
-                                                                     educations,
-                                                                     onChange,
-                                                                     minEducations = 0,
-                                                                     maxEducations = 10
-                                                                   }) => {
+  educations,
+  onChange,
+  minEducations = 0,
+  maxEducations = 10,
+}) => {
   const handleAddEducation = () => {
     if (educations.length >= maxEducations) return;
     onChange([...educations, createEmptyEducation()]);
@@ -43,13 +43,13 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
 
   const handleUpdateEducation = (
     id: string,
-    updates: Partial<IntakeEducation>
+    updates: Partial<IntakeEducation>,
   ) => {
     onChange(
       educations.map((e) => {
         if (e.id !== id) return e;
         return { ...e, ...updates };
-      })
+      }),
     );
   };
 
@@ -74,7 +74,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02)
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
           }}
         >
           <Typography color="text.secondary" gutterBottom>
@@ -100,7 +100,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
             backgroundColor: (theme) =>
               education.graduated
                 ? alpha(theme.palette.success.main, 0.02)
-                : "transparent"
+                : "transparent",
           }}
         >
           <Stack spacing={2}>
@@ -128,7 +128,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
               value={education.institutionName}
               onChange={(e) =>
                 handleUpdateEducation(education.id, {
-                  institutionName: e.target.value
+                  institutionName: e.target.value,
                 })
               }
               fullWidth
@@ -140,7 +140,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
               value={education.institutionAddress}
               onChange={(e) =>
                 handleUpdateEducation(education.id, {
-                  institutionAddress: e.target.value
+                  institutionAddress: e.target.value,
                 })
               }
               fullWidth
@@ -159,7 +159,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
                 value={education.degree}
                 onChange={(e) =>
                   handleUpdateEducation(education.id, {
-                    degree: e.target.value
+                    degree: e.target.value,
                   })
                 }
                 fullWidth
@@ -170,7 +170,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
                 value={education.major}
                 onChange={(e) =>
                   handleUpdateEducation(education.id, {
-                    major: e.target.value
+                    major: e.target.value,
                   })
                 }
                 fullWidth
@@ -184,7 +184,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
                   checked={education.graduated}
                   onChange={(e) =>
                     handleUpdateEducation(education.id, {
-                      graduated: e.target.checked
+                      graduated: e.target.checked,
                     })
                   }
                 />
@@ -205,7 +205,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
                 value={education.attendedFrom}
                 onChange={(e) =>
                   handleUpdateEducation(education.id, {
-                    attendedFrom: e.target.value
+                    attendedFrom: e.target.value,
                   })
                 }
                 fullWidth
@@ -217,7 +217,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
                 value={education.attendedTo}
                 onChange={(e) =>
                   handleUpdateEducation(education.id, {
-                    attendedTo: e.target.value
+                    attendedTo: e.target.value,
                   })
                 }
                 fullWidth
@@ -232,7 +232,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
                 value={education.graduationDate}
                 onChange={(e) =>
                   handleUpdateEducation(education.id, {
-                    graduationDate: e.target.value
+                    graduationDate: e.target.value,
                   })
                 }
                 fullWidth
@@ -250,7 +250,7 @@ const EducationHistoryForm: React.FC<EducationHistoryFormProps> = ({
           onClick={handleAddEducation}
           sx={{
             borderStyle: "dashed",
-            color: (theme) => theme.palette.text.secondary
+            color: (theme) => theme.palette.text.secondary,
           }}
         >
           Add another school

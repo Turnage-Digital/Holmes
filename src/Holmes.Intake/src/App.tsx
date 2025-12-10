@@ -15,8 +15,8 @@ const App = () => (
       styles={{
         body: {
           minHeight: "100vh",
-          backgroundColor: intakeTheme.palette.background.default
-        }
+          backgroundColor: intakeTheme.palette.background.default,
+        },
       }}
     />
     <QueryClientProvider client={queryClient}>

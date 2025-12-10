@@ -13,11 +13,15 @@ import {
   Select,
   Stack,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
-import { createEmptyReference, IntakeReference, ReferenceType } from "@/types/intake";
+import {
+  createEmptyReference,
+  IntakeReference,
+  ReferenceType,
+} from "@/types/intake";
 
 interface ReferenceFormProps {
   references: IntakeReference[];
@@ -28,12 +32,12 @@ interface ReferenceFormProps {
 }
 
 const ReferenceForm: React.FC<ReferenceFormProps> = ({
-                                                       references,
-                                                       onChange,
-                                                       minReferences = 0,
-                                                       maxReferences = 5,
-                                                       requiredTypes = []
-                                                     }) => {
+  references,
+  onChange,
+  minReferences = 0,
+  maxReferences = 5,
+  requiredTypes = [],
+}) => {
   const handleAddReference = (type?: ReferenceType) => {
     if (references.length >= maxReferences) return;
     const newRef = createEmptyReference();
@@ -50,7 +54,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
 
   const handleUpdateReference = (
     id: string,
-    updates: Partial<IntakeReference>
+    updates: Partial<IntakeReference>,
   ) => {
     onChange(references.map((r) => (r.id === id ? { ...r, ...updates } : r)));
   };
@@ -65,10 +69,10 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
   };
 
   const personalCount = references.filter(
-    (r) => r.type === ReferenceType.Personal
+    (r) => r.type === ReferenceType.Personal,
   ).length;
   const professionalCount = references.filter(
-    (r) => r.type === ReferenceType.Professional
+    (r) => r.type === ReferenceType.Professional,
   ).length;
 
   const needsPersonal = requiredTypes.includes(ReferenceType.Personal);
@@ -96,7 +100,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02)
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
           }}
         >
           <Typography color="text.secondary" gutterBottom>
@@ -128,131 +132,134 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
         </Paper>
       )}
 
-      {references.map((reference, index) => (
-        <Paper
-          key={reference.id}
-          variant="outlined"
-          sx={{
-            p: 2,
-            backgroundColor: (theme) =>
-              reference.type === ReferenceType.Professional
-                ? alpha(theme.palette.info.main, 0.02)
-                : alpha(theme.palette.success.main, 0.02)
-          }}
-        >
-          <Stack spacing={2}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Typography variant="subtitle2" fontWeight={600}>
-                {formatReferenceLabel(index, reference)}
-              </Typography>
-              {references.length > minReferences && (
-                <IconButton
-                  size="small"
-                  onClick={() => handleRemoveReference(reference.id)}
-                  aria-label="Remove reference"
-                >
-                  <DeleteOutlineIcon fontSize="small" />
-                </IconButton>
-              )}
-            </Stack>
+      {references.map((reference, index) => {
+        const relationshipPlaceholder =
+          reference.type === ReferenceType.Professional
+            ? "e.g., Former supervisor, Colleague"
+            : "e.g., Friend, Neighbor, Family member";
 
-            <FormControl fullWidth size="small">
-              <InputLabel>Reference type</InputLabel>
-              <Select
-                value={reference.type}
-                label="Reference type"
-                onChange={(e) =>
-                  handleUpdateReference(reference.id, {
-                    type: e.target.value as ReferenceType
-                  })
-                }
-              >
-                <MenuItem value={ReferenceType.Personal}>
-                  Personal (friend, family, neighbor)
-                </MenuItem>
-                <MenuItem value={ReferenceType.Professional}>
-                  Professional (supervisor, colleague, client)
-                </MenuItem>
-              </Select>
-            </FormControl>
-
-            <TextField
-              label="Full name"
-              value={reference.name}
-              onChange={(e) =>
-                handleUpdateReference(reference.id, {
-                  name: e.target.value
-                })
-              }
-              fullWidth
-              required
-            />
-
-            <TextField
-              label="Relationship"
-              value={reference.relationship}
-              onChange={(e) =>
-                handleUpdateReference(reference.id, {
-                  relationship: e.target.value
-                })
-              }
-              fullWidth
-              placeholder={
+        return (
+          <Paper
+            key={reference.id}
+            variant="outlined"
+            sx={{
+              p: 2,
+              backgroundColor: (theme) =>
                 reference.type === ReferenceType.Professional
-                  ? "e.g., Former supervisor, Colleague"
-                  : "e.g., Friend, Neighbor, Family member"
-              }
-            />
+                  ? alpha(theme.palette.info.main, 0.02)
+                  : alpha(theme.palette.success.main, 0.02),
+            }}
+          >
+            <Stack spacing={2}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography variant="subtitle2" fontWeight={600}>
+                  {formatReferenceLabel(index, reference)}
+                </Typography>
+                {references.length > minReferences && (
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveReference(reference.id)}
+                    aria-label="Remove reference"
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Stack>
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Reference type</InputLabel>
+                <Select
+                  value={reference.type}
+                  label="Reference type"
+                  onChange={(e) =>
+                    handleUpdateReference(reference.id, {
+                      type: e.target.value as ReferenceType,
+                    })
+                  }
+                >
+                  <MenuItem value={ReferenceType.Personal}>
+                    Personal (friend, family, neighbor)
+                  </MenuItem>
+                  <MenuItem value={ReferenceType.Professional}>
+                    Professional (supervisor, colleague, client)
+                  </MenuItem>
+                </Select>
+              </FormControl>
+
               <TextField
-                label="Phone number"
-                value={reference.phone}
+                label="Full name"
+                value={reference.name}
                 onChange={(e) =>
                   handleUpdateReference(reference.id, {
-                    phone: e.target.value
-                      .replace(/[^\d+()-\s]/g, "")
-                      .slice(0, 20)
+                    name: e.target.value,
                   })
                 }
                 fullWidth
                 required
-                inputProps={{ inputMode: "tel" }}
               />
+
               <TextField
-                label="Email (optional)"
-                type="email"
-                value={reference.email}
+                label="Relationship"
+                value={reference.relationship}
                 onChange={(e) =>
                   handleUpdateReference(reference.id, {
-                    email: e.target.value
+                    relationship: e.target.value,
                   })
                 }
                 fullWidth
+                placeholder={relationshipPlaceholder}
+              />
+
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                <TextField
+                  label="Phone number"
+                  value={reference.phone}
+                  onChange={(e) =>
+                    handleUpdateReference(reference.id, {
+                      phone: e.target.value
+                        .replace(/[^\d+()-\s]/g, "")
+                        .slice(0, 20),
+                    })
+                  }
+                  fullWidth
+                  required
+                  inputProps={{ inputMode: "tel" }}
+                />
+                <TextField
+                  label="Email (optional)"
+                  type="email"
+                  value={reference.email}
+                  onChange={(e) =>
+                    handleUpdateReference(reference.id, {
+                      email: e.target.value,
+                    })
+                  }
+                  fullWidth
+                />
+              </Stack>
+
+              <TextField
+                label="How many years have they known you?"
+                type="number"
+                value={reference.yearsKnown ?? ""}
+                onChange={(e) =>
+                  handleUpdateReference(reference.id, {
+                    yearsKnown: e.target.value
+                      ? parseInt(e.target.value, 10)
+                      : null,
+                  })
+                }
+                inputProps={{ min: 0, max: 100 }}
+                sx={{ maxWidth: 200 }}
               />
             </Stack>
-
-            <TextField
-              label="How many years have they known you?"
-              type="number"
-              value={reference.yearsKnown ?? ""}
-              onChange={(e) =>
-                handleUpdateReference(reference.id, {
-                  yearsKnown: e.target.value
-                    ? parseInt(e.target.value, 10)
-                    : null
-                })
-              }
-              inputProps={{ min: 0, max: 100 }}
-              sx={{ maxWidth: 200 }}
-            />
-          </Stack>
-        </Paper>
-      ))}
+          </Paper>
+        );
+      })}
 
       {references.length > 0 && references.length < maxReferences && (
         <Stack direction="row" spacing={1}>
@@ -263,7 +270,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
             sx={{
               borderStyle: "dashed",
               color: (theme) => theme.palette.text.secondary,
-              flex: 1
+              flex: 1,
             }}
           >
             Add personal reference
@@ -275,7 +282,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
             sx={{
               borderStyle: "dashed",
               color: (theme) => theme.palette.text.secondary,
-              flex: 1
+              flex: 1,
             }}
           >
             Add professional reference
