@@ -30,7 +30,7 @@ public static class OrderMapper
             db.InvitedAt,
             db.IntakeStartedAt,
             db.IntakeCompletedAt,
-            db.ReadyForRoutingAt,
+            db.ReadyForFulfillmentAt,
             db.ClosedAt,
             db.CanceledAt);
     }
@@ -59,7 +59,7 @@ public static class OrderMapper
         db.InvitedAt = order.InvitedAt;
         db.IntakeStartedAt = order.IntakeStartedAt;
         db.IntakeCompletedAt = order.IntakeCompletedAt;
-        db.ReadyForRoutingAt = order.ReadyForRoutingAt;
+        db.ReadyForFulfillmentAt = order.ReadyForFulfillmentAt;
         db.ClosedAt = order.ClosedAt;
         db.CanceledAt = order.CanceledAt;
     }

@@ -80,7 +80,7 @@ public class OrderTests
     }
 
     [Test]
-    public void ReadyForRoutingRequiresCompletedIntake()
+    public void ReadyForFulfillmentRequiresCompletedIntake()
     {
         var order = CreateOrder();
         var sessionId = UlidId.NewUlid();
@@ -89,12 +89,12 @@ public class OrderTests
         order.MarkIntakeSubmitted(sessionId, DateTimeOffset.UtcNow);
         var readyAt = DateTimeOffset.UtcNow;
 
-        order.MarkReadyForRouting(readyAt);
+        order.MarkReadyForFulfillment(readyAt);
 
         Assert.Multiple(() =>
         {
-            Assert.That(order.Status, Is.EqualTo(OrderStatus.ReadyForRouting));
-            Assert.That(order.ReadyForRoutingAt, Is.EqualTo(readyAt));
+            Assert.That(order.Status, Is.EqualTo(OrderStatus.ReadyForFulfillment));
+            Assert.That(order.ReadyForFulfillmentAt, Is.EqualTo(readyAt));
         });
     }
 

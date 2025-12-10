@@ -22,7 +22,7 @@ public sealed class SqlOrderQueries(WorkflowDbContext dbContext) : IOrderQueries
                 o.Status,
                 o.LastStatusReason,
                 o.LastUpdatedAt,
-                o.ReadyForRoutingAt,
+                o.ReadyForFulfillmentAt,
                 o.ClosedAt,
                 o.CanceledAt))
             .SingleOrDefaultAsync(cancellationToken);
@@ -78,7 +78,7 @@ public sealed class SqlOrderQueries(WorkflowDbContext dbContext) : IOrderQueries
                 o.Status,
                 o.LastStatusReason,
                 o.LastUpdatedAt,
-                o.ReadyForRoutingAt,
+                o.ReadyForFulfillmentAt,
                 o.ClosedAt,
                 o.CanceledAt))
             .ToListAsync(cancellationToken);
@@ -114,7 +114,7 @@ public sealed class SqlOrderQueries(WorkflowDbContext dbContext) : IOrderQueries
             GetCount(OrderStatus.Invited),
             GetCount(OrderStatus.IntakeInProgress),
             GetCount(OrderStatus.IntakeComplete),
-            GetCount(OrderStatus.ReadyForRouting),
+            GetCount(OrderStatus.ReadyForFulfillment),
             GetCount(OrderStatus.Blocked),
             GetCount(OrderStatus.Canceled));
     }

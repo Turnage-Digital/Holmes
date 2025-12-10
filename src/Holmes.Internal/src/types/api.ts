@@ -282,8 +282,8 @@ export type OrderStatus =
   | "Invited"
   | "IntakeInProgress"
   | "IntakeComplete"
-  | "ReadyForRouting"
-  | "RoutingInProgress"
+  | "ReadyForFulfillment"
+  | "FulfillmentInProgress"
   | "ReadyForReport"
   | "Closed"
   | "Blocked"
@@ -298,7 +298,7 @@ export interface OrderSummaryDto {
   status: string;
   lastStatusReason?: string | null;
   lastUpdatedAt: string;
-  readyForRoutingAt?: string | null;
+  readyForFulfillmentAt?: string | null;
   closedAt?: string | null;
   canceledAt?: string | null;
 }
@@ -318,7 +318,7 @@ export interface OrderStatsDto {
   invited: number;
   intakeInProgress: number;
   intakeComplete: number;
-  readyForRouting: number;
+  readyForFulfillment: number;
   blocked: number;
   canceled: number;
 }

@@ -11,7 +11,7 @@ public class OrderSummaryProjectionDb
     public string? LastStatusReason { get; set; }
     public DateTimeOffset LastUpdatedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? ReadyForRoutingAt { get; set; }
+    public DateTimeOffset? ReadyForFulfillmentAt { get; set; }
     public DateTimeOffset? ClosedAt { get; set; }
     public DateTimeOffset? CanceledAt { get; set; }
 }

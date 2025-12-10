@@ -6,16 +6,16 @@ using MediatR;
 
 namespace Holmes.Workflow.Application.Commands;
 
-public sealed record MarkOrderReadyForRoutingCommand(
+public sealed record MarkOrderReadyForFulfillmentCommand(
     UlidId OrderId,
     DateTimeOffset ReadyAt,
     string? Reason
 ) : RequestBase<Result>;
 
-public sealed class MarkOrderReadyForRoutingCommandHandler(IWorkflowUnitOfWork unitOfWork)
-    : IRequestHandler<MarkOrderReadyForRoutingCommand, Result>
+public sealed class MarkOrderReadyForFulfillmentCommandHandler(IWorkflowUnitOfWork unitOfWork)
+    : IRequestHandler<MarkOrderReadyForFulfillmentCommand, Result>
 {
-    public async Task<Result> Handle(MarkOrderReadyForRoutingCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(MarkOrderReadyForFulfillmentCommand request, CancellationToken cancellationToken)
     {
         var repository = unitOfWork.Orders;
         var order = await repository.GetByIdAsync(request.OrderId, cancellationToken);
@@ -26,7 +26,7 @@ public sealed class MarkOrderReadyForRoutingCommandHandler(IWorkflowUnitOfWork u
 
         try
         {
-            order.MarkReadyForRouting(request.ReadyAt, request.Reason);
+            order.MarkReadyForFulfillment(request.ReadyAt, request.Reason);
         }
         catch (InvalidOperationException ex)
         {

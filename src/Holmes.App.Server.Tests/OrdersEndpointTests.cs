@@ -41,7 +41,7 @@ public class OrdersEndpointTests
         await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(),
             Ulid.NewUlid().ToString(), OrderStatus.Invited);
         await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(),
-            Ulid.NewUlid().ToString(), OrderStatus.ReadyForRouting);
+            Ulid.NewUlid().ToString(), OrderStatus.ReadyForFulfillment);
 
         var response = await client.GetAsync("/api/orders/summary?page=1&pageSize=1");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -72,7 +72,7 @@ public class OrdersEndpointTests
         var orderA = Ulid.NewUlid().ToString();
         await SeedOrderSummaryAsync(factory, orderA, customerA, Ulid.NewUlid().ToString(), OrderStatus.Invited);
         await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), customerB, Ulid.NewUlid().ToString(),
-            OrderStatus.ReadyForRouting);
+            OrderStatus.ReadyForFulfillment);
 
         var response = await client.GetAsync("/api/orders/summary");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -193,7 +193,7 @@ public class OrdersEndpointTests
         await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), allowedCustomer, Ulid.NewUlid().ToString(),
             OrderStatus.Blocked);
         await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), allowedCustomer, Ulid.NewUlid().ToString(),
-            OrderStatus.ReadyForRouting);
+            OrderStatus.ReadyForFulfillment);
         await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), deniedCustomer, Ulid.NewUlid().ToString(),
             OrderStatus.IntakeComplete);
 
@@ -205,7 +205,7 @@ public class OrdersEndpointTests
         Assert.That(stats!.Invited, Is.EqualTo(1));
         Assert.That(stats.IntakeInProgress, Is.EqualTo(0));
         Assert.That(stats.IntakeComplete, Is.EqualTo(0));
-        Assert.That(stats.ReadyForRouting, Is.EqualTo(1));
+        Assert.That(stats.ReadyForFulfillment, Is.EqualTo(1));
         Assert.That(stats.Blocked, Is.EqualTo(1));
         Assert.That(stats.Canceled, Is.EqualTo(0));
     }
@@ -281,7 +281,7 @@ public class OrdersEndpointTests
             LastStatusReason = "seeded",
             CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30),
             LastUpdatedAt = DateTimeOffset.UtcNow,
-            ReadyForRoutingAt = null,
+            ReadyForFulfillmentAt = null,
             ClosedAt = null,
             CanceledAt = null
         });

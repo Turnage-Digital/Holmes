@@ -301,8 +301,8 @@ public sealed class SeedData(
             (subjectIds[6], TimeSpan.FromDays(-3), "IntakeComplete"),
             (subjectIds[7], TimeSpan.FromDays(-4), "IntakeComplete"),
 
-            // Ready for routing
-            (subjectIds[8], TimeSpan.FromDays(-5), "ReadyForRouting"),
+            // Ready for fulfillment
+            (subjectIds[8], TimeSpan.FromDays(-5), "ReadyForFulfillment"),
 
             // Blocked order
             (subjectIds[9], TimeSpan.FromDays(-7), "Blocked")
@@ -389,20 +389,20 @@ public sealed class SeedData(
             return;
         }
 
-        // Mark ready for routing
+        // Mark ready for fulfillment
         var readyTimestamp = submitTimestamp.AddHours(1);
-        var readyCommand = new MarkOrderReadyForRoutingCommand(orderId, readyTimestamp, "Intake reviewed and approved")
+        var readyCommand = new MarkOrderReadyForFulfillmentCommand(orderId, readyTimestamp, "Intake reviewed and approved")
         {
             UserId = adminUserId.ToString()
         };
         await mediator.Send(readyCommand, cancellationToken);
 
-        if (targetStatus == "ReadyForRouting")
+        if (targetStatus == "ReadyForFulfillment")
         {
             return;
         }
 
-        // Block the order (we don't have BeginRouting command, so skip to block from ReadyForRouting)
+        // Block the order (we don't have BeginFulfillment command, so skip to block from ReadyForFulfillment)
         if (targetStatus == "Blocked")
         {
             var blockTimestamp = readyTimestamp.AddHours(1);

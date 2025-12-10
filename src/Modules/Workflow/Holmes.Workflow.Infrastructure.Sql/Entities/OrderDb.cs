@@ -17,7 +17,7 @@ public class OrderDb
     public DateTimeOffset? InvitedAt { get; set; }
     public DateTimeOffset? IntakeStartedAt { get; set; }
     public DateTimeOffset? IntakeCompletedAt { get; set; }
-    public DateTimeOffset? ReadyForRoutingAt { get; set; }
+    public DateTimeOffset? ReadyForFulfillmentAt { get; set; }
     public DateTimeOffset? ClosedAt { get; set; }
     public DateTimeOffset? CanceledAt { get; set; }
 }

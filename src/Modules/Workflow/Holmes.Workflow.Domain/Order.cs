@@ -12,9 +12,9 @@ public sealed class Order : AggregateRoot
             { OrderStatus.Created, [OrderStatus.Invited] },
             { OrderStatus.Invited, [OrderStatus.IntakeInProgress] },
             { OrderStatus.IntakeInProgress, [OrderStatus.IntakeComplete] },
-            { OrderStatus.IntakeComplete, [OrderStatus.ReadyForRouting] },
-            { OrderStatus.ReadyForRouting, [OrderStatus.RoutingInProgress] },
-            { OrderStatus.RoutingInProgress, [OrderStatus.ReadyForReport] },
+            { OrderStatus.IntakeComplete, [OrderStatus.ReadyForFulfillment] },
+            { OrderStatus.ReadyForFulfillment, [OrderStatus.FulfillmentInProgress] },
+            { OrderStatus.FulfillmentInProgress, [OrderStatus.ReadyForReport] },
             { OrderStatus.ReadyForReport, [OrderStatus.Closed] },
             { OrderStatus.Closed, [] },
             { OrderStatus.Blocked, [] },
@@ -40,7 +40,7 @@ public sealed class Order : AggregateRoot
     public DateTimeOffset? InvitedAt { get; private set; }
     public DateTimeOffset? IntakeStartedAt { get; private set; }
     public DateTimeOffset? IntakeCompletedAt { get; private set; }
-    public DateTimeOffset? ReadyForRoutingAt { get; private set; }
+    public DateTimeOffset? ReadyForFulfillmentAt { get; private set; }
     public DateTimeOffset? ClosedAt { get; private set; }
     public DateTimeOffset? CanceledAt { get; private set; }
 
@@ -88,7 +88,7 @@ public sealed class Order : AggregateRoot
         DateTimeOffset? invitedAt,
         DateTimeOffset? intakeStartedAt,
         DateTimeOffset? intakeCompletedAt,
-        DateTimeOffset? readyForRoutingAt,
+        DateTimeOffset? readyForFulfillmentAt,
         DateTimeOffset? closedAt,
         DateTimeOffset? canceledAt
     )
@@ -110,7 +110,7 @@ public sealed class Order : AggregateRoot
             InvitedAt = invitedAt,
             IntakeStartedAt = intakeStartedAt,
             IntakeCompletedAt = intakeCompletedAt,
-            ReadyForRoutingAt = readyForRoutingAt,
+            ReadyForFulfillmentAt = readyForFulfillmentAt,
             ClosedAt = closedAt,
             CanceledAt = canceledAt
         };
@@ -146,12 +146,12 @@ public sealed class Order : AggregateRoot
         TransitionTo(OrderStatus.IntakeComplete, reason, submittedAt);
     }
 
-    public void MarkReadyForRouting(DateTimeOffset readyAt, string? reason = null)
+    public void MarkReadyForFulfillment(DateTimeOffset readyAt, string? reason = null)
     {
         EnsureNotFinalized();
         if (Status != OrderStatus.IntakeComplete)
         {
-            throw new InvalidOperationException("Order must be intake complete before it can be routed.");
+            throw new InvalidOperationException("Order must be intake complete before fulfillment can begin.");
         }
 
         if (LastCompletedIntakeSessionId is null)
@@ -159,29 +159,29 @@ public sealed class Order : AggregateRoot
             throw new InvalidOperationException("No completed intake session is linked to this order.");
         }
 
-        ReadyForRoutingAt = readyAt;
-        reason ??= "Ready for routing";
-        TransitionTo(OrderStatus.ReadyForRouting, reason, readyAt);
+        ReadyForFulfillmentAt = readyAt;
+        reason ??= "Ready for fulfillment";
+        TransitionTo(OrderStatus.ReadyForFulfillment, reason, readyAt);
     }
 
-    public void BeginRouting(DateTimeOffset startedAt, string? reason = null)
+    public void BeginFulfillment(DateTimeOffset startedAt, string? reason = null)
     {
         EnsureNotFinalized();
-        if (Status != OrderStatus.ReadyForRouting)
+        if (Status != OrderStatus.ReadyForFulfillment)
         {
-            throw new InvalidOperationException("Routing can only begin from the ready for routing state.");
+            throw new InvalidOperationException("Fulfillment can only begin from the ready for fulfillment state.");
         }
 
-        reason ??= "Routing started";
-        TransitionTo(OrderStatus.RoutingInProgress, reason, startedAt);
+        reason ??= "Fulfillment in progress";
+        TransitionTo(OrderStatus.FulfillmentInProgress, reason, startedAt);
     }
 
     public void MarkReadyForReport(DateTimeOffset readyAt, string? reason = null)
     {
         EnsureNotFinalized();
-        if (Status != OrderStatus.RoutingInProgress)
+        if (Status != OrderStatus.FulfillmentInProgress)
         {
-            throw new InvalidOperationException("Order must be routing in progress before it can be ready for report.");
+            throw new InvalidOperationException("Order must be in fulfillment before it can be ready for report.");
         }
 
         reason ??= "Ready for report";

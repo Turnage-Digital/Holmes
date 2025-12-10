@@ -61,7 +61,7 @@ public sealed class OrderWorkflowGateway(
             submission.OrderId,
             submission.IntakeSessionId);
 
-        var command = new MarkOrderReadyForRoutingCommand(
+        var command = new MarkOrderReadyForFulfillmentCommand(
             submission.OrderId,
             acceptedAt,
             "Intake accepted");
@@ -69,7 +69,7 @@ public sealed class OrderWorkflowGateway(
         var result = await sender.Send(command, cancellationToken);
         if (!result.IsSuccess)
         {
-            var error = result.Error ?? "Failed to advance order to ready_for_routing.";
+            var error = result.Error ?? "Failed to advance order to ready_for_fulfillment.";
             logger.LogWarning("Unable to advance Order {OrderId}: {Error}", submission.OrderId, error);
             throw new InvalidOperationException(error);
         }

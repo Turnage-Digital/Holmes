@@ -49,7 +49,7 @@ public sealed class OrderStatusChangedSlaHandler(
                     notification.ChangedAt), cancellationToken);
                 break;
 
-            case OrderStatus.ReadyForRouting:
+            case OrderStatus.ReadyForFulfillment:
                 await sender.Send(new StartSlaClockCommand(
                     notification.OrderId,
                     notification.CustomerId,
