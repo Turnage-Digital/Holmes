@@ -41,7 +41,7 @@ export const SubjectNameCell = ({ subjectId }: { subjectId: string }) => {
     return <>{subjectId.slice(0, 8)}…</>;
   }
 
-  const name = [subject.givenName, subject.familyName]
+  const name = [subject.firstName, subject.lastName]
     .filter(Boolean)
     .join(" ");
   return <>{name || subject.email || `${subjectId.slice(0, 8)}…`}</>;

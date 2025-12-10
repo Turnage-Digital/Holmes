@@ -2,9 +2,14 @@ import React, { useState } from "react";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BuildIcon from "@mui/icons-material/Build";
+import HistoryIcon from "@mui/icons-material/History";
 import InfoIcon from "@mui/icons-material/Info";
 import TimelineIcon from "@mui/icons-material/Timeline";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -17,15 +22,16 @@ import {
   Stack,
   Tab,
   Tabs,
+  Tooltip,
   Typography
 } from "@mui/material";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
-import type { OrderTimelineEntryDto } from "@/types/api";
+import type { OrderAuditEventDto, OrderTimelineEntryDto } from "@/types/api";
 
 import { TierProgressView } from "@/components/services";
-import { useCustomer, useOrder, useOrderServices, useOrderTimeline, useSubject } from "@/hooks/api";
+import { useCustomer, useOrder, useOrderEvents, useOrderServices, useOrderTimeline, useSubject } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
 // ============================================================================
@@ -208,14 +214,14 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
             {format(new Date(order.lastUpdatedAt), "MMM d, yyyy 'at' h:mm a")}
           </Typography>
 
-          {order.readyForRoutingAt && (
+          {order.readyForFulfillmentAt && (
             <>
               <Typography variant="body2" color="text.secondary">
-                Ready for Routing
+                Ready for Fulfillment
               </Typography>
               <Typography variant="body2">
                 {format(
-                  new Date(order.readyForRoutingAt),
+                  new Date(order.readyForFulfillmentAt),
                   "MMM d, yyyy 'at' h:mm a"
                 )}
               </Typography>
@@ -307,6 +313,161 @@ const TimelineTab = ({ orderId }: TimelineTabProps) => {
 };
 
 // ============================================================================
+// Audit Log Tab Content
+// ============================================================================
+
+interface AuditLogTabProps {
+  orderId: string;
+}
+
+const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
+  // Extract a human-readable event name from the full type name
+  const displayName = event.eventName.split(".").pop() ?? event.eventName;
+
+  return (
+    <Accordion
+      disableGutters
+      sx={{
+        "&:before": { display: "none" },
+        boxShadow: "none",
+        borderBottom: "1px solid",
+        borderColor: "divider"
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        sx={{ px: 0 }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
+          <Tooltip title={`Global position: ${event.position}`}>
+            <Typography
+              variant="caption"
+              sx={{
+                fontFamily: "monospace",
+                bgcolor: "grey.100",
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                minWidth: 40,
+                textAlign: "center"
+              }}
+            >
+              v{event.version}
+            </Typography>
+          </Tooltip>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {displayName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {format(new Date(event.createdAt), "MMM d, yyyy 'at' h:mm:ss a")}
+              {" · "}
+              {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
+            </Typography>
+          </Box>
+          {event.actorId && (
+            <Tooltip title="Actor ID">
+              <Chip
+                label={event.actorId.slice(0, 12) + "…"}
+                size="small"
+                variant="outlined"
+                sx={{ fontFamily: "monospace", fontSize: "0.7rem" }}
+              />
+            </Tooltip>
+          )}
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 0, pt: 0 }}>
+        <Box
+          sx={{
+            bgcolor: "grey.50",
+            p: 2,
+            borderRadius: 1,
+            overflow: "auto"
+          }}
+        >
+          <Typography
+            component="pre"
+            sx={{
+              fontFamily: "monospace",
+              fontSize: "0.75rem",
+              m: 0,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word"
+            }}
+          >
+            {JSON.stringify(event.payload, null, 2)}
+          </Typography>
+        </Box>
+        {event.correlationId && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+            Correlation ID: {event.correlationId}
+          </Typography>
+        )}
+      </AccordionDetails>
+    </Accordion>
+  );
+};
+
+const AuditLogTab = ({ orderId }: AuditLogTabProps) => {
+  const { data: events, isLoading, error } = useOrderEvents(orderId);
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error">Failed to load audit events. Please try again.</Alert>
+    );
+  }
+
+  if (!events || events.length === 0) {
+    return (
+      <Card variant="outlined">
+        <CardContent>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Audit Log
+          </Typography>
+          <Typography color="text.secondary">
+            No events recorded for this order yet.
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card variant="outlined">
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Typography variant="h6">
+            Audit Log
+          </Typography>
+          <Chip
+            label={`${events.length} event${events.length === 1 ? "" : "s"}`}
+            size="small"
+            color="default"
+          />
+        </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Raw domain events from the event store. Click to expand and view full payload.
+        </Typography>
+        <Box>
+          {events.map((event) => (
+            <AuditEventCard key={event.eventId} event={event} />
+          ))}
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============================================================================
 // Order Detail Page
 // ============================================================================
 
@@ -367,7 +528,7 @@ const OrderDetailPage = () => {
 
   // Build subject display name
   const subjectName = subject
-    ? [subject.givenName, subject.familyName].filter(Boolean).join(" ") ||
+    ? [subject.firstName, subject.lastName].filter(Boolean).join(" ") ||
     subject.email
     : null;
 
@@ -447,6 +608,7 @@ const OrderDetailPage = () => {
             }
           />
           <Tab icon={<TimelineIcon />} iconPosition="start" label="Timeline" />
+          <Tab icon={<HistoryIcon />} iconPosition="start" label="Audit Log" />
         </Tabs>
       </Box>
 
@@ -461,6 +623,10 @@ const OrderDetailPage = () => {
 
       <TabPanel value={activeTab} index={2}>
         <TimelineTab orderId={orderId!} />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={3}>
+        <AuditLogTab orderId={orderId!} />
       </TabPanel>
     </Box>
   );

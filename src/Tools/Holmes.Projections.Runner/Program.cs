@@ -1,6 +1,18 @@
 using Holmes.Core.Infrastructure.Sql;
+using Holmes.Core.Infrastructure.Sql.Projections;
+using Holmes.Customers.Application.EventHandlers;
+using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Customers.Infrastructure.Sql.Projections;
+using Holmes.Intake.Application.EventHandlers;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
+using Holmes.Subjects.Application.EventHandlers;
+using Holmes.Subjects.Infrastructure.Sql;
+using Holmes.Subjects.Infrastructure.Sql.Projections;
+using Holmes.Users.Application.EventHandlers;
+using Holmes.Users.Infrastructure.Sql;
+using Holmes.Users.Infrastructure.Sql.Projections;
+using Holmes.Workflow.Application.EventHandlers;
 using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
@@ -41,12 +53,36 @@ catch (MySqlException)
     serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
 }
 
+// Register all infrastructure modules
 builder.Services.AddCoreInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddUsersInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddCustomersInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
 builder.Services.AddIntakeInfrastructureSql(connectionString, serverVersion);
 builder.Services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
+
+// Register MediatR with all event handlers for event-based replay
+builder.Services.AddMediatR(config =>
+{
+    config.RegisterServicesFromAssemblyContaining<UserProjectionHandler>();
+    config.RegisterServicesFromAssemblyContaining<CustomerProjectionHandler>();
+    config.RegisterServicesFromAssemblyContaining<SubjectProjectionHandler>();
+    config.RegisterServicesFromAssemblyContaining<IntakeSessionProjectionHandler>();
+    config.RegisterServicesFromAssemblyContaining<OrderStatusChangedHandler>();
+});
+
+// Register aggregate-based projection runners (existing)
 builder.Services.AddScoped<OrderSummaryProjectionRunner>();
 builder.Services.AddScoped<IntakeSessionProjectionRunner>();
 builder.Services.AddScoped<OrderTimelineProjectionRunner>();
+
+// Register event-based projection runners (new)
+builder.Services.AddScoped<UserEventProjectionRunner>();
+builder.Services.AddScoped<CustomerEventProjectionRunner>();
+builder.Services.AddScoped<SubjectEventProjectionRunner>();
+builder.Services.AddScoped<IntakeSessionEventProjectionRunner>();
+builder.Services.AddScoped<OrderSummaryEventProjectionRunner>();
+builder.Services.AddScoped<OrderTimelineEventProjectionRunner>();
 
 using var host = builder.Build();
 using var scope = host.Services.CreateScope();
@@ -55,46 +91,28 @@ var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
 
 var projection = builder.Configuration["projection"] ?? "order-summary";
 var reset = builder.Configuration.GetValue("reset", false);
+var fromEvents = builder.Configuration.GetValue("from-events", false);
+var batchSize = builder.Configuration.GetValue("batch-size", 200);
 var cancellationToken = CreateCancellationToken();
 
 try
 {
-    switch (projection.ToLowerInvariant())
+    ProjectionReplayResult result;
+
+    if (fromEvents)
     {
-        case "order-summary":
-            var runner = scope.ServiceProvider.GetRequiredService<OrderSummaryProjectionRunner>();
-            var result = await runner.RunAsync(reset, cancellationToken);
-            logger.LogInformation(
-                "Order summary replay complete. Processed {Count} orders. Last cursor: {OrderId} at {Timestamp}.",
-                result.Processed,
-                result.LastEntityId ?? "(none)",
-                result.LastUpdatedAt?.ToString("O") ?? "(n/a)");
-            break;
-        case "intake-sessions":
-            var intakeRunner = scope.ServiceProvider.GetRequiredService<IntakeSessionProjectionRunner>();
-            var intakeResult = await intakeRunner.RunAsync(reset, cancellationToken);
-            logger.LogInformation(
-                "Intake session replay complete. Processed {Count} sessions. Last cursor: {SessionId} at {Timestamp}.",
-                intakeResult.Processed,
-                intakeResult.LastEntityId ?? "(none)",
-                intakeResult.LastUpdatedAt?.ToString("O") ?? "(n/a)");
-            break;
-        case "order-timeline":
-            var timelineRunner = scope.ServiceProvider.GetRequiredService<OrderTimelineProjectionRunner>();
-            var timelineResult = await timelineRunner.RunAsync(reset, cancellationToken);
-            logger.LogInformation(
-                "Order timeline replay complete. Wrote {Count} events. Last event {OrderId} at {Timestamp}.",
-                timelineResult.Processed,
-                timelineResult.LastEntityId ?? "(none)",
-                timelineResult.LastUpdatedAt?.ToString("O") ?? "(n/a)");
-            break;
-        default:
-            logger.LogError(
-                "Unknown projection '{Projection}'. Expected one of: order-summary, intake-sessions, order-timeline.",
-                projection);
-            Environment.ExitCode = 1;
-            return;
+        result = await RunEventBasedProjectionAsync(projection, reset, batchSize, scope.ServiceProvider, cancellationToken);
     }
+    else
+    {
+        result = await RunAggregateBasedProjectionAsync(projection, reset, scope.ServiceProvider, cancellationToken);
+    }
+
+    logger.LogInformation(
+        "Projection replay complete. Processed {Count} items. Last: {EntityId} at {Timestamp}.",
+        result.Processed,
+        result.LastEntityId ?? "(none)",
+        result.LastUpdatedAt?.ToString("O") ?? "(n/a)");
 }
 catch (OperationCanceledException)
 {
@@ -108,6 +126,72 @@ catch (Exception ex)
 }
 
 return;
+
+static async Task<ProjectionReplayResult> RunEventBasedProjectionAsync(
+    string projection,
+    bool reset,
+    int batchSize,
+    IServiceProvider services,
+    CancellationToken cancellationToken)
+{
+    return projection.ToLowerInvariant() switch
+    {
+        "user" or "users" =>
+            await services.GetRequiredService<UserEventProjectionRunner>()
+                .RunAsync(reset, batchSize, cancellationToken),
+
+        "customer" or "customers" =>
+            await services.GetRequiredService<CustomerEventProjectionRunner>()
+                .RunAsync(reset, batchSize, cancellationToken),
+
+        "subject" or "subjects" =>
+            await services.GetRequiredService<SubjectEventProjectionRunner>()
+                .RunAsync(reset, batchSize, cancellationToken),
+
+        "intake-sessions" =>
+            await services.GetRequiredService<IntakeSessionEventProjectionRunner>()
+                .RunAsync(reset, batchSize, cancellationToken),
+
+        "order-summary" =>
+            await services.GetRequiredService<OrderSummaryEventProjectionRunner>()
+                .RunAsync(reset, batchSize, cancellationToken),
+
+        "order-timeline" =>
+            await services.GetRequiredService<OrderTimelineEventProjectionRunner>()
+                .RunAsync(reset, batchSize, cancellationToken),
+
+        _ => throw new InvalidOperationException(
+            $"Unknown projection '{projection}' for event-based replay. " +
+            "Expected one of: user, customer, subject, intake-sessions, order-summary, order-timeline.")
+    };
+}
+
+static async Task<ProjectionReplayResult> RunAggregateBasedProjectionAsync(
+    string projection,
+    bool reset,
+    IServiceProvider services,
+    CancellationToken cancellationToken)
+{
+    return projection.ToLowerInvariant() switch
+    {
+        "order-summary" =>
+            await services.GetRequiredService<OrderSummaryProjectionRunner>()
+                .RunAsync(reset, cancellationToken),
+
+        "intake-sessions" =>
+            await services.GetRequiredService<IntakeSessionProjectionRunner>()
+                .RunAsync(reset, cancellationToken),
+
+        "order-timeline" =>
+            await services.GetRequiredService<OrderTimelineProjectionRunner>()
+                .RunAsync(reset, cancellationToken),
+
+        _ => throw new InvalidOperationException(
+            $"Unknown projection '{projection}' for aggregate-based replay. " +
+            "Expected one of: order-summary, intake-sessions, order-timeline. " +
+            "For user, customer, subject projections, use --from-events true.")
+    };
+}
 
 static CancellationToken CreateCancellationToken()
 {

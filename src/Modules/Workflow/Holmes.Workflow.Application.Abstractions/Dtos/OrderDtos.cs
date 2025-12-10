@@ -35,3 +35,17 @@ public sealed record OrderStatsDto(
     int Blocked,
     int Canceled
 );
+
+/// <summary>
+/// A raw domain event from the event store, used for audit purposes.
+/// </summary>
+public sealed record OrderAuditEventDto(
+    long Position,
+    long Version,
+    string EventId,
+    string EventName,
+    JsonElement Payload,
+    DateTimeOffset CreatedAt,
+    string? CorrelationId,
+    string? ActorId
+);

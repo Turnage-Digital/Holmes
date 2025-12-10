@@ -314,6 +314,17 @@ export interface OrderTimelineEntryDto {
   metadata?: Record<string, unknown> | null;
 }
 
+export interface OrderAuditEventDto {
+  position: number;
+  version: number;
+  eventId: string;
+  eventName: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  correlationId?: string | null;
+  actorId?: string | null;
+}
+
 export interface OrderStatsDto {
   invited: number;
   intakeInProgress: number;

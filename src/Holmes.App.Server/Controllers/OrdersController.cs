@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions.Queries;
 using Holmes.Services.Application.Abstractions.Dtos;
@@ -25,7 +27,8 @@ public sealed class OrdersController(
     ICustomerQueries customerQueries,
     ISubjectQueries subjectQueries,
     IServiceRequestQueries serviceRequestQueries,
-    ICurrentUserAccess currentUserAccess
+    ICurrentUserAccess currentUserAccess,
+    IEventStore eventStore
 ) : ControllerBase
 {
     [HttpPost]
@@ -255,6 +258,59 @@ public sealed class OrdersController(
         );
 
         return Ok(result);
+    }
+
+    [HttpGet("{orderId}/events")]
+    [Authorize(Policy = AuthorizationPolicies.RequireOps)]
+    public async Task<ActionResult<IReadOnlyCollection<OrderAuditEventDto>>> GetEventsAsync(
+        string orderId,
+        [FromQuery] int limit = 100,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (!Ulid.TryParse(orderId, out var parsedOrder))
+        {
+            return BadRequest("Invalid order id format.");
+        }
+
+        var targetOrderId = parsedOrder.ToString();
+
+        // Verify order exists and user has access
+        var customerIdForOrder = await orderQueries.GetCustomerIdAsync(targetOrderId, cancellationToken);
+
+        if (customerIdForOrder is null)
+        {
+            return NotFound();
+        }
+
+        if (!await currentUserAccess.HasCustomerAccessAsync(customerIdForOrder, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        // Read events from the event store for this order's stream
+        var streamId = $"Order:{targetOrderId}";
+        var clampedLimit = Math.Clamp(limit, 1, 500);
+
+        var events = await eventStore.ReadStreamAsync(
+            "*", // tenant - using wildcard for now
+            streamId,
+            0, // from position 0 (all events)
+            clampedLimit,
+            cancellationToken);
+
+        var dtos = events.Select(e => new OrderAuditEventDto(
+            e.Position,
+            e.Version,
+            e.EventId,
+            e.EventName,
+            JsonDocument.Parse(e.Payload).RootElement,
+            new DateTimeOffset(e.CreatedAt, TimeSpan.Zero),
+            e.CorrelationId,
+            e.ActorId
+        )).ToList();
+
+        return Ok(dtos);
     }
 
     private static IReadOnlyCollection<string> NormalizeStatuses(IReadOnlyCollection<string>? statuses)

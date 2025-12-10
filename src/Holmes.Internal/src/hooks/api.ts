@@ -12,6 +12,7 @@ import type {
   InviteUserRequest,
   InviteUserResponse,
   IssueIntakeInviteRequest,
+  OrderAuditEventDto,
   OrderServicesDto,
   OrderStatsDto,
   OrderSummaryDto,
@@ -46,6 +47,7 @@ export const queryKeys = {
   orders: (query: OrderSummaryQuery) => ["orders", query] as const,
   order: (id: Ulid) => ["orders", "detail", id] as const,
   orderTimeline: (id: Ulid) => ["orders", "timeline", id] as const,
+  orderEvents: (id: Ulid) => ["orders", id, "events"] as const,
   orderServices: (id: Ulid) => ["orders", id, "services"] as const,
   orderStats: ["orders", "stats"] as const,
   serviceTypes: ["services", "types"] as const
@@ -276,6 +278,16 @@ export const useOrderTimeline = (orderId: Ulid) =>
   useQuery({
     queryKey: queryKeys.orderTimeline(orderId),
     queryFn: () => fetchOrderTimeline(orderId),
+    enabled: !!orderId
+  });
+
+const fetchOrderEvents = (orderId: Ulid) =>
+  apiFetch<OrderAuditEventDto[]>(`/orders/${orderId}/events`);
+
+export const useOrderEvents = (orderId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.orderEvents(orderId),
+    queryFn: () => fetchOrderEvents(orderId),
     enabled: !!orderId
   });
 
