@@ -6,10 +6,23 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
-import { Box, Card, CardContent, Chip, LinearProgress, Stack, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  LinearProgress,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { formatDistanceToNow } from "date-fns";
 
-import type { ServiceCategory, ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
+import type {
+  ServiceCategory,
+  ServiceRequestSummaryDto,
+  ServiceStatus,
+} from "@/types/api";
 
 import { StatusBadge } from "@/components/patterns";
 
@@ -23,7 +36,7 @@ const statusIcons: Record<ServiceStatus, React.ReactElement> = {
   InProgress: <AutorenewIcon fontSize="small" />,
   Completed: <CheckCircleIcon fontSize="small" />,
   Failed: <ErrorIcon fontSize="small" />,
-  Canceled: <CancelIcon fontSize="small" />
+  Canceled: <CancelIcon fontSize="small" />,
 };
 
 const statusColors: Record<ServiceStatus, string> = {
@@ -32,7 +45,7 @@ const statusColors: Record<ServiceStatus, string> = {
   InProgress: "warning.main",
   Completed: "success.main",
   Failed: "error.main",
-  Canceled: "grey.500"
+  Canceled: "grey.500",
 };
 
 // ============================================================================
@@ -53,7 +66,7 @@ const categoryColors: Record<
   Civil: "default",
   Reference: "info",
   Healthcare: "success",
-  Custom: "default"
+  Custom: "default",
 };
 
 // ============================================================================
@@ -66,9 +79,9 @@ interface ServiceStatusCardProps {
 }
 
 const ServiceStatusCard = ({
-                             service,
-                             showCategory = true
-                           }: ServiceStatusCardProps) => {
+  service,
+  showCategory = true,
+}: ServiceStatusCardProps) => {
   const isInProgress =
     service.status === "InProgress" || service.status === "Dispatched";
   const hasError = service.status === "Failed";
@@ -85,13 +98,59 @@ const ServiceStatusCard = ({
   };
 
   const timestampInfo = getRelevantTimestamp();
+  const chipColor = hasError ? "error" : "default";
+
+  const vendorDisplay = service.vendorCode ? (
+    <Typography variant="caption" color="text.secondary">
+      Vendor: {service.vendorCode}
+    </Typography>
+  ) : null;
+
+  const scopeDisplay = service.scopeValue ? (
+    <Tooltip title={service.scopeType ?? "Scope"}>
+      <Typography variant="caption" color="text.secondary">
+        {service.scopeValue}
+      </Typography>
+    </Tooltip>
+  ) : null;
+
+  const retriesDisplay = hasRetries ? (
+    <Tooltip
+      title={`Attempt ${service.attemptCount} of ${service.maxAttempts}`}
+    >
+      <Chip
+        label={`${service.attemptCount}/${service.maxAttempts}`}
+        size="small"
+        color={chipColor}
+        variant="outlined"
+      />
+    </Tooltip>
+  ) : null;
+
+  const errorDisplay =
+    hasError && service.lastError ? (
+      <Typography
+        variant="caption"
+        color="error.main"
+        sx={{
+          mt: 0.5,
+          p: 1,
+          bgcolor: "error.50",
+          borderRadius: 1,
+          border: "1px solid",
+          borderColor: "error.200",
+        }}
+      >
+        {service.lastError}
+      </Typography>
+    ) : null;
 
   return (
     <Card
       variant="outlined"
       sx={{
         borderColor: hasError ? "error.light" : undefined,
-        bgcolor: hasError ? "error.50" : undefined
+        bgcolor: hasError ? "error.50" : undefined,
       }}
     >
       <CardContent sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}>
@@ -101,7 +160,7 @@ const ServiceStatusCard = ({
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "flex-start"
+              alignItems: "flex-start",
             }}
           >
             <Stack spacing={0.5}>
@@ -139,65 +198,29 @@ const ServiceStatusCard = ({
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center"
+              alignItems: "center",
             }}
           >
             <Stack direction="row" spacing={2}>
               <Typography variant="caption" color="text.secondary">
                 Tier {service.tier}
               </Typography>
-              {service.vendorCode && (
-                <Typography variant="caption" color="text.secondary">
-                  Vendor: {service.vendorCode}
-                </Typography>
-              )}
-              {service.scopeValue && (
-                <Tooltip title={service.scopeType ?? "Scope"}>
-                  <Typography variant="caption" color="text.secondary">
-                    {service.scopeValue}
-                  </Typography>
-                </Tooltip>
-              )}
+              {vendorDisplay}
+              {scopeDisplay}
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
-              {hasRetries && (
-                <Tooltip
-                  title={`Attempt ${service.attemptCount} of ${service.maxAttempts}`}
-                >
-                  <Chip
-                    label={`${service.attemptCount}/${service.maxAttempts}`}
-                    size="small"
-                    color={hasError ? "error" : "default"}
-                    variant="outlined"
-                  />
-                </Tooltip>
-              )}
+              {retriesDisplay}
               <Typography variant="caption" color="text.secondary">
                 {timestampInfo.label}{" "}
                 {formatDistanceToNow(new Date(timestampInfo.time), {
-                  addSuffix: true
+                  addSuffix: true,
                 })}
               </Typography>
             </Stack>
           </Box>
 
           {/* Error message */}
-          {hasError && service.lastError && (
-            <Typography
-              variant="caption"
-              color="error.main"
-              sx={{
-                mt: 0.5,
-                p: 1,
-                bgcolor: "error.50",
-                borderRadius: 1,
-                border: "1px solid",
-                borderColor: "error.200"
-              }}
-            >
-              {service.lastError}
-            </Typography>
-          )}
+          {errorDisplay}
         </Stack>
       </CardContent>
     </Card>

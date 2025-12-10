@@ -25,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Intake\Holmes.Intake.Infrastructure.Sql\Holmes.Intake.Infrastructure.Sql.csproj" />
+        <ProjectReference Include="..\..\Intake\Holmes.Intake.Infrastructure.Sql\Holmes.Intake.Infrastructure.Sql.csproj"/>
         <ProjectReference Include="..\Holmes.Workflow.Domain\Holmes.Workflow.Domain.csproj"/>
         <ProjectReference Include="..\Holmes.Workflow.Infrastructure.Sql\Holmes.Workflow.Infrastructure.Sql.csproj"/>
     </ItemGroup>

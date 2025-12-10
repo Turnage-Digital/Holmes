@@ -12,7 +12,8 @@ public abstract class UnitOfWork<TContext>(
     IMediator mediator,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
+    ITenantContext? tenantContext = null
+)
     : IUnitOfWork where TContext : DbContext
 {
     private bool _disposed;
@@ -114,7 +115,8 @@ public abstract class UnitOfWork<TContext>(
 
     private async Task PersistEventsAsync(
         IReadOnlyCollection<IHasDomainEvents> aggregates,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         // Skip if event persistence infrastructure is not configured
         if (eventStore is null || serializer is null)
@@ -129,7 +131,10 @@ public abstract class UnitOfWork<TContext>(
 
         foreach (var aggregate in aggregates.OfType<AggregateRoot>())
         {
-            if (aggregate.DomainEvents.Count == 0) continue;
+            if (aggregate.DomainEvents.Count == 0)
+            {
+                continue;
+            }
 
             var envelopes = aggregate.DomainEvents
                 .Select(e => serializer.Serialize(e, correlationId, causationId, actorId))
@@ -146,7 +151,8 @@ public abstract class UnitOfWork<TContext>(
 
     private async Task DispatchDomainEventsAsync(
         IReadOnlyCollection<IHasDomainEvents> aggregates,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (aggregates.Count == 0)
         {

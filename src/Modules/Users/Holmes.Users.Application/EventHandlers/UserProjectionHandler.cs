@@ -6,15 +6,15 @@ using MediatR;
 namespace Holmes.Users.Application.EventHandlers;
 
 /// <summary>
-/// Handles user domain events to maintain the user projection table.
-/// This replaces the synchronous UpsertDirectory calls in the repository.
+///     Handles user domain events to maintain the user projection table.
+///     This replaces the synchronous UpsertDirectory calls in the repository.
 /// </summary>
 public sealed class UserProjectionHandler(IUserProjectionWriter writer)
     : INotificationHandler<UserInvited>,
-      INotificationHandler<UserRegistered>,
-      INotificationHandler<UserProfileUpdated>,
-      INotificationHandler<UserSuspended>,
-      INotificationHandler<UserReactivated>
+        INotificationHandler<UserRegistered>,
+        INotificationHandler<UserProfileUpdated>,
+        INotificationHandler<UserSuspended>,
+        INotificationHandler<UserReactivated>
 {
     public Task Handle(UserInvited notification, CancellationToken cancellationToken)
     {
@@ -26,20 +26,6 @@ public sealed class UserProjectionHandler(IUserProjectionWriter writer)
             notification.UserId.ToString(),
             notification.InvitedAt,
             UserStatus.Invited);
-
-        return writer.UpsertAsync(model, cancellationToken);
-    }
-
-    public Task Handle(UserRegistered notification, CancellationToken cancellationToken)
-    {
-        var model = new UserProjectionModel(
-            notification.UserId.ToString(),
-            notification.Email,
-            notification.DisplayName,
-            notification.Issuer,
-            notification.Subject,
-            notification.RegisteredAt,
-            UserStatus.Active);
 
         return writer.UpsertAsync(model, cancellationToken);
     }
@@ -62,19 +48,33 @@ public sealed class UserProjectionHandler(IUserProjectionWriter writer)
         return writer.UpsertAsync(model, cancellationToken);
     }
 
-    public Task Handle(UserSuspended notification, CancellationToken cancellationToken)
-    {
-        return writer.UpdateStatusAsync(
-            notification.UserId.ToString(),
-            UserStatus.Suspended,
-            cancellationToken);
-    }
-
     public Task Handle(UserReactivated notification, CancellationToken cancellationToken)
     {
         return writer.UpdateStatusAsync(
             notification.UserId.ToString(),
             UserStatus.Active,
+            cancellationToken);
+    }
+
+    public Task Handle(UserRegistered notification, CancellationToken cancellationToken)
+    {
+        var model = new UserProjectionModel(
+            notification.UserId.ToString(),
+            notification.Email,
+            notification.DisplayName,
+            notification.Issuer,
+            notification.Subject,
+            notification.RegisteredAt,
+            UserStatus.Active);
+
+        return writer.UpsertAsync(model, cancellationToken);
+    }
+
+    public Task Handle(UserSuspended notification, CancellationToken cancellationToken)
+    {
+        return writer.UpdateStatusAsync(
+            notification.UserId.ToString(),
+            UserStatus.Suspended,
             cancellationToken);
     }
 }

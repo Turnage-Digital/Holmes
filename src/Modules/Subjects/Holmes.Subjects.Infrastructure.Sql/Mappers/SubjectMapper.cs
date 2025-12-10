@@ -279,8 +279,8 @@ public static class SubjectMapper
     }
 
     /// <summary>
-    /// Maps from projection table (read model) to list item DTO.
-    /// Uses AliasCount to create placeholder aliases for the count display.
+    ///     Maps from projection table (read model) to list item DTO.
+    ///     Uses AliasCount to create placeholder aliases for the count display.
     /// </summary>
     public static SubjectListItemDto ToListItemFromProjection(SubjectProjectionDb projection)
     {

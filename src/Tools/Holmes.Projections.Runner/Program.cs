@@ -101,7 +101,8 @@ try
 
     if (fromEvents)
     {
-        result = await RunEventBasedProjectionAsync(projection, reset, batchSize, scope.ServiceProvider, cancellationToken);
+        result = await RunEventBasedProjectionAsync(projection, reset, batchSize, scope.ServiceProvider,
+            cancellationToken);
     }
     else
     {
@@ -132,7 +133,8 @@ static async Task<ProjectionReplayResult> RunEventBasedProjectionAsync(
     bool reset,
     int batchSize,
     IServiceProvider services,
-    CancellationToken cancellationToken)
+    CancellationToken cancellationToken
+)
 {
     return projection.ToLowerInvariant() switch
     {
@@ -170,7 +172,8 @@ static async Task<ProjectionReplayResult> RunAggregateBasedProjectionAsync(
     string projection,
     bool reset,
     IServiceProvider services,
-    CancellationToken cancellationToken)
+    CancellationToken cancellationToken
+)
 {
     return projection.ToLowerInvariant() switch
     {

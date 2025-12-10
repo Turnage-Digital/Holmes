@@ -12,7 +12,8 @@ public sealed class SubjectsUnitOfWork(
     IMediator mediator,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
+    ITenantContext? tenantContext = null
+)
     : UnitOfWork<SubjectsDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), ISubjectsUnitOfWork
 {
     private readonly Lazy<ISubjectRepository> _subjects = new(() => new SqlSubjectRepository(dbContext));

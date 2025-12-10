@@ -4,7 +4,7 @@ using Holmes.Core.Application.Abstractions;
 namespace Holmes.App.Server.Infrastructure;
 
 /// <summary>
-/// HTTP-based tenant context that extracts tenant and actor from the current HTTP request claims.
+///     HTTP-based tenant context that extracts tenant and actor from the current HTTP request claims.
 /// </summary>
 public sealed class HttpTenantContext(IHttpContextAccessor httpContextAccessor) : ITenantContext
 {
@@ -38,7 +38,7 @@ public sealed class HttpTenantContext(IHttpContextAccessor httpContextAccessor) 
 
             // Try standard claims first, then common alternatives
             return user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                ?? user.FindFirst("sub")?.Value;
+                   ?? user.FindFirst("sub")?.Value;
         }
     }
 }

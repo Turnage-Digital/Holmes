@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Holmes.Subjects.Infrastructure.Sql.Repositories;
 
 /// <summary>
-/// Write-focused repository for Subject aggregate.
-/// Query methods are in SqlSubjectQueries (CQRS pattern).
-/// Projections are updated via event handlers (SubjectProjectionHandler).
+///     Write-focused repository for Subject aggregate.
+///     Query methods are in SqlSubjectQueries (CQRS pattern).
+///     Projections are updated via event handlers (SubjectProjectionHandler).
 /// </summary>
 public class SqlSubjectRepository(SubjectsDbContext dbContext) : ISubjectRepository
 {

@@ -7,7 +7,6 @@ import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -19,16 +18,29 @@ import {
   Select,
   Stack,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
-import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridRowParams,
+} from "@mui/x-data-grid";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
-import type { ServiceCategory, ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
+import type {
+  ServiceCategory,
+  ServiceRequestSummaryDto,
+  ServiceStatus,
+} from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay, MonospaceIdCell, StatusBadge } from "@/components/patterns";
+import {
+  DataGridNoRowsOverlay,
+  MonospaceIdCell,
+  StatusBadge,
+} from "@/components/patterns";
 
 // ============================================================================
 // Mock Data - Replace with real API when backend is ready
@@ -47,7 +59,7 @@ const mockFulfillmentQueue: ServiceRequestSummaryDto[] = [
     status: "Pending",
     attemptCount: 0,
     maxAttempts: 3,
-    createdAt: new Date(Date.now() - 3600000).toISOString()
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
   },
   {
     id: "01HXN2MNOP1234567890MNOP",
@@ -64,7 +76,7 @@ const mockFulfillmentQueue: ServiceRequestSummaryDto[] = [
     createdAt: new Date(Date.now() - 7200000).toISOString(),
     dispatchedAt: new Date(Date.now() - 3600000).toISOString(),
     scopeType: "State",
-    scopeValue: "CA"
+    scopeValue: "CA",
   },
   {
     id: "01HXN2UVWX1234567890UVWX",
@@ -80,7 +92,7 @@ const mockFulfillmentQueue: ServiceRequestSummaryDto[] = [
     lastError: "Vendor timeout after 30 seconds",
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     dispatchedAt: new Date(Date.now() - 82800000).toISOString(),
-    failedAt: new Date(Date.now() - 79200000).toISOString()
+    failedAt: new Date(Date.now() - 79200000).toISOString(),
   },
   {
     id: "01HXN3EFGH1234567890EFGH",
@@ -95,8 +107,8 @@ const mockFulfillmentQueue: ServiceRequestSummaryDto[] = [
     attemptCount: 1,
     maxAttempts: 3,
     createdAt: new Date(Date.now() - 172800000).toISOString(),
-    dispatchedAt: new Date(Date.now() - 86400000).toISOString()
-  }
+    dispatchedAt: new Date(Date.now() - 86400000).toISOString(),
+  },
 ];
 
 // ============================================================================
@@ -146,7 +158,7 @@ const categoryColors: Record<
   Civil: "default",
   Reference: "info",
   Healthcare: "success",
-  Custom: "default"
+  Custom: "default",
 };
 
 // ============================================================================
@@ -156,20 +168,19 @@ const categoryColors: Record<
 const FulfillmentDashboardPage = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<ServiceStatus | "all">(
-    "all"
+    "all",
   );
   const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | "all">(
-    "all"
+    "all",
   );
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25
+    pageSize: 25,
   });
 
   // In production, this would be a useQuery hook
   const fulfillmentQueue = mockFulfillmentQueue;
   const isLoading = false;
-  const error = null;
 
   // Filter data
   const filteredQueue = useMemo(() => {
@@ -186,10 +197,10 @@ const FulfillmentDashboardPage = () => {
     return {
       pending: fulfillmentQueue.filter((s) => s.status === "Pending").length,
       inProgress: fulfillmentQueue.filter(
-        (s) => s.status === "InProgress" || s.status === "Dispatched"
+        (s) => s.status === "InProgress" || s.status === "Dispatched",
       ).length,
       failed: fulfillmentQueue.filter((s) => s.status === "Failed").length,
-      total: fulfillmentQueue.length
+      total: fulfillmentQueue.length,
     };
   }, [fulfillmentQueue]);
 
@@ -212,7 +223,7 @@ const FulfillmentDashboardPage = () => {
         <Typography variant="body2" fontWeight={500}>
           {params.value}
         </Typography>
-      )
+      ),
     },
     {
       field: "category",
@@ -225,7 +236,7 @@ const FulfillmentDashboardPage = () => {
           color={categoryColors[params.value as ServiceCategory]}
           variant="outlined"
         />
-      )
+      ),
     },
     {
       field: "status",
@@ -233,7 +244,7 @@ const FulfillmentDashboardPage = () => {
       width: 120,
       renderCell: (params: GridRenderCellParams) => (
         <StatusBadge type="service" status={params.value} />
-      )
+      ),
     },
     {
       field: "tier",
@@ -246,7 +257,7 @@ const FulfillmentDashboardPage = () => {
           color="primary"
           variant="outlined"
         />
-      )
+      ),
     },
     {
       field: "orderId",
@@ -254,35 +265,41 @@ const FulfillmentDashboardPage = () => {
       width: 140,
       renderCell: (params: GridRenderCellParams) => (
         <MonospaceIdCell id={params.value} />
-      )
+      ),
     },
     {
       field: "vendorCode",
       headerName: "Vendor",
       width: 100,
-      renderCell: (params: GridRenderCellParams) =>
-        params.value ? (
-          <Typography variant="body2">{params.value}</Typography>
-        ) : (
+      renderCell: (params: GridRenderCellParams) => {
+        if (params.value) {
+          return <Typography variant="body2">{params.value}</Typography>;
+        }
+        return (
           <Typography variant="body2" color="text.secondary">
             —
           </Typography>
-        )
+        );
+      },
     },
     {
       field: "scopeValue",
       headerName: "Scope",
       width: 100,
-      renderCell: (params: GridRenderCellParams<ServiceRequestSummaryDto>) =>
-        params.value ? (
-          <Tooltip title={params.row.scopeType ?? "Scope"}>
-            <Typography variant="body2">{params.value}</Typography>
-          </Tooltip>
-        ) : (
+      renderCell: (params: GridRenderCellParams<ServiceRequestSummaryDto>) => {
+        if (params.value) {
+          return (
+            <Tooltip title={params.row.scopeType ?? "Scope"}>
+              <Typography variant="body2">{params.value}</Typography>
+            </Tooltip>
+          );
+        }
+        return (
           <Typography variant="body2" color="text.secondary">
             —
           </Typography>
-        )
+        );
+      },
     },
     {
       field: "attemptCount",
@@ -292,7 +309,7 @@ const FulfillmentDashboardPage = () => {
         <Typography variant="body2">
           {params.value}/{params.row.maxAttempts}
         </Typography>
-      )
+      ),
     },
     {
       field: "createdAt",
@@ -302,15 +319,18 @@ const FulfillmentDashboardPage = () => {
         <Typography variant="body2" color="text.secondary">
           {formatDistanceToNow(new Date(params.value), { addSuffix: false })}
         </Typography>
-      )
+      ),
     },
     {
       field: "lastError",
       headerName: "Error",
       flex: 1,
       minWidth: 200,
-      renderCell: (params: GridRenderCellParams) =>
-        params.value ? (
+      renderCell: (params: GridRenderCellParams) => {
+        if (!params.value) {
+          return null;
+        }
+        return (
           <Tooltip title={params.value}>
             <Typography
               variant="body2"
@@ -318,14 +338,15 @@ const FulfillmentDashboardPage = () => {
               sx={{
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: "nowrap"
+                whiteSpace: "nowrap",
               }}
             >
               {params.value}
             </Typography>
           </Tooltip>
-        ) : null
-    }
+        );
+      },
+    },
   ];
 
   return (
@@ -419,13 +440,6 @@ const FulfillmentDashboardPage = () => {
         </CardContent>
       </Card>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          Failed to load fulfillment queue. Please try again.
-        </Alert>
-      )}
-
       {/* Data Grid */}
       <DataGrid
         rows={filteredQueue}
@@ -439,12 +453,12 @@ const FulfillmentDashboardPage = () => {
         slots={{
           noRowsOverlay: () => (
             <DataGridNoRowsOverlay message="No service requests in the fulfillment queue." />
-          )
+          ),
         }}
         sx={{
           minHeight: 500,
           "& .MuiDataGrid-row": { cursor: "pointer" },
-          "& .MuiDataGrid-row:hover": { bgcolor: "action.hover" }
+          "& .MuiDataGrid-row:hover": { bgcolor: "action.hover" },
         }}
         disableRowSelectionOnClick
       />

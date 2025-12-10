@@ -12,7 +12,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     systemType: null,
     name: null,
     exp: null,
-    logoutUrl: null
+    logoutUrl: null,
   });
 
   useEffect(() => {
@@ -20,10 +20,10 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
 
     fetch("/bff/user", {
       headers: {
-        "X-CSRF": "1"
+        "X-CSRF": "1",
       },
       credentials: "include",
-      signal: controller.signal
+      signal: controller.signal,
     })
       .then((response) => {
         if (response.ok) {
@@ -32,7 +32,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
 
         if (response.status === 401) {
           const returnUrl = encodeURIComponent(
-            window.location.pathname + window.location.search
+            window.location.pathname + window.location.search,
           );
           window.location.href = `/bff/login?returnUrl=${returnUrl}`;
         }
@@ -46,7 +46,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
 
         const getClaimValue = (
           claims: Claim[],
-          claimType: string
+          claimType: string,
         ): string | null => {
           const claim = claims.find((c) => c.type === claimType);
           return claim ? claim.value : null;
@@ -62,7 +62,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
           systemType,
           name,
           exp,
-          logoutUrl
+          logoutUrl,
         });
       })
       .catch(() => {

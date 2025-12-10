@@ -318,7 +318,13 @@ public sealed class ServiceRequest : AggregateRoot
         };
     }
 
-    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
 
-    public override string GetStreamType() => "ServiceRequest";
+    public override string GetStreamType()
+    {
+        return "ServiceRequest";
+    }
 }

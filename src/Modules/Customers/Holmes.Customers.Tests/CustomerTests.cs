@@ -91,14 +91,17 @@ public class CustomerTests
         // Assign two admins
         var admin1 = UlidId.NewUlid();
         var admin2 = UlidId.NewUlid();
-        await handler.Handle(new CustomerAdminAssigned(customerId, admin1, admin1, DateTimeOffset.UtcNow), CancellationToken.None);
-        await handler.Handle(new CustomerAdminAssigned(customerId, admin2, admin2, DateTimeOffset.UtcNow), CancellationToken.None);
+        await handler.Handle(new CustomerAdminAssigned(customerId, admin1, admin1, DateTimeOffset.UtcNow),
+            CancellationToken.None);
+        await handler.Handle(new CustomerAdminAssigned(customerId, admin2, admin2, DateTimeOffset.UtcNow),
+            CancellationToken.None);
 
         var projection = await context.CustomerProjections.SingleAsync();
         Assert.That(projection.AdminCount, Is.EqualTo(2));
 
         // Remove one admin
-        await handler.Handle(new CustomerAdminRemoved(customerId, admin1, admin2, DateTimeOffset.UtcNow), CancellationToken.None);
+        await handler.Handle(new CustomerAdminRemoved(customerId, admin1, admin2, DateTimeOffset.UtcNow),
+            CancellationToken.None);
 
         projection = await context.CustomerProjections.SingleAsync();
         Assert.That(projection.AdminCount, Is.EqualTo(1));

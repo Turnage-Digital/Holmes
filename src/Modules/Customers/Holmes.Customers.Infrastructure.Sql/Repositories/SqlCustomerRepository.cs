@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Holmes.Customers.Infrastructure.Sql.Repositories;
 
 /// <summary>
-/// Write-focused repository for Customer aggregate.
-/// Query methods are in SqlCustomerQueries (CQRS pattern).
-/// Projections are updated via event handlers (CustomerProjectionHandler).
+///     Write-focused repository for Customer aggregate.
+///     Query methods are in SqlCustomerQueries (CQRS pattern).
+///     Projections are updated via event handlers (CustomerProjectionHandler).
 /// </summary>
 public class SqlCustomerRepository(CustomersDbContext dbContext)
     : ICustomerRepository

@@ -1,6 +1,5 @@
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Infrastructure.Sql.Entities;
-using Holmes.Core.Infrastructure.Sql.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,23 +7,24 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Core.Infrastructure.Sql.Projections;
 
 /// <summary>
-/// Base class for event-based projection runners. Reads events from the event store
-/// and dispatches them through MediatR handlers to rebuild projections.
+///     Base class for event-based projection runners. Reads events from the event store
+///     and dispatches them through MediatR handlers to rebuild projections.
 /// </summary>
 public abstract class EventProjectionRunner
 {
     private readonly CoreDbContext _coreDbContext;
     private readonly IEventStore _eventStore;
-    private readonly IDomainEventSerializer _serializer;
-    private readonly IPublisher _publisher;
     private readonly ILogger _logger;
+    private readonly IPublisher _publisher;
+    private readonly IDomainEventSerializer _serializer;
 
     protected EventProjectionRunner(
         CoreDbContext coreDbContext,
         IEventStore eventStore,
         IDomainEventSerializer serializer,
         IPublisher publisher,
-        ILogger logger)
+        ILogger logger
+    )
     {
         _coreDbContext = coreDbContext;
         _eventStore = eventStore;
@@ -34,24 +34,25 @@ public abstract class EventProjectionRunner
     }
 
     /// <summary>
-    /// Unique name for this projection, used for checkpoint storage.
+    ///     Unique name for this projection, used for checkpoint storage.
     /// </summary>
     protected abstract string ProjectionName { get; }
 
     /// <summary>
-    /// Stream types to process (e.g., "Order", "User"). Null means all streams.
+    ///     Stream types to process (e.g., "Order", "User"). Null means all streams.
     /// </summary>
     protected abstract string[]? StreamTypes { get; }
 
     /// <summary>
-    /// Resets the projection state (truncates tables) before replay.
+    ///     Resets the projection state (truncates tables) before replay.
     /// </summary>
     protected abstract Task ResetProjectionAsync(CancellationToken cancellationToken);
 
     public async Task<ProjectionReplayResult> RunAsync(
         bool reset,
         int batchSize,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         if (reset)
         {
@@ -127,7 +128,8 @@ public abstract class EventProjectionRunner
     private async Task<IReadOnlyList<StoredEvent>> LoadEventBatchAsync(
         long fromPosition,
         int batchSize,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         // Use "*" tenant for now - process all tenants
         const string tenantId = "*";

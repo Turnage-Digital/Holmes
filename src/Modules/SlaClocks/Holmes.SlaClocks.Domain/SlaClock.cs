@@ -227,7 +227,13 @@ public sealed class SlaClock : AggregateRoot
             totalElapsed));
     }
 
-    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
 
-    public override string GetStreamType() => "SlaClock";
+    public override string GetStreamType()
+    {
+        return "SlaClock";
+    }
 }

@@ -37,7 +37,7 @@ public sealed record OrderStatsDto(
 );
 
 /// <summary>
-/// A raw domain event from the event store, used for audit purposes.
+///     A raw domain event from the event store, used for audit purposes.
 /// </summary>
 public sealed record OrderAuditEventDto(
     long Position,

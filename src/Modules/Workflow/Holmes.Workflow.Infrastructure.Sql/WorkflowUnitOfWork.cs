@@ -12,7 +12,8 @@ public sealed class WorkflowUnitOfWork(
     IMediator mediator,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
+    ITenantContext? tenantContext = null
+)
     : UnitOfWork<WorkflowDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IWorkflowUnitOfWork
 {
     private readonly Lazy<IOrderRepository> _orders = new(() => new SqlOrderRepository(dbContext));

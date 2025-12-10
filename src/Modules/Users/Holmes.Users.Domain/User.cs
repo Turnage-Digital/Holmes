@@ -218,7 +218,13 @@ public sealed class User : AggregateRoot
         AddDomainEvent(@event);
     }
 
-    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
 
-    public override string GetStreamType() => "User";
+    public override string GetStreamType()
+    {
+        return "User";
+    }
 }

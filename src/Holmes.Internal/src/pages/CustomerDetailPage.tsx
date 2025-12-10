@@ -15,12 +15,15 @@ import {
   Stack,
   Tab,
   Tabs,
-  Typography
+  Typography,
 } from "@mui/material";
 import { format } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { ServiceCatalogEditor, TierConfigurationEditor } from "@/components/customers";
+import {
+  ServiceCatalogEditor,
+  TierConfigurationEditor,
+} from "@/components/customers";
 import { useCustomer, useCustomerCatalog } from "@/hooks/api";
 import { getCustomerStatusColor, getCustomerStatusLabel } from "@/lib/status";
 
@@ -60,7 +63,7 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
           sx={{
             display: "grid",
             gridTemplateColumns: "160px 1fr",
-            gap: 1.5
+            gap: 1.5,
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -114,42 +117,52 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
         <Typography variant="h6" sx={{ mb: 2 }}>
           Contacts ({customer.contacts.length})
         </Typography>
-        {customer.contacts.length === 0 ? (
-          <Typography color="text.secondary">
-            No contacts configured.
-          </Typography>
-        ) : (
-          <Stack spacing={2}>
-            {customer.contacts.map((contact) => (
-              <Box
-                key={contact.id}
-                sx={{
-                  p: 2,
-                  borderRadius: 1,
-                  bgcolor: "grey.50"
-                }}
-              >
-                <Typography variant="subtitle2">{contact.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {contact.email}
-                </Typography>
-                {contact.phone && (
-                  <Typography variant="body2" color="text.secondary">
-                    {contact.phone}
-                  </Typography>
-                )}
-                {contact.role && (
-                  <Chip
-                    label={contact.role}
-                    size="small"
-                    variant="outlined"
-                    sx={{ mt: 1 }}
-                  />
-                )}
-              </Box>
-            ))}
-          </Stack>
-        )}
+        {(() => {
+          const contactsDisplay =
+            customer.contacts.length > 0 ? (
+              <Stack spacing={2}>
+                {customer.contacts.map((contact) => {
+                  const phoneDisplay = contact.phone ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {contact.phone}
+                    </Typography>
+                  ) : null;
+                  const roleDisplay = contact.role ? (
+                    <Chip
+                      label={contact.role}
+                      size="small"
+                      variant="outlined"
+                      sx={{ mt: 1 }}
+                    />
+                  ) : null;
+                  return (
+                    <Box
+                      key={contact.id}
+                      sx={{
+                        p: 2,
+                        borderRadius: 1,
+                        bgcolor: "grey.50",
+                      }}
+                    >
+                      <Typography variant="subtitle2">
+                        {contact.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {contact.email}
+                      </Typography>
+                      {phoneDisplay}
+                      {roleDisplay}
+                    </Box>
+                  );
+                })}
+              </Stack>
+            ) : (
+              <Typography color="text.secondary">
+                No contacts configured.
+              </Typography>
+            );
+          return contactsDisplay;
+        })()}
       </CardContent>
     </Card>
 
@@ -159,38 +172,136 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
         <Typography variant="h6" sx={{ mb: 2 }}>
           Administrators ({customer.admins.length})
         </Typography>
-        {customer.admins.length === 0 ? (
-          <Typography color="text.secondary">
-            No administrators assigned.
-          </Typography>
-        ) : (
-          <Stack spacing={1}>
-            {customer.admins.map((admin) => (
-              <Box
-                key={admin.userId}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  p: 1.5,
-                  borderRadius: 1,
-                  bgcolor: "grey.50"
-                }}
-              >
-                <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                  {admin.userId}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Assigned {format(new Date(admin.assignedAt), "MMM d, yyyy")}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-        )}
+        {(() => {
+          const adminsDisplay =
+            customer.admins.length > 0 ? (
+              <Stack spacing={1}>
+                {customer.admins.map((admin) => (
+                  <Box
+                    key={admin.userId}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: "grey.50",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{ fontFamily: "monospace" }}
+                    >
+                      {admin.userId}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Assigned{" "}
+                      {format(new Date(admin.assignedAt), "MMM d, yyyy")}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <Typography color="text.secondary">
+                No administrators assigned.
+              </Typography>
+            );
+          return adminsDisplay;
+        })()}
       </CardContent>
     </Card>
   </Stack>
 );
+
+// ============================================================================
+// Service Catalog Content Component
+// ============================================================================
+
+interface CatalogContentProps {
+  customerId: string;
+  catalog: ReturnType<typeof useCustomerCatalog>["data"];
+  catalogLoading: boolean;
+  catalogError: ReturnType<typeof useCustomerCatalog>["error"];
+}
+
+const ServiceCatalogContent = ({
+  customerId,
+  catalog,
+  catalogLoading,
+  catalogError,
+}: CatalogContentProps) => {
+  if (catalogLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (catalog) {
+    return (
+      <ServiceCatalogEditor
+        customerId={customerId}
+        services={catalog.services}
+      />
+    );
+  }
+
+  if (catalogError) {
+    return (
+      <Alert severity="error">
+        Failed to load service catalog. Please try again.
+      </Alert>
+    );
+  }
+
+  return (
+    <Alert severity="info">
+      No service catalog configured for this customer.
+    </Alert>
+  );
+};
+
+// ============================================================================
+// Tier Configuration Content Component
+// ============================================================================
+
+const TierConfigurationContent = ({
+  customerId,
+  catalog,
+  catalogLoading,
+  catalogError,
+}: CatalogContentProps) => {
+  if (catalogLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (catalog) {
+    return (
+      <TierConfigurationEditor
+        customerId={customerId}
+        tiers={catalog.tiers}
+        availableServices={catalog.services}
+      />
+    );
+  }
+
+  if (catalogError) {
+    return (
+      <Alert severity="error">
+        Failed to load tier configuration. Please try again.
+      </Alert>
+    );
+  }
+
+  return (
+    <Alert severity="info">No tier configuration for this customer.</Alert>
+  );
+};
 
 // ============================================================================
 // Customer Detail Page
@@ -205,14 +316,14 @@ const CustomerDetailPage = () => {
   const {
     data: customer,
     isLoading: customerLoading,
-    error: customerError
+    error: customerError,
   } = useCustomer(customerId!);
 
   // Fetch service catalog
   const {
     data: catalog,
     isLoading: catalogLoading,
-    error: catalogError
+    error: catalogError,
   } = useCustomerCatalog(customerId!);
 
   // Loading state
@@ -223,7 +334,7 @@ const CustomerDetailPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: 400
+          minHeight: 400,
         }}
       >
         <CircularProgress />
@@ -233,6 +344,9 @@ const CustomerDetailPage = () => {
 
   // Error state
   if (customerError || !customer) {
+    const errorMessage = customerError
+      ? "Failed to load customer. Please try again."
+      : "Customer not found.";
     return (
       <Box>
         <IconButton
@@ -242,11 +356,7 @@ const CustomerDetailPage = () => {
         >
           <ArrowBackIcon />
         </IconButton>
-        <Alert severity="error">
-          {customerError
-            ? "Failed to load customer. Please try again."
-            : "Customer not found."}
-        </Alert>
+        <Alert severity="error">{errorMessage}</Alert>
       </Box>
     );
   }
@@ -279,11 +389,15 @@ const CustomerDetailPage = () => {
             variant="outlined"
           />
         </Stack>
-        <Typography variant="body2" color="text.secondary">
-          {customer.contacts.length} contact
-          {customer.contacts.length !== 1 ? "s" : ""} • Policy{" "}
-          {customer.policySnapshotId.slice(0, 12)}…
-        </Typography>
+        {(() => {
+          const contactSuffix = customer.contacts.length === 1 ? "" : "s";
+          return (
+            <Typography variant="body2" color="text.secondary">
+              {customer.contacts.length} contact{contactSuffix} • Policy{" "}
+              {customer.policySnapshotId.slice(0, 12)}…
+            </Typography>
+          );
+        })()}
       </Box>
 
       {/* Tabs */}
@@ -309,46 +423,21 @@ const CustomerDetailPage = () => {
       </TabPanel>
 
       <TabPanel value={activeTab} index={1}>
-        {catalogLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : catalogError ? (
-          <Alert severity="error">
-            Failed to load service catalog. Please try again.
-          </Alert>
-        ) : catalog ? (
-          <ServiceCatalogEditor
-            customerId={customer.id}
-            services={catalog.services}
-          />
-        ) : (
-          <Alert severity="info">
-            No service catalog configured for this customer.
-          </Alert>
-        )}
+        <ServiceCatalogContent
+          customerId={customer.id}
+          catalog={catalog}
+          catalogLoading={catalogLoading}
+          catalogError={catalogError}
+        />
       </TabPanel>
 
       <TabPanel value={activeTab} index={2}>
-        {catalogLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : catalogError ? (
-          <Alert severity="error">
-            Failed to load tier configuration. Please try again.
-          </Alert>
-        ) : catalog ? (
-          <TierConfigurationEditor
-            customerId={customer.id}
-            tiers={catalog.tiers}
-            availableServices={catalog.services}
-          />
-        ) : (
-          <Alert severity="info">
-            No tier configuration for this customer.
-          </Alert>
-        )}
+        <TierConfigurationContent
+          customerId={customer.id}
+          catalog={catalog}
+          catalogLoading={catalogLoading}
+          catalogError={catalogError}
+        />
       </TabPanel>
     </Box>
   );

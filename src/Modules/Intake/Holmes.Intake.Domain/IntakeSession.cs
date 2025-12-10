@@ -246,7 +246,13 @@ public sealed class IntakeSession : AggregateRoot
         }
     }
 
-    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
 
-    public override string GetStreamType() => "IntakeSession";
+    public override string GetStreamType()
+    {
+        return "IntakeSession";
+    }
 }

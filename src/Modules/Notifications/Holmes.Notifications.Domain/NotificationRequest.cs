@@ -280,7 +280,13 @@ public sealed class NotificationRequest : AggregateRoot
         }
     }
 
-    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
 
-    public override string GetStreamType() => "NotificationRequest";
+    public override string GetStreamType()
+    {
+        return "NotificationRequest";
+    }
 }

@@ -12,7 +12,8 @@ public sealed class UsersUnitOfWork(
     IMediator mediator,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
+    ITenantContext? tenantContext = null
+)
     : UnitOfWork<UsersDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IUsersUnitOfWork
 {
     private readonly Lazy<IUserRepository> _users = new(() => new SqlUserRepository(dbContext));

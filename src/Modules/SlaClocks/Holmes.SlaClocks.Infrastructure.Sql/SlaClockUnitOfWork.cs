@@ -12,7 +12,8 @@ public sealed class SlaClockUnitOfWork(
     ISlaClockRepository slaClockRepository,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
+    ITenantContext? tenantContext = null
+)
     : UnitOfWork<SlaClockDbContext>(context, mediator, eventStore, serializer, tenantContext), ISlaClockUnitOfWork
 {
     public ISlaClockRepository SlaClocks => slaClockRepository;

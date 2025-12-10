@@ -112,7 +112,8 @@ public class SqlEventStoreTests
 
         // Query with timestamp in the past (before the event was created)
         var pastTimestamp = DateTime.UtcNow.AddHours(-1);
-        var result = await store.ReadByStreamTypeAsync("tenant-1", "Order", 0, 100, pastTimestamp, CancellationToken.None);
+        var result =
+            await store.ReadByStreamTypeAsync("tenant-1", "Order", 0, 100, pastTimestamp, CancellationToken.None);
 
         Assert.That(result, Is.Empty);
     }

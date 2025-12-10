@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Holmes.Core.Infrastructure.Sql.Events;
 
 /// <summary>
-/// SQL-backed event store implementation using MySQL/MariaDB.
+///     SQL-backed event store implementation using MySQL/MariaDB.
 /// </summary>
 public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
 {
@@ -14,9 +14,13 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         string streamId,
         string streamType,
         IReadOnlyCollection<EventEnvelope> events,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        if (events.Count == 0) return;
+        if (events.Count == 0)
+        {
+            return;
+        }
 
         // Get the current max version for this stream
         var currentVersion = await dbContext.Events
@@ -57,7 +61,8 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         string streamId,
         long fromPosition,
         int batchSize,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var records = await dbContext.Events
             .AsNoTracking()
@@ -77,7 +82,8 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         long fromPosition,
         int batchSize,
         DateTime? asOfTimestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var query = dbContext.Events
             .AsNoTracking()
@@ -103,7 +109,8 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         long fromPosition,
         int batchSize,
         DateTime? asOfTimestamp,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var query = dbContext.Events
             .AsNoTracking()
@@ -122,8 +129,9 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         return records.Select(ToStoredEvent).ToList();
     }
 
-    private static StoredEvent ToStoredEvent(EventRecord record) =>
-        new(
+    private static StoredEvent ToStoredEvent(EventRecord record)
+    {
+        return new StoredEvent(
             record.Position,
             record.StreamId,
             record.StreamType,
@@ -135,4 +143,5 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
             record.CorrelationId,
             record.CausationId,
             record.ActorId);
+    }
 }

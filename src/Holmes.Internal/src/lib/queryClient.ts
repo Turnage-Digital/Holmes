@@ -10,10 +10,10 @@ export const queryClient = new QueryClient({
           return false;
         }
         return true;
-      }
+      },
     },
     mutations: {
-      retry: 0
-    }
-  }
+      retry: 0,
+    },
+  },
 });

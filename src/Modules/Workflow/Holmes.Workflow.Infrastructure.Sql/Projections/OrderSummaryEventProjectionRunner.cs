@@ -1,6 +1,5 @@
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Core.Infrastructure.Sql.Events;
 using Holmes.Core.Infrastructure.Sql.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Workflow.Infrastructure.Sql.Projections;
 
 /// <summary>
-/// Event-based projection runner for Order Summary projections.
-/// Replays Order domain events to rebuild the order_summary_projections table.
+///     Event-based projection runner for Order Summary projections.
+///     Replays Order domain events to rebuild the order_summary_projections table.
 /// </summary>
 public sealed class OrderSummaryEventProjectionRunner : EventProjectionRunner
 {
@@ -22,7 +21,8 @@ public sealed class OrderSummaryEventProjectionRunner : EventProjectionRunner
         IEventStore eventStore,
         IDomainEventSerializer serializer,
         IPublisher publisher,
-        ILogger<OrderSummaryEventProjectionRunner> logger)
+        ILogger<OrderSummaryEventProjectionRunner> logger
+    )
         : base(coreDbContext, eventStore, serializer, publisher, logger)
     {
         _workflowDbContext = workflowDbContext;

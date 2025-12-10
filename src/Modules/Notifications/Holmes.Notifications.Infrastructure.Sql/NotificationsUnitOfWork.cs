@@ -12,8 +12,10 @@ public sealed class NotificationsUnitOfWork(
     INotificationRequestRepository notificationRequestRepository,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
-    : UnitOfWork<NotificationsDbContext>(context, mediator, eventStore, serializer, tenantContext), INotificationsUnitOfWork
+    ITenantContext? tenantContext = null
+)
+    : UnitOfWork<NotificationsDbContext>(context, mediator, eventStore, serializer, tenantContext),
+        INotificationsUnitOfWork
 {
     public INotificationRequestRepository NotificationRequests => notificationRequestRepository;
 }

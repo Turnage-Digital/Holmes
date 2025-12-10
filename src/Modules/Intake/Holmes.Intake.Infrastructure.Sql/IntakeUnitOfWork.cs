@@ -12,7 +12,8 @@ public sealed class IntakeUnitOfWork(
     IMediator mediator,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
+    ITenantContext? tenantContext = null
+)
     : UnitOfWork<IntakeDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IIntakeUnitOfWork
 {
     private readonly Lazy<IIntakeSessionRepository> _sessions = new(() => new SqlIntakeSessionRepository(dbContext));

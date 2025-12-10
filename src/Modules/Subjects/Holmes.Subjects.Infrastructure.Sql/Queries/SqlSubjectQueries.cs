@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Holmes.Subjects.Infrastructure.Sql.Queries;
 
 /// <summary>
-/// Read-side queries for Subjects using projection tables (CQRS pattern).
+///     Read-side queries for Subjects using projection tables (CQRS pattern).
 /// </summary>
 public sealed class SqlSubjectQueries(SubjectsDbContext dbContext) : ISubjectQueries
 {

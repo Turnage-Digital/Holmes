@@ -22,8 +22,8 @@ export const RelativeTimeCell = ({ timestamp }: { timestamp: string }) =>
  * Displays a relative time, or "Never" if timestamp is null/undefined.
  */
 export const OptionalRelativeTimeCell = ({
-                                           timestamp
-                                         }: {
+  timestamp,
+}: {
   timestamp: string | null | undefined;
 }) =>
   timestamp
@@ -41,9 +41,7 @@ export const SubjectNameCell = ({ subjectId }: { subjectId: string }) => {
     return <>{subjectId.slice(0, 8)}…</>;
   }
 
-  const name = [subject.firstName, subject.lastName]
-    .filter(Boolean)
-    .join(" ");
+  const name = [subject.firstName, subject.lastName].filter(Boolean).join(" ");
   return <>{name || subject.email || `${subjectId.slice(0, 8)}…`}</>;
 };
 
@@ -60,7 +58,7 @@ export const CustomerNameCell = ({ customerId }: { customerId: string }) => {
  * Displays a value or a dash if empty/null.
  */
 export const EmptyableCell = ({
-                                value
-                              }: {
+  value,
+}: {
   value: string | null | undefined;
 }) => <>{value || "—"}</>;

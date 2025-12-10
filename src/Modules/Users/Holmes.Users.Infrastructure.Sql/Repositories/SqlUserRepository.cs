@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Holmes.Users.Infrastructure.Sql.Repositories;
 
 /// <summary>
-/// Write-focused repository for User aggregate.
-/// Query methods are in SqlUserQueries (CQRS pattern).
-/// Projections are updated via event handlers (UserProjectionHandler).
+///     Write-focused repository for User aggregate.
+///     Query methods are in SqlUserQueries (CQRS pattern).
+///     Projections are updated via event handlers (UserProjectionHandler).
 /// </summary>
 public class SqlUserRepository(UsersDbContext dbContext) : IUserRepository
 {

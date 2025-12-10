@@ -23,7 +23,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
-  Typography
+  Typography,
 } from "@mui/material";
 import { format } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
@@ -34,7 +34,7 @@ import type {
   SubjectEducationDto,
   SubjectEmploymentDto,
   SubjectPhoneDto,
-  SubjectReferenceDto
+  SubjectReferenceDto,
 } from "@/types/api";
 
 import { useSubject } from "@/hooks/api";
@@ -63,162 +63,167 @@ interface OverviewTabProps {
   subject: SubjectDetailDto;
 }
 
-const OverviewTab = ({ subject }: OverviewTabProps) => (
-  <Stack spacing={3}>
-    <Card variant="outlined">
-      <CardContent>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Personal Information
-        </Typography>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "160px 1fr",
-            gap: 1.5
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            Subject ID
-          </Typography>
-          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-            {subject.id}
-          </Typography>
+const OverviewTab = ({ subject }: OverviewTabProps) => {
+  const middleNamePart = subject.middleName ? ` ${subject.middleName}` : "";
+  const fullName = `${subject.firstName}${middleNamePart} ${subject.lastName}`;
+  const birthDateText = subject.birthDate
+    ? format(new Date(subject.birthDate), "MMMM d, yyyy")
+    : "Not provided";
+  const ssnText = subject.ssnLast4
+    ? `***-**-${subject.ssnLast4}`
+    : "Not provided";
+  const statusColor = subject.status === "Active" ? "success" : "default";
 
-          <Typography variant="body2" color="text.secondary">
-            Full Name
-          </Typography>
-          <Typography variant="body2">
-            {subject.firstName}
-            {subject.middleName ? ` ${subject.middleName}` : ""}{" "}
-            {subject.lastName}
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            Date of Birth
-          </Typography>
-          <Typography variant="body2">
-            {subject.birthDate
-              ? format(new Date(subject.birthDate), "MMMM d, yyyy")
-              : "Not provided"}
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            Email
-          </Typography>
-          <Typography variant="body2">
-            {subject.email || "Not provided"}
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            SSN (last 4)
-          </Typography>
-          <Typography variant="body2">
-            {subject.ssnLast4 ? `***-**-${subject.ssnLast4}` : "Not provided"}
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            Status
-          </Typography>
-          <Chip
-            label={subject.status}
-            color={subject.status === "Active" ? "success" : "default"}
-            size="small"
-            variant="outlined"
-          />
-
-          <Typography variant="body2" color="text.secondary">
-            Created
-          </Typography>
-          <Typography variant="body2">
-            {format(new Date(subject.createdAt), "MMM d, yyyy 'at' h:mm a")}
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
-
-    {/* Aliases Card */}
-    {subject.aliases.length > 0 && (
+  return (
+    <Stack spacing={3}>
       <Card variant="outlined">
         <CardContent>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Known Aliases ({subject.aliases.length})
+            Personal Information
           </Typography>
-          <Stack spacing={1}>
-            {subject.aliases.map((alias) => (
-              <Box
-                key={alias.id}
-                sx={{
-                  p: 1.5,
-                  borderRadius: 1,
-                  bgcolor: "grey.50"
-                }}
-              >
-                <Typography variant="body2">
-                  {alias.firstName} {alias.lastName}
-                </Typography>
-                {alias.birthDate && (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "160px 1fr",
+              gap: 1.5,
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Subject ID
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+              {subject.id}
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              Full Name
+            </Typography>
+            <Typography variant="body2">{fullName}</Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              Date of Birth
+            </Typography>
+            <Typography variant="body2">{birthDateText}</Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              Email
+            </Typography>
+            <Typography variant="body2">
+              {subject.email || "Not provided"}
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              SSN (last 4)
+            </Typography>
+            <Typography variant="body2">{ssnText}</Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              Status
+            </Typography>
+            <Chip
+              label={subject.status}
+              color={statusColor}
+              size="small"
+              variant="outlined"
+            />
+
+            <Typography variant="body2" color="text.secondary">
+              Created
+            </Typography>
+            <Typography variant="body2">
+              {format(new Date(subject.createdAt), "MMM d, yyyy 'at' h:mm a")}
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Aliases Card */}
+      {subject.aliases.length > 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Known Aliases ({subject.aliases.length})
+            </Typography>
+            <Stack spacing={1}>
+              {subject.aliases.map((alias) => {
+                const birthDateDisplay = alias.birthDate ? (
                   <Typography variant="caption" color="text.secondary">
                     DOB: {format(new Date(alias.birthDate), "MMM d, yyyy")}
                   </Typography>
-                )}
-              </Box>
-            ))}
-          </Stack>
-        </CardContent>
-      </Card>
-    )}
+                ) : null;
+                return (
+                  <Box
+                    key={alias.id}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 1,
+                      bgcolor: "grey.50",
+                    }}
+                  >
+                    <Typography variant="body2">
+                      {alias.firstName} {alias.lastName}
+                    </Typography>
+                    {birthDateDisplay}
+                  </Box>
+                );
+              })}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
-    {/* Summary Cards */}
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-        gap: 2
-      }}
-    >
-      <Card variant="outlined">
-        <CardContent sx={{ textAlign: "center", py: 2 }}>
-          <Typography variant="h4" color="primary">
-            {subject.addresses.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Addresses
-          </Typography>
-        </CardContent>
-      </Card>
-      <Card variant="outlined">
-        <CardContent sx={{ textAlign: "center", py: 2 }}>
-          <Typography variant="h4" color="primary">
-            {subject.employments.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Employments
-          </Typography>
-        </CardContent>
-      </Card>
-      <Card variant="outlined">
-        <CardContent sx={{ textAlign: "center", py: 2 }}>
-          <Typography variant="h4" color="primary">
-            {subject.educations.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Education Records
-          </Typography>
-        </CardContent>
-      </Card>
-      <Card variant="outlined">
-        <CardContent sx={{ textAlign: "center", py: 2 }}>
-          <Typography variant="h4" color="primary">
-            {subject.references.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            References
-          </Typography>
-        </CardContent>
-      </Card>
-    </Box>
-  </Stack>
-);
+      {/* Summary Cards */}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gap: 2,
+        }}
+      >
+        <Card variant="outlined">
+          <CardContent sx={{ textAlign: "center", py: 2 }}>
+            <Typography variant="h4" color="primary">
+              {subject.addresses.length}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Addresses
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card variant="outlined">
+          <CardContent sx={{ textAlign: "center", py: 2 }}>
+            <Typography variant="h4" color="primary">
+              {subject.employments.length}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Employments
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card variant="outlined">
+          <CardContent sx={{ textAlign: "center", py: 2 }}>
+            <Typography variant="h4" color="primary">
+              {subject.educations.length}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Education Records
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card variant="outlined">
+          <CardContent sx={{ textAlign: "center", py: 2 }}>
+            <Typography variant="h4" color="primary">
+              {subject.references.length}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              References
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    </Stack>
+  );
+};
 
 // ============================================================================
 // Addresses Tab
@@ -245,37 +250,40 @@ const AddressesTab = ({ addresses }: { addresses: SubjectAddressDto[] }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {addresses.map((addr) => (
-            <TableRow key={addr.id}>
-              <TableCell>
-                <Typography variant="body2">
-                  {addr.street1}
-                  {addr.street2 && `, ${addr.street2}`}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {addr.city}, {addr.state} {addr.postalCode}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Chip label={addr.type} size="small" variant="outlined" />
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2">
-                  {format(new Date(addr.fromDate), "MMM yyyy")} -{" "}
-                  {addr.toDate
-                    ? format(new Date(addr.toDate), "MMM yyyy")
-                    : "Present"}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                {addr.isCurrent ? (
-                  <Chip label="Current" color="success" size="small" />
-                ) : (
-                  <Chip label="Previous" size="small" variant="outlined" />
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+          {addresses.map((addr) => {
+            const addressLine2 = addr.street2 ? `, ${addr.street2}` : "";
+            const toPeriod = addr.toDate
+              ? format(new Date(addr.toDate), "MMM yyyy")
+              : "Present";
+            const currentChip = addr.isCurrent ? (
+              <Chip label="Current" color="success" size="small" />
+            ) : (
+              <Chip label="Previous" size="small" variant="outlined" />
+            );
+
+            return (
+              <TableRow key={addr.id}>
+                <TableCell>
+                  <Typography variant="body2">
+                    {addr.street1}
+                    {addressLine2}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {addr.city}, {addr.state} {addr.postalCode}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip label={addr.type} size="small" variant="outlined" />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">
+                    {format(new Date(addr.fromDate), "MMM yyyy")} - {toPeriod}
+                  </Typography>
+                </TableCell>
+                <TableCell>{currentChip}</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </Card>
@@ -287,8 +295,8 @@ const AddressesTab = ({ addresses }: { addresses: SubjectAddressDto[] }) => {
 // ============================================================================
 
 const EmploymentTab = ({
-                         employments
-                       }: {
+  employments,
+}: {
   employments: SubjectEmploymentDto[];
 }) => {
   if (employments.length === 0) {
@@ -301,69 +309,95 @@ const EmploymentTab = ({
 
   return (
     <Stack spacing={2}>
-      {employments.map((emp) => (
-        <Card key={emp.id} variant="outlined">
-          <CardContent>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="flex-start"
-            >
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  {emp.employerName}
-                </Typography>
-                {emp.jobTitle && (
-                  <Typography variant="body2" color="text.secondary">
-                    {emp.jobTitle}
-                  </Typography>
-                )}
-              </Box>
-              {emp.isCurrent ? (
-                <Chip label="Current" color="success" size="small" />
-              ) : (
-                <Chip label="Previous" size="small" variant="outlined" />
-              )}
-            </Stack>
+      {employments.map((emp) => {
+        const currentChip = emp.isCurrent ? (
+          <Chip label="Current" color="success" size="small" />
+        ) : (
+          <Chip label="Previous" size="small" variant="outlined" />
+        );
+        const endPeriod = emp.endDate
+          ? format(new Date(emp.endDate), "MMM yyyy")
+          : "Present";
+        const contactLabel = emp.canContact
+          ? "OK to contact"
+          : "Do not contact";
+        const contactColor = emp.canContact ? "default" : "warning";
+        const supervisorPhone = emp.supervisorPhone
+          ? ` (${emp.supervisorPhone})`
+          : "";
 
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              {format(new Date(emp.startDate), "MMM yyyy")} -{" "}
-              {emp.endDate
-                ? format(new Date(emp.endDate), "MMM yyyy")
-                : "Present"}
-            </Typography>
-
-            {(emp.supervisorName || emp.supervisorPhone) && (
-              <Box
-                sx={{ mt: 1.5, p: 1.5, bgcolor: "grey.50", borderRadius: 1 }}
+        return (
+          <Card key={emp.id} variant="outlined">
+            <CardContent>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
               >
-                <Typography variant="caption" color="text.secondary">
-                  Supervisor
-                </Typography>
-                <Typography variant="body2">
-                  {emp.supervisorName || "—"}
-                  {emp.supervisorPhone && ` (${emp.supervisorPhone})`}
-                </Typography>
-              </Box>
-            )}
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {emp.employerName}
+                  </Typography>
+                  {(() => {
+                    const jobTitleDisplay = emp.jobTitle ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {emp.jobTitle}
+                      </Typography>
+                    ) : null;
+                    return jobTitleDisplay;
+                  })()}
+                </Box>
+                {currentChip}
+              </Stack>
 
-            {emp.reasonForLeaving && (
               <Typography variant="body2" sx={{ mt: 1 }}>
-                <strong>Reason for leaving:</strong> {emp.reasonForLeaving}
+                {format(new Date(emp.startDate), "MMM yyyy")} - {endPeriod}
               </Typography>
-            )}
 
-            <Box sx={{ mt: 1 }}>
-              <Chip
-                label={emp.canContact ? "OK to contact" : "Do not contact"}
-                size="small"
-                color={emp.canContact ? "default" : "warning"}
-                variant="outlined"
-              />
-            </Box>
-          </CardContent>
-        </Card>
-      ))}
+              {(() => {
+                const supervisorDisplay =
+                  emp.supervisorName || emp.supervisorPhone ? (
+                    <Box
+                      sx={{
+                        mt: 1.5,
+                        p: 1.5,
+                        bgcolor: "grey.50",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Supervisor
+                      </Typography>
+                      <Typography variant="body2">
+                        {emp.supervisorName || "—"}
+                        {supervisorPhone}
+                      </Typography>
+                    </Box>
+                  ) : null;
+                return supervisorDisplay;
+              })()}
+
+              {(() => {
+                const reasonDisplay = emp.reasonForLeaving ? (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    <strong>Reason for leaving:</strong> {emp.reasonForLeaving}
+                  </Typography>
+                ) : null;
+                return reasonDisplay;
+              })()}
+
+              <Box sx={{ mt: 1 }}>
+                <Chip
+                  label={contactLabel}
+                  size="small"
+                  color={contactColor}
+                  variant="outlined"
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        );
+      })}
     </Stack>
   );
 };
@@ -373,8 +407,8 @@ const EmploymentTab = ({
 // ============================================================================
 
 const EducationTab = ({
-                        educations
-                      }: {
+  educations,
+}: {
   educations: SubjectEducationDto[];
 }) => {
   if (educations.length === 0) {
@@ -387,58 +421,69 @@ const EducationTab = ({
 
   return (
     <Stack spacing={2}>
-      {educations.map((edu) => (
-        <Card key={edu.id} variant="outlined">
-          <CardContent>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="flex-start"
-            >
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  {edu.institutionName}
-                </Typography>
-                {edu.degree && (
-                  <Typography variant="body2">
-                    {edu.degree}
-                    {edu.major && ` in ${edu.major}`}
-                  </Typography>
-                )}
-              </Box>
-              {edu.graduated ? (
-                <Chip label="Graduated" color="success" size="small" />
-              ) : (
-                <Chip label="Attended" size="small" variant="outlined" />
-              )}
-            </Stack>
+      {educations.map((edu) => {
+        const graduationChip = edu.graduated ? (
+          <Chip label="Graduated" color="success" size="small" />
+        ) : (
+          <Chip label="Attended" size="small" variant="outlined" />
+        );
+        const majorText = edu.major ? ` in ${edu.major}` : "";
 
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {edu.attendedFrom &&
-                format(new Date(edu.attendedFrom), "MMM yyyy")}
-              {edu.attendedFrom && edu.attendedTo && " - "}
-              {edu.attendedTo && format(new Date(edu.attendedTo), "MMM yyyy")}
-              {edu.graduationDate && (
-                <>
-                  {" "}
-                  (Graduated: {format(new Date(edu.graduationDate), "MMM yyyy")}
-                  )
-                </>
-              )}
-            </Typography>
-
-            {edu.institutionAddress && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 0.5 }}
+        return (
+          <Card key={edu.id} variant="outlined">
+            <CardContent>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="flex-start"
               >
-                {edu.institutionAddress}
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {edu.institutionName}
+                  </Typography>
+                  {(() => {
+                    const degreeDisplay = edu.degree ? (
+                      <Typography variant="body2">
+                        {edu.degree}
+                        {majorText}
+                      </Typography>
+                    ) : null;
+                    return degreeDisplay;
+                  })()}
+                </Box>
+                {graduationChip}
+              </Stack>
+
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {edu.attendedFrom &&
+                  format(new Date(edu.attendedFrom), "MMM yyyy")}
+                {edu.attendedFrom && edu.attendedTo && " - "}
+                {edu.attendedTo && format(new Date(edu.attendedTo), "MMM yyyy")}
+                {edu.graduationDate && (
+                  <>
+                    {" "}
+                    (Graduated:{" "}
+                    {format(new Date(edu.graduationDate), "MMM yyyy")})
+                  </>
+                )}
               </Typography>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+
+              {(() => {
+                const addressDisplay = edu.institutionAddress ? (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 0.5 }}
+                  >
+                    {edu.institutionAddress}
+                  </Typography>
+                ) : null;
+                return addressDisplay;
+              })()}
+            </CardContent>
+          </Card>
+        );
+      })}
     </Stack>
   );
 };
@@ -448,8 +493,8 @@ const EducationTab = ({
 // ============================================================================
 
 const ReferencesTab = ({
-                         references
-                       }: {
+  references,
+}: {
   references: SubjectReferenceDto[];
 }) => {
   if (references.length === 0) {
@@ -471,33 +516,39 @@ const ReferencesTab = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {references.map((ref) => (
-            <TableRow key={ref.id}>
-              <TableCell>
-                <Typography variant="body2" fontWeight={500}>
-                  {ref.name}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Chip
-                  label={ref.type}
-                  size="small"
-                  color={ref.type === "Professional" ? "primary" : "default"}
-                  variant="outlined"
-                />
-              </TableCell>
-              <TableCell>{ref.relationship || "—"}</TableCell>
-              <TableCell>
-                <Typography variant="body2">{ref.phone || "—"}</Typography>
-                {ref.email && (
-                  <Typography variant="caption" color="text.secondary">
-                    {ref.email}
+          {references.map((ref) => {
+            const refTypeColor =
+              ref.type === "Professional" ? "primary" : "default";
+            const emailDisplay = ref.email ? (
+              <Typography variant="caption" color="text.secondary">
+                {ref.email}
+              </Typography>
+            ) : null;
+
+            return (
+              <TableRow key={ref.id}>
+                <TableCell>
+                  <Typography variant="body2" fontWeight={500}>
+                    {ref.name}
                   </Typography>
-                )}
-              </TableCell>
-              <TableCell>{ref.yearsKnown ?? "—"}</TableCell>
-            </TableRow>
-          ))}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={ref.type}
+                    size="small"
+                    color={refTypeColor}
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell>{ref.relationship || "—"}</TableCell>
+                <TableCell>
+                  <Typography variant="body2">{ref.phone || "—"}</Typography>
+                  {emailDisplay}
+                </TableCell>
+                <TableCell>{ref.yearsKnown ?? "—"}</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </Card>
@@ -526,23 +577,24 @@ const PhonesTab = ({ phones }: { phones: SubjectPhoneDto[] }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {phones.map((phone) => (
-            <TableRow key={phone.id}>
-              <TableCell>
-                <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                  {phone.phoneNumber}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Chip label={phone.type} size="small" variant="outlined" />
-              </TableCell>
-              <TableCell>
-                {phone.isPrimary && (
-                  <Chip label="Primary" color="primary" size="small" />
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+          {phones.map((phone) => {
+            const primaryChip = phone.isPrimary ? (
+              <Chip label="Primary" color="primary" size="small" />
+            ) : null;
+            return (
+              <TableRow key={phone.id}>
+                <TableCell>
+                  <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+                    {phone.phoneNumber}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip label={phone.type} size="small" variant="outlined" />
+                </TableCell>
+                <TableCell>{primaryChip}</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </Card>
@@ -567,7 +619,7 @@ const SubjectDetailPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: 400
+          minHeight: 400,
         }}
       >
         <CircularProgress />
@@ -576,6 +628,9 @@ const SubjectDetailPage = () => {
   }
 
   if (error || !subject) {
+    const errorMessage = error
+      ? "Failed to load subject. Please try again."
+      : "Subject not found.";
     return (
       <Box>
         <IconButton
@@ -585,11 +640,7 @@ const SubjectDetailPage = () => {
         >
           <ArrowBackIcon />
         </IconButton>
-        <Alert severity="error">
-          {error
-            ? "Failed to load subject. Please try again."
-            : "Subject not found."}
-        </Alert>
+        <Alert severity="error">{errorMessage}</Alert>
       </Box>
     );
   }
@@ -597,6 +648,13 @@ const SubjectDetailPage = () => {
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
+
+  const middleNamePart = subject.middleName ? ` ${subject.middleName}` : "";
+  const fullName = `${subject.firstName}${middleNamePart} ${subject.lastName}`;
+  const statusColor = subject.status === "Active" ? "success" : "default";
+  const dobText = subject.birthDate
+    ? `DOB: ${format(new Date(subject.birthDate), "MMM d, yyyy")}`
+    : "DOB not provided";
 
   return (
     <Box>
@@ -613,22 +671,17 @@ const SubjectDetailPage = () => {
       <Box sx={{ mb: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
           <Typography variant="h4" component="h1">
-            {subject.firstName}
-            {subject.middleName ? ` ${subject.middleName}` : ""}{" "}
-            {subject.lastName}
+            {fullName}
           </Typography>
           <Chip
             label={subject.status}
-            color={subject.status === "Active" ? "success" : "default"}
+            color={statusColor}
             size="small"
             variant="outlined"
           />
         </Stack>
         <Typography variant="body2" color="text.secondary">
-          {subject.email || "No email"} |{" "}
-          {subject.birthDate
-            ? `DOB: ${format(new Date(subject.birthDate), "MMM d, yyyy")}`
-            : "DOB not provided"}
+          {subject.email || "No email"} | {dobText}
         </Typography>
       </Box>
 

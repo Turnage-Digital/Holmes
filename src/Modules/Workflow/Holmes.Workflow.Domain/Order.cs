@@ -330,7 +330,13 @@ public sealed class Order : AggregateRoot
         }
     }
 
-    public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
 
-    public override string GetStreamType() => "Order";
+    public override string GetStreamType()
+    {
+        return "Order";
+    }
 }

@@ -121,7 +121,8 @@ public class SubjectTests
         var handler = new SubjectProjectionHandler(writer);
         var subjectId = UlidId.NewUlid();
 
-        var @event = new SubjectRegistered(subjectId, "Avery", "Nguyen", null, "avery@example.com", DateTimeOffset.UtcNow);
+        var @event = new SubjectRegistered(subjectId, "Avery", "Nguyen", null, "avery@example.com",
+            DateTimeOffset.UtcNow);
         await handler.Handle(@event, CancellationToken.None);
 
         var projection = await context.SubjectProjections.SingleAsync();
@@ -148,7 +149,8 @@ public class SubjectTests
         await handler.Handle(registered, CancellationToken.None);
 
         // Add an alias
-        var aliasEvent = new SubjectAliasAdded(subjectId, "Avery", "Perez", null, UlidId.NewUlid(), DateTimeOffset.UtcNow);
+        var aliasEvent =
+            new SubjectAliasAdded(subjectId, "Avery", "Perez", null, UlidId.NewUlid(), DateTimeOffset.UtcNow);
         await handler.Handle(aliasEvent, CancellationToken.None);
 
         // Merge the subject

@@ -11,10 +11,12 @@ public sealed class ServicesUnitOfWork(
     IMediator mediator,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
-    ITenantContext? tenantContext = null)
+    ITenantContext? tenantContext = null
+)
     : UnitOfWork<ServicesDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IServicesUnitOfWork
 {
-    private readonly Lazy<IServiceRequestRepository> _serviceRequests = new(() => new ServiceRequestRepository(dbContext));
+    private readonly Lazy<IServiceRequestRepository> _serviceRequests =
+        new(() => new ServiceRequestRepository(dbContext));
 
     public IServiceRequestRepository ServiceRequests => _serviceRequests.Value;
 }

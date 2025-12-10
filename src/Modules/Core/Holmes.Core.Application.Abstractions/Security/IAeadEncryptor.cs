@@ -1,8 +1,8 @@
 namespace Holmes.Core.Application.Abstractions.Security;
 
 /// <summary>
-/// Authenticated Encryption with Associated Data (AEAD) encryptor interface.
-/// Used for field-level encryption of PII (SSN, sensitive answers, etc.).
+///     Authenticated Encryption with Associated Data (AEAD) encryptor interface.
+///     Used for field-level encryption of PII (SSN, sensitive answers, etc.).
 /// </summary>
 public interface IAeadEncryptor
 {

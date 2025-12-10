@@ -2,10 +2,10 @@ import React, { useState } from "react";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BuildIcon from "@mui/icons-material/Build";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import HistoryIcon from "@mui/icons-material/History";
 import InfoIcon from "@mui/icons-material/Info";
 import TimelineIcon from "@mui/icons-material/Timeline";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,
   AccordionDetails,
@@ -23,7 +23,7 @@ import {
   Tab,
   Tabs,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
@@ -31,7 +31,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { OrderAuditEventDto, OrderTimelineEntryDto } from "@/types/api";
 
 import { TierProgressView } from "@/components/services";
-import { useCustomer, useOrder, useOrderEvents, useOrderServices, useOrderTimeline, useSubject } from "@/hooks/api";
+import {
+  useCustomer,
+  useOrder,
+  useOrderEvents,
+  useOrderServices,
+  useOrderTimeline,
+  useSubject,
+} from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
 // ============================================================================
@@ -88,7 +95,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
             gap: 2,
             py: 2,
             borderBottom: index < events.length - 1 ? "1px solid" : "none",
-            borderColor: "divider"
+            borderColor: "divider",
           }}
         >
           {/* Timeline dot and line */}
@@ -97,7 +104,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              pt: 0.5
+              pt: 0.5,
             }}
           >
             <Box
@@ -105,7 +112,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
                 width: 10,
                 height: 10,
                 borderRadius: "50%",
-                bgcolor: index === 0 ? "primary.main" : "grey.400"
+                bgcolor: index === 0 ? "primary.main" : "grey.400",
               }}
             />
             {index < events.length - 1 && (
@@ -114,7 +121,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
                   width: 2,
                   flexGrow: 1,
                   bgcolor: "grey.200",
-                  mt: 0.5
+                  mt: 0.5,
                 }}
               />
             )}
@@ -125,11 +132,14 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
               {event.description || event.eventType}
             </Typography>
-            {event.source && (
-              <Typography variant="caption" color="text.secondary">
-                {event.source}
-              </Typography>
-            )}
+            {(() => {
+              const sourceDisplay = event.source ? (
+                <Typography variant="caption" color="text.secondary">
+                  {event.source}
+                </Typography>
+              ) : null;
+              return sourceDisplay;
+            })()}
             <Typography
               variant="caption"
               color="text.secondary"
@@ -138,7 +148,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
               {format(new Date(event.occurredAt), "MMM d, yyyy 'at' h:mm a")}
               {" · "}
               {formatDistanceToNow(new Date(event.occurredAt), {
-                addSuffix: true
+                addSuffix: true,
               })}
             </Typography>
           </Box>
@@ -167,7 +177,7 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
           sx={{
             display: "grid",
             gridTemplateColumns: "140px 1fr",
-            gap: 1
+            gap: 1,
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -198,14 +208,17 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
             {order.policySnapshotId}
           </Typography>
 
-          {order.packageCode && (
-            <>
-              <Typography variant="body2" color="text.secondary">
-                Package
-              </Typography>
-              <Typography variant="body2">{order.packageCode}</Typography>
-            </>
-          )}
+          {(() => {
+            const packageCodeDisplay = order.packageCode ? (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  Package
+                </Typography>
+                <Typography variant="body2">{order.packageCode}</Typography>
+              </>
+            ) : null;
+            return packageCodeDisplay;
+          })()}
 
           <Typography variant="body2" color="text.secondary">
             Last Updated
@@ -214,41 +227,53 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
             {format(new Date(order.lastUpdatedAt), "MMM d, yyyy 'at' h:mm a")}
           </Typography>
 
-          {order.readyForFulfillmentAt && (
-            <>
-              <Typography variant="body2" color="text.secondary">
-                Ready for Fulfillment
-              </Typography>
-              <Typography variant="body2">
-                {format(
-                  new Date(order.readyForFulfillmentAt),
-                  "MMM d, yyyy 'at' h:mm a"
-                )}
-              </Typography>
-            </>
-          )}
+          {(() => {
+            const readyForFulfillmentDisplay = order.readyForFulfillmentAt ? (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  Ready for Fulfillment
+                </Typography>
+                <Typography variant="body2">
+                  {format(
+                    new Date(order.readyForFulfillmentAt),
+                    "MMM d, yyyy 'at' h:mm a",
+                  )}
+                </Typography>
+              </>
+            ) : null;
+            return readyForFulfillmentDisplay;
+          })()}
 
-          {order.canceledAt && (
-            <>
-              <Typography variant="body2" color="text.secondary">
-                Canceled
-              </Typography>
-              <Typography variant="body2">
-                {format(new Date(order.canceledAt), "MMM d, yyyy 'at' h:mm a")}
-              </Typography>
-            </>
-          )}
+          {(() => {
+            const canceledAtDisplay = order.canceledAt ? (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  Canceled
+                </Typography>
+                <Typography variant="body2">
+                  {format(
+                    new Date(order.canceledAt),
+                    "MMM d, yyyy 'at' h:mm a",
+                  )}
+                </Typography>
+              </>
+            ) : null;
+            return canceledAtDisplay;
+          })()}
 
-          {order.closedAt && (
-            <>
-              <Typography variant="body2" color="text.secondary">
-                Closed
-              </Typography>
-              <Typography variant="body2">
-                {format(new Date(order.closedAt), "MMM d, yyyy 'at' h:mm a")}
-              </Typography>
-            </>
-          )}
+          {(() => {
+            const closedAtDisplay = order.closedAt ? (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  Closed
+                </Typography>
+                <Typography variant="body2">
+                  {format(new Date(order.closedAt), "MMM d, yyyy 'at' h:mm a")}
+                </Typography>
+              </>
+            ) : null;
+            return closedAtDisplay;
+          })()}
         </Box>
       </Stack>
     </CardContent>
@@ -331,14 +356,13 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
         "&:before": { display: "none" },
         boxShadow: "none",
         borderBottom: "1px solid",
-        borderColor: "divider"
+        borderColor: "divider",
       }}
     >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        sx={{ px: 0 }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0 }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}
+        >
           <Tooltip title={`Global position: ${event.position}`}>
             <Typography
               variant="caption"
@@ -349,7 +373,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
                 py: 0.5,
                 borderRadius: 1,
                 minWidth: 40,
-                textAlign: "center"
+                textAlign: "center",
               }}
             >
               v{event.version}
@@ -362,19 +386,24 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
             <Typography variant="caption" color="text.secondary">
               {format(new Date(event.createdAt), "MMM d, yyyy 'at' h:mm:ss a")}
               {" · "}
-              {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
+              {formatDistanceToNow(new Date(event.createdAt), {
+                addSuffix: true,
+              })}
             </Typography>
           </Box>
-          {event.actorId && (
-            <Tooltip title="Actor ID">
-              <Chip
-                label={event.actorId.slice(0, 12) + "…"}
-                size="small"
-                variant="outlined"
-                sx={{ fontFamily: "monospace", fontSize: "0.7rem" }}
-              />
-            </Tooltip>
-          )}
+          {(() => {
+            const actorIdDisplay = event.actorId ? (
+              <Tooltip title="Actor ID">
+                <Chip
+                  label={`${event.actorId.slice(0, 12)}…`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontFamily: "monospace", fontSize: "0.7rem" }}
+                />
+              </Tooltip>
+            ) : null;
+            return actorIdDisplay;
+          })()}
         </Box>
       </AccordionSummary>
       <AccordionDetails sx={{ px: 0, pt: 0 }}>
@@ -383,7 +412,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
             bgcolor: "grey.50",
             p: 2,
             borderRadius: 1,
-            overflow: "auto"
+            overflow: "auto",
           }}
         >
           <Typography
@@ -393,17 +422,24 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
               fontSize: "0.75rem",
               m: 0,
               whiteSpace: "pre-wrap",
-              wordBreak: "break-word"
+              wordBreak: "break-word",
             }}
           >
             {JSON.stringify(event.payload, null, 2)}
           </Typography>
         </Box>
-        {event.correlationId && (
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-            Correlation ID: {event.correlationId}
-          </Typography>
-        )}
+        {(() => {
+          const correlationIdDisplay = event.correlationId ? (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1, display: "block" }}
+            >
+              Correlation ID: {event.correlationId}
+            </Typography>
+          ) : null;
+          return correlationIdDisplay;
+        })()}
       </AccordionDetails>
     </Accordion>
   );
@@ -422,7 +458,9 @@ const AuditLogTab = ({ orderId }: AuditLogTabProps) => {
 
   if (error) {
     return (
-      <Alert severity="error">Failed to load audit events. Please try again.</Alert>
+      <Alert severity="error">
+        Failed to load audit events. Please try again.
+      </Alert>
     );
   }
 
@@ -444,10 +482,13 @@ const AuditLogTab = ({ orderId }: AuditLogTabProps) => {
   return (
     <Card variant="outlined">
       <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6">
-            Audit Log
-          </Typography>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 2 }}
+        >
+          <Typography variant="h6">Audit Log</Typography>
           <Chip
             label={`${events.length} event${events.length === 1 ? "" : "s"}`}
             size="small"
@@ -455,7 +496,8 @@ const AuditLogTab = ({ orderId }: AuditLogTabProps) => {
           />
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Raw domain events from the event store. Click to expand and view full payload.
+          Raw domain events from the event store. Click to expand and view full
+          payload.
         </Typography>
         <Box>
           {events.map((event) => (
@@ -480,7 +522,7 @@ const OrderDetailPage = () => {
   const {
     data: order,
     isLoading: orderLoading,
-    error: orderError
+    error: orderError,
   } = useOrder(orderId!);
 
   // Fetch related entities
@@ -498,7 +540,7 @@ const OrderDetailPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: 400
+          minHeight: 400,
         }}
       >
         <CircularProgress />
@@ -508,6 +550,9 @@ const OrderDetailPage = () => {
 
   // Error state
   if (orderError || !order) {
+    const errorMessage = orderError
+      ? "Failed to load order. Please try again."
+      : "Order not found.";
     return (
       <Box>
         <Button
@@ -517,11 +562,7 @@ const OrderDetailPage = () => {
         >
           Back to Orders
         </Button>
-        <Alert severity="error">
-          {orderError
-            ? "Failed to load order. Please try again."
-            : "Order not found."}
-        </Alert>
+        <Alert severity="error">{errorMessage}</Alert>
       </Box>
     );
   }
@@ -529,7 +570,7 @@ const OrderDetailPage = () => {
   // Build subject display name
   const subjectName = subject
     ? [subject.firstName, subject.lastName].filter(Boolean).join(" ") ||
-    subject.email
+      subject.email
     : null;
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -539,6 +580,10 @@ const OrderDetailPage = () => {
   // Service count badge
   const serviceCount = orderServices?.totalServices ?? 0;
   const completedCount = orderServices?.completedServices ?? 0;
+  const servicesLabel =
+    serviceCount > 0
+      ? `Services (${completedCount}/${serviceCount})`
+      : "Services";
 
   return (
     <Box>
@@ -573,25 +618,30 @@ const OrderDetailPage = () => {
         </Stack>
 
         <Stack direction="row" spacing={1} alignItems="center">
-          {subjectName && (
-            <Typography variant="body1">{subjectName}</Typography>
-          )}
-          {!subjectName && (
-            <Typography variant="body1" color="text.secondary">
-              Subject pending
-            </Typography>
-          )}
+          {(() => {
+            const subjectNameDisplay = subjectName ? (
+              <Typography variant="body1">{subjectName}</Typography>
+            ) : (
+              <Typography variant="body1" color="text.secondary">
+                Subject pending
+              </Typography>
+            );
+            return subjectNameDisplay;
+          })()}
           <Typography color="text.secondary">•</Typography>
           <Typography variant="body1" color="text.secondary">
             {customer?.name ?? "Loading customer…"}
           </Typography>
         </Stack>
 
-        {order.lastStatusReason && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {order.lastStatusReason}
-          </Typography>
-        )}
+        {(() => {
+          const statusReasonDisplay = order.lastStatusReason ? (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {order.lastStatusReason}
+            </Typography>
+          ) : null;
+          return statusReasonDisplay;
+        })()}
       </Box>
 
       {/* Tabs */}
@@ -601,11 +651,7 @@ const OrderDetailPage = () => {
           <Tab
             icon={<BuildIcon />}
             iconPosition="start"
-            label={
-              serviceCount > 0
-                ? `Services (${completedCount}/${serviceCount})`
-                : "Services"
-            }
+            label={servicesLabel}
           />
           <Tab icon={<TimelineIcon />} iconPosition="start" label="Timeline" />
           <Tab icon={<HistoryIcon />} iconPosition="start" label="Audit Log" />

@@ -237,12 +237,12 @@ progress.
 
 Every bounded context ships four projects to support CQRS and database swappability:
 
-| Project                                      | Responsibilities                                              | References                                                          |
-|----------------------------------------------|---------------------------------------------------------------|---------------------------------------------------------------------|
-| `Holmes.<Feature>.Domain`                    | Aggregates, domain events, `I<Feature>UnitOfWork`, write-focused repository interfaces | `Holmes.Core.Domain`                                                |
-| `Holmes.<Feature>.Application.Abstractions`  | DTOs, query interfaces (`I<Feature>Queries`), broadcasters    | `<Feature>.Domain`, `Holmes.Core.Domain`                            |
-| `Holmes.<Feature>.Application`               | Commands, query handlers, MediatR handlers                    | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Application` |
-| `Holmes.<Feature>.Infrastructure.Sql`        | DbContext, repositories, query implementations (`Sql<Feature>Queries`), Specifications | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
+| Project                                     | Responsibilities                                                                       | References                                                                                 |
+|---------------------------------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`                   | Aggregates, domain events, `I<Feature>UnitOfWork`, write-focused repository interfaces | `Holmes.Core.Domain`                                                                       |
+| `Holmes.<Feature>.Application.Abstractions` | DTOs, query interfaces (`I<Feature>Queries`), broadcasters                             | `<Feature>.Domain`, `Holmes.Core.Domain`                                                   |
+| `Holmes.<Feature>.Application`              | Commands, query handlers, MediatR handlers                                             | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql`       | DbContext, repositories, query implementations (`Sql<Feature>Queries`), Specifications | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
 
 Additional infrastructure (e.g., caching, queues) follows the same naming pattern
 (`Infrastructure.Redis`, `Infrastructure.Search`, etc.) but **never** references the Application layer.
@@ -319,15 +319,16 @@ as the aggregate state changes. This ensures atomicity between state and events.
 Read models (projections) are updated via MediatR event handlers rather than synchronous writes in repositories. This
 provides clear separation between write-side (aggregates) and read-side (projections) updates.
 
-| Module    | Projection Table         | Handler                       | Events Handled                                           |
-|-----------|--------------------------|-------------------------------|----------------------------------------------------------|
-| Users     | `user_projections`       | `UserProjectionHandler`       | UserInvited, UserRegistered, UserProfileUpdated, etc.    |
-| Customers | `customer_projections`   | `CustomerProjectionHandler`   | CustomerRegistered, CustomerRenamed, CustomerSuspended   |
-| Subjects  | `subject_projections`    | `SubjectProjectionHandler`    | SubjectRegistered, SubjectMerged, SubjectAliasAdded      |
-| Workflow  | `order_summaries`        | `OrderSummaryHandler`         | Various Order events                                     |
-| Intake    | `intake_session_projections` | `IntakeSessionProjectionHandler` | IntakeSession events                              |
+| Module    | Projection Table             | Handler                          | Events Handled                                         |
+|-----------|------------------------------|----------------------------------|--------------------------------------------------------|
+| Users     | `user_projections`           | `UserProjectionHandler`          | UserInvited, UserRegistered, UserProfileUpdated, etc.  |
+| Customers | `customer_projections`       | `CustomerProjectionHandler`      | CustomerRegistered, CustomerRenamed, CustomerSuspended |
+| Subjects  | `subject_projections`        | `SubjectProjectionHandler`       | SubjectRegistered, SubjectMerged, SubjectAliasAdded    |
+| Workflow  | `order_summaries`            | `OrderSummaryHandler`            | Various Order events                                   |
+| Intake    | `intake_session_projections` | `IntakeSessionProjectionHandler` | IntakeSession events                                   |
 
 **Benefits:**
+
 - Events are the source of truth and can be replayed to rebuild projections
 - Projections can be rebuilt from event history at any time
 - Clear audit trail of all state changes
@@ -415,15 +416,15 @@ A module **MUST NEVER** directly reference another module's `*.Domain` or `*.App
 fundamental DDD principle — bounded contexts communicate through explicit contracts, not internal implementation
 details.
 
-| Reference Type                                                     | Allowed? | Example                                      |
-|--------------------------------------------------------------------|----------|----------------------------------------------|
-| `ModuleA.Application` → `ModuleB.Domain`                           | ❌ NO     | SlaClocks.App → Workflow.Domain              |
-| `ModuleA.Application` → `ModuleB.Application`                      | ❌ NO     | Services.App → Subjects.App                  |
-| `ModuleA.Infrastructure.Sql` → `ModuleB.Infrastructure.Sql`        | ❌ NO     | Customers.Infra.Sql → Users.Infra.Sql        |
-| `ModuleA.Application` → `ModuleB.Application.Abstractions`         | ✅ YES    | SlaClocks.App → Workflow.App.Abstractions    |
-| `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions`  | ✅ YES    | Intake.Infra.Sql → Workflow.App.Abstractions |
-| `App.Infrastructure` → `Module.Application.Abstractions`           | ✅ YES    | App.Infra → Users.App.Abstractions           |
-| `App.Infrastructure` → `Module.Infrastructure.Sql`                 | ❌ NO     | App.Infra → Users.Infra.Sql                  |
+| Reference Type                                                    | Allowed? | Example                                      |
+|-------------------------------------------------------------------|----------|----------------------------------------------|
+| `ModuleA.Application` → `ModuleB.Domain`                          | ❌ NO     | SlaClocks.App → Workflow.Domain              |
+| `ModuleA.Application` → `ModuleB.Application`                     | ❌ NO     | Services.App → Subjects.App                  |
+| `ModuleA.Infrastructure.Sql` → `ModuleB.Infrastructure.Sql`       | ❌ NO     | Customers.Infra.Sql → Users.Infra.Sql        |
+| `ModuleA.Application` → `ModuleB.Application.Abstractions`        | ✅ YES    | SlaClocks.App → Workflow.App.Abstractions    |
+| `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions` | ✅ YES    | Intake.Infra.Sql → Workflow.App.Abstractions |
+| `App.Infrastructure` → `Module.Application.Abstractions`          | ✅ YES    | App.Infra → Users.App.Abstractions           |
+| `App.Infrastructure` → `Module.Infrastructure.Sql`                | ❌ NO     | App.Infra → Users.Infra.Sql                  |
 
 When a module needs types from another bounded context, the owning module must expose them via
 `*.Application.Abstractions` (DTOs, interfaces, integration events). See `docs/MODULE_TEMPLATE.md` for detailed

@@ -7,8 +7,8 @@ using MediatR;
 namespace Holmes.Core.Infrastructure.Sql.Events;
 
 /// <summary>
-/// JSON-based domain event serializer with lazy type lookup for deserialization.
-/// Uses assembly-qualified type names stored in the event name for reliable cross-assembly lookup.
+///     JSON-based domain event serializer with lazy type lookup for deserialization.
+///     Uses assembly-qualified type names stored in the event name for reliable cross-assembly lookup.
 /// </summary>
 public sealed class DomainEventSerializer : IDomainEventSerializer
 {
@@ -27,7 +27,8 @@ public sealed class DomainEventSerializer : IDomainEventSerializer
         INotification @event,
         string? correlationId,
         string? causationId,
-        string? actorId)
+        string? actorId
+    )
     {
         var eventName = GetEventName(@event);
         var payload = JsonSerializer.Serialize(@event, @event.GetType(), SerializerOptions);
@@ -54,8 +55,10 @@ public sealed class DomainEventSerializer : IDomainEventSerializer
         return notification;
     }
 
-    public string GetEventName(INotification @event) =>
-        @event.GetType().AssemblyQualifiedName!;
+    public string GetEventName(INotification @event)
+    {
+        return @event.GetType().AssemblyQualifiedName!;
+    }
 
     private Type ResolveType(string eventName)
     {

@@ -1,6 +1,6 @@
 using Holmes.Intake.Application.Abstractions.Projections;
-using Holmes.Intake.Application.Abstractions.Sessions;
 using Holmes.Intake.Application.Abstractions.Services;
+using Holmes.Intake.Application.Abstractions.Sessions;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql.Projections;

@@ -42,12 +42,12 @@ src/Modules/<Feature>/
 
 ## Project References
 
-| Project                                  | References                                                                                            |
-|------------------------------------------|-------------------------------------------------------------------------------------------------------|
-| `Holmes.<Feature>.Domain`                | `Holmes.Core.Domain` only                                                                             |
-| `Holmes.<Feature>.Application.Abstractions` | `Holmes.<Feature>.Domain`, `Holmes.Core.Domain`                                                    |
-| `Holmes.<Feature>.Application`           | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Application`     |
-| `Holmes.<Feature>.Infrastructure.Sql`    | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
+| Project                                     | References                                                                                               |
+|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`                   | `Holmes.Core.Domain` only                                                                                |
+| `Holmes.<Feature>.Application.Abstractions` | `Holmes.<Feature>.Domain`, `Holmes.Core.Domain`                                                          |
+| `Holmes.<Feature>.Application`              | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql`       | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
 
 **Critical**: Infrastructure projects reference `Application.Abstractions` (for query interfaces and DTOs),
 but NEVER reference the `Application` project directly. This enables database swappability.
@@ -135,11 +135,13 @@ where it can see all modules.
 Holmes uses Command Query Responsibility Segregation (CQRS) to separate read and write concerns:
 
 ### Write Side (Domain + Repository)
+
 - **Repository interfaces** in Domain are write-focused: `GetByIdAsync`, `Add`, `Update`, `Delete`
 - **Commands** mutate state through the UnitOfWork and repositories
 - Repositories return domain entities for mutation
 
 ### Read Side (Queries)
+
 - **Query interfaces** (`I<Feature>Queries`) live in `Application.Abstractions`
 - **Query implementations** (`Sql<Feature>Queries`) live in `Infrastructure.Sql`
 - Queries return **DTOs only** — never domain entities
@@ -176,6 +178,7 @@ public sealed class SqlUserQueries(UsersDbContext dbContext) : IUserQueries
 ```
 
 ### Why CQRS?
+
 - **Database swappability**: Swap `Infrastructure.Sql` for `Infrastructure.MsSql` without touching Application
 - **Performance**: Read models can be optimized independently (no tracking, projections)
 - **Testability**: Query interfaces can be mocked in tests

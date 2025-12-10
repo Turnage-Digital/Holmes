@@ -15,4 +15,5 @@ public sealed record SubjectProjectionModel(
     string? Email,
     DateTimeOffset CreatedAt,
     bool IsMerged,
-    int AliasCount);
+    int AliasCount
+);

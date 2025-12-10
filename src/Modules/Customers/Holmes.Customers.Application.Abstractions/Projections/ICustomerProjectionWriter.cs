@@ -3,8 +3,8 @@ using Holmes.Customers.Domain;
 namespace Holmes.Customers.Application.Abstractions.Projections;
 
 /// <summary>
-/// Writes customer projection data for read model queries.
-/// Called by event handlers to keep projections in sync.
+///     Writes customer projection data for read model queries.
+///     Called by event handlers to keep projections in sync.
 /// </summary>
 public interface ICustomerProjectionWriter
 {
@@ -16,7 +16,7 @@ public interface ICustomerProjectionWriter
 }
 
 /// <summary>
-/// Model representing the customer projection data.
+///     Model representing the customer projection data.
 /// </summary>
 public sealed record CustomerProjectionModel(
     string CustomerId,

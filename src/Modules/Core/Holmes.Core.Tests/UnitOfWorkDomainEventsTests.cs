@@ -32,9 +32,15 @@ public class UnitOfWorkDomainEventsTests
             AddDomainEvent(@event);
         }
 
-        public override string GetStreamId() => $"{GetStreamType()}:{Id}";
+        public override string GetStreamId()
+        {
+            return $"{GetStreamType()}:{Id}";
+        }
 
-        public override string GetStreamType() => "FakeAggregate";
+        public override string GetStreamType()
+        {
+            return "FakeAggregate";
+        }
     }
 
     private sealed class FakeUnitOfWork(FakeDbContext db, IMediator mediator)

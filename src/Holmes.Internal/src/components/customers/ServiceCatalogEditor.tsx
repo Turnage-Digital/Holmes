@@ -23,7 +23,7 @@ import {
   TableRow,
   TextField,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
 
 import type { CatalogServiceItemDto, ServiceCategory, Ulid } from "@/types/api";
@@ -49,7 +49,7 @@ const categoryColors: Record<
   Civil: "default",
   Reference: "info",
   Healthcare: "success",
-  Custom: "default"
+  Custom: "default",
 };
 
 interface CategoryChipProps {
@@ -78,12 +78,12 @@ interface ServiceRowProps {
 }
 
 const ServiceRow = ({
-                      service,
-                      onToggle,
-                      onTierChange,
-                      onVendorChange,
-                      isPending
-                    }: ServiceRowProps) => {
+  service,
+  onToggle,
+  onTierChange,
+  onVendorChange,
+  isPending,
+}: ServiceRowProps) => {
   const [localVendor, setLocalVendor] = useState(service.vendorCode ?? "");
 
   const handleVendorBlur = () => {
@@ -93,11 +93,18 @@ const ServiceRow = ({
     }
   };
 
+  const iconButtonColor = service.isEnabled ? "success" : "default";
+  const statusIcon = service.isEnabled ? (
+    <CheckCircleIcon />
+  ) : (
+    <RadioButtonUncheckedIcon />
+  );
+
   return (
     <TableRow
       sx={{
         opacity: service.isEnabled ? 1 : 0.6,
-        "&:hover": { bgcolor: "action.hover" }
+        "&:hover": { bgcolor: "action.hover" },
       }}
     >
       <TableCell>
@@ -105,13 +112,9 @@ const ServiceRow = ({
           size="small"
           onClick={() => onToggle(service.serviceTypeCode, !service.isEnabled)}
           disabled={isPending}
-          color={service.isEnabled ? "success" : "default"}
+          color={iconButtonColor}
         >
-          {service.isEnabled ? (
-            <CheckCircleIcon />
-          ) : (
-            <RadioButtonUncheckedIcon />
-          )}
+          {statusIcon}
         </IconButton>
       </TableCell>
       <TableCell>
@@ -173,11 +176,11 @@ interface ServiceCatalogEditorProps {
 }
 
 const ServiceCatalogEditor = ({
-                                customerId,
-                                services
-                              }: ServiceCatalogEditorProps) => {
+  customerId,
+  services,
+}: ServiceCatalogEditorProps) => {
   const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | "all">(
-    "all"
+    "all",
   );
   const [enabledFilter, setEnabledFilter] = useState<
     "all" | "enabled" | "disabled"
@@ -218,7 +221,7 @@ const ServiceCatalogEditor = ({
       isEnabled: boolean;
       tier: number;
       vendorCode: string | undefined;
-    }>
+    }>,
   ) => {
     setErrorMessage(undefined);
     setSuccessMessage(undefined);
@@ -233,8 +236,8 @@ const ServiceCatalogEditor = ({
           serviceTypeCode,
           isEnabled: updates.isEnabled ?? service.isEnabled,
           tier: updates.tier ?? service.tier,
-          vendorCode: updates.vendorCode ?? service.vendorCode
-        }
+          vendorCode: updates.vendorCode ?? service.vendorCode,
+        },
       });
       setSuccessMessage(`Updated ${service.displayName}`);
       setTimeout(() => setSuccessMessage(undefined), 3000);
@@ -250,7 +253,7 @@ const ServiceCatalogEditor = ({
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center"
+          alignItems: "center",
         }}
       >
         <Box>
@@ -302,7 +305,7 @@ const ServiceCatalogEditor = ({
                 label="Status"
                 onChange={(e) =>
                   setEnabledFilter(
-                    e.target.value as "all" | "enabled" | "disabled"
+                    e.target.value as "all" | "enabled" | "disabled",
                   )
                 }
               >

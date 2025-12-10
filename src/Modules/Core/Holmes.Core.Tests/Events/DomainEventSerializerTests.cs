@@ -9,7 +9,8 @@ public class DomainEventSerializerTests
     // Test event for serialization tests
     public sealed record TestDomainEvent(string Id, string Name, int Value) : INotification;
 
-    public sealed record EventWithNullableProperties(string Id, string? OptionalName, int? OptionalValue) : INotification;
+    public sealed record EventWithNullableProperties(string Id, string? OptionalName, int? OptionalValue)
+        : INotification;
 
     [Test]
     public void Serialize_CreatesValidEnvelope()

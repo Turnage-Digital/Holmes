@@ -300,15 +300,16 @@ public sealed class OrdersController(
             cancellationToken);
 
         var dtos = events.Select(e => new OrderAuditEventDto(
-            e.Position,
-            e.Version,
-            e.EventId,
-            e.EventName,
-            JsonDocument.Parse(e.Payload).RootElement,
-            new DateTimeOffset(e.CreatedAt, TimeSpan.Zero),
-            e.CorrelationId,
-            e.ActorId
-        )).ToList();
+                e.Position,
+                e.Version,
+                e.EventId,
+                e.EventName,
+                JsonDocument.Parse(e.Payload).RootElement,
+                new DateTimeOffset(e.CreatedAt, TimeSpan.Zero),
+                e.CorrelationId,
+                e.ActorId
+            ))
+            .ToList();
 
         return Ok(dtos);
     }

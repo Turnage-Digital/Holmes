@@ -12,7 +12,7 @@ import {
   Chip,
   LinearProgress,
   Stack,
-  Typography
+  Typography,
 } from "@mui/material";
 
 import ServiceStatusCard from "./ServiceStatusCard";
@@ -30,7 +30,7 @@ interface TierSummaryProps {
 }
 
 const getTierStatus = (
-  services: ServiceRequestSummaryDto[]
+  services: ServiceRequestSummaryDto[],
 ): {
   label: string;
   color: "success" | "warning" | "error" | "default";
@@ -40,13 +40,13 @@ const getTierStatus = (
     return {
       label: "Empty",
       color: "default",
-      icon: <HourglassEmptyIcon />
+      icon: <HourglassEmptyIcon />,
     };
   }
 
   const hasFailures = services.some((s) => s.status === "Failed");
   const allComplete = services.every(
-    (s) => s.status === "Completed" || s.status === "Canceled"
+    (s) => s.status === "Completed" || s.status === "Canceled",
   );
   const allPending = services.every((s) => s.status === "Pending");
 
@@ -54,7 +54,7 @@ const getTierStatus = (
     return {
       label: "Has Failures",
       color: "error",
-      icon: <ErrorOutlineIcon />
+      icon: <ErrorOutlineIcon />,
     };
   }
 
@@ -62,7 +62,7 @@ const getTierStatus = (
     return {
       label: "Complete",
       color: "success",
-      icon: <CheckCircleOutlineIcon />
+      icon: <CheckCircleOutlineIcon />,
     };
   }
 
@@ -70,27 +70,27 @@ const getTierStatus = (
     return {
       label: "Pending",
       color: "default",
-      icon: <HourglassEmptyIcon />
+      icon: <HourglassEmptyIcon />,
     };
   }
 
   return {
     label: "In Progress",
     color: "warning",
-    icon: <HourglassEmptyIcon />
+    icon: <HourglassEmptyIcon />,
   };
 };
 
 const TierAccordion = ({
-                         tier,
-                         services,
-                         defaultExpanded = false
-                       }: TierSummaryProps) => {
+  tier,
+  services,
+  defaultExpanded = false,
+}: TierSummaryProps) => {
   const status = getTierStatus(services);
 
   // Calculate progress
   const completedCount = services.filter(
-    (s) => s.status === "Completed"
+    (s) => s.status === "Completed",
   ).length;
   const progressPercent =
     services.length > 0 ? (completedCount / services.length) * 100 : 0;
@@ -101,8 +101,45 @@ const TierAccordion = ({
       acc[s.status] = (acc[s.status] || 0) + 1;
       return acc;
     },
-    {} as Record<ServiceStatus, number>
+    {} as Record<ServiceStatus, number>,
   );
+
+  const progressColor = status.color === "error" ? "error" : "primary";
+
+  const completedChip = statusCounts.Completed ? (
+    <Chip
+      label={`${statusCounts.Completed} done`}
+      size="small"
+      color="success"
+      variant="outlined"
+    />
+  ) : null;
+
+  const inProgressChip = statusCounts.InProgress ? (
+    <Chip
+      label={`${statusCounts.InProgress} running`}
+      size="small"
+      color="warning"
+      variant="outlined"
+    />
+  ) : null;
+
+  const failedChip = statusCounts.Failed ? (
+    <Chip
+      label={`${statusCounts.Failed} failed`}
+      size="small"
+      color="error"
+      variant="outlined"
+    />
+  ) : null;
+
+  const pendingChip = statusCounts.Pending ? (
+    <Chip
+      label={`${statusCounts.Pending} pending`}
+      size="small"
+      variant="outlined"
+    />
+  ) : null;
 
   return (
     <Accordion defaultExpanded={defaultExpanded} variant="outlined">
@@ -112,7 +149,7 @@ const TierAccordion = ({
             display: "flex",
             alignItems: "center",
             width: "100%",
-            gap: 2
+            gap: 2,
           }}
         >
           <Chip
@@ -127,42 +164,15 @@ const TierAccordion = ({
               variant="determinate"
               value={progressPercent}
               sx={{ height: 6, borderRadius: 3 }}
-              color={status.color === "error" ? "error" : "primary"}
+              color={progressColor}
             />
           </Box>
 
           <Stack direction="row" spacing={1} alignItems="center">
-            {statusCounts.Completed && (
-              <Chip
-                label={`${statusCounts.Completed} done`}
-                size="small"
-                color="success"
-                variant="outlined"
-              />
-            )}
-            {statusCounts.InProgress && (
-              <Chip
-                label={`${statusCounts.InProgress} running`}
-                size="small"
-                color="warning"
-                variant="outlined"
-              />
-            )}
-            {statusCounts.Failed && (
-              <Chip
-                label={`${statusCounts.Failed} failed`}
-                size="small"
-                color="error"
-                variant="outlined"
-              />
-            )}
-            {statusCounts.Pending && (
-              <Chip
-                label={`${statusCounts.Pending} pending`}
-                size="small"
-                variant="outlined"
-              />
-            )}
+            {completedChip}
+            {inProgressChip}
+            {failedChip}
+            {pendingChip}
           </Stack>
 
           <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
@@ -210,12 +220,36 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
   // Calculate overall stats
   const totalServices = services.length;
   const completedServices = services.filter(
-    (s) => s.status === "Completed"
+    (s) => s.status === "Completed",
   ).length;
   const failedServices = services.filter((s) => s.status === "Failed").length;
   const inProgressServices = services.filter(
-    (s) => s.status === "InProgress" || s.status === "Dispatched"
+    (s) => s.status === "InProgress" || s.status === "Dispatched",
   ).length;
+
+  const inProgressStat =
+    inProgressServices > 0 ? (
+      <Box>
+        <Typography variant="h5" color="warning.main" fontWeight={600}>
+          {inProgressServices}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Running
+        </Typography>
+      </Box>
+    ) : null;
+
+  const failedStat =
+    failedServices > 0 ? (
+      <Box>
+        <Typography variant="h5" color="error.main" fontWeight={600}>
+          {failedServices}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Failed
+        </Typography>
+      </Box>
+    ) : null;
 
   if (services.length === 0) {
     return (
@@ -234,7 +268,7 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
           gap: 3,
           p: 2,
           bgcolor: "grey.50",
-          borderRadius: 1
+          borderRadius: 1,
         }}
       >
         <Box>
@@ -253,26 +287,8 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
           />
         </Box>
         <Stack direction="row" spacing={2}>
-          {inProgressServices > 0 && (
-            <Box>
-              <Typography variant="h5" color="warning.main" fontWeight={600}>
-                {inProgressServices}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Running
-              </Typography>
-            </Box>
-          )}
-          {failedServices > 0 && (
-            <Box>
-              <Typography variant="h5" color="error.main" fontWeight={600}>
-                {failedServices}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Failed
-              </Typography>
-            </Box>
-          )}
+          {inProgressStat}
+          {failedStat}
         </Stack>
       </Box>
 

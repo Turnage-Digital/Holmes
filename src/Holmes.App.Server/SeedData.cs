@@ -8,7 +8,6 @@ using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Workflow.Application.Commands;
-using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -63,7 +62,8 @@ public sealed class SeedData(
             await EnsureAdminApprovedAsync(mediator, adminUserId, now, cancellationToken);
             var customerId = await EnsureDemoCustomerAsync(mediator, customersDb, adminUserId, now, cancellationToken);
             var subjectIds = await EnsureDemoSubjectsAsync(mediator, subjectsDb, adminUserId, now, cancellationToken);
-            await EnsureDemoOrdersAsync(mediator, workflowDb, customerId, subjectIds, adminUserId, now, cancellationToken);
+            await EnsureDemoOrdersAsync(mediator, workflowDb, customerId, subjectIds, adminUserId, now,
+                cancellationToken);
 
             logger.LogInformation("Development seed data created successfully");
         }
@@ -352,10 +352,11 @@ public sealed class SeedData(
 
         // Record invite (moves to Invited)
         var inviteTimestamp = createdAt.AddMinutes(5);
-        var inviteCommand = new RecordOrderInviteCommand(orderId, intakeSessionId, inviteTimestamp, "Intake invitation sent")
-        {
-            UserId = adminUserId.ToString()
-        };
+        var inviteCommand =
+            new RecordOrderInviteCommand(orderId, intakeSessionId, inviteTimestamp, "Intake invitation sent")
+            {
+                UserId = adminUserId.ToString()
+            };
         await mediator.Send(inviteCommand, cancellationToken);
 
         if (targetStatus == "Invited")
@@ -365,10 +366,11 @@ public sealed class SeedData(
 
         // Mark intake started (moves to IntakeInProgress)
         var startTimestamp = inviteTimestamp.AddHours(1);
-        var startCommand = new MarkOrderIntakeStartedCommand(orderId, intakeSessionId, startTimestamp, "Subject began intake")
-        {
-            UserId = adminUserId.ToString()
-        };
+        var startCommand =
+            new MarkOrderIntakeStartedCommand(orderId, intakeSessionId, startTimestamp, "Subject began intake")
+            {
+                UserId = adminUserId.ToString()
+            };
         await mediator.Send(startCommand, cancellationToken);
 
         if (targetStatus == "IntakeInProgress")
@@ -378,10 +380,11 @@ public sealed class SeedData(
 
         // Mark intake submitted (moves to IntakeComplete)
         var submitTimestamp = startTimestamp.AddHours(2);
-        var submitCommand = new MarkOrderIntakeSubmittedCommand(orderId, intakeSessionId, submitTimestamp, "Intake form completed")
-        {
-            UserId = adminUserId.ToString()
-        };
+        var submitCommand =
+            new MarkOrderIntakeSubmittedCommand(orderId, intakeSessionId, submitTimestamp, "Intake form completed")
+            {
+                UserId = adminUserId.ToString()
+            };
         await mediator.Send(submitCommand, cancellationToken);
 
         if (targetStatus == "IntakeComplete")
@@ -391,10 +394,11 @@ public sealed class SeedData(
 
         // Mark ready for fulfillment
         var readyTimestamp = submitTimestamp.AddHours(1);
-        var readyCommand = new MarkOrderReadyForFulfillmentCommand(orderId, readyTimestamp, "Intake reviewed and approved")
-        {
-            UserId = adminUserId.ToString()
-        };
+        var readyCommand =
+            new MarkOrderReadyForFulfillmentCommand(orderId, readyTimestamp, "Intake reviewed and approved")
+            {
+                UserId = adminUserId.ToString()
+            };
         await mediator.Send(readyCommand, cancellationToken);
 
         if (targetStatus == "ReadyForFulfillment")

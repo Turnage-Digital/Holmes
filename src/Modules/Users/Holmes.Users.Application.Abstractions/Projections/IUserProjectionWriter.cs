@@ -3,8 +3,8 @@ using Holmes.Users.Domain;
 namespace Holmes.Users.Application.Abstractions.Projections;
 
 /// <summary>
-/// Writes user projection data for read model queries.
-/// Called by event handlers to keep projections in sync.
+///     Writes user projection data for read model queries.
+///     Called by event handlers to keep projections in sync.
 /// </summary>
 public interface IUserProjectionWriter
 {
@@ -14,7 +14,7 @@ public interface IUserProjectionWriter
 }
 
 /// <summary>
-/// Model representing the user projection data.
+///     Model representing the user projection data.
 /// </summary>
 public sealed record UserProjectionModel(
     string UserId,

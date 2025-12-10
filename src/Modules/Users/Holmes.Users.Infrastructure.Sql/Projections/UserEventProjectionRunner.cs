@@ -1,6 +1,5 @@
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Core.Infrastructure.Sql.Events;
 using Holmes.Core.Infrastructure.Sql.Projections;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Users.Infrastructure.Sql.Projections;
 
 /// <summary>
-/// Event-based projection runner for User projections.
-/// Replays User domain events to rebuild the user_projections table.
+///     Event-based projection runner for User projections.
+///     Replays User domain events to rebuild the user_projections table.
 /// </summary>
 public sealed class UserEventProjectionRunner : EventProjectionRunner
 {
@@ -22,7 +21,8 @@ public sealed class UserEventProjectionRunner : EventProjectionRunner
         IEventStore eventStore,
         IDomainEventSerializer serializer,
         IPublisher publisher,
-        ILogger<UserEventProjectionRunner> logger)
+        ILogger<UserEventProjectionRunner> logger
+    )
         : base(coreDbContext, eventStore, serializer, publisher, logger)
     {
         _usersDbContext = usersDbContext;
