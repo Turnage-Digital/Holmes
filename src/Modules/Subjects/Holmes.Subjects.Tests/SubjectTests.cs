@@ -6,6 +6,7 @@ using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Projections;
 using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Holmes.Subjects.Tests;
 
@@ -117,7 +118,7 @@ public class SubjectTests
     public async Task SubjectProjectionHandler_SubjectRegistered_WritesProjection()
     {
         await using var context = CreateSubjectsDbContext();
-        var writer = new SqlSubjectProjectionWriter(context);
+        var writer = new SqlSubjectProjectionWriter(context, NullLogger<SqlSubjectProjectionWriter>.Instance);
         var handler = new SubjectProjectionHandler(writer);
         var subjectId = UlidId.NewUlid();
 
@@ -140,7 +141,7 @@ public class SubjectTests
     public async Task SubjectProjectionHandler_AliasAndMerge_UpdatesProjection()
     {
         await using var context = CreateSubjectsDbContext();
-        var writer = new SqlSubjectProjectionWriter(context);
+        var writer = new SqlSubjectProjectionWriter(context, NullLogger<SqlSubjectProjectionWriter>.Instance);
         var handler = new SubjectProjectionHandler(writer);
         var subjectId = UlidId.NewUlid();
 

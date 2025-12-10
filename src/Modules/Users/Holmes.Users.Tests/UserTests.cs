@@ -5,6 +5,7 @@ using Holmes.Users.Domain.Events;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Holmes.Users.Tests;
 
@@ -50,7 +51,7 @@ public class UserTests
     public async Task UserProjectionHandler_UserInvited_WritesProjection()
     {
         await using var context = CreateUsersDbContext();
-        var writer = new SqlUserProjectionWriter(context);
+        var writer = new SqlUserProjectionWriter(context, NullLogger<SqlUserProjectionWriter>.Instance);
         var handler = new UserProjectionHandler(writer);
         var userId = UlidId.NewUlid();
 
@@ -71,7 +72,7 @@ public class UserTests
     public async Task UserProjectionHandler_UserRegistered_WritesProjection()
     {
         await using var context = CreateUsersDbContext();
-        var writer = new SqlUserProjectionWriter(context);
+        var writer = new SqlUserProjectionWriter(context, NullLogger<SqlUserProjectionWriter>.Instance);
         var handler = new UserProjectionHandler(writer);
         var userId = UlidId.NewUlid();
 
@@ -100,7 +101,7 @@ public class UserTests
     public async Task UserProjectionHandler_UserSuspendedAndReactivated_UpdatesStatus()
     {
         await using var context = CreateUsersDbContext();
-        var writer = new SqlUserProjectionWriter(context);
+        var writer = new SqlUserProjectionWriter(context, NullLogger<SqlUserProjectionWriter>.Instance);
         var handler = new UserProjectionHandler(writer);
         var userId = UlidId.NewUlid();
         var adminId = UlidId.NewUlid();

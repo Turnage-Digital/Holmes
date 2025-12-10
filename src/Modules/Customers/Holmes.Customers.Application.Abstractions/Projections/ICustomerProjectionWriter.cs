@@ -13,6 +13,8 @@ public interface ICustomerProjectionWriter
     Task UpdateStatusAsync(string customerId, CustomerStatus status, CancellationToken cancellationToken);
 
     Task UpdateAdminCountAsync(string customerId, int delta, CancellationToken cancellationToken);
+
+    Task UpdateNameAsync(string customerId, string name, CancellationToken cancellationToken);
 }
 
 /// <summary>

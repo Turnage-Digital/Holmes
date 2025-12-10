@@ -32,20 +32,11 @@ public sealed class UserProjectionHandler(IUserProjectionWriter writer)
 
     public Task Handle(UserProfileUpdated notification, CancellationToken cancellationToken)
     {
-        // For profile updates, we need to preserve existing issuer/subject/status
-        // The writer will handle the upsert, but we need the full model
-        // In a pure event-sourced system, we'd replay all events
-        // For now, we'll create a model with the updated fields only
-        var model = new UserProjectionModel(
+        return writer.UpdateProfileAsync(
             notification.UserId.ToString(),
             notification.Email,
             notification.DisplayName,
-            "urn:holmes:profile-update", // Will be overwritten by existing values in writer
-            notification.UserId.ToString(),
-            notification.UpdatedAt,
-            UserStatus.Active);
-
-        return writer.UpsertAsync(model, cancellationToken);
+            cancellationToken);
     }
 
     public Task Handle(UserReactivated notification, CancellationToken cancellationToken)

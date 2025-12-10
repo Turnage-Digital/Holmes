@@ -2,10 +2,14 @@ using Holmes.Users.Application.Abstractions.Projections;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Holmes.Users.Infrastructure.Sql.Projections;
 
-public sealed class SqlUserProjectionWriter(UsersDbContext dbContext) : IUserProjectionWriter
+public sealed class SqlUserProjectionWriter(
+    UsersDbContext dbContext,
+    ILogger<SqlUserProjectionWriter> logger
+) : IUserProjectionWriter
 {
     public async Task UpsertAsync(UserProjectionModel model, CancellationToken cancellationToken)
     {
@@ -36,10 +40,34 @@ public sealed class SqlUserProjectionWriter(UsersDbContext dbContext) : IUserPro
         var record = await dbContext.UserProjections
             .FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
 
-        if (record is not null)
+        if (record is null)
         {
-            record.Status = status;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            logger.LogWarning("User projection not found for status update: {UserId}", userId);
+            return;
         }
+
+        record.Status = status;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateProfileAsync(
+        string userId,
+        string email,
+        string? displayName,
+        CancellationToken cancellationToken
+    )
+    {
+        var record = await dbContext.UserProjections
+            .FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
+
+        if (record is null)
+        {
+            logger.LogWarning("User projection not found for profile update: {UserId}", userId);
+            return;
+        }
+
+        record.Email = email;
+        record.DisplayName = displayName;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

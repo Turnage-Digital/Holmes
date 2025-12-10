@@ -11,6 +11,8 @@ public interface IUserProjectionWriter
     Task UpsertAsync(UserProjectionModel model, CancellationToken cancellationToken);
 
     Task UpdateStatusAsync(string userId, UserStatus status, CancellationToken cancellationToken);
+
+    Task UpdateProfileAsync(string userId, string email, string? displayName, CancellationToken cancellationToken);
 }
 
 /// <summary>

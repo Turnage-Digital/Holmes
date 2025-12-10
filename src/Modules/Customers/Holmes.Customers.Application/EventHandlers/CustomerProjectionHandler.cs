@@ -55,14 +55,10 @@ public sealed class CustomerProjectionHandler(ICustomerProjectionWriter writer)
 
     public Task Handle(CustomerRenamed notification, CancellationToken cancellationToken)
     {
-        var model = new CustomerProjectionModel(
+        return writer.UpdateNameAsync(
             notification.CustomerId.ToString(),
             notification.Name,
-            CustomerStatus.Active,
-            notification.RenamedAt,
-            0);
-
-        return writer.UpsertAsync(model, cancellationToken);
+            cancellationToken);
     }
 
     public Task Handle(CustomerSuspended notification, CancellationToken cancellationToken)

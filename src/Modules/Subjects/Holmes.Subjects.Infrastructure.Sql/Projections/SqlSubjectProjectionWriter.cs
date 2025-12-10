@@ -1,10 +1,14 @@
 using Holmes.Subjects.Application.Abstractions.Projections;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Holmes.Subjects.Infrastructure.Sql.Projections;
 
-public sealed class SqlSubjectProjectionWriter(SubjectsDbContext dbContext) : ISubjectProjectionWriter
+public sealed class SqlSubjectProjectionWriter(
+    SubjectsDbContext dbContext,
+    ILogger<SqlSubjectProjectionWriter> logger
+) : ISubjectProjectionWriter
 {
     public async Task UpsertAsync(SubjectProjectionModel model, CancellationToken cancellationToken)
     {
@@ -36,11 +40,14 @@ public sealed class SqlSubjectProjectionWriter(SubjectsDbContext dbContext) : IS
         var record = await dbContext.SubjectProjections
             .FirstOrDefaultAsync(x => x.SubjectId == subjectId, cancellationToken);
 
-        if (record is not null)
+        if (record is null)
         {
-            record.IsMerged = isMerged;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            logger.LogWarning("Subject projection not found for merge update: {SubjectId}", subjectId);
+            return;
         }
+
+        record.IsMerged = isMerged;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task IncrementAliasCountAsync(string subjectId, CancellationToken cancellationToken)
@@ -48,10 +55,13 @@ public sealed class SqlSubjectProjectionWriter(SubjectsDbContext dbContext) : IS
         var record = await dbContext.SubjectProjections
             .FirstOrDefaultAsync(x => x.SubjectId == subjectId, cancellationToken);
 
-        if (record is not null)
+        if (record is null)
         {
-            record.AliasCount++;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            logger.LogWarning("Subject projection not found for alias count increment: {SubjectId}", subjectId);
+            return;
         }
+
+        record.AliasCount++;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }
