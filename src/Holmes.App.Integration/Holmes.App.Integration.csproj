@@ -10,6 +10,9 @@
     <ItemGroup>
         <ProjectReference Include="..\Modules\Intake\Holmes.Intake.Application\Holmes.Intake.Application.csproj"/>
         <ProjectReference Include="..\Modules\Notifications\Holmes.Notifications.Application\Holmes.Notifications.Application.csproj"/>
+        <ProjectReference Include="..\Modules\Services\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\Modules\Services\Holmes.Services.Application\Holmes.Services.Application.csproj"/>
+        <ProjectReference Include="..\Modules\Services\Holmes.Services.Domain\Holmes.Services.Domain.csproj"/>
         <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application.Abstractions\Holmes.SlaClocks.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application\Holmes.SlaClocks.Application.csproj"/>
         <ProjectReference Include="..\Modules\Subjects\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj"/>
