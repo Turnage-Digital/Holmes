@@ -4,8 +4,8 @@ using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Abstractions.Dtos;
-using Holmes.Users.Application.Abstractions.Queries;
 using Holmes.Users.Application.Commands;
+using Holmes.Users.Application.Queries;
 using Holmes.Users.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +18,6 @@ namespace Holmes.App.Server.Controllers;
 [Route("api/users")]
 public sealed class UsersController(
     IMediator mediator,
-    IUserQueries userQueries,
     ICurrentUserAccess currentUserAccess,
     IIdentityProvisioningClient identityProvisioningClient
 ) : ControllerBase
@@ -31,23 +30,29 @@ public sealed class UsersController(
     )
     {
         var (page, pageSize) = PaginationNormalization.Normalize(query);
-        var result = await userQueries.GetUsersPagedAsync(page, pageSize, cancellationToken);
+        var result = await mediator.Send(new ListUsersQuery(page, pageSize), cancellationToken);
 
-        return Ok(PaginatedResponse<UserDto>.Create(result.Items, page, pageSize, result.TotalCount));
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(PaginatedResponse<UserDto>.Create(result.Value.Items, page, pageSize, result.Value.TotalCount));
     }
 
     [HttpGet("me")]
     public async Task<ActionResult<CurrentUserDto>> GetMe(CancellationToken cancellationToken)
     {
         var currentUserId = await currentUserAccess.GetUserIdAsync(cancellationToken);
-        var currentUser = await userQueries.GetCurrentUserAsync(currentUserId.ToString(), cancellationToken);
+        var result = await mediator.Send(
+            new GetCurrentUserQuery(currentUserId.ToString()), cancellationToken);
 
-        if (currentUser is null)
+        if (!result.IsSuccess)
         {
             return NotFound();
         }
 
-        return Ok(currentUser);
+        return Ok(result.Value);
     }
 
     [HttpPost("invitations")]
@@ -74,13 +79,14 @@ public sealed class UsersController(
         }
 
         var invitedUserId = result.Value;
-        var mappedUser = await userQueries.GetByIdAsync(invitedUserId, cancellationToken);
+        var userResult = await mediator.Send(new GetUserByIdQuery(invitedUserId), cancellationToken);
 
-        if (mappedUser is null)
+        if (!userResult.IsSuccess)
         {
             return Problem("Failed to load invited user.");
         }
 
+        var mappedUser = userResult.Value;
         var provisioning = await identityProvisioningClient.ProvisionUserAsync(
             new ProvisionIdentityUserRequest(invitedUserId.ToString(), mappedUser.Email, mappedUser.DisplayName),
             cancellationToken);

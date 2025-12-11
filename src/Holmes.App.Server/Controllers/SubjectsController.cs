@@ -1,10 +1,9 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
-using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Application.Abstractions.Dtos;
-using Holmes.Subjects.Application.Abstractions.Queries;
 using Holmes.Subjects.Application.Commands;
+using Holmes.Subjects.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +14,7 @@ namespace Holmes.App.Server.Controllers;
 [Route("api/subjects")]
 [Authorize(Policy = AuthorizationPolicies.RequireOps)]
 public sealed class SubjectsController(
-    IMediator mediator,
-    ISubjectQueries subjectQueries,
-    ICurrentUserInitializer currentUserInitializer
+    IMediator mediator
 ) : ControllerBase
 {
     [HttpGet]
@@ -28,10 +25,15 @@ public sealed class SubjectsController(
     {
         var (page, pageSize) = PaginationNormalization.Normalize(query);
 
-        var result = await subjectQueries.GetSubjectsPagedAsync(page, pageSize, cancellationToken);
+        var result = await mediator.Send(new ListSubjectsQuery(page, pageSize), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
 
         return Ok(PaginatedResponse<SubjectListItemDto>.Create(
-            result.Items.ToList(), page, pageSize, result.TotalCount));
+            result.Value.Items.ToList(), page, pageSize, result.Value.TotalCount));
     }
 
     [HttpPost]
@@ -47,14 +49,15 @@ public sealed class SubjectsController(
             request.Email,
             DateTimeOffset.UtcNow), cancellationToken);
 
-        var summary = await subjectQueries.GetSummaryByIdAsync(subjectId.ToString(), cancellationToken);
+        var summaryResult = await mediator.Send(
+            new GetSubjectSummaryQuery(subjectId.ToString()), cancellationToken);
 
-        if (summary is null)
+        if (!summaryResult.IsSuccess)
         {
             return Problem("Failed to load created subject.");
         }
 
-        return CreatedAtAction(nameof(GetSubjectById), new { subjectId = subjectId.ToString() }, summary);
+        return CreatedAtAction(nameof(GetSubjectById), new { subjectId = subjectId.ToString() }, summaryResult.Value);
     }
 
     [HttpGet("{subjectId}")]
@@ -68,14 +71,14 @@ public sealed class SubjectsController(
             return BadRequest("Invalid subject id format.");
         }
 
-        var detail = await subjectQueries.GetDetailByIdAsync(subjectId, cancellationToken);
+        var result = await mediator.Send(new GetSubjectByIdQuery(subjectId), cancellationToken);
 
-        if (detail is null)
+        if (!result.IsSuccess)
         {
             return NotFound();
         }
 
-        return Ok(detail);
+        return Ok(result.Value);
     }
 
     [HttpGet("{subjectId}/addresses")]
@@ -89,8 +92,13 @@ public sealed class SubjectsController(
             return BadRequest("Invalid subject id format.");
         }
 
-        var addresses = await subjectQueries.GetAddressesAsync(subjectId, cancellationToken);
-        return Ok(addresses);
+        var result = await mediator.Send(new GetSubjectAddressesQuery(subjectId), cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpGet("{subjectId}/employments")]
@@ -104,8 +112,13 @@ public sealed class SubjectsController(
             return BadRequest("Invalid subject id format.");
         }
 
-        var employments = await subjectQueries.GetEmploymentsAsync(subjectId, cancellationToken);
-        return Ok(employments);
+        var result = await mediator.Send(new GetSubjectEmploymentsQuery(subjectId), cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpGet("{subjectId}/educations")]
@@ -119,8 +132,13 @@ public sealed class SubjectsController(
             return BadRequest("Invalid subject id format.");
         }
 
-        var educations = await subjectQueries.GetEducationsAsync(subjectId, cancellationToken);
-        return Ok(educations);
+        var result = await mediator.Send(new GetSubjectEducationsQuery(subjectId), cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpGet("{subjectId}/references")]
@@ -134,8 +152,13 @@ public sealed class SubjectsController(
             return BadRequest("Invalid subject id format.");
         }
 
-        var references = await subjectQueries.GetReferencesAsync(subjectId, cancellationToken);
-        return Ok(references);
+        var result = await mediator.Send(new GetSubjectReferencesQuery(subjectId), cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpGet("{subjectId}/phones")]
@@ -149,8 +172,13 @@ public sealed class SubjectsController(
             return BadRequest("Invalid subject id format.");
         }
 
-        var phones = await subjectQueries.GetPhonesAsync(subjectId, cancellationToken);
-        return Ok(phones);
+        var result = await mediator.Send(new GetSubjectPhonesQuery(subjectId), cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpPost("merge")]
@@ -170,18 +198,12 @@ public sealed class SubjectsController(
             return BadRequest("Winner and merged subject ids must differ.");
         }
 
-        var actor = await GetCurrentUserAsync(cancellationToken);
         var result = await mediator.Send(new MergeSubjectCommand(
             UlidId.FromUlid(merged),
             UlidId.FromUlid(winner),
             DateTimeOffset.UtcNow), cancellationToken);
 
         return result.IsSuccess ? NoContent() : BadRequest(result.Error);
-    }
-
-    private async Task<UlidId> GetCurrentUserAsync(CancellationToken cancellationToken)
-    {
-        return await currentUserInitializer.EnsureCurrentUserIdAsync(cancellationToken);
     }
 
     public sealed record RegisterSubjectRequest(

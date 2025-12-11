@@ -2,11 +2,11 @@ using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions.Dtos;
-using Holmes.Customers.Application.Abstractions.Queries;
 using Holmes.Customers.Application.Commands;
+using Holmes.Customers.Application.Queries;
 using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Application.Commands;
+using Holmes.Services.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +18,6 @@ namespace Holmes.App.Server.Controllers;
 [Route("api/customers")]
 public sealed class CustomersController(
     IMediator mediator,
-    ICustomerQueries customerQueries,
-    IServiceCatalogQueries serviceCatalogQueries,
     ICurrentUserAccess currentUserAccess
 ) : ControllerBase
 {
@@ -37,11 +35,16 @@ public sealed class CustomersController(
             allowedCustomerIds = await currentUserAccess.GetAllowedCustomerIdsAsync(cancellationToken);
         }
 
-        var result = await customerQueries.GetCustomersPagedAsync(
-            allowedCustomerIds, page, pageSize, cancellationToken);
+        var result = await mediator.Send(
+            new ListCustomersQuery(allowedCustomerIds, page, pageSize), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
 
         return Ok(PaginatedResponse<CustomerListItemDto>.Create(
-            result.Items.ToList(), page, pageSize, result.TotalCount));
+            result.Value.Items.ToList(), page, pageSize, result.Value.TotalCount));
     }
 
     [HttpPost]
@@ -77,13 +80,15 @@ public sealed class CustomersController(
             contacts,
             timestamp), cancellationToken);
 
-        var created = await customerQueries.GetListItemByIdAsync(id.ToString(), cancellationToken);
-        if (created is null)
+        var createdResult = await mediator.Send(
+            new GetCustomerListItemQuery(id.ToString()), cancellationToken);
+
+        if (!createdResult.IsSuccess)
         {
             return Problem("Failed to load created customer.");
         }
 
-        return CreatedAtAction(nameof(GetCustomerById), new { customerId = id }, created);
+        return CreatedAtAction(nameof(GetCustomerById), new { customerId = id }, createdResult.Value);
     }
 
     [HttpGet("{customerId}")]
@@ -102,13 +107,13 @@ public sealed class CustomersController(
             return Forbid();
         }
 
-        var customer = await customerQueries.GetByIdAsync(customerId, cancellationToken);
-        if (customer is null)
+        var result = await mediator.Send(new GetCustomerByIdQuery(customerId), cancellationToken);
+        if (!result.IsSuccess)
         {
             return NotFound();
         }
 
-        return Ok(customer);
+        return Ok(result.Value);
     }
 
     [HttpPost("{customerId}/admins")]
@@ -181,14 +186,21 @@ public sealed class CustomersController(
             return Forbid();
         }
 
-        // Check customer exists via query interface
-        if (!await customerQueries.ExistsAsync(customerId, cancellationToken))
+        // Check customer exists via MediatR query
+        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
         {
             return NotFound();
         }
 
-        var catalog = await serviceCatalogQueries.GetByCustomerIdAsync(customerId, cancellationToken);
-        return Ok(catalog);
+        var catalogResult = await mediator.Send(
+            new GetCustomerServiceCatalogQuery(customerId), cancellationToken);
+
+        if (!catalogResult.IsSuccess)
+        {
+            return Problem(catalogResult.Error);
+        }
+
+        return Ok(catalogResult.Value);
     }
 
     [HttpPut("{customerId}/catalog/services")]

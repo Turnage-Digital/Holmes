@@ -60,25 +60,24 @@ public sealed class SqlCustomerQueries(CustomersDbContext dbContext) : ICustomer
 
     public async Task<CustomerDetailDto?> GetByIdAsync(string customerId, CancellationToken cancellationToken)
     {
-        var listItem = await GetListItemByIdAsync(customerId, cancellationToken);
-        if (listItem is null)
+        var directory = await dbContext.CustomerProjections.AsNoTracking()
+            .SingleOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken);
+
+        if (directory is null)
         {
             return null;
         }
 
-        var admins = await GetAdminsAsync(customerId, cancellationToken);
+        var profile = await dbContext.CustomerProfiles.AsNoTracking()
+            .Include(p => p.Contacts)
+            .SingleOrDefaultAsync(p => p.CustomerId == customerId, cancellationToken);
+        
+        var admins = await dbContext.CustomerAdmins.AsNoTracking()
+            .Where(a => a.CustomerId == customerId)
+            .Select(a => new CustomerAdminDto(a.UserId, a.AssignedBy.ToString(), a.AssignedAt))
+            .ToListAsync(cancellationToken);
 
-        return new CustomerDetailDto(
-            listItem.Id,
-            listItem.TenantId,
-            listItem.Name,
-            listItem.Status,
-            listItem.PolicySnapshotId,
-            listItem.BillingEmail,
-            listItem.CreatedAt,
-            listItem.UpdatedAt,
-            listItem.Contacts,
-            admins);
+        return CustomerMapper.ToDetail(directory, profile, admins);
     }
 
     public async Task<CustomerListItemDto?> GetListItemByIdAsync(string customerId, CancellationToken cancellationToken)

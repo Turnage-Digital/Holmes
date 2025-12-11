@@ -237,12 +237,12 @@ progress.
 
 Every bounded context ships four projects to support CQRS and database swappability:
 
-| Project                                     | Responsibilities                                                                       | References                                                                                 |
-|---------------------------------------------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| `Holmes.<Feature>.Domain`                   | Aggregates, domain events, `I<Feature>UnitOfWork`, write-focused repository interfaces | `Holmes.Core.Domain`                                                                       |
-| `Holmes.<Feature>.Application.Abstractions` | DTOs, query interfaces (`I<Feature>Queries`), broadcasters                             | `<Feature>.Domain`, `Holmes.Core.Domain`                                                   |
-| `Holmes.<Feature>.Application`              | Commands, query handlers, MediatR handlers                                             | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Application`        |
-| `Holmes.<Feature>.Infrastructure.Sql`       | DbContext, repositories, query implementations (`Sql<Feature>Queries`), Specifications | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
+| Project                                     | Responsibilities                                                                             | References                                                                                 |
+|---------------------------------------------|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`                   | Aggregates, domain events, `I<Feature>UnitOfWork`, write-focused repository interfaces       | `Holmes.Core.Domain`                                                                       |
+| `Holmes.<Feature>.Application.Abstractions` | DTOs, query interfaces (`I<Feature>Queries`), broadcasters                                   | `<Feature>.Domain`, `Holmes.Core.Domain`                                                   |
+| `Holmes.<Feature>.Application`              | Commands, MediatR query objects (`*Query` + handlers in `Queries/` folder), command handlers | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql`       | DbContext, repositories, query implementations (`Sql<Feature>Queries`), Specifications       | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
 
 Additional infrastructure (e.g., caching, queues) follows the same naming pattern
 (`Infrastructure.Redis`, `Infrastructure.Search`, etc.) but **never** references the Application layer.
@@ -340,6 +340,80 @@ Each projection has a corresponding writer interface (e.g., `IUserProjectionWrit
 implemented in the Infrastructure layer. These writers handle the actual database operations for maintaining projection
 tables.
 
+### Query Pattern (CQRS Read Side)
+
+Controllers access read data through MediatR Query objects that delegate to Query Interfaces. This ensures:
+
+- Consistent MediatR pipeline for all operations (logging, validation, caching via behaviors)
+- Database-agnostic query interfaces in Application.Abstractions
+- Uniform controller injection (only `IMediator` + security interfaces)
+
+**Query Flow:**
+
+```
+Controller -> IMediator.Send(Query) -> QueryHandler -> I*Queries -> Sql*Queries -> DbContext
+```
+
+**Query Naming Conventions:**
+
+| Pattern            | Example                        |
+|--------------------|--------------------------------|
+| Single by ID       | `Get{Entity}ByIdQuery`         |
+| Single by criteria | `Get{Entity}By{Criteria}Query` |
+| List/paginated     | `List{Entities}Query`          |
+| Existence check    | `Check{Entity}ExistsQuery`     |
+| Specific property  | `Get{Entity}{Property}Query`   |
+| Stats/aggregations | `Get{Entity}StatsQuery`        |
+
+**Query Handler Pattern:**
+
+Query handlers in `*.Application/Queries/` inject query interfaces from `*.Application.Abstractions/Queries/`
+and delegate all database access. Query handlers contain no direct DbContext usage.
+
+```csharp
+public sealed record GetCustomerByIdQuery(string CustomerId) : RequestBase<Result<CustomerDetailDto>>;
+
+public sealed class GetCustomerByIdQueryHandler(
+    ICustomerQueries customerQueries
+) : IRequestHandler<GetCustomerByIdQuery, Result<CustomerDetailDto>>
+{
+    public async Task<Result<CustomerDetailDto>> Handle(
+        GetCustomerByIdQuery request,
+        CancellationToken cancellationToken
+    )
+    {
+        var customer = await customerQueries.GetByIdAsync(request.CustomerId, cancellationToken);
+        if (customer is null)
+        {
+            return Result.Fail<CustomerDetailDto>($"Customer {request.CustomerId} not found");
+        }
+        return Result.Success(customer);
+    }
+}
+```
+
+**Controller Usage:**
+
+Controllers inject only `IMediator` for queries (plus security interfaces like `ICurrentUserAccess`).
+They never inject query interfaces directly.
+
+```csharp
+public sealed class CustomersController(
+    IMediator mediator,
+    ICurrentUserAccess currentUserAccess
+) : ControllerBase
+{
+    [HttpGet("{customerId}")]
+    public async Task<ActionResult<CustomerDetailDto>> GetCustomerById(
+        string customerId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetCustomerByIdQuery(customerId), cancellationToken);
+        if (!result.IsSuccess) return NotFound();
+        return Ok(result.Value);
+    }
+}
+```
+
 ### Client Application (Holmes.Internal)
 
 - React + Vite (TypeScript) solution tracked via `Holmes.Internal.esproj`, launched with `npm run dev`.
@@ -407,7 +481,9 @@ tables.
   This ensures middleware and security code remain database-agnostic.
 - Host projects (`Holmes.App.Server`) wire modules through DI by referencing each module's
   `*.Application` and `*.Infrastructure.Sql`.
-- Controllers inject query interfaces (`IUserQueries`, `ICustomerQueries`) and MediatR—never DbContext.
+- Controllers inject `IMediator` for all queries and commands—never query interfaces or DbContext directly.
+  Security interfaces (`ICurrentUserAccess`, `ICurrentUserInitializer`) and special-case infrastructure
+  (e.g., `IEventStore` for audit) are the only other allowed injections.
 - Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.
 
 **Cross-module boundary rule (CRITICAL)**

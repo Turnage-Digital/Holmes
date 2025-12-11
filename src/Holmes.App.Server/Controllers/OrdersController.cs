@@ -3,14 +3,15 @@ using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Abstractions.Queries;
+using Holmes.Customers.Application.Queries;
 using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Queries;
 using Holmes.Services.Domain;
-using Holmes.Subjects.Application.Abstractions.Queries;
+using Holmes.Subjects.Application.Queries;
 using Holmes.Workflow.Application.Abstractions.Dtos;
 using Holmes.Workflow.Application.Abstractions.Queries;
 using Holmes.Workflow.Application.Commands;
+using Holmes.Workflow.Application.Queries;
 using Holmes.Workflow.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -23,10 +24,6 @@ namespace Holmes.App.Server.Controllers;
 [Route("api/orders")]
 public sealed class OrdersController(
     IMediator mediator,
-    IOrderQueries orderQueries,
-    ICustomerQueries customerQueries,
-    ISubjectQueries subjectQueries,
-    IServiceRequestQueries serviceRequestQueries,
     ICurrentUserAccess currentUserAccess,
     IEventStore eventStore
 ) : ControllerBase
@@ -54,13 +51,13 @@ public sealed class OrdersController(
             return Forbid();
         }
 
-        if (!await customerQueries.ExistsAsync(customerId, cancellationToken))
+        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
         {
             return NotFound($"Customer '{customerId}' not found.");
         }
 
         var subjectId = parsedSubject.ToString();
-        if (!await subjectQueries.ExistsAsync(subjectId, cancellationToken))
+        if (!await mediator.Send(new CheckSubjectExistsQuery(subjectId), cancellationToken))
         {
             return NotFound($"Subject '{subjectId}' not found.");
         }
@@ -81,14 +78,14 @@ public sealed class OrdersController(
             return BadRequest(result.Error);
         }
 
-        var summary = await orderQueries.GetSummaryByIdAsync(orderId.ToString(), cancellationToken);
+        var summaryResult = await mediator.Send(new GetOrderSummaryQuery(orderId.ToString()), cancellationToken);
 
-        if (summary is null)
+        if (!summaryResult.IsSuccess)
         {
             return Problem("Failed to load created order.");
         }
 
-        return Created($"/api/orders/{orderId}/timeline", summary);
+        return Created($"/api/orders/{orderId}/timeline", summaryResult.Value);
     }
 
     [HttpGet("summary")]
@@ -153,10 +150,16 @@ public sealed class OrdersController(
             customerId,
             NormalizeStatuses(query.Status));
 
-        var result = await orderQueries.GetSummariesPagedAsync(filter, page, pageSize, cancellationToken);
+        var queryResult = await mediator.Send(
+            new ListOrderSummariesQuery(filter, page, pageSize), cancellationToken);
+
+        if (!queryResult.IsSuccess)
+        {
+            return Problem(queryResult.Error);
+        }
 
         return Ok(PaginatedResponse<OrderSummaryDto>.Create(
-            result.Items.ToList(), page, pageSize, result.TotalCount));
+            queryResult.Value.Items.ToList(), page, pageSize, queryResult.Value.TotalCount));
     }
 
     [HttpGet("stats")]
@@ -175,8 +178,13 @@ public sealed class OrdersController(
             }
         }
 
-        var stats = await orderQueries.GetStatsAsync(allowedCustomers, cancellationToken);
-        return Ok(stats);
+        var result = await mediator.Send(new GetOrderStatsQuery(allowedCustomers), cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpGet("{orderId}/timeline")]
@@ -193,7 +201,8 @@ public sealed class OrdersController(
 
         var targetOrderId = parsedOrder.ToString();
 
-        var customerIdForOrder = await orderQueries.GetCustomerIdAsync(targetOrderId, cancellationToken);
+        var customerIdForOrder = await mediator.Send(
+            new GetOrderCustomerIdQuery(targetOrderId), cancellationToken);
 
         if (customerIdForOrder is null)
         {
@@ -206,10 +215,15 @@ public sealed class OrdersController(
         }
 
         var limit = Math.Clamp(query.Limit, 1, 200);
-        var events = await orderQueries.GetTimelineAsync(
-            targetOrderId, query.Before, limit, cancellationToken);
+        var result = await mediator.Send(
+            new GetOrderTimelineQuery(targetOrderId, query.Before, limit), cancellationToken);
 
-        return Ok(events);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpGet("{orderId}/services")]
@@ -226,7 +240,8 @@ public sealed class OrdersController(
         var targetOrderId = parsedOrder.ToString();
 
         // Verify order exists and user has access
-        var customerIdForOrder = await orderQueries.GetCustomerIdAsync(targetOrderId, cancellationToken);
+        var customerIdForOrder = await mediator.Send(
+            new GetOrderCustomerIdQuery(targetOrderId), cancellationToken);
 
         if (customerIdForOrder is null)
         {
@@ -238,8 +253,16 @@ public sealed class OrdersController(
             return Forbid();
         }
 
-        // Fetch all service requests for this order via query interface
-        var services = await serviceRequestQueries.GetByOrderIdAsync(targetOrderId, cancellationToken);
+        // Fetch all service requests for this order via MediatR query
+        var servicesResult = await mediator.Send(
+            new GetServiceRequestsByOrderQuery(UlidId.Parse(targetOrderId)), cancellationToken);
+
+        if (!servicesResult.IsSuccess)
+        {
+            return Problem(servicesResult.Error);
+        }
+
+        var services = servicesResult.Value;
 
         // Calculate counts
         var totalServices = services.Count;
@@ -276,7 +299,8 @@ public sealed class OrdersController(
         var targetOrderId = parsedOrder.ToString();
 
         // Verify order exists and user has access
-        var customerIdForOrder = await orderQueries.GetCustomerIdAsync(targetOrderId, cancellationToken);
+        var customerIdForOrder = await mediator.Send(
+            new GetOrderCustomerIdQuery(targetOrderId), cancellationToken);
 
         if (customerIdForOrder is null)
         {
@@ -288,7 +312,7 @@ public sealed class OrdersController(
             return Forbid();
         }
 
-        // Read events from the event store for this order's stream
+        // Read events from the event store for this order's stream (special case - direct IEventStore)
         var streamId = $"Order:{targetOrderId}";
         var clampedLimit = Math.Clamp(limit, 1, 500);
 
