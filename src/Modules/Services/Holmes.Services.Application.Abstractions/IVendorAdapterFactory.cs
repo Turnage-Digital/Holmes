@@ -1,6 +1,6 @@
 using Holmes.Services.Domain;
 
-namespace Holmes.Services.Application.Abstractions.Vendors;
+namespace Holmes.Services.Application.Abstractions;
 
 /// <summary>
 ///     Factory for resolving vendor adapters by code.

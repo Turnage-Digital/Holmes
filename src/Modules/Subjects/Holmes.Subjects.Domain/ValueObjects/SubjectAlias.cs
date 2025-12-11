@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 
-namespace Holmes.Subjects.Domain;
+namespace Holmes.Subjects.Domain.ValueObjects;
 
 public sealed class SubjectAlias : ValueObject
 {

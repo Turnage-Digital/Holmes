@@ -1,7 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Domain;
 
-namespace Holmes.Intake.Application.Abstractions.Sessions;
+namespace Holmes.Intake.Application.Abstractions.Projections;
 
 public interface IIntakeSessionReplaySource
 {

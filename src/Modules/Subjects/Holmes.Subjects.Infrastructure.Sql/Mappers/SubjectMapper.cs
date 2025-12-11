@@ -2,6 +2,7 @@ using System.Globalization;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Application.Abstractions.Dtos;
 using Holmes.Subjects.Domain;
+using Holmes.Subjects.Domain.ValueObjects;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 
 namespace Holmes.Subjects.Infrastructure.Sql.Mappers;

@@ -1,6 +1,6 @@
-using Holmes.Core.Domain.Results;
+using Holmes.Core.Domain;
 
-namespace Holmes.Core.Tests.Results;
+namespace Holmes.Core.Tests;
 
 [TestFixture]
 public class ResultTests

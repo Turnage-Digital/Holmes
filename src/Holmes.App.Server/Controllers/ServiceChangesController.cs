@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions.Notifications;
+using Holmes.Services.Application.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -2,6 +2,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.EventHandlers;
 using Holmes.Users.Domain;
 using Holmes.Users.Domain.Events;
+using Holmes.Users.Domain.ValueObjects;
 using Holmes.Users.Infrastructure.Sql;
 using Holmes.Users.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;

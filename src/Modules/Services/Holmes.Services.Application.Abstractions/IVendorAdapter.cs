@@ -1,6 +1,6 @@
 using Holmes.Services.Domain;
 
-namespace Holmes.Services.Application.Abstractions.Vendors;
+namespace Holmes.Services.Application.Abstractions;
 
 /// <summary>
 ///     Anti-corruption layer interface for vendor integrations.

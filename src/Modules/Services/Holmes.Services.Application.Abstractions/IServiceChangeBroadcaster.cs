@@ -2,7 +2,7 @@ using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Services.Domain;
 
-namespace Holmes.Services.Application.Abstractions.Notifications;
+namespace Holmes.Services.Application.Abstractions;
 
 public interface IServiceChangeBroadcaster
 {

@@ -235,16 +235,19 @@ finally
     Log.CloseAndFlush();
 }
 
-public sealed class ProvisionIdentityUserRequest
+namespace Holmes.Identity.Server
 {
-    [Required]
-    public string? HolmesUserId { get; init; }
+    public sealed class ProvisionIdentityUserRequest
+    {
+        [Required]
+        public string? HolmesUserId { get; init; }
 
-    [Required]
-    [EmailAddress]
-    public string? Email { get; init; }
+        [Required]
+        [EmailAddress]
+        public string? Email { get; init; }
 
-    public string? DisplayName { get; init; }
+        public string? DisplayName { get; init; }
 
-    public string? ConfirmationReturnUrl { get; init; }
+        public string? ConfirmationReturnUrl { get; init; }
+    }
 }

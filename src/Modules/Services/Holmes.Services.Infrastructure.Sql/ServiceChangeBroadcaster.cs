@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions.Notifications;
+using Holmes.Services.Application.Abstractions;
 
-namespace Holmes.Services.Infrastructure.Sql.Notifications;
+namespace Holmes.Services.Infrastructure.Sql;
 
 public sealed class ServiceChangeBroadcaster : IServiceChangeBroadcaster
 {

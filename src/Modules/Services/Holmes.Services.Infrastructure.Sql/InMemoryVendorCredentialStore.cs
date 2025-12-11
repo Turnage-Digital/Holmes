@@ -1,7 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions.Vendors;
+using Holmes.Services.Application.Abstractions;
 
-namespace Holmes.Services.Infrastructure.Sql.Vendors;
+namespace Holmes.Services.Infrastructure.Sql;
 
 /// <summary>
 ///     In-memory credential store for development and testing.

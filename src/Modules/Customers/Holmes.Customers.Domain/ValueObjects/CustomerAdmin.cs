@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 
-namespace Holmes.Customers.Domain;
+namespace Holmes.Customers.Domain.ValueObjects;
 
 public sealed class CustomerAdmin : ValueObject
 {

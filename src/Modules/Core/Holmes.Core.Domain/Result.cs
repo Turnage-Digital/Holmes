@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Holmes.Core.Domain.Results;
+namespace Holmes.Core.Domain;
 
 public class Result
 {

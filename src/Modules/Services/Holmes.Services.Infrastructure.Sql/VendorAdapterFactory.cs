@@ -1,7 +1,7 @@
-using Holmes.Services.Application.Abstractions.Vendors;
+using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Domain;
 
-namespace Holmes.Services.Infrastructure.Sql.Vendors;
+namespace Holmes.Services.Infrastructure.Sql;
 
 public sealed class VendorAdapterFactory : IVendorAdapterFactory
 {

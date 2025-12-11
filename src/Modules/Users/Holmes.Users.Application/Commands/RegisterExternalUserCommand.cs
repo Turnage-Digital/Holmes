@@ -4,6 +4,7 @@ using Holmes.Users.Application.Abstractions.Queries;
 using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Domain.Events;
+using Holmes.Users.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Users.Application.Commands;

@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 
-namespace Holmes.Users.Domain;
+namespace Holmes.Users.Domain.ValueObjects;
 
 public sealed class ExternalIdentity : ValueObject
 {

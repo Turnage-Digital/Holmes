@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Domain.Events;
+using Holmes.Users.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Users.Domain;

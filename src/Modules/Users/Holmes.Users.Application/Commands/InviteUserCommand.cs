@@ -1,5 +1,5 @@
 using Holmes.Core.Application;
-using Holmes.Core.Domain.Results;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Abstractions.Queries;
 using Holmes.Users.Domain;

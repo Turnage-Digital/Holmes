@@ -1,10 +1,10 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Intake.Application.Abstractions.Sessions;
+using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Holmes.Intake.Infrastructure.Sql.Sessions;
+namespace Holmes.Intake.Infrastructure.Sql.Projections;
 
 public sealed class SqlIntakeSessionReplaySource(IntakeDbContext dbContext) : IIntakeSessionReplaySource
 {

@@ -1,8 +1,8 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions.Vendors;
+using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Domain;
 
-namespace Holmes.Services.Infrastructure.Sql.Vendors;
+namespace Holmes.Services.Infrastructure.Sql;
 
 /// <summary>
 ///     Stub vendor adapter for development and testing.

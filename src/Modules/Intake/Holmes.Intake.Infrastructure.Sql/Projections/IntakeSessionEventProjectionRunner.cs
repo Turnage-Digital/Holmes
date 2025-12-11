@@ -11,39 +11,32 @@ namespace Holmes.Intake.Infrastructure.Sql.Projections;
 ///     Event-based projection runner for Intake Session projections.
 ///     Replays IntakeSession domain events to rebuild the intake_session_projections table.
 /// </summary>
-public sealed class IntakeSessionEventProjectionRunner : EventProjectionRunner
+public sealed class IntakeSessionEventProjectionRunner(
+    IntakeDbContext intakeDbContext,
+    CoreDbContext coreDbContext,
+    IEventStore eventStore,
+    IDomainEventSerializer serializer,
+    IPublisher publisher,
+    ILogger<IntakeSessionEventProjectionRunner> logger
+)
+    : EventProjectionRunner(coreDbContext, eventStore, serializer, publisher, logger)
 {
-    private readonly IntakeDbContext _intakeDbContext;
-
-    public IntakeSessionEventProjectionRunner(
-        IntakeDbContext intakeDbContext,
-        CoreDbContext coreDbContext,
-        IEventStore eventStore,
-        IDomainEventSerializer serializer,
-        IPublisher publisher,
-        ILogger<IntakeSessionEventProjectionRunner> logger
-    )
-        : base(coreDbContext, eventStore, serializer, publisher, logger)
-    {
-        _intakeDbContext = intakeDbContext;
-    }
-
     protected override string ProjectionName => "intake.sessions.events";
 
-    protected override string[]? StreamTypes => ["IntakeSession"];
+    protected override string[] StreamTypes => ["IntakeSession"];
 
     protected override async Task ResetProjectionAsync(CancellationToken cancellationToken)
     {
-        if (_intakeDbContext.Database.IsRelational())
+        if (intakeDbContext.Database.IsRelational())
         {
-            await _intakeDbContext.IntakeSessionProjections.ExecuteDeleteAsync(cancellationToken);
+            await intakeDbContext.IntakeSessionProjections.ExecuteDeleteAsync(cancellationToken);
         }
         else
         {
-            _intakeDbContext.IntakeSessionProjections.RemoveRange(_intakeDbContext.IntakeSessionProjections);
-            await _intakeDbContext.SaveChangesAsync(cancellationToken);
+            intakeDbContext.IntakeSessionProjections.RemoveRange(intakeDbContext.IntakeSessionProjections);
+            await intakeDbContext.SaveChangesAsync(cancellationToken);
         }
 
-        _intakeDbContext.ChangeTracker.Clear();
+        intakeDbContext.ChangeTracker.Clear();
     }
 }

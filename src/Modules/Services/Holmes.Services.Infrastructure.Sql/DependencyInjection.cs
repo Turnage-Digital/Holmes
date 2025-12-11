@@ -1,10 +1,7 @@
-using Holmes.Services.Application.Abstractions.Notifications;
+using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Queries;
-using Holmes.Services.Application.Abstractions.Vendors;
 using Holmes.Services.Domain;
-using Holmes.Services.Infrastructure.Sql.Notifications;
 using Holmes.Services.Infrastructure.Sql.Queries;
-using Holmes.Services.Infrastructure.Sql.Vendors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

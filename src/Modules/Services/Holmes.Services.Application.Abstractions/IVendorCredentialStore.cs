@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 
-namespace Holmes.Services.Application.Abstractions.Vendors;
+namespace Holmes.Services.Application.Abstractions;
 
 /// <summary>
 ///     Infrastructure port for retrieving vendor credentials.

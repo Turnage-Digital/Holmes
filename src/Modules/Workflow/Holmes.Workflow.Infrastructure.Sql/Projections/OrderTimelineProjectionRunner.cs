@@ -2,7 +2,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Entities;
 using Holmes.Core.Infrastructure.Sql.Projections;
-using Holmes.Intake.Application.Abstractions.Sessions;
+using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Domain;
 using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Domain;

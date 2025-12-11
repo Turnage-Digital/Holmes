@@ -3,7 +3,7 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Entities;
-using Holmes.Intake.Infrastructure.Sql.Sessions;
+using Holmes.Intake.Infrastructure.Sql.Projections;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
