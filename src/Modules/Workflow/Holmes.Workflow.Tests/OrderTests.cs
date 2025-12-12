@@ -99,6 +99,90 @@ public class OrderTests
     }
 
     [Test]
+    public void BeginFulfillmentRequiresReadyForFulfillment()
+    {
+        var order = CreateOrder();
+        var sessionId = UlidId.NewUlid();
+        order.RecordInvite(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeInProgress(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeSubmitted(sessionId, DateTimeOffset.UtcNow);
+        order.MarkReadyForFulfillment(DateTimeOffset.UtcNow);
+        var startedAt = DateTimeOffset.UtcNow;
+
+        order.BeginFulfillment(startedAt);
+
+        Assert.That(order.Status, Is.EqualTo(OrderStatus.FulfillmentInProgress));
+    }
+
+    [Test]
+    public void BeginFulfillmentFromWrongStatusThrows()
+    {
+        var order = CreateOrder();
+        var sessionId = UlidId.NewUlid();
+        order.RecordInvite(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeInProgress(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeSubmitted(sessionId, DateTimeOffset.UtcNow);
+
+        // Try to begin fulfillment from IntakeComplete (should fail, needs ReadyForFulfillment)
+        Assert.Throws<InvalidOperationException>(() =>
+            order.BeginFulfillment(DateTimeOffset.UtcNow));
+    }
+
+    [Test]
+    public void MarkReadyForReportRequiresFulfillmentInProgress()
+    {
+        var order = CreateOrder();
+        var sessionId = UlidId.NewUlid();
+        order.RecordInvite(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeInProgress(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeSubmitted(sessionId, DateTimeOffset.UtcNow);
+        order.MarkReadyForFulfillment(DateTimeOffset.UtcNow);
+        order.BeginFulfillment(DateTimeOffset.UtcNow);
+        var readyAt = DateTimeOffset.UtcNow;
+
+        order.MarkReadyForReport(readyAt);
+
+        Assert.That(order.Status, Is.EqualTo(OrderStatus.ReadyForReport));
+    }
+
+    [Test]
+    public void MarkReadyForReportFromWrongStatusThrows()
+    {
+        var order = CreateOrder();
+        var sessionId = UlidId.NewUlid();
+        order.RecordInvite(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeInProgress(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeSubmitted(sessionId, DateTimeOffset.UtcNow);
+        order.MarkReadyForFulfillment(DateTimeOffset.UtcNow);
+
+        // Try to mark ready for report from ReadyForFulfillment (should fail, needs FulfillmentInProgress)
+        Assert.Throws<InvalidOperationException>(() =>
+            order.MarkReadyForReport(DateTimeOffset.UtcNow));
+    }
+
+    [Test]
+    public void CloseRequiresReadyForReport()
+    {
+        var order = CreateOrder();
+        var sessionId = UlidId.NewUlid();
+        order.RecordInvite(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeInProgress(sessionId, DateTimeOffset.UtcNow);
+        order.MarkIntakeSubmitted(sessionId, DateTimeOffset.UtcNow);
+        order.MarkReadyForFulfillment(DateTimeOffset.UtcNow);
+        order.BeginFulfillment(DateTimeOffset.UtcNow);
+        order.MarkReadyForReport(DateTimeOffset.UtcNow);
+        var closedAt = DateTimeOffset.UtcNow;
+
+        order.Close(closedAt);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(order.Status, Is.EqualTo(OrderStatus.Closed));
+            Assert.That(order.ClosedAt, Is.EqualTo(closedAt));
+        });
+    }
+
+    [Test]
     public void BlockAndResumeRestoresPreviousStatus()
     {
         var order = CreateOrder();

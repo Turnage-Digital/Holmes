@@ -16,6 +16,7 @@
         <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application.Abstractions\Holmes.SlaClocks.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application\Holmes.SlaClocks.Application.csproj"/>
         <ProjectReference Include="..\Modules\Subjects\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj"/>
+        <ProjectReference Include="..\Modules\Workflow\Holmes.Workflow.Application.Abstractions\Holmes.Workflow.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Modules\Workflow\Holmes.Workflow.Application\Holmes.Workflow.Application.csproj"/>
     </ItemGroup>
 

@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-12 (Service projections added)
+**Last Updated:** 2025-12-12 (Order fulfillment handler completed)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -13,12 +13,14 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 | Phase | Focus | Backend Status | Frontend Status | Overall |
 |-------|-------|----------------|-----------------|---------|
 | **3.0** | SLA Clocks & Notifications | ✅ Complete | ❌ Not integrated | 85% |
-| **3.1** | Services & Fulfillment | 🟡 Missing fulfillment handler | 🟡 Mock data | 70% |
+| **3.1** | Services & Fulfillment | ✅ Complete | 🟡 Mock data | 80% |
 | **3.2** | Subject Data & Frontend | 🟡 Partial | 🟡 Scaffolded | 40% |
 
-**Bottom line:** Backend aggregates, commands, and read-only projections exist for all modules. The main
-missing piece is the order fulfillment handler (creates ServiceRequests when Order reaches
-`ReadyForFulfillment`). Frontend is scaffolded but uses mock data and hasn't been wired to real APIs.
+**Bottom line:** Backend aggregates, commands, and read-only projections exist for all modules. The order
+fulfillment handler is now complete — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
+`ReadyForFulfillment` and transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler` advances
+Order to `ReadyForReport` when all services complete. Frontend is scaffolded but uses mock data and hasn't
+been wired to real APIs.
 
 ---
 
@@ -68,7 +70,7 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 
 ## Phase 3.1 — Services & Fulfillment
 
-### Backend: 🟡 MOSTLY COMPLETE
+### Backend: ✅ COMPLETE
 
 **Services Module** (`src/Modules/Services/`)
 - [x] `ServiceRequest` aggregate with state machine (Pending → Dispatched → InProgress → Completed/Failed/Canceled)
@@ -82,7 +84,8 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - [x] `IServiceChangeBroadcaster` for SSE
 - [x] **Read-only projections** (`service_projections` table, `ServiceProjectionHandler`, `ServiceEventProjectionRunner`)
 - [x] Unit tests: `ServiceRequestTests`, `ServiceProjectionHandlerTests`
-- [ ] **Order fulfillment handler** — creates ServiceRequests when Order reaches `ReadyForFulfillment`
+- [x] **Order fulfillment handler** — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches `ReadyForFulfillment`
+- [x] **Service completion handler** — `ServiceCompletionOrderHandler` advances Order to `ReadyForReport` when all services complete
 
 **Controllers:**
 - [x] `ServicesController` — CRUD for service requests
@@ -204,14 +207,14 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 
 ## Immediate Priorities
 
-### Priority 1: Backend Projections & Routing
+### Priority 1: Backend Projections & Routing ✅ COMPLETE
 
 Read-only projections are needed before frontend can wire to real APIs.
 
 1. ~~**Add SlaClocks read-only projections**~~ ✅ DONE (`sla_clock_projections` table, `SlaClockProjectionHandler`, `SlaClockEventProjectionRunner`)
 2. ~~**Add Notifications read-only projections**~~ ✅ DONE (`notification_projections` table, `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
 3. ~~**Add Services read-only projections**~~ ✅ DONE (`service_projections` table, `ServiceProjectionHandler`, `ServiceEventProjectionRunner`)
-4. **Create order fulfillment handler** — when Order reaches `ReadyForFulfillment`, create ServiceRequests based on customer catalog
+4. ~~**Create order fulfillment handler**~~ ✅ DONE — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches `ReadyForFulfillment`, then transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler` transitions Order to `ReadyForReport` when all services complete.
 
 ### Priority 2: Wire Frontend to Real APIs
 
