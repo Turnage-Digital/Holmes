@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 
-namespace Holmes.Intake.Domain.Storage;
+namespace Holmes.Intake.Domain;
 
 public interface IConsentArtifactStore
 {

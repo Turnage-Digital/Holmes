@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Workflow.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20251208124818_InitialWorkflow")]
+    [Migration("20251211224838_InitialWorkflow")]
     partial class InitialWorkflow
     {
         /// <inheritdoc />
@@ -82,7 +82,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
-                    b.Property<DateTimeOffset?>("ReadyForRoutingAt")
+                    b.Property<DateTimeOffset?>("ReadyForFulfillmentAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")
@@ -142,7 +142,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
-                    b.Property<DateTimeOffset?>("ReadyForRoutingAt")
+                    b.Property<DateTimeOffset?>("ReadyForFulfillmentAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")

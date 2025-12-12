@@ -79,7 +79,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
-                    b.Property<DateTimeOffset?>("ReadyForRoutingAt")
+                    b.Property<DateTimeOffset?>("ReadyForFulfillmentAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")
@@ -139,7 +139,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
-                    b.Property<DateTimeOffset?>("ReadyForRoutingAt")
+                    b.Property<DateTimeOffset?>("ReadyForFulfillmentAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Status")

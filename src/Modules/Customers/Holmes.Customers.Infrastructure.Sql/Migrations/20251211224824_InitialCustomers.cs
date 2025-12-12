@@ -16,25 +16,6 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "customer_directory",
-                columns: table => new
-                {
-                    CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Name = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)"),
-                    AdminCount = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_customer_directory", x => x.CustomerId);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "customer_profiles",
                 columns: table => new
                 {
@@ -52,6 +33,25 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_customer_profiles", x => x.CustomerId);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "customer_projections",
+                columns: table => new
+                {
+                    CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Name = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP(6)"),
+                    AdminCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_customer_projections", x => x.CustomerId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -151,7 +151,7 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                 name: "customer_contacts");
 
             migrationBuilder.DropTable(
-                name: "customer_directory");
+                name: "customer_projections");
 
             migrationBuilder.DropTable(
                 name: "customers");

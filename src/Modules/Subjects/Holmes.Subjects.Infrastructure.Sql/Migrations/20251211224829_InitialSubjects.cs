@@ -16,7 +16,7 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "subject_directory",
+                name: "subject_projections",
                 columns: table => new
                 {
                     SubjectId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
@@ -34,7 +34,7 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_subject_directory", x => x.SubjectId);
+                    table.PrimaryKey("PK_subject_projections", x => x.SubjectId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -312,9 +312,6 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                 name: "subject_aliases");
 
             migrationBuilder.DropTable(
-                name: "subject_directory");
-
-            migrationBuilder.DropTable(
                 name: "subject_educations");
 
             migrationBuilder.DropTable(
@@ -322,6 +319,9 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
 
             migrationBuilder.DropTable(
                 name: "subject_phones");
+
+            migrationBuilder.DropTable(
+                name: "subject_projections");
 
             migrationBuilder.DropTable(
                 name: "subject_references");

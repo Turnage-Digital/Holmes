@@ -2,11 +2,9 @@ using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Application.Abstractions.Queries;
 using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Domain;
-using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql.Projections;
 using Holmes.Intake.Infrastructure.Sql.Queries;
 using Holmes.Intake.Infrastructure.Sql.Services;
-using Holmes.Intake.Infrastructure.Sql.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

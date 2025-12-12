@@ -34,7 +34,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     LastUpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    ReadyForRoutingAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
+                    ReadyForFulfillmentAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     ClosedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     CanceledAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true)
                 },
@@ -98,7 +98,7 @@ namespace Holmes.Workflow.Infrastructure.Sql.Migrations
                     InvitedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     IntakeStartedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     IntakeCompletedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
-                    ReadyForRoutingAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
+                    ReadyForFulfillmentAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     ClosedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     CanceledAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true)
                 },

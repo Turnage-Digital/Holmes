@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Subjects.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(SubjectsDbContext))]
-    [Migration("20251208124808_InitialSubjects")]
+    [Migration("20251211224829_InitialSubjects")]
     partial class InitialSubjects
     {
         /// <inheritdoc />
@@ -184,47 +184,6 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                     b.ToTable("subjects", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectDirectoryDb", b =>
-                {
-                    b.Property<string>("SubjectId")
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
-                    b.Property<int>("AliasCount")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-
-                    b.Property<DateOnly?>("DateOfBirth")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(320)
-                        .HasColumnType("varchar(320)");
-
-                    b.Property<string>("FamilyName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("GivenName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<bool>("IsMerged")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
-
-                    b.HasKey("SubjectId");
-
-                    b.ToTable("subject_directory", (string)null);
-                });
-
             modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectEducationDb", b =>
                 {
                     b.Property<string>("Id")
@@ -370,6 +329,47 @@ namespace Holmes.Subjects.Infrastructure.Sql.Migrations
                     b.HasIndex("SubjectId");
 
                     b.ToTable("subject_phones", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectProjectionDb", b =>
+                {
+                    b.Property<string>("SubjectId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<int>("AliasCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<string>("FamilyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("GivenName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsMerged")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("SubjectId");
+
+                    b.ToTable("subject_projections", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Subjects.Infrastructure.Sql.Entities.SubjectReferenceDb", b =>

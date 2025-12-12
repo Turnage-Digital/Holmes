@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Notifications.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(NotificationsDbContext))]
-    [Migration("20251208124828_InitialNotifications")]
+    [Migration("20251211224848_InitialNotifications")]
     partial class InitialNotifications
     {
         /// <inheritdoc />

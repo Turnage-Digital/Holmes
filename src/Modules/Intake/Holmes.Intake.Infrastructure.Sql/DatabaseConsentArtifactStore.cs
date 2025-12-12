@@ -2,11 +2,11 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Intake.Domain.Storage;
+using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Holmes.Intake.Infrastructure.Sql.Storage;
+namespace Holmes.Intake.Infrastructure.Sql;
 
 public sealed class DatabaseConsentArtifactStore(
     IntakeDbContext dbContext,

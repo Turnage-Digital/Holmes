@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Customers.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(CustomersDbContext))]
-    [Migration("20251208124803_InitialCustomers")]
+    [Migration("20251211224824_InitialCustomers")]
     partial class InitialCustomers
     {
         /// <inheritdoc />
@@ -129,35 +129,6 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.ToTable("customers", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerDirectoryDb", b =>
-                {
-                    b.Property<string>("CustomerId")
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
-                    b.Property<int>("AdminCount")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("varchar(32)");
-
-                    b.HasKey("CustomerId");
-
-                    b.ToTable("customer_directory", (string)null);
-                });
-
             modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProfileDb", b =>
                 {
                     b.Property<string>("CustomerId")
@@ -191,6 +162,35 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                     b.HasKey("CustomerId");
 
                     b.ToTable("customer_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerProjectionDb", b =>
+                {
+                    b.Property<string>("CustomerId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<int>("AdminCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("CustomerId");
+
+                    b.ToTable("customer_projections", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Customers.Infrastructure.Sql.Entities.CustomerAdminDb", b =>

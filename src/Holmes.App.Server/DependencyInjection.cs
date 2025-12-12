@@ -22,10 +22,8 @@ using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
-using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
-using Holmes.Intake.Infrastructure.Sql.Storage;
 using Holmes.Notifications.Application.Abstractions.Queries;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
@@ -33,6 +31,7 @@ using Holmes.Notifications.Infrastructure.Sql;
 using Holmes.Notifications.Infrastructure.Sql.Queries;
 using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
 using Holmes.Services.Infrastructure.Sql.Queries;
@@ -153,6 +152,7 @@ internal static class DependencyInjection
             config.RegisterServicesFromAssemblyContaining<IssueIntakeInviteCommand>();
             config.RegisterServicesFromAssemblyContaining<CreateNotificationRequestCommand>();
             config.RegisterServicesFromAssemblyContaining<StartSlaClockCommand>();
+            config.RegisterServicesFromAssemblyContaining<CreateServiceRequestCommand>();
         });
 
         return services;
@@ -208,7 +208,23 @@ internal static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddHolmesModules(
+    public static IServiceCollection AddHolmesHostedServices(
+        this IServiceCollection services,
+        IWebHostEnvironment environment
+    )
+    {
+        if (environment.IsDevelopment())
+        {
+            services.AddHostedService<SeedData>();
+        }
+
+        services.AddHostedService<NotificationProcessingService>();
+        services.AddHostedService<SlaClockWatchdogService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddHolmesInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
         IWebHostEnvironment environment
@@ -223,25 +239,13 @@ internal static class DependencyInjection
 
         if (string.IsNullOrWhiteSpace(connectionString) || isTestEnvironment || isRunningInTestHost)
         {
-            services.AddHolmesInfrastructureForTesting();
-        }
-        else
-        {
-            services.AddHolmesInfrastructure(connectionString);
+            return services.AddInfrastructureForTesting();
         }
 
-        if (environment.IsDevelopment())
-        {
-            services.AddHostedService<SeedData>();
-        }
-
-        services.AddHostedService<NotificationProcessingService>();
-        services.AddHostedService<SlaClockWatchdogService>();
-
-        return services;
+        return services.AddInfrastructureForProduction(connectionString);
     }
 
-    private static IServiceCollection AddHolmesInfrastructure(
+    private static IServiceCollection AddInfrastructureForProduction(
         this IServiceCollection services,
         string connectionString
     )
@@ -275,7 +279,7 @@ internal static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddHolmesInfrastructureForTesting(
+    private static IServiceCollection AddInfrastructureForTesting(
         this IServiceCollection services
     )
     {

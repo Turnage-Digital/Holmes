@@ -16,7 +16,7 @@ namespace Holmes.Users.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "user_directory",
+                name: "user_projections",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
@@ -35,7 +35,7 @@ namespace Holmes.Users.Infrastructure.Sql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_user_directory", x => x.UserId);
+                    table.PrimaryKey("PK_user_projections", x => x.UserId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -117,15 +117,15 @@ namespace Holmes.Users.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_user_directory_Issuer_Subject",
-                table: "user_directory",
-                columns: new[] { "Issuer", "Subject" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_user_external_identities_UserId_Issuer_Subject",
                 table: "user_external_identities",
                 columns: new[] { "UserId", "Issuer", "Subject" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_projections_Issuer_Subject",
+                table: "user_projections",
+                columns: new[] { "Issuer", "Subject" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -139,10 +139,10 @@ namespace Holmes.Users.Infrastructure.Sql.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "user_directory");
+                name: "user_external_identities");
 
             migrationBuilder.DropTable(
-                name: "user_external_identities");
+                name: "user_projections");
 
             migrationBuilder.DropTable(
                 name: "user_role_memberships");

@@ -893,6 +893,96 @@ create table adverse_action_clocks(
 
 ---
 
+## 16.1) Identity Architecture (Broker Model)
+
+Holmes.Identity.Server operates as a **federated identity broker**, not just a development stub.
+
+**Modes of Authentication:**
+
+- **Mode A: Tenant uses external IdP** (Azure AD, Okta, generic OIDC)
+    - Holmes.Identity redirects to upstream IdP
+    - Normalizes external identity into Holmes User Registry
+
+- **Mode B: Holmes-managed credentials** (for smaller tenants)
+    - Local password-based authentication in Holmes.Identity
+    - Still issues the same Holmes-standard tokens
+
+**Why a Broker?**
+
+- Uniform claims model across all tenants
+- Holmes enforces TenantId, roles, and policies centrally
+- Clean multi-tenant isolation
+- White-label friendly authentication UX
+- Supports mixed environments (some tenants bring IdP, others don't)
+
+Holmes.Identity.Server is the **single IdP for Holmes.App and Holmes.Internal**, delegating upstream only as needed.
+
+---
+
+## 16.2) White-Label & Multi-Tenant Architecture
+
+Holmes supports private-label deployments with:
+
+- Tenant-specific branding metadata (logo, colors, templates)
+- Themed login flows via Holmes.Identity
+- Themed Holmes.Internal UI
+- Tenant-scoped IdP configuration (BYO IdP)
+- Per-tenant features and billing entitlements
+
+**Deployment Options:**
+
+- Row-level tenant isolation via `TenantId` (default)
+- Separate schemas per bounded context
+- Optional per-tenant databases for enterprise deployments
+- Azure deployments via AKS with horizontal pod scaling
+
+---
+
+## 16.3) WORM Artifacts & Evidence Packs
+
+The `IConsentArtifactStore` abstraction supports **write-once, immutable storage** for:
+
+- Policy snapshots
+- Consent signatures
+- Adverse notices
+- Dispute submissions
+- Evidence bundles
+
+**Implementation:**
+
+- Hash verification for regulator integrity requirements
+- Backed initially by encrypted MySQL BLOBs (swappable to Azure Blob Storage)
+- Deterministic **Evidence Packs** (ZIP of PDFs + JSON manifest) containing:
+    - Full event history relevant to an order
+    - All artifacts pertaining to adverse action or disputes
+    - JSON manifest for reproducibility
+
+---
+
+## 16.4) Usage Metering & Entitlements
+
+A dedicated module records billable events via `ComplianceUsageRecord`:
+
+| Event Type | Description |
+|------------|-------------|
+| `AdverseActionCaseCreated` | Pre/final AA workflow initiated |
+| `EvidencePackGenerated` | Evidence bundle export |
+| `NotificationRequested` | Email/SMS/webhook fired |
+| `DisputeOpened` | Candidate dispute initiation |
+| `SimulationRun` | Policy what-if request |
+
+**Entitlements gate features:**
+
+- Compliance Suite
+- Adverse Action Automation
+- Evidence Packs
+- Dispute Portal
+- Adjudication Engine
+
+This allows Holmes to run multiple SaaS tiers in one deployment. See `docs/monetize/PRICING.md` for tier definitions.
+
+---
+
 ## 17) Observability
 
 - **Metrics**: invite→submit, intake P50/P90, on_track/at_risk/breached counts, notification send/fail, §611 dispute
