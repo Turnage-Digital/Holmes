@@ -158,14 +158,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Tests", "s
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "monetize", "monetize", "{F2A1738F-E327-4BF7-9C04-4D6BAB9646B0}"
 	ProjectSection(SolutionItems) = preProject
-		docs\monetize\README.md = docs\monetize\README.md
 		docs\monetize\PRICING.md = docs\monetize\PRICING.md
 		docs\monetize\GUARDRAILS.md = docs\monetize\GUARDRAILS.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "archive", "archive", "{A1B2C3D4-0000-0000-0000-000000000001}"
 	ProjectSection(SolutionItems) = preProject
-		docs\archive\README.md = docs\archive\README.md
 		docs\archive\PHASE_3.md = docs\archive\PHASE_3.md
 		docs\archive\PHASE_3_1.md = docs\archive\PHASE_3_1.md
 		docs\archive\PHASE_3_2.md = docs\archive\PHASE_3_2.md

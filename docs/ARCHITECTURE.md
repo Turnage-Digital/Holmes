@@ -197,9 +197,9 @@ progress.
     - `GetServiceRequestStatusQuery` – current status of a service.
 
 - **Integration with Order Workflow**
-    - When Order reaches `ReadyForRouting`, the `OrderRoutingService` determines which services are needed based on
+    - When Order reaches `ReadyForFulfillment`, the `OrderRoutingService` determines which services are needed based on
       the package and policy, then emits `CreateServiceRequestCommand` for each.
-    - When Order enters `RoutingInProgress`, individual services are dispatched.
+    - When Order enters `FulfillmentInProgress`, individual services are dispatched.
     - Order transitions to `ReadyForReport` only when all required services are `Completed` (or explicitly waived).
     - `ServiceRequestCompleted` events trigger `CheckOrderReadyForReportCommand` to evaluate if Order can advance.
 
@@ -614,15 +614,13 @@ idle → pre_sent → [paused ←→ pre_sent] → ready_final → final_sent �
 
 SLA clocks track time-bound obligations on Orders. Implemented in `Holmes.SlaClocks` module.
 
-| Clock Kind      | Trigger States                       | Default Target  |
-|-----------------|--------------------------------------|-----------------|
-| **Intake**      | `Invited` → `IntakeComplete`         | 1 business day  |
-| **Fulfillment** | `ReadyForRouting` → `ReadyForReport` | 3 business days |
-| **Overall**     | `Created` → `Closed`                 | 5 business days |
+| Clock Kind      | Trigger States                          | Default Target  |
+|-----------------|----------------------------------------|-----------------|
+| **Intake**      | `Invited` → `IntakeComplete`            | 1 business day  |
+| **Fulfillment** | `ReadyForFulfillment` → `ReadyForReport`| 3 business days |
+| **Overall**     | `Created` → `Closed`                    | 5 business days |
 
-**Terminology Note:** The Order state machine uses `ReadyForRouting`/`RoutingInProgress` internally, but SLA
-tracking uses **Fulfillment** to describe service execution (court searches, verifications, etc.). Default
-SLAs are fallbacks; actual targets come from customer service agreements.
+Default SLAs are fallbacks; actual targets come from customer service agreements.
 
 Clock states: `Running` → `AtRisk` (80% threshold) → `Breached` / `Completed`. Clocks can be `Paused` (e.g.,
 for disputes or holds) and `Resumed`.

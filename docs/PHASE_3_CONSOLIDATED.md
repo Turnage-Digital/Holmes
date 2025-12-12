@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-11
+**Last Updated:** 2025-12-12 (SLA Clock projections added)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -12,12 +12,13 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 
 | Phase | Focus | Backend Status | Frontend Status | Overall |
 |-------|-------|----------------|-----------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ Complete | ❌ Not integrated | 70% |
-| **3.1** | Services & Fulfillment | ✅ Complete | 🟡 Mock data | 75% |
+| **3.0** | SLA Clocks & Notifications | ✅ SLA complete, 🟡 Notifications | ❌ Not integrated | 70% |
+| **3.1** | Services & Fulfillment | 🟡 Missing projections + routing trigger | 🟡 Mock data | 55% |
 | **3.2** | Subject Data & Frontend | 🟡 Partial | 🟡 Scaffolded | 40% |
 
-**Bottom line:** Backend is well-defined and mostly complete. Frontend is scaffolded but uses mock data
-and hasn't been wired to real APIs.
+**Bottom line:** Backend aggregates and commands exist, but read-only projections are missing and
+nothing triggers service creation when orders are ready for routing. Frontend is scaffolded but uses
+mock data and hasn't been wired to real APIs.
 
 ---
 
@@ -33,7 +34,8 @@ and hasn't been wired to real APIs.
 - [x] `BusinessCalendarService` with US Federal holidays (2024-2026)
 - [x] `SlaClockWatchdogService` background service
 - [x] `OrderStatusChangedSlaHandler` integration
-- [x] Unit tests: `SlaClockTests`, `BusinessCalendarServiceTests`
+- [x] Unit tests: `SlaClockTests`, `BusinessCalendarServiceTests`, `SlaClockProjectionHandlerTests`
+- [x] **Read-only projections** (`sla_clock_projections` table, `SlaClockProjectionHandler`, `SlaClockEventProjectionRunner`)
 
 **Notifications Module** (`src/Modules/Notifications/`)
 - [x] `NotificationRequest` aggregate with delivery lifecycle
@@ -43,6 +45,7 @@ and hasn't been wired to real APIs.
 - [x] Stub providers: LoggingEmailProvider, LoggingSmsProvider, LoggingWebhookProvider
 - [x] `NotificationProcessingService` background service
 - [x] Unit tests: `NotificationRequestTests`
+- [ ] **Read-only projections** (`notification_history` read model for queries)
 
 ### Frontend: ❌ NOT INTEGRATED
 
@@ -57,19 +60,15 @@ and hasn't been wired to real APIs.
 - [ ] `GET /api/notifications?orderId={id}` — returns notifications for order
 - [ ] SSE extension for `clock.at_risk`, `clock.breached` events
 
-### Observability: ❌ NOT DONE
+### Observability: DEFERRED
 
-- [ ] Clock health Grafana dashboard
-- [ ] Notification delivery metrics
-- [ ] Alerts for breached clocks
-- [ ] Alerts for notification failures
-- [ ] Runbooks for clock replay and notification retry
+Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging exists.
 
 ---
 
 ## Phase 3.1 — Services & Fulfillment
 
-### Backend: ✅ COMPLETE
+### Backend: 🟡 MOSTLY COMPLETE
 
 **Services Module** (`src/Modules/Services/`)
 - [x] `ServiceRequest` aggregate with state machine (Pending → Dispatched → InProgress → Completed/Failed/Canceled)
@@ -81,6 +80,8 @@ and hasn't been wired to real APIs.
 - [x] Queries: GetServiceRequestsByOrder, GetServiceRequest, GetCustomerServiceCatalog, ListServiceTypes, GetOrderCompletionStatus
 - [x] `IVendorAdapter` interface with credential store abstraction
 - [x] `IServiceChangeBroadcaster` for SSE
+- [ ] **Read-only projections** (`service_requests` read model for queries)
+- [ ] **Order routing trigger** — handler to create ServiceRequests when Order reaches `ReadyForFulfillment`
 
 **Controllers:**
 - [x] `ServicesController` — CRUD for service requests
@@ -202,35 +203,37 @@ and hasn't been wired to real APIs.
 
 ## Immediate Priorities
 
-### Priority 1: Wire Frontend to Real APIs
+### Priority 1: Backend Projections & Routing
 
-The backend is done. The frontend has components but uses mock data.
+Read-only projections are needed before frontend can wire to real APIs.
+
+1. ~~**Add SlaClocks read-only projections**~~ ✅ DONE (`sla_clock_projections` table, `SlaClockProjectionHandler`, `SlaClockEventProjectionRunner`)
+2. **Add Notifications read-only projections** (`notification_history` table, projection handler)
+3. **Add Services read-only projections** (`service_requests` table, projection handler)
+4. **Create order routing handler** — when Order reaches `ReadyForFulfillment`, create ServiceRequests based on customer catalog
+
+### Priority 2: Wire Frontend to Real APIs
+
+Once projections exist, wire frontend components.
 
 1. **Create SLA Clocks controller** with query endpoints
 2. **Wire FulfillmentDashboardPage** to real service queue endpoint
 3. **Add Services tab to OrderDetailPage** with real service data
 4. **Wire ServiceCatalogEditor** to customer catalog APIs
 
-### Priority 2: Complete Intake Flow
+### Priority 3: Complete Intake Flow
 
 1. **Finish AddressHistoryForm** with date range validation
 2. **Finish EmploymentHistoryForm** with all fields
 3. **Wire IntakeFlow** to submission API
 4. **Add policy-driven section visibility**
 
-### Priority 3: Subject Domain Expansion
+### Priority 4: Subject Domain Expansion
 
 1. **Add address collection** to Subject aggregate
 2. **Create EF migrations** for subject_addresses, etc.
 3. **Update SubmitIntakeCommand** to persist collections
 4. **Add Subject API endpoints** for address/employment data
-
-### Priority 4: Observability
-
-1. **Add SLA clock metrics** (at-risk/breached counts by customer)
-2. **Add notification delivery metrics**
-3. **Create Grafana dashboards**
-4. **Configure alerts**
 
 ---
 
@@ -252,11 +255,11 @@ The backend is done. The frontend has components but uses mock data.
 - [ ] Employment/Education captured in intake
 - [ ] Clock pause/resume from UI
 
-### Nice to Have
+### Deferred (Post Phase 3.x)
 
-- [ ] Grafana dashboards live
-- [ ] Alerts configured
-- [ ] Full intake flow with all sections
+- [ ] Grafana dashboards
+- [ ] Alerting configuration
+- [ ] Full intake flow with all sections (education, references)
 
 ---
 

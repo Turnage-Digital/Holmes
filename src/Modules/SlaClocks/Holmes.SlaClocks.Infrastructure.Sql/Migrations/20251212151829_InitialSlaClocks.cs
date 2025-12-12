@@ -35,6 +35,37 @@ namespace Holmes.SlaClocks.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "sla_clock_projections",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OrderId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Kind = table.Column<int>(type: "int", nullable: false),
+                    State = table.Column<int>(type: "int", nullable: false),
+                    StartedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    DeadlineAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    AtRiskThresholdAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    AtRiskAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    BreachedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    PausedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    PauseReason = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AccumulatedPauseMs = table.Column<long>(type: "bigint", nullable: false),
+                    TargetBusinessDays = table.Column<int>(type: "int", nullable: false),
+                    AtRiskThresholdPercent = table.Column<decimal>(type: "decimal(3,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sla_clock_projections", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "sla_clocks",
                 columns: table => new
                 {
@@ -71,6 +102,26 @@ namespace Holmes.SlaClocks.Infrastructure.Sql.Migrations
                 columns: new[] { "CustomerId", "Date" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_sla_clock_projections_CustomerId_State",
+                table: "sla_clock_projections",
+                columns: new[] { "CustomerId", "State" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sla_clock_projections_OrderId",
+                table: "sla_clock_projections",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sla_clock_projections_State_AtRiskThresholdAt",
+                table: "sla_clock_projections",
+                columns: new[] { "State", "AtRiskThresholdAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sla_clock_projections_State_DeadlineAt",
+                table: "sla_clock_projections",
+                columns: new[] { "State", "DeadlineAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_sla_clocks_CustomerId_State",
                 table: "sla_clocks",
                 columns: new[] { "CustomerId", "State" });
@@ -96,6 +147,9 @@ namespace Holmes.SlaClocks.Infrastructure.Sql.Migrations
         {
             migrationBuilder.DropTable(
                 name: "holidays");
+
+            migrationBuilder.DropTable(
+                name: "sla_clock_projections");
 
             migrationBuilder.DropTable(
                 name: "sla_clocks");

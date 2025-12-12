@@ -121,6 +121,75 @@ namespace Holmes.SlaClocks.Infrastructure.Sql.Migrations
 
                     b.ToTable("sla_clocks", (string)null);
                 });
+
+            modelBuilder.Entity("Holmes.SlaClocks.Infrastructure.Sql.Entities.SlaClockProjectionDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<long>("AccumulatedPauseMs")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("AtRiskAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("AtRiskThresholdAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("AtRiskThresholdPercent")
+                        .HasColumnType("decimal(3,2)");
+
+                    b.Property<DateTime?>("BreachedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateTime>("DeadlineAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<string>("PauseReason")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateTime?>("PausedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetBusinessDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("CustomerId", "State");
+
+                    b.HasIndex("State", "AtRiskThresholdAt");
+
+                    b.HasIndex("State", "DeadlineAt");
+
+                    b.ToTable("sla_clock_projections", (string)null);
+                });
 #pragma warning restore 612, 618
         }
     }
