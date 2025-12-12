@@ -26,7 +26,6 @@ public sealed class SlaClockProjectionHandlerTests
     [Test]
     public async Task Handle_SlaClockStarted_UpsertsProjection()
     {
-        // Arrange
         var clockId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -50,10 +49,8 @@ public sealed class SlaClockProjectionHandlerTests
             .Callback<SlaClockProjectionModel, CancellationToken>((m, _) => capturedModel = m)
             .Returns(Task.CompletedTask);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpsertAsync(It.IsAny<SlaClockProjectionModel>(), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -76,7 +73,6 @@ public sealed class SlaClockProjectionHandlerTests
     [Test]
     public async Task Handle_SlaClockPaused_UpdatesPauseInfo()
     {
-        // Arrange
         var clockId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -91,10 +87,8 @@ public sealed class SlaClockProjectionHandlerTests
             reason,
             pausedAt);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdatePauseInfoAsync(
                 clockId.ToString(),
@@ -108,7 +102,6 @@ public sealed class SlaClockProjectionHandlerTests
     [Test]
     public async Task Handle_SlaClockAtRisk_UpdatesAtRiskInfo()
     {
-        // Arrange
         var clockId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -123,10 +116,8 @@ public sealed class SlaClockProjectionHandlerTests
             atRiskAt,
             deadlineAt);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateAtRiskAsync(
                 clockId.ToString(),
@@ -139,7 +130,6 @@ public sealed class SlaClockProjectionHandlerTests
     [Test]
     public async Task Handle_SlaClockBreached_UpdatesBreachInfo()
     {
-        // Arrange
         var clockId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -154,10 +144,8 @@ public sealed class SlaClockProjectionHandlerTests
             breachedAt,
             deadlineAt);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateBreachedAsync(
                 clockId.ToString(),
@@ -170,7 +158,6 @@ public sealed class SlaClockProjectionHandlerTests
     [Test]
     public async Task Handle_SlaClockCompleted_UpdatesCompletionInfo()
     {
-        // Arrange
         var clockId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -187,10 +174,8 @@ public sealed class SlaClockProjectionHandlerTests
             WasAtRisk: false,
             TimeSpan.FromHours(12));
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateCompletedAsync(
                 clockId.ToString(),
@@ -203,7 +188,6 @@ public sealed class SlaClockProjectionHandlerTests
     [Test]
     public async Task Handle_SlaClockResumed_WhenClockFound_UpdatesResumeInfo()
     {
-        // Arrange
         var clockId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -243,10 +227,8 @@ public sealed class SlaClockProjectionHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(clockDto);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateResumeInfoAsync(
                 clockId.ToString(),
@@ -261,7 +243,6 @@ public sealed class SlaClockProjectionHandlerTests
     [Test]
     public async Task Handle_SlaClockResumed_WhenClockNotFound_FallsBackToStateUpdate()
     {
-        // Arrange
         var clockId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -283,10 +264,8 @@ public sealed class SlaClockProjectionHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((SlaClockDto?)null);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateStateAsync(
                 clockId.ToString(),

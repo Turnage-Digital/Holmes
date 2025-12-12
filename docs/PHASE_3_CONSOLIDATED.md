@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-12 (Notification projections added)
+**Last Updated:** 2025-12-12 (Service projections added)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -12,13 +12,13 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 
 | Phase | Focus | Backend Status | Frontend Status | Overall |
 |-------|-------|----------------|-----------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ SLA complete, ✅ Notifications | ❌ Not integrated | 85% |
-| **3.1** | Services & Fulfillment | 🟡 Missing projections + routing trigger | 🟡 Mock data | 55% |
+| **3.0** | SLA Clocks & Notifications | ✅ Complete | ❌ Not integrated | 85% |
+| **3.1** | Services & Fulfillment | 🟡 Missing routing trigger | 🟡 Mock data | 70% |
 | **3.2** | Subject Data & Frontend | 🟡 Partial | 🟡 Scaffolded | 40% |
 
-**Bottom line:** Backend aggregates and commands exist, but read-only projections are missing and
-nothing triggers service creation when orders are ready for routing. Frontend is scaffolded but uses
-mock data and hasn't been wired to real APIs.
+**Bottom line:** Backend aggregates, commands, and read-only projections exist for all modules. The main
+missing piece is the order routing trigger (handler to create ServiceRequests when Order reaches
+`ReadyForFulfillment`). Frontend is scaffolded but uses mock data and hasn't been wired to real APIs.
 
 ---
 
@@ -80,7 +80,8 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - [x] Queries: GetServiceRequestsByOrder, GetServiceRequest, GetCustomerServiceCatalog, ListServiceTypes, GetOrderCompletionStatus
 - [x] `IVendorAdapter` interface with credential store abstraction
 - [x] `IServiceChangeBroadcaster` for SSE
-- [ ] **Read-only projections** (`service_requests` read model for queries)
+- [x] **Read-only projections** (`service_projections` table, `ServiceProjectionHandler`, `ServiceEventProjectionRunner`)
+- [x] Unit tests: `ServiceRequestTests`, `ServiceProjectionHandlerTests`
 - [ ] **Order routing trigger** — handler to create ServiceRequests when Order reaches `ReadyForFulfillment`
 
 **Controllers:**
@@ -209,7 +210,7 @@ Read-only projections are needed before frontend can wire to real APIs.
 
 1. ~~**Add SlaClocks read-only projections**~~ ✅ DONE (`sla_clock_projections` table, `SlaClockProjectionHandler`, `SlaClockEventProjectionRunner`)
 2. ~~**Add Notifications read-only projections**~~ ✅ DONE (`notification_projections` table, `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
-3. **Add Services read-only projections** (`service_requests` table, projection handler)
+3. ~~**Add Services read-only projections**~~ ✅ DONE (`service_projections` table, `ServiceProjectionHandler`, `ServiceEventProjectionRunner`)
 4. **Create order routing handler** — when Order reaches `ReadyForFulfillment`, create ServiceRequests based on customer catalog
 
 ### Priority 2: Wire Frontend to Real APIs

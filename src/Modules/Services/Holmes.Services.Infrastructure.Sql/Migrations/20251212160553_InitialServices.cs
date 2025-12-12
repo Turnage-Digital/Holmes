@@ -36,6 +36,49 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "service_projections",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "char(26)", fixedLength: true, maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OrderId = table.Column<string>(type: "char(26)", fixedLength: true, maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerId = table.Column<string>(type: "char(26)", fixedLength: true, maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ServiceTypeCode = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Category = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Tier = table.Column<int>(type: "int", nullable: false),
+                    ScopeType = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScopeValue = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VendorCode = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VendorReferenceId = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ResultStatus = table.Column<int>(type: "int", nullable: true),
+                    RecordCount = table.Column<int>(type: "int", nullable: false),
+                    LastError = table.Column<string>(type: "varchar(1024)", maxLength: 1024, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CancelReason = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AttemptCount = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", precision: 6, nullable: false),
+                    DispatchedAt = table.Column<DateTime>(type: "datetime(6)", precision: 6, nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "datetime(6)", precision: 6, nullable: true),
+                    FailedAt = table.Column<DateTime>(type: "datetime(6)", precision: 6, nullable: true),
+                    CanceledAt = table.Column<DateTime>(type: "datetime(6)", precision: 6, nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", precision: 6, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_service_projections", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "service_requests",
                 columns: table => new
                 {
@@ -118,6 +161,21 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "idx_proj_customer_status",
+                table: "service_projections",
+                columns: new[] { "CustomerId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "idx_proj_order",
+                table: "service_projections",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "idx_proj_status_created",
+                table: "service_projections",
+                columns: new[] { "Status", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "idx_customer_status",
                 table: "service_requests",
                 columns: new[] { "CustomerId", "Status" });
@@ -154,6 +212,9 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
         {
             migrationBuilder.DropTable(
                 name: "service_catalog_snapshots");
+
+            migrationBuilder.DropTable(
+                name: "service_projections");
 
             migrationBuilder.DropTable(
                 name: "service_results");

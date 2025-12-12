@@ -22,7 +22,6 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationRequestCreated_UpsertsProjection()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
@@ -47,10 +46,8 @@ public sealed class NotificationProjectionHandlerTests
             .Callback<NotificationProjectionModel, CancellationToken>((m, _) => capturedModel = m)
             .Returns(Task.CompletedTask);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpsertAsync(It.IsAny<NotificationProjectionModel>(), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -74,7 +71,6 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationRequestCreated_WithNullOptionalFields_UpsertsProjection()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var createdAt = DateTimeOffset.UtcNow;
@@ -96,10 +92,8 @@ public sealed class NotificationProjectionHandlerTests
             .Callback<NotificationProjectionModel, CancellationToken>((m, _) => capturedModel = m)
             .Returns(Task.CompletedTask);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         Assert.That(capturedModel, Is.Not.Null);
         Assert.Multiple(() =>
         {
@@ -112,16 +106,13 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationQueued_UpdatesQueuedInfo()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var queuedAt = DateTimeOffset.UtcNow;
 
         var notification = new NotificationQueued(notificationId, queuedAt);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateQueuedAsync(
                 notificationId.ToString(),
@@ -133,7 +124,6 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationDelivered_UpdatesDeliveredInfo()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
@@ -148,10 +138,8 @@ public sealed class NotificationProjectionHandlerTests
             deliveredAt,
             providerMessageId);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateDeliveredAsync(
                 notificationId.ToString(),
@@ -164,7 +152,6 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationDelivered_WithNullProviderMessageId_UpdatesDeliveredInfo()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var deliveredAt = DateTimeOffset.UtcNow;
@@ -177,10 +164,8 @@ public sealed class NotificationProjectionHandlerTests
             deliveredAt,
             ProviderMessageId: null);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateDeliveredAsync(
                 notificationId.ToString(),
@@ -193,7 +178,6 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationDeliveryFailed_UpdatesFailedInfo()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
@@ -210,10 +194,8 @@ public sealed class NotificationProjectionHandlerTests
             reason,
             attemptNumber);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateFailedAsync(
                 notificationId.ToString(),
@@ -227,7 +209,6 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationBounced_UpdatesBouncedInfo()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
@@ -241,10 +222,8 @@ public sealed class NotificationProjectionHandlerTests
             bouncedAt,
             reason);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateBouncedAsync(
                 notificationId.ToString(),
@@ -257,7 +236,6 @@ public sealed class NotificationProjectionHandlerTests
     [Test]
     public async Task Handle_NotificationCancelled_UpdatesCancelledInfo()
     {
-        // Arrange
         var notificationId = UlidId.NewUlid();
         var cancelledAt = DateTimeOffset.UtcNow;
         const string reason = "Order cancelled by customer";
@@ -267,10 +245,8 @@ public sealed class NotificationProjectionHandlerTests
             cancelledAt,
             reason);
 
-        // Act
         await _handler.Handle(notification, CancellationToken.None);
 
-        // Assert
         _writerMock.Verify(
             x => x.UpdateCancelledAsync(
                 notificationId.ToString(),

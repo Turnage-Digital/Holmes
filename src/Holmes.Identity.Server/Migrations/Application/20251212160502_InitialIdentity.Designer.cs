@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Identity.Server.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251212153633_InitialIdentity")]
+    [Migration("20251212160502_InitialIdentity")]
     partial class InitialIdentity
     {
         /// <inheritdoc />
