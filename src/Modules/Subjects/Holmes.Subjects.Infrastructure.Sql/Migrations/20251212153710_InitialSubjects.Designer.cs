@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Subjects.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(SubjectsDbContext))]
-    [Migration("20251212151804_InitialSubjects")]
+    [Migration("20251212153710_InitialSubjects")]
     partial class InitialSubjects
     {
         /// <inheritdoc />

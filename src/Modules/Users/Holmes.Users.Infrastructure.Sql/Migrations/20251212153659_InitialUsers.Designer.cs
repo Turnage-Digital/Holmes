@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Users.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(UsersDbContext))]
-    [Migration("20251212151751_InitialUsers")]
+    [Migration("20251212153659_InitialUsers")]
     partial class InitialUsers
     {
         /// <inheritdoc />

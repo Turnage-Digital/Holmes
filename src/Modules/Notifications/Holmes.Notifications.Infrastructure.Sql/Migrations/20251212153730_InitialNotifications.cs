@@ -16,6 +16,41 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "notification_projections",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OrderId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SubjectId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TriggerType = table.Column<int>(type: "int", nullable: false),
+                    Channel = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    IsAdverseAction = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ScheduledFor = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    QueuedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DeliveredAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    FailedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    BouncedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CancelledAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    AttemptCount = table.Column<int>(type: "int", nullable: false),
+                    LastFailureReason = table.Column<string>(type: "varchar(1024)", maxLength: 1024, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ProviderMessageId = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_notification_projections", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "notification_requests",
                 columns: table => new
                 {
@@ -102,6 +137,31 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 column: "NotificationRequestId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_notification_projections_CustomerId",
+                table: "notification_projections",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notification_projections_CustomerId_Status",
+                table: "notification_projections",
+                columns: new[] { "CustomerId", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notification_projections_OrderId",
+                table: "notification_projections",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notification_projections_Status",
+                table: "notification_projections",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_notification_projections_Status_CreatedAt",
+                table: "notification_projections",
+                columns: new[] { "Status", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_notification_requests_CorrelationId",
                 table: "notification_requests",
                 column: "CorrelationId");
@@ -137,6 +197,9 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
         {
             migrationBuilder.DropTable(
                 name: "delivery_attempts");
+
+            migrationBuilder.DropTable(
+                name: "notification_projections");
 
             migrationBuilder.DropTable(
                 name: "notification_requests");

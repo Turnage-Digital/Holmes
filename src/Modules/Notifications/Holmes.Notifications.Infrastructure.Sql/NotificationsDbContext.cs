@@ -8,6 +8,7 @@ public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> opt
 {
     public DbSet<NotificationRequestDb> NotificationRequests => Set<NotificationRequestDb>();
     public DbSet<DeliveryAttemptDb> DeliveryAttempts => Set<DeliveryAttemptDb>();
+    public DbSet<NotificationProjectionDb> NotificationProjections => Set<NotificationProjectionDb>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +65,32 @@ public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> opt
 
             entity.HasIndex(e => e.NotificationRequestId);
             entity.HasIndex(e => e.AttemptedAt);
+        });
+
+        modelBuilder.Entity<NotificationProjectionDb>(entity =>
+        {
+            entity.ToTable("notification_projections");
+
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(26).IsRequired();
+            entity.Property(e => e.CustomerId).HasMaxLength(26).IsRequired();
+            entity.Property(e => e.OrderId).HasMaxLength(26);
+            entity.Property(e => e.SubjectId).HasMaxLength(26);
+            entity.Property(e => e.LastFailureReason).HasMaxLength(1024);
+            entity.Property(e => e.ProviderMessageId).HasMaxLength(256);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime(6)");
+            entity.Property(e => e.ScheduledFor).HasColumnType("datetime(6)");
+            entity.Property(e => e.QueuedAt).HasColumnType("datetime(6)");
+            entity.Property(e => e.DeliveredAt).HasColumnType("datetime(6)");
+            entity.Property(e => e.FailedAt).HasColumnType("datetime(6)");
+            entity.Property(e => e.BouncedAt).HasColumnType("datetime(6)");
+            entity.Property(e => e.CancelledAt).HasColumnType("datetime(6)");
+
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => new { e.Status, e.CreatedAt });
+            entity.HasIndex(e => new { e.CustomerId, e.Status });
         });
     }
 }

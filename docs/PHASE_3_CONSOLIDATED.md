@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-12 (SLA Clock projections added)
+**Last Updated:** 2025-12-12 (Notification projections added)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -12,7 +12,7 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 
 | Phase | Focus | Backend Status | Frontend Status | Overall |
 |-------|-------|----------------|-----------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ SLA complete, 🟡 Notifications | ❌ Not integrated | 70% |
+| **3.0** | SLA Clocks & Notifications | ✅ SLA complete, ✅ Notifications | ❌ Not integrated | 85% |
 | **3.1** | Services & Fulfillment | 🟡 Missing projections + routing trigger | 🟡 Mock data | 55% |
 | **3.2** | Subject Data & Frontend | 🟡 Partial | 🟡 Scaffolded | 40% |
 
@@ -44,8 +44,8 @@ mock data and hasn't been wired to real APIs.
 - [x] Commands: Create, Process, RecordDeliveryResult
 - [x] Stub providers: LoggingEmailProvider, LoggingSmsProvider, LoggingWebhookProvider
 - [x] `NotificationProcessingService` background service
-- [x] Unit tests: `NotificationRequestTests`
-- [ ] **Read-only projections** (`notification_history` read model for queries)
+- [x] Unit tests: `NotificationRequestTests`, `NotificationProjectionHandlerTests`
+- [x] **Read-only projections** (`notification_projections` table, `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
 
 ### Frontend: ❌ NOT INTEGRATED
 
@@ -208,7 +208,7 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 Read-only projections are needed before frontend can wire to real APIs.
 
 1. ~~**Add SlaClocks read-only projections**~~ ✅ DONE (`sla_clock_projections` table, `SlaClockProjectionHandler`, `SlaClockEventProjectionRunner`)
-2. **Add Notifications read-only projections** (`notification_history` table, projection handler)
+2. ~~**Add Notifications read-only projections**~~ ✅ DONE (`notification_projections` table, `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
 3. **Add Services read-only projections** (`service_requests` table, projection handler)
 4. **Create order routing handler** — when Order reaches `ReadyForFulfillment`, create ServiceRequests based on customer catalog
 
