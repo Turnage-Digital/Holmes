@@ -282,8 +282,8 @@ export type OrderStatus =
   | "Invited"
   | "IntakeInProgress"
   | "IntakeComplete"
-  | "ReadyForRouting"
-  | "RoutingInProgress"
+  | "ReadyForFulfillment"
+  | "FulfillmentInProgress"
   | "ReadyForReport"
   | "Closed"
   | "Blocked"
@@ -298,7 +298,7 @@ export interface OrderSummaryDto {
   status: string;
   lastStatusReason?: string | null;
   lastUpdatedAt: string;
-  readyForRoutingAt?: string | null;
+  readyForFulfillmentAt?: string | null;
   closedAt?: string | null;
   canceledAt?: string | null;
 }
@@ -314,11 +314,22 @@ export interface OrderTimelineEntryDto {
   metadata?: Record<string, unknown> | null;
 }
 
+export interface OrderAuditEventDto {
+  position: number;
+  version: number;
+  eventId: string;
+  eventName: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  correlationId?: string | null;
+  actorId?: string | null;
+}
+
 export interface OrderStatsDto {
   invited: number;
   intakeInProgress: number;
   intakeComplete: number;
-  readyForRouting: number;
+  readyForFulfillment: number;
   blocked: number;
   canceled: number;
 }

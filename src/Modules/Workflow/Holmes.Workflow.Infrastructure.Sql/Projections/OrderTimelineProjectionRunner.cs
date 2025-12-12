@@ -2,7 +2,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Entities;
 using Holmes.Core.Infrastructure.Sql.Projections;
-using Holmes.Intake.Application.Abstractions.Sessions;
+using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Domain;
 using Holmes.Workflow.Application.Abstractions.Projections;
 using Holmes.Workflow.Domain;
@@ -163,7 +163,7 @@ public sealed class OrderTimelineProjectionRunner(
         AddStatusEvent(events, orderId, order.InvitedAt, OrderStatus.Invited);
         AddStatusEvent(events, orderId, order.IntakeStartedAt, OrderStatus.IntakeInProgress);
         AddStatusEvent(events, orderId, order.IntakeCompletedAt, OrderStatus.IntakeComplete);
-        AddStatusEvent(events, orderId, order.ReadyForRoutingAt, OrderStatus.ReadyForRouting);
+        AddStatusEvent(events, orderId, order.ReadyForFulfillmentAt, OrderStatus.ReadyForFulfillment);
         AddStatusEvent(events, orderId, order.ClosedAt, OrderStatus.Closed);
         AddStatusEvent(events, orderId, order.CanceledAt, OrderStatus.Canceled);
 

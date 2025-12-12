@@ -1,6 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Domain;
+using Holmes.Customers.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql.Entities;
 
 namespace Holmes.Customers.Infrastructure.Sql.Mappers;
@@ -50,18 +51,59 @@ public static class CustomerMapper
     }
 
     public static CustomerListItemDto ToListItem(
-        CustomerDirectoryDb directory,
+        CustomerProjectionDb directory,
         CustomerProfileDb? profile,
         IReadOnlyCollection<CustomerContactDb> contacts
     )
     {
-        var policySnapshotId = string.IsNullOrWhiteSpace(profile?.PolicySnapshotId)
+        return new CustomerListItemDto(
+            directory.CustomerId,
+            profile?.TenantId ?? directory.CustomerId,
+            directory.Name,
+            directory.Status,
+            GetPolicySnapshotId(profile),
+            GetBillingEmail(profile),
+            GetContacts(contacts),
+            directory.CreatedAt,
+            profile?.UpdatedAt ?? directory.CreatedAt);
+    }
+
+    public static CustomerDetailDto ToDetail(
+        CustomerProjectionDb directory,
+        CustomerProfileDb? profile,
+        IReadOnlyList<CustomerAdminDto> admins
+    )
+    {
+        var contacts = profile?.Contacts.ToList() ?? [];
+
+        return new CustomerDetailDto(
+            directory.CustomerId,
+            profile?.TenantId ?? directory.CustomerId,
+            directory.Name,
+            directory.Status,
+            GetPolicySnapshotId(profile),
+            GetBillingEmail(profile),
+            directory.CreatedAt,
+            profile?.UpdatedAt ?? directory.CreatedAt,
+            GetContacts(contacts),
+            admins);
+    }
+
+    private static string GetPolicySnapshotId(CustomerProfileDb? profile)
+    {
+        return string.IsNullOrWhiteSpace(profile?.PolicySnapshotId)
             ? "policy-default"
-            : profile!.PolicySnapshotId;
+            : profile.PolicySnapshotId;
+    }
 
-        var billingEmail = string.IsNullOrWhiteSpace(profile?.BillingEmail) ? null : profile!.BillingEmail;
+    private static string? GetBillingEmail(CustomerProfileDb? profile)
+    {
+        return string.IsNullOrWhiteSpace(profile?.BillingEmail) ? null : profile.BillingEmail;
+    }
 
-        var contactResponses = contacts
+    private static List<CustomerContactDto> GetContacts(IReadOnlyCollection<CustomerContactDb> contacts)
+    {
+        return contacts
             .OrderBy(c => c.Name)
             .Select(c => new CustomerContactDto(
                 c.ContactId,
@@ -70,17 +112,6 @@ public static class CustomerMapper
                 c.Phone,
                 c.Role))
             .ToList();
-
-        return new CustomerListItemDto(
-            directory.CustomerId,
-            profile?.TenantId ?? directory.CustomerId,
-            directory.Name,
-            directory.Status,
-            policySnapshotId,
-            billingEmail,
-            contactResponses,
-            directory.CreatedAt,
-            profile?.UpdatedAt ?? directory.CreatedAt);
     }
 
     private static void SyncAdmins(CustomerDb db, Customer customer)

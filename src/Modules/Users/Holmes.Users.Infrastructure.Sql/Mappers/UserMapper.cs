@@ -1,6 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Abstractions.Dtos;
 using Holmes.Users.Domain;
+using Holmes.Users.Domain.ValueObjects;
 using Holmes.Users.Infrastructure.Sql.Entities;
 
 namespace Holmes.Users.Infrastructure.Sql.Mappers;
@@ -75,7 +76,7 @@ public static class UserMapper
         SyncRoles(db, user);
     }
 
-    public static UserDto ToDto(UserDb user, UserDirectoryDb? directory)
+    public static UserDto ToDto(UserDb user, UserProjectionDb? directory)
     {
         var primaryIdentity = user.ExternalIdentities
             .OrderByDescending(x => x.LastSeenAt)

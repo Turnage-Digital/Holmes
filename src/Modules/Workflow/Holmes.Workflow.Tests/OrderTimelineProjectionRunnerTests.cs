@@ -3,7 +3,7 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Entities;
-using Holmes.Intake.Infrastructure.Sql.Sessions;
+using Holmes.Intake.Infrastructure.Sql.Projections;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Entities;
@@ -73,13 +73,13 @@ public sealed class OrderTimelineProjectionRunnerTests
             SubjectId = Ulid.NewUlid().ToString(),
             CustomerId = Ulid.NewUlid().ToString(),
             PolicySnapshotId = "policy-v1",
-            Status = OrderStatus.ReadyForRouting.ToString(),
+            Status = OrderStatus.ReadyForFulfillment.ToString(),
             CreatedAt = createdAt,
             LastUpdatedAt = createdAt.AddMinutes(30),
             InvitedAt = createdAt.AddMinutes(1),
             IntakeStartedAt = createdAt.AddMinutes(2),
             IntakeCompletedAt = createdAt.AddMinutes(10),
-            ReadyForRoutingAt = createdAt.AddMinutes(30)
+            ReadyForFulfillmentAt = createdAt.AddMinutes(30)
         });
 
         _intakeDbContext.IntakeSessions.Add(new IntakeSessionDb

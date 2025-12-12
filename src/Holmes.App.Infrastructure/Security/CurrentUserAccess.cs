@@ -1,18 +1,16 @@
 using System.Security.Claims;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Infrastructure.Sql;
-using Holmes.Users.Domain;
-using Holmes.Users.Infrastructure.Sql;
-using Microsoft.EntityFrameworkCore;
+using Holmes.Customers.Application.Abstractions.Queries;
+using Holmes.Users.Application.Abstractions.Queries;
 
 namespace Holmes.App.Infrastructure.Security;
 
 public sealed class CurrentUserAccess(
     IUserContext userContext,
     ICurrentUserInitializer currentUserInitializer,
-    UsersDbContext usersDbContext,
-    CustomersDbContext customersDbContext
+    IUserAccessQueries userAccessQueries,
+    ICustomerAccessQueries customerAccessQueries
 ) : ICurrentUserAccess
 {
     private const string UserIdClaimType = "holmes_user_id";
@@ -64,13 +62,7 @@ public sealed class CurrentUserAccess(
             userId = UlidId.FromUlid(parsed);
         }
 
-        var isGlobalAdmin = await usersDbContext.UserRoleMemberships
-            .AsNoTracking()
-            .AnyAsync(x =>
-                    x.UserId == userId.ToString() &&
-                    x.Role == UserRole.Admin &&
-                    x.CustomerId == null,
-                cancellationToken);
+        var isGlobalAdmin = await userAccessQueries.IsGlobalAdminAsync(userId, cancellationToken);
 
         IReadOnlyCollection<string> allowedCustomers;
         if (isGlobalAdmin)
@@ -79,13 +71,7 @@ public sealed class CurrentUserAccess(
         }
         else
         {
-            var list = await customersDbContext.CustomerAdmins
-                .AsNoTracking()
-                .Where(a => a.UserId == userId.ToString())
-                .Select(a => a.CustomerId)
-                .Distinct()
-                .ToListAsync(cancellationToken);
-            allowedCustomers = list;
+            allowedCustomers = await customerAccessQueries.GetAdminCustomerIdsAsync(userId, cancellationToken);
         }
 
         return new UserAccessSnapshot(userId, isGlobalAdmin, allowedCustomers);

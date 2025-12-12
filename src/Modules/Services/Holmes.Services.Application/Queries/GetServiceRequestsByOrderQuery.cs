@@ -1,26 +1,27 @@
 using Holmes.Core.Application;
-using Holmes.Core.Domain.Results;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Domain;
+using Holmes.Services.Application.Abstractions.Dtos;
+using Holmes.Services.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Services.Application.Queries;
 
 public sealed record GetServiceRequestsByOrderQuery(
     UlidId OrderId
-) : RequestBase<Result<IReadOnlyList<ServiceRequest>>>;
+) : RequestBase<Result<IReadOnlyList<ServiceRequestSummaryDto>>>;
 
 public sealed class GetServiceRequestsByOrderQueryHandler(
-    IServicesUnitOfWork unitOfWork
-) : IRequestHandler<GetServiceRequestsByOrderQuery, Result<IReadOnlyList<ServiceRequest>>>
+    IServiceRequestQueries serviceRequestQueries
+) : IRequestHandler<GetServiceRequestsByOrderQuery, Result<IReadOnlyList<ServiceRequestSummaryDto>>>
 {
-    public async Task<Result<IReadOnlyList<ServiceRequest>>> Handle(
+    public async Task<Result<IReadOnlyList<ServiceRequestSummaryDto>>> Handle(
         GetServiceRequestsByOrderQuery request,
         CancellationToken cancellationToken
     )
     {
-        var serviceRequests = await unitOfWork.ServiceRequests.GetByOrderIdAsync(
-            request.OrderId, cancellationToken);
+        var serviceRequests = await serviceRequestQueries.GetByOrderIdAsync(
+            request.OrderId.ToString(), cancellationToken);
 
         return Result.Success(serviceRequests);
     }

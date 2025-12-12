@@ -7,7 +7,6 @@ import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -182,7 +181,6 @@ const FulfillmentDashboardPage = () => {
   // In production, this would be a useQuery hook
   const fulfillmentQueue = mockFulfillmentQueue;
   const isLoading = false;
-  const error = null;
 
   // Filter data
   const filteredQueue = useMemo(() => {
@@ -273,29 +271,35 @@ const FulfillmentDashboardPage = () => {
       field: "vendorCode",
       headerName: "Vendor",
       width: 100,
-      renderCell: (params: GridRenderCellParams) =>
-        params.value ? (
-          <Typography variant="body2">{params.value}</Typography>
-        ) : (
+      renderCell: (params: GridRenderCellParams) => {
+        if (params.value) {
+          return <Typography variant="body2">{params.value}</Typography>;
+        }
+        return (
           <Typography variant="body2" color="text.secondary">
             —
           </Typography>
-        ),
+        );
+      },
     },
     {
       field: "scopeValue",
       headerName: "Scope",
       width: 100,
-      renderCell: (params: GridRenderCellParams<ServiceRequestSummaryDto>) =>
-        params.value ? (
-          <Tooltip title={params.row.scopeType ?? "Scope"}>
-            <Typography variant="body2">{params.value}</Typography>
-          </Tooltip>
-        ) : (
+      renderCell: (params: GridRenderCellParams<ServiceRequestSummaryDto>) => {
+        if (params.value) {
+          return (
+            <Tooltip title={params.row.scopeType ?? "Scope"}>
+              <Typography variant="body2">{params.value}</Typography>
+            </Tooltip>
+          );
+        }
+        return (
           <Typography variant="body2" color="text.secondary">
             —
           </Typography>
-        ),
+        );
+      },
     },
     {
       field: "attemptCount",
@@ -322,8 +326,11 @@ const FulfillmentDashboardPage = () => {
       headerName: "Error",
       flex: 1,
       minWidth: 200,
-      renderCell: (params: GridRenderCellParams) =>
-        params.value ? (
+      renderCell: (params: GridRenderCellParams) => {
+        if (!params.value) {
+          return null;
+        }
+        return (
           <Tooltip title={params.value}>
             <Typography
               variant="body2"
@@ -337,7 +344,8 @@ const FulfillmentDashboardPage = () => {
               {params.value}
             </Typography>
           </Tooltip>
-        ) : null,
+        );
+      },
     },
   ];
 
@@ -431,13 +439,6 @@ const FulfillmentDashboardPage = () => {
           </Stack>
         </CardContent>
       </Card>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          Failed to load fulfillment queue. Please try again.
-        </Alert>
-      )}
 
       {/* Data Grid */}
       <DataGrid

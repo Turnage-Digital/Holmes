@@ -1,8 +1,7 @@
-using Holmes.Services.Application.Abstractions.Notifications;
-using Holmes.Services.Application.Vendors;
+using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Domain;
-using Holmes.Services.Infrastructure.Sql.Notifications;
-using Holmes.Services.Infrastructure.Sql.Vendors;
+using Holmes.Services.Infrastructure.Sql.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +22,9 @@ public static class DependencyInjection
         services.AddScoped<ServiceRequestRepository>();
         services.AddScoped<IServiceRequestRepository>(sp => sp.GetRequiredService<ServiceRequestRepository>());
         services.AddScoped<IServicesUnitOfWork, ServicesUnitOfWork>();
+        services.AddScoped<IServiceRequestQueries, SqlServiceRequestQueries>();
+        services.AddScoped<IServiceCatalogQueries, SqlServiceCatalogQueries>();
+        services.AddScoped<IServiceCatalogRepository, ServiceCatalogRepository>();
 
         // Vendor adapters
         services.AddSingleton<IVendorAdapter, StubVendorAdapter>();

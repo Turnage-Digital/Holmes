@@ -1,5 +1,6 @@
+using Holmes.Core.Domain.ValueObjects;
+using Holmes.Notifications.Application.Abstractions.Queries;
 using Holmes.Notifications.Application.Commands;
-using Holmes.Notifications.Domain;
 using MediatR;
 
 namespace Holmes.App.Server.Services;
@@ -43,10 +44,10 @@ public sealed class NotificationProcessingService(
     private async Task ProcessPendingNotificationsAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<INotificationsUnitOfWork>();
+        var notificationQueries = scope.ServiceProvider.GetRequiredService<INotificationQueries>();
         var sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
-        var pending = await unitOfWork.NotificationRequests.GetPendingAsync(BatchSize, cancellationToken);
+        var pending = await notificationQueries.GetPendingAsync(BatchSize, cancellationToken);
 
         if (pending.Count is 0)
         {
@@ -63,7 +64,7 @@ public sealed class NotificationProcessingService(
             try
             {
                 var result = await sender.Send(
-                    new ProcessNotificationCommand(notification.Id),
+                    new ProcessNotificationCommand(UlidId.Parse(notification.Id)),
                     cancellationToken);
 
                 if (result.IsSuccess)

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Domain.Events;
+using Holmes.Subjects.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Subjects.Domain;
@@ -327,5 +328,15 @@ public sealed class Subject : AggregateRoot
     private void Emit(INotification @event)
     {
         AddDomainEvent(@event);
+    }
+
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
+
+    public override string GetStreamType()
+    {
+        return "Subject";
     }
 }

@@ -53,49 +53,6 @@ namespace Holmes.Users.Infrastructure.Sql.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Users.Infrastructure.Sql.Entities.UserDirectoryDb", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
-                    b.Property<string>("DisplayName")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("varchar(320)");
-
-                    b.Property<string>("Issuer")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<DateTimeOffset>("LastAuthenticatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("varchar(32)");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.HasKey("UserId");
-
-                    b.HasIndex("Issuer", "Subject")
-                        .IsUnique();
-
-                    b.ToTable("user_directory", (string)null);
-                });
-
             modelBuilder.Entity("Holmes.Users.Infrastructure.Sql.Entities.UserExternalIdentityDb", b =>
                 {
                     b.Property<long>("Id")
@@ -139,6 +96,49 @@ namespace Holmes.Users.Infrastructure.Sql.Migrations
                         .IsUnique();
 
                     b.ToTable("user_external_identities", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Users.Infrastructure.Sql.Entities.UserProjectionDb", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<string>("Issuer")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTimeOffset>("LastAuthenticatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("Issuer", "Subject")
+                        .IsUnique();
+
+                    b.ToTable("user_projections", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Users.Infrastructure.Sql.Entities.UserRoleMembershipDb", b =>

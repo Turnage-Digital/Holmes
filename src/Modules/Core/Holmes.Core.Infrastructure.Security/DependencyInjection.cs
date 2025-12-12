@@ -1,4 +1,4 @@
-using Holmes.Core.Domain.Security;
+using Holmes.Core.Application.Abstractions.Security;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Holmes.Core.Infrastructure.Security;

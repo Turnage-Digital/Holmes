@@ -1,48 +1,72 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Integration;
+using Holmes.App.Server.Infrastructure;
 using Holmes.App.Server.Services;
 using Holmes.Core.Application;
+using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Application.Behaviors;
-using Holmes.Core.Domain.Security;
 using Holmes.Core.Infrastructure.Security;
 using Holmes.Core.Infrastructure.Sql;
+using Holmes.Core.Infrastructure.Sql.Events;
+using Holmes.Customers.Application.Abstractions.Projections;
+using Holmes.Customers.Application.Abstractions.Queries;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Customers.Infrastructure.Sql.Projections;
+using Holmes.Customers.Infrastructure.Sql.Queries;
+using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Holmes.Intake.Application.Abstractions.Projections;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
-using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
-using Holmes.Intake.Infrastructure.Sql.Storage;
+using Holmes.Notifications.Application.Abstractions.Queries;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql;
-using Holmes.Services.Application.Abstractions.Notifications;
+using Holmes.Notifications.Infrastructure.Sql.Queries;
+using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Commands;
+using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
-using Holmes.Services.Infrastructure.Sql.Notifications;
+using Holmes.Services.Infrastructure.Sql.Queries;
+using Holmes.SlaClocks.Application.Abstractions.Queries;
+using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Application.Commands;
-using Holmes.SlaClocks.Application.Services;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
+using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
+using Holmes.Subjects.Application.Abstractions.Projections;
+using Holmes.Subjects.Application.Abstractions.Queries;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
+using Holmes.Subjects.Infrastructure.Sql.Projections;
+using Holmes.Subjects.Infrastructure.Sql.Queries;
 using Holmes.Users.Application.Abstractions;
+using Holmes.Users.Application.Abstractions.Projections;
+using Holmes.Users.Application.Abstractions.Queries;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
+using Holmes.Users.Infrastructure.Sql.Projections;
+using Holmes.Users.Infrastructure.Sql.Queries;
 using Holmes.Users.Infrastructure.Sql.Repositories;
 using Holmes.Workflow.Application.Abstractions.Notifications;
 using Holmes.Workflow.Application.Abstractions.Projections;
+using Holmes.Workflow.Application.Abstractions.Queries;
 using Holmes.Workflow.Application.Commands;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql;
 using Holmes.Workflow.Infrastructure.Sql.Notifications;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
+using Holmes.Workflow.Infrastructure.Sql.Queries;
 using MediatR;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -128,6 +152,7 @@ internal static class DependencyInjection
             config.RegisterServicesFromAssemblyContaining<IssueIntakeInviteCommand>();
             config.RegisterServicesFromAssemblyContaining<CreateNotificationRequestCommand>();
             config.RegisterServicesFromAssemblyContaining<StartSlaClockCommand>();
+            config.RegisterServicesFromAssemblyContaining<CreateServiceRequestCommand>();
         });
 
         return services;
@@ -183,7 +208,23 @@ internal static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddHolmesModules(
+    public static IServiceCollection AddHolmesHostedServices(
+        this IServiceCollection services,
+        IWebHostEnvironment environment
+    )
+    {
+        if (environment.IsDevelopment())
+        {
+            services.AddHostedService<SeedData>();
+        }
+
+        services.AddHostedService<NotificationProcessingService>();
+        services.AddHostedService<SlaClockWatchdogService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddHolmesInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
         IWebHostEnvironment environment
@@ -198,25 +239,13 @@ internal static class DependencyInjection
 
         if (string.IsNullOrWhiteSpace(connectionString) || isTestEnvironment || isRunningInTestHost)
         {
-            services.AddHolmesInfrastructureForTesting();
-        }
-        else
-        {
-            services.AddHolmesInfrastructure(connectionString);
+            return services.AddInfrastructureForTesting();
         }
 
-        if (environment.IsDevelopment())
-        {
-            services.AddHostedService<SeedData>();
-        }
-
-        services.AddHostedService<NotificationProcessingService>();
-        services.AddHostedService<SlaClockWatchdogService>();
-
-        return services;
+        return services.AddInfrastructureForProduction(connectionString);
     }
 
-    private static IServiceCollection AddHolmesInfrastructure(
+    private static IServiceCollection AddInfrastructureForProduction(
         this IServiceCollection services,
         string connectionString
     )
@@ -233,6 +262,7 @@ internal static class DependencyInjection
 
         services.AddCoreInfrastructureSql(connectionString, serverVersion);
         services.AddCoreInfrastructureSecurity();
+        services.AddScoped<ITenantContext, HttpTenantContext>();
 
         services.AddUsersInfrastructureSql(connectionString, serverVersion);
         services.AddCustomersInfrastructureSql(connectionString, serverVersion);
@@ -249,7 +279,7 @@ internal static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddHolmesInfrastructureForTesting(
+    private static IServiceCollection AddInfrastructureForTesting(
         this IServiceCollection services
     )
     {
@@ -262,23 +292,51 @@ internal static class DependencyInjection
         services.AddDbContext<SlaClockDbContext>(options => options.UseInMemoryDatabase("holmes-slaclocks"));
         services.AddDbContext<ServicesDbContext>(options => options.UseInMemoryDatabase("holmes-services"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
+
+        // Event store infrastructure (for testing)
+        services.AddScoped<IEventStore, SqlEventStore>();
+        services.AddSingleton<IDomainEventSerializer, DomainEventSerializer>();
+        services.AddScoped<ITenantContext, HttpTenantContext>();
+
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
+        services.AddScoped<IUserAccessQueries, SqlUserAccessQueries>();
+        services.AddScoped<IUserQueries, SqlUserQueries>();
+        services.AddScoped<IUserProjectionWriter, SqlUserProjectionWriter>();
         services.AddScoped<ICustomersUnitOfWork, CustomersUnitOfWork>();
+        services.AddScoped<ICustomerAccessQueries, SqlCustomerAccessQueries>();
+        services.AddScoped<ICustomerQueries, SqlCustomerQueries>();
+        services.AddScoped<ICustomerProjectionWriter, SqlCustomerProjectionWriter>();
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
+        services.AddScoped<ISubjectQueries, SqlSubjectQueries>();
+        services.AddScoped<ISubjectProjectionWriter, SqlSubjectProjectionWriter>();
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
+        services.AddScoped<IOrderQueries, SqlOrderQueries>();
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
         services.AddSingleton<IServiceChangeBroadcaster, ServiceChangeBroadcaster>();
+        services.AddScoped<IServicesUnitOfWork, ServicesUnitOfWork>();
+        services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
+        services.AddScoped<IServiceCatalogRepository, ServiceCatalogRepository>();
+        services.AddScoped<IServiceRequestQueries,
+            SqlServiceRequestQueries>();
+        services.AddScoped<IServiceCatalogQueries,
+            SqlServiceCatalogQueries>();
+        services.AddScoped<ICustomerProfileRepository,
+            SqlCustomerProfileRepository>();
         services.AddDbContext<NotificationsDbContext>(options => options.UseInMemoryDatabase("holmes-notifications"));
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
         services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
+        services.AddScoped<INotificationQueries,
+            SqlNotificationQueries>();
         services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
         services.AddScoped<ISlaClockRepository, SlaClockRepository>();
+        services.AddScoped<ISlaClockQueries,
+            SqlSlaClockQueries>();
         services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
         services.AddAppIntegration();
         return services;

@@ -245,4 +245,14 @@ public sealed class IntakeSession : AggregateRoot
             throw new InvalidOperationException("Intake session is no longer active.");
         }
     }
+
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
+
+    public override string GetStreamType()
+    {
+        return "IntakeSession";
+    }
 }

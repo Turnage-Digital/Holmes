@@ -126,14 +126,17 @@ const TierCard = ({
       field: "type",
       headerName: "Type",
       width: 100,
-      renderCell: (params: GridRenderCellParams) => (
-        <Chip
-          label={params.value}
-          size="small"
-          color={params.value === "Required" ? "primary" : "default"}
-          variant="outlined"
-        />
-      ),
+      renderCell: (params: GridRenderCellParams) => {
+        const chipColor = params.value === "Required" ? "primary" : "default";
+        return (
+          <Chip
+            label={params.value}
+            size="small"
+            color={chipColor}
+            variant="outlined"
+          />
+        );
+      },
     },
   ];
 
@@ -155,6 +158,41 @@ const TierCard = ({
 
   const totalServices =
     tier.requiredServices.length + tier.optionalServices.length;
+
+  const autoDispatchIcon = tier.autoDispatch ? (
+    <AutorenewIcon />
+  ) : (
+    <PlayCircleIcon />
+  );
+  const autoDispatchLabel = tier.autoDispatch ? "Auto" : "Manual";
+  const autoDispatchTooltip = tier.autoDispatch
+    ? "Auto-dispatch enabled"
+    : "Manual dispatch";
+  const autoDispatchColor = tier.autoDispatch ? "success" : "default";
+
+  const waitIcon = tier.waitForPreviousTier ? (
+    <PauseCircleIcon />
+  ) : (
+    <PlayCircleIcon />
+  );
+  const waitLabel = tier.waitForPreviousTier ? "Sequential" : "Parallel";
+  const waitTooltip = tier.waitForPreviousTier
+    ? "Waits for previous tier"
+    : "Parallel execution";
+
+  const servicesLabel = `${totalServices} service${totalServices === 1 ? "" : "s"}`;
+
+  const waitChip =
+    tier.tier > 1 ? (
+      <Tooltip title={waitTooltip}>
+        <Chip
+          icon={waitIcon}
+          label={waitLabel}
+          size="small"
+          variant="outlined"
+        />
+      </Tooltip>
+    ) : null;
 
   return (
     <Accordion
@@ -180,67 +218,45 @@ const TierCard = ({
             {tier.name}
           </Typography>
           <Stack direction="row" spacing={1}>
-            <Tooltip
-              title={
-                tier.autoDispatch ? "Auto-dispatch enabled" : "Manual dispatch"
-              }
-            >
+            <Tooltip title={autoDispatchTooltip}>
               <Chip
-                icon={
-                  tier.autoDispatch ? <AutorenewIcon /> : <PlayCircleIcon />
-                }
-                label={tier.autoDispatch ? "Auto" : "Manual"}
+                icon={autoDispatchIcon}
+                label={autoDispatchLabel}
                 size="small"
                 variant="outlined"
-                color={tier.autoDispatch ? "success" : "default"}
+                color={autoDispatchColor}
               />
             </Tooltip>
-            {tier.tier > 1 && (
-              <Tooltip
-                title={
-                  tier.waitForPreviousTier
-                    ? "Waits for previous tier"
-                    : "Parallel execution"
-                }
-              >
-                <Chip
-                  icon={
-                    tier.waitForPreviousTier ? (
-                      <PauseCircleIcon />
-                    ) : (
-                      <PlayCircleIcon />
-                    )
-                  }
-                  label={tier.waitForPreviousTier ? "Sequential" : "Parallel"}
-                  size="small"
-                  variant="outlined"
-                />
-              </Tooltip>
-            )}
-            <Chip
-              label={`${totalServices} service${totalServices !== 1 ? "s" : ""}`}
-              size="small"
-              variant="outlined"
-            />
+            {waitChip}
+            <Chip label={servicesLabel} size="small" variant="outlined" />
           </Stack>
         </Stack>
       </AccordionSummary>
       <AccordionDetails>
         <Stack spacing={3}>
           {/* Alerts */}
-          {successMessage && (
-            <Alert
-              severity="success"
-              onClose={() => setSuccessMessage(undefined)}
-            >
-              {successMessage}
-            </Alert>
-          )}
-          {errorMessage && (
-            <Alert severity="error" onClose={() => setErrorMessage(undefined)}>
-              {errorMessage}
-            </Alert>
-          )}
+          {(() => {
+            const successAlert = successMessage ? (
+              <Alert
+                severity="success"
+                onClose={() => setSuccessMessage(undefined)}
+              >
+                {successMessage}
+              </Alert>
+            ) : null;
+            return successAlert;
+          })()}
+          {(() => {
+            const errorAlert = errorMessage ? (
+              <Alert
+                severity="error"
+                onClose={() => setErrorMessage(undefined)}
+              >
+                {errorMessage}
+              </Alert>
+            ) : null;
+            return errorAlert;
+          })()}
 
           {/* Settings */}
           <Box
@@ -290,29 +306,36 @@ const TierCard = ({
                 </Box>
               }
             />
-            {tier.tier > 1 && (
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={tier.waitForPreviousTier}
-                    onChange={(e) =>
-                      handleUpdate({ waitForPreviousTier: e.target.checked })
+            {(() => {
+              const waitForPreviousTierControl =
+                tier.tier > 1 ? (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={tier.waitForPreviousTier}
+                        onChange={(e) =>
+                          handleUpdate({
+                            waitForPreviousTier: e.target.checked,
+                          })
+                        }
+                        disabled={updateMutation.isPending}
+                      />
                     }
-                    disabled={updateMutation.isPending}
+                    label={
+                      <Box>
+                        <Typography variant="body2">
+                          Wait for Previous Tier
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Require Tier {tier.tier - 1} to complete before
+                          starting
+                        </Typography>
+                      </Box>
+                    }
                   />
-                }
-                label={
-                  <Box>
-                    <Typography variant="body2">
-                      Wait for Previous Tier
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Require Tier {tier.tier - 1} to complete before starting
-                    </Typography>
-                  </Box>
-                }
-              />
-            )}
+                ) : null;
+              return waitForPreviousTierControl;
+            })()}
           </Stack>
 
           {/* Services Grid */}
@@ -320,21 +343,25 @@ const TierCard = ({
             <Typography variant="subtitle2" sx={{ mb: 1 }}>
               Services in this Tier
             </Typography>
-            {serviceRows.length === 0 ? (
-              <Typography color="text.secondary" variant="body2">
-                No services configured for this tier.
-              </Typography>
-            ) : (
-              <DataGrid
-                rows={serviceRows}
-                columns={serviceColumns}
-                autoHeight
-                density="compact"
-                disableRowSelectionOnClick
-                hideFooter
-                sx={{ minHeight: 100 }}
-              />
-            )}
+            {(() => {
+              const servicesDisplay =
+                serviceRows.length > 0 ? (
+                  <DataGrid
+                    rows={serviceRows}
+                    columns={serviceColumns}
+                    autoHeight
+                    density="compact"
+                    disableRowSelectionOnClick
+                    hideFooter
+                    sx={{ minHeight: 100 }}
+                  />
+                ) : (
+                  <Typography color="text.secondary" variant="body2">
+                    No services configured for this tier.
+                  </Typography>
+                );
+              return servicesDisplay;
+            })()}
           </Box>
         </Stack>
       </AccordionDetails>
@@ -387,21 +414,25 @@ const TierConfigurationEditor = ({
       </Alert>
 
       {/* Tier Cards */}
-      {sortedTiers.length === 0 ? (
-        <Alert severity="warning">
-          No tiers configured. Contact support to set up the tier structure.
-        </Alert>
-      ) : (
-        sortedTiers.map((tier, index) => (
-          <TierCard
-            key={tier.tier}
-            tier={tier}
-            availableServices={availableServices}
-            customerId={customerId}
-            defaultExpanded={index === 0}
-          />
-        ))
-      )}
+      {(() => {
+        const tierCardsDisplay =
+          sortedTiers.length > 0 ? (
+            sortedTiers.map((tier, index) => (
+              <TierCard
+                key={tier.tier}
+                tier={tier}
+                availableServices={availableServices}
+                customerId={customerId}
+                defaultExpanded={index === 0}
+              />
+            ))
+          ) : (
+            <Alert severity="warning">
+              No tiers configured. Contact support to set up the tier structure.
+            </Alert>
+          );
+        return tierCardsDisplay;
+      })()}
     </Stack>
   );
 };

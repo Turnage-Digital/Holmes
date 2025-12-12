@@ -341,33 +341,33 @@ const IntakeFlow = () => {
       ssn: formState.ssn.trim() || null,
       addresses: formState.addresses.map((a) => ({
         street1: a.street1.trim(),
-        street2: a.street2?.trim() || null,
+        street2: a.street2.trim() || null,
         city: a.city.trim(),
         state: a.state.trim(),
         postalCode: a.postalCode.trim(),
         country: a.country || "USA",
-        countyFips: a.countyFips?.trim() || null,
+        countyFips: a.countyFips.trim() || null,
         fromDate: a.fromDate || null,
         toDate: a.isCurrent ? null : a.toDate || null,
         type: a.type,
       })),
       employments: formState.employments.map((e) => ({
         employerName: e.employerName.trim(),
-        employerPhone: e.employerPhone?.trim() || null,
-        employerAddress: e.employerAddress?.trim() || null,
-        jobTitle: e.jobTitle?.trim() || null,
-        supervisorName: e.supervisorName?.trim() || null,
-        supervisorPhone: e.supervisorPhone?.trim() || null,
+        employerPhone: e.employerPhone.trim() || null,
+        employerAddress: e.employerAddress.trim() || null,
+        jobTitle: e.jobTitle.trim() || null,
+        supervisorName: e.supervisorName.trim() || null,
+        supervisorPhone: e.supervisorPhone.trim() || null,
         startDate: e.startDate || null,
         endDate: e.isCurrent ? null : e.endDate || null,
-        reasonForLeaving: e.reasonForLeaving?.trim() || null,
+        reasonForLeaving: e.reasonForLeaving.trim() || null,
         canContact: e.canContact,
       })),
       educations: formState.educations.map((e) => ({
         institutionName: e.institutionName.trim(),
-        institutionAddress: e.institutionAddress?.trim() || null,
-        degree: e.degree?.trim() || null,
-        major: e.major?.trim() || null,
+        institutionAddress: e.institutionAddress.trim() || null,
+        degree: e.degree.trim() || null,
+        major: e.major.trim() || null,
         attendedFrom: e.attendedFrom || null,
         attendedTo: e.attendedTo || null,
         graduationDate: e.graduationDate || null,
@@ -986,15 +986,15 @@ const IntakeFlow = () => {
             .join(" ");
 
           const currentAddress =
-            formState.addresses.find((a) => a.isCurrent) ||
-            formState.addresses[0];
+            formState.addresses.find((a) => a.isCurrent) ??
+            formState.addresses.at(0);
           const addressDisplay = currentAddress
             ? `${currentAddress.street1}${currentAddress.street2 ? `, ${currentAddress.street2}` : ""}, ${currentAddress.city}, ${currentAddress.state} ${currentAddress.postalCode}`
             : "—";
 
           const currentEmployer =
-            formState.employments.find((e) => e.isCurrent) ||
-            formState.employments[0];
+            formState.employments.find((e) => e.isCurrent) ??
+            formState.employments.at(0);
 
           return (
             <Stack spacing={2}>
@@ -1095,8 +1095,8 @@ const IntakeFlow = () => {
       sessionId,
       submissionError,
       updateField,
-      buildAnswersPayload,
-      validateForm,
+      validateAddresses,
+      validatePersonalInfo,
       verifyingOtp,
     ],
   );

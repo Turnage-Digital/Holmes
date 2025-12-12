@@ -104,6 +104,43 @@ const TierAccordion = ({
     {} as Record<ServiceStatus, number>,
   );
 
+  const progressColor = status.color === "error" ? "error" : "primary";
+
+  const completedChip = statusCounts.Completed ? (
+    <Chip
+      label={`${statusCounts.Completed} done`}
+      size="small"
+      color="success"
+      variant="outlined"
+    />
+  ) : null;
+
+  const inProgressChip = statusCounts.InProgress ? (
+    <Chip
+      label={`${statusCounts.InProgress} running`}
+      size="small"
+      color="warning"
+      variant="outlined"
+    />
+  ) : null;
+
+  const failedChip = statusCounts.Failed ? (
+    <Chip
+      label={`${statusCounts.Failed} failed`}
+      size="small"
+      color="error"
+      variant="outlined"
+    />
+  ) : null;
+
+  const pendingChip = statusCounts.Pending ? (
+    <Chip
+      label={`${statusCounts.Pending} pending`}
+      size="small"
+      variant="outlined"
+    />
+  ) : null;
+
   return (
     <Accordion defaultExpanded={defaultExpanded} variant="outlined">
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -127,42 +164,15 @@ const TierAccordion = ({
               variant="determinate"
               value={progressPercent}
               sx={{ height: 6, borderRadius: 3 }}
-              color={status.color === "error" ? "error" : "primary"}
+              color={progressColor}
             />
           </Box>
 
           <Stack direction="row" spacing={1} alignItems="center">
-            {statusCounts.Completed && (
-              <Chip
-                label={`${statusCounts.Completed} done`}
-                size="small"
-                color="success"
-                variant="outlined"
-              />
-            )}
-            {statusCounts.InProgress && (
-              <Chip
-                label={`${statusCounts.InProgress} running`}
-                size="small"
-                color="warning"
-                variant="outlined"
-              />
-            )}
-            {statusCounts.Failed && (
-              <Chip
-                label={`${statusCounts.Failed} failed`}
-                size="small"
-                color="error"
-                variant="outlined"
-              />
-            )}
-            {statusCounts.Pending && (
-              <Chip
-                label={`${statusCounts.Pending} pending`}
-                size="small"
-                variant="outlined"
-              />
-            )}
+            {completedChip}
+            {inProgressChip}
+            {failedChip}
+            {pendingChip}
           </Stack>
 
           <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
@@ -217,6 +227,30 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
     (s) => s.status === "InProgress" || s.status === "Dispatched",
   ).length;
 
+  const inProgressStat =
+    inProgressServices > 0 ? (
+      <Box>
+        <Typography variant="h5" color="warning.main" fontWeight={600}>
+          {inProgressServices}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Running
+        </Typography>
+      </Box>
+    ) : null;
+
+  const failedStat =
+    failedServices > 0 ? (
+      <Box>
+        <Typography variant="h5" color="error.main" fontWeight={600}>
+          {failedServices}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Failed
+        </Typography>
+      </Box>
+    ) : null;
+
   if (services.length === 0) {
     return (
       <Typography color="text.secondary" sx={{ py: 2, textAlign: "center" }}>
@@ -253,26 +287,8 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
           />
         </Box>
         <Stack direction="row" spacing={2}>
-          {inProgressServices > 0 && (
-            <Box>
-              <Typography variant="h5" color="warning.main" fontWeight={600}>
-                {inProgressServices}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Running
-              </Typography>
-            </Box>
-          )}
-          {failedServices > 0 && (
-            <Box>
-              <Typography variant="h5" color="error.main" fontWeight={600}>
-                {failedServices}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Failed
-              </Typography>
-            </Box>
-          )}
+          {inProgressStat}
+          {failedStat}
         </Stack>
       </Box>
 

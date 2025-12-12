@@ -17,6 +17,7 @@ import type {
   InviteUserRequest,
   InviteUserResponse,
   IssueIntakeInviteRequest,
+  OrderAuditEventDto,
   OrderServicesDto,
   OrderStatsDto,
   OrderSummaryDto,
@@ -51,6 +52,7 @@ export const queryKeys = {
   orders: (query: OrderSummaryQuery) => ["orders", query] as const,
   order: (id: Ulid) => ["orders", "detail", id] as const,
   orderTimeline: (id: Ulid) => ["orders", "timeline", id] as const,
+  orderEvents: (id: Ulid) => ["orders", id, "events"] as const,
   orderServices: (id: Ulid) => ["orders", id, "services"] as const,
   orderStats: ["orders", "stats"] as const,
   serviceTypes: ["services", "types"] as const,
@@ -75,7 +77,8 @@ export const useCurrentUser = (
 
 export const useIsAdmin = () => {
   const { data: user } = useCurrentUser();
-  return user?.roles.some((r) => r.role === "Admin") ?? false;
+  const hasAdminRole = user?.roles.some((r) => r.role === "Admin");
+  return hasAdminRole ?? false;
 };
 
 // ============================================================================
@@ -284,6 +287,16 @@ export const useOrderTimeline = (orderId: Ulid) =>
     enabled: !!orderId,
   });
 
+const fetchOrderEvents = (orderId: Ulid) =>
+  apiFetch<OrderAuditEventDto[]>(`/orders/${orderId}/events`);
+
+export const useOrderEvents = (orderId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.orderEvents(orderId),
+    queryFn: () => fetchOrderEvents(orderId),
+    enabled: !!orderId,
+  });
+
 const fetchOrderStats = () => apiFetch<OrderStatsDto>("/orders/stats");
 
 export const useOrderStats = () =>
@@ -334,11 +347,12 @@ export const useIssueIntakeInvite = () => {
 
 const fetchServiceTypes = () => apiFetch<ServiceTypeDto[]>("/services/types");
 
+// Cache for 10 minutes
 export const useServiceTypes = () =>
   useQuery({
     queryKey: queryKeys.serviceTypes,
     queryFn: fetchServiceTypes,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
 const fetchOrderServices = (orderId: Ulid) =>

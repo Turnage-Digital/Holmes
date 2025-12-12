@@ -11,7 +11,7 @@ public class SubjectsDbContext(DbContextOptions<SubjectsDbContext> options)
 
     public DbSet<SubjectAliasDb> SubjectAliases { get; set; } = null!;
 
-    public DbSet<SubjectDirectoryDb> SubjectDirectory { get; set; } = null!;
+    public DbSet<SubjectProjectionDb> SubjectProjections { get; set; } = null!;
 
     public DbSet<SubjectAddressDb> SubjectAddresses { get; set; } = null!;
 
@@ -136,9 +136,9 @@ public class SubjectsDbContext(DbContextOptions<SubjectsDbContext> options)
                 .IsUnique();
         });
 
-        modelBuilder.Entity<SubjectDirectoryDb>(builder =>
+        modelBuilder.Entity<SubjectProjectionDb>(builder =>
         {
-            builder.ToTable("subject_directory");
+            builder.ToTable("subject_projections");
             builder.HasKey(x => x.SubjectId);
 
             builder.Property(x => x.SubjectId)

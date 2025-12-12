@@ -25,9 +25,21 @@ public class UnitOfWorkDomainEventsTests
 
     private sealed class FakeAggregate : AggregateRoot
     {
+        public string Id { get; } = Guid.NewGuid().ToString();
+
         public void Add(INotification @event)
         {
             AddDomainEvent(@event);
+        }
+
+        public override string GetStreamId()
+        {
+            return $"{GetStreamType()}:{Id}";
+        }
+
+        public override string GetStreamType()
+        {
+            return "FakeAggregate";
         }
     }
 

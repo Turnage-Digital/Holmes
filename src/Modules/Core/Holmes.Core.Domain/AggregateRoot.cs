@@ -14,6 +14,18 @@ public abstract class AggregateRoot : IHasDomainEvents
         _domainEvents.Clear();
     }
 
+    /// <summary>
+    ///     Gets the unique identifier for this aggregate's event stream.
+    ///     Format: "{StreamType}:{AggregateId}" (e.g., "Order:01ARZ3NDEKTSV4RRFFQ69G5FAV")
+    /// </summary>
+    public abstract string GetStreamId();
+
+    /// <summary>
+    ///     Gets the type name for this aggregate's event stream.
+    ///     Used for filtering events during projection replay.
+    /// </summary>
+    public abstract string GetStreamType();
+
     protected void AddDomainEvent(INotification domainEvent)
     {
         ArgumentNullException.ThrowIfNull(domainEvent);

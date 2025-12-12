@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -20,8 +20,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Application", "src\Modules\Core\Holmes.Core.Application\Holmes.Core.Application.csproj", "{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Infrastructure.Sql", "src\Modules\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj", "{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Infrastructure.Security", "src\Modules\Core\Holmes.Core.Infrastructure.Security\Holmes.Core.Infrastructure.Security.csproj", "{8FA9C956-AD3A-4F06-9EFD-1AB5B010C4F7}"
 EndProject
@@ -95,10 +93,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8
 		docs\DEV_SETUP.md = docs\DEV_SETUP.md
 		docs\RUNBOOKS.md = docs\RUNBOOKS.md
 		docs\Holmes.App.UI.md = docs\Holmes.App.UI.md
+		docs\AUDIT.md = docs\AUDIT.md
 		docs\PHASE_2.md = docs\PHASE_2.md
-		docs\PHASE_3.md = docs\PHASE_3.md
-		docs\SLA_CLOCKS_PLAN.md = docs\SLA_CLOCKS_PLAN.md
-		docs\PHASE_3_1.md = docs\PHASE_3_1.md
+		docs\PHASE_3_CONSOLIDATED.md = docs\PHASE_3_CONSOLIDATED.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server", "src\Holmes.Identity.Server\Holmes.Identity.Server.csproj", "{9CBFCA68-B0DD-4C70-9EF8-9526FF1F0804}"
@@ -161,10 +158,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Tests", "s
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "monetize", "monetize", "{F2A1738F-E327-4BF7-9C04-4D6BAB9646B0}"
 	ProjectSection(SolutionItems) = preProject
-		docs\monetize\ARCHITECTURE_COMPLIANCE_UPDATE.md = docs\monetize\ARCHITECTURE_COMPLIANCE_UPDATE.md
+		docs\monetize\README.md = docs\monetize\README.md
 		docs\monetize\PRICING.md = docs\monetize\PRICING.md
-		docs\monetize\PLAN_PHASE_3_UPDATE.md = docs\monetize\PLAN_PHASE_3_UPDATE.md
 		docs\monetize\GUARDRAILS.md = docs\monetize\GUARDRAILS.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "archive", "archive", "{A1B2C3D4-0000-0000-0000-000000000001}"
+	ProjectSection(SolutionItems) = preProject
+		docs\archive\README.md = docs\archive\README.md
+		docs\archive\PHASE_3.md = docs\archive\PHASE_3.md
+		docs\archive\PHASE_3_1.md = docs\archive\PHASE_3_1.md
+		docs\archive\PHASE_3_2.md = docs\archive\PHASE_3_2.md
+		docs\archive\SLA_CLOCKS_PLAN.md = docs\archive\SLA_CLOCKS_PLAN.md
+		docs\archive\ARCHITECTURE_COMPLIANCE_UPDATE.md = docs\archive\ARCHITECTURE_COMPLIANCE_UPDATE.md
+		docs\archive\PLAN_PHASE_3_UPDATE.md = docs\archive\PLAN_PHASE_3_UPDATE.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}"
@@ -178,6 +185,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Infrastructure.Sql", "src\Modules\Services\Holmes.Services.Infrastructure.Sql\Holmes.Services.Infrastructure.Sql.csproj", "{AFA751FF-8289-48AF-A099-9FCD5E0627D3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Tests", "src\Modules\Services\Holmes.Services.Tests\Holmes.Services.Tests.csproj", "{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Infrastructure.Sql", "src\Modules\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj", "{17A29F71-898C-414E-896C-2A5A2E963D10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -197,10 +206,6 @@ Global
 		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8FA9C956-AD3A-4F06-9EFD-1AB5B010C4F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8FA9C956-AD3A-4F06-9EFD-1AB5B010C4F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FA9C956-AD3A-4F06-9EFD-1AB5B010C4F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -429,6 +434,10 @@ Global
 		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A29F71-898C-414E-896C-2A5A2E963D10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A29F71-898C-414E-896C-2A5A2E963D10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17A29F71-898C-414E-896C-2A5A2E963D10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A29F71-898C-414E-896C-2A5A2E963D10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -436,7 +445,6 @@ Global
 		{26E7CD83-1AD4-4569-A85C-EE6878FD4ADE} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
 		{61CE89F8-90A9-4B9F-A0D4-A16BF05E0507} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{F2B00C3F-62EC-49C8-B5AC-033163A64D9E} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
-		{F1C56D84-10B9-4FD8-A8C9-0485B0B6A598} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{71DDA0F4-1FA9-438D-A75D-B49695CC856F} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{8FA9C956-AD3A-4F06-9EFD-1AB5B010C4F7} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{21197E8D-2FAF-4599-A374-07C24F22C33F} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -497,11 +505,13 @@ Global
 		{761DEBD4-80BB-4AA0-B01D-ADB0A61CAF1B} = {F64AD250-2E9E-402E-96CC-59A889894329}
 		{704E7EF8-A8E4-4CE5-ABE3-908F81ACB95F} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 		{F2A1738F-E327-4BF7-9C04-4D6BAB9646B0} = {9721B5CA-8C26-4FC5-8448-F3247DFEDD62}
+		{A1B2C3D4-0000-0000-0000-000000000001} = {9721B5CA-8C26-4FC5-8448-F3247DFEDD62}
 		{3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
 		{57EFE438-CE4A-42BA-8762-875AF1733849} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
 		{4CDFC999-C612-4F52-A626-1F918F52F2DC} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
 		{4702AAC4-F557-4CA2-A139-F55061F8C08B} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
 		{AFA751FF-8289-48AF-A099-9FCD5E0627D3} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
 		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
+		{17A29F71-898C-414E-896C-2A5A2E963D10} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 	EndGlobalSection
 EndGlobal

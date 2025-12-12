@@ -385,9 +385,9 @@ const DashboardPage = () => {
       count: orderStats?.intakeComplete ?? 0,
     },
     {
-      status: "ReadyForRouting",
-      label: getOrderStatusLabel("ReadyForRouting"),
-      count: orderStats?.readyForRouting ?? 0,
+      status: "ReadyForFulfillment",
+      label: getOrderStatusLabel("ReadyForFulfillment"),
+      count: orderStats?.readyForFulfillment ?? 0,
     },
   ];
 

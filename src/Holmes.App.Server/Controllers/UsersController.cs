@@ -3,17 +3,13 @@ using Holmes.App.Infrastructure.Identity.Models;
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Users.Application.Abstractions.Dtos;
 using Holmes.Users.Application.Commands;
+using Holmes.Users.Application.Queries;
 using Holmes.Users.Domain;
-using Holmes.Users.Infrastructure.Sql;
-using Holmes.Users.Infrastructure.Sql.Mappers;
-using Holmes.Users.Infrastructure.Sql.Specifications;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.App.Server.Controllers;
 
@@ -22,7 +18,6 @@ namespace Holmes.App.Server.Controllers;
 [Route("api/users")]
 public sealed class UsersController(
     IMediator mediator,
-    UsersDbContext dbContext,
     ICurrentUserAccess currentUserAccess,
     IIdentityProvisioningClient identityProvisioningClient
 ) : ControllerBase
@@ -35,63 +30,29 @@ public sealed class UsersController(
     )
     {
         var (page, pageSize) = PaginationNormalization.Normalize(query);
-        var countSpec = new UsersWithDetailsSpecification();
-        var totalItems = await dbContext.Users
-            .AsNoTracking()
-            .ApplySpecification(countSpec)
-            .CountAsync(cancellationToken);
+        var result = await mediator.Send(new ListUsersQuery(page, pageSize), cancellationToken);
 
-        var usersSpec = new UsersWithDetailsSpecification(page, pageSize);
-        var users = await dbContext.Users
-            .AsNoTracking()
-            .ApplySpecification(usersSpec)
-            .ToListAsync(cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
 
-        var userIds = users.Select(u => u.UserId).ToList();
-
-        var directorySpec = new UserDirectoryByIdsSpecification(userIds);
-        var directoryEntries = await dbContext.UserDirectory
-            .AsNoTracking()
-            .ApplySpecification(directorySpec)
-            .ToDictionaryAsync(x => x.UserId, cancellationToken);
-
-        var items = users
-            .Select(u => UserMapper.ToDto(u, directoryEntries.GetValueOrDefault(u.UserId)))
-            .ToList();
-
-        return Ok(PaginatedResponse<UserDto>.Create(items, page, pageSize, totalItems));
+        return Ok(PaginatedResponse<UserDto>.Create(result.Value.Items, page, pageSize, result.Value.TotalCount));
     }
 
     [HttpGet("me")]
     public async Task<ActionResult<CurrentUserDto>> GetMe(CancellationToken cancellationToken)
     {
         var currentUserId = await currentUserAccess.GetUserIdAsync(cancellationToken);
-        var directorySpec = new UserDirectoryByIdsSpecification([currentUserId.ToString()]);
-        var projection = await dbContext.UserDirectory
-            .AsNoTracking()
-            .ApplySpecification(directorySpec)
-            .SingleOrDefaultAsync(cancellationToken);
+        var result = await mediator.Send(
+            new GetCurrentUserQuery(currentUserId.ToString()), cancellationToken);
 
-        if (projection is null)
+        if (!result.IsSuccess)
         {
             return NotFound();
         }
 
-        var roles = await dbContext.UserRoleMemberships
-            .AsNoTracking()
-            .Where(x => x.UserId == currentUserId.ToString())
-            .Select(x => new UserRoleDto(x.Role, x.CustomerId))
-            .ToListAsync(cancellationToken);
-
-        return Ok(new CurrentUserDto(
-            currentUserId.ToString(),
-            projection.Email,
-            projection.DisplayName,
-            projection.Issuer,
-            projection.Subject,
-            projection.Status,
-            projection.LastAuthenticatedAt,
-            roles));
+        return Ok(result.Value);
     }
 
     [HttpPost("invitations")]
@@ -117,28 +78,17 @@ public sealed class UsersController(
             return BadRequest(result.Error);
         }
 
-        var invitedUserId = result.Value.ToString();
-        var userSpec = new UserWithDetailsByIdSpecification(invitedUserId);
-        var user = await dbContext.Users
-            .AsNoTracking()
-            .ApplySpecification(userSpec)
-            .SingleOrDefaultAsync(cancellationToken);
+        var invitedUserId = result.Value;
+        var userResult = await mediator.Send(new GetUserByIdQuery(invitedUserId), cancellationToken);
 
-        var directorySpec = new UserDirectoryByIdsSpecification([invitedUserId]);
-        var directory = await dbContext.UserDirectory
-            .AsNoTracking()
-            .ApplySpecification(directorySpec)
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (user is null || directory is null)
+        if (!userResult.IsSuccess)
         {
             return Problem("Failed to load invited user.");
         }
 
-        var mappedUser = UserMapper.ToDto(user, directory);
-
+        var mappedUser = userResult.Value;
         var provisioning = await identityProvisioningClient.ProvisionUserAsync(
-            new ProvisionIdentityUserRequest(invitedUserId, mappedUser.Email, mappedUser.DisplayName),
+            new ProvisionIdentityUserRequest(invitedUserId.ToString(), mappedUser.Email, mappedUser.DisplayName),
             cancellationToken);
 
         return Created(string.Empty, new InviteUserResponse(mappedUser, provisioning.ConfirmationLink));

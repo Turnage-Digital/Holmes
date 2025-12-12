@@ -1,7 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
-using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Tests.TestHelpers;
 using Moq;
 

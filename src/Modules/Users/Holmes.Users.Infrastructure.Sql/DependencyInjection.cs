@@ -1,5 +1,9 @@
 using Holmes.Users.Application.Abstractions;
+using Holmes.Users.Application.Abstractions.Projections;
+using Holmes.Users.Application.Abstractions.Queries;
 using Holmes.Users.Domain;
+using Holmes.Users.Infrastructure.Sql.Projections;
+using Holmes.Users.Infrastructure.Sql.Queries;
 using Holmes.Users.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +24,9 @@ public static class DependencyInjection
 
         services.AddScoped<IUsersUnitOfWork, UsersUnitOfWork>();
         services.AddScoped<IUserDirectory, SqlUserDirectory>();
+        services.AddScoped<IUserAccessQueries, SqlUserAccessQueries>();
+        services.AddScoped<IUserQueries, SqlUserQueries>();
+        services.AddScoped<IUserProjectionWriter, SqlUserProjectionWriter>();
 
         return services;
     }

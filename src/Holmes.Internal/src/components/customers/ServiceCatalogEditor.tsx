@@ -93,6 +93,13 @@ const ServiceRow = ({
     }
   };
 
+  const iconButtonColor = service.isEnabled ? "success" : "default";
+  const statusIcon = service.isEnabled ? (
+    <CheckCircleIcon />
+  ) : (
+    <RadioButtonUncheckedIcon />
+  );
+
   return (
     <TableRow
       sx={{
@@ -105,13 +112,9 @@ const ServiceRow = ({
           size="small"
           onClick={() => onToggle(service.serviceTypeCode, !service.isEnabled)}
           disabled={isPending}
-          color={service.isEnabled ? "success" : "default"}
+          color={iconButtonColor}
         >
-          {service.isEnabled ? (
-            <CheckCircleIcon />
-          ) : (
-            <RadioButtonUncheckedIcon />
-          )}
+          {statusIcon}
         </IconButton>
       </TableCell>
       <TableCell>

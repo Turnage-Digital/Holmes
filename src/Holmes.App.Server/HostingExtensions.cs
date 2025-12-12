@@ -19,7 +19,8 @@ internal static class HostingExtensions
             .AddHolmesApplicationCore()
             .AddHolmesDataProtection(builder.Environment)
             .AddHolmesSwagger(builder.Environment)
-            .AddHolmesModules(builder.Configuration, builder.Environment);
+            .AddHolmesInfrastructure(builder.Configuration, builder.Environment)
+            .AddHolmesHostedServices(builder.Environment);
 
         return builder.Build();
     }

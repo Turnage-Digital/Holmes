@@ -1,4 +1,6 @@
+using Holmes.Notifications.Application.Abstractions.Queries;
 using Holmes.Notifications.Domain;
+using Holmes.Notifications.Infrastructure.Sql.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +19,7 @@ public static class DependencyInjection
 
         services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
+        services.AddScoped<INotificationQueries, SqlNotificationQueries>();
 
         // Stub providers - replace these with real implementations when ready
         services.AddScoped<INotificationProvider, LoggingEmailProvider>();

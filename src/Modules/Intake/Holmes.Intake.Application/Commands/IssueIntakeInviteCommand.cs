@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Holmes.Core.Application;
-using Holmes.Core.Domain.Results;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.ValueObjects;

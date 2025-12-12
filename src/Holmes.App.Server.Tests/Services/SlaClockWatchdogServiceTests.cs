@@ -1,5 +1,5 @@
 using Holmes.App.Server.Services;
-using Holmes.Core.Domain.Results;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;

@@ -98,9 +98,9 @@ tenant-scoped policies without ever persisting credentials.
     - `RequireCustomerRolePolicy(role, customerId)` – ensures caller is assigned role scoped to target customer.
     - Invariants like “a user cannot hold both Admin and CustomerAdmin for different tenants” expressed via aggregate
       guards.
-- **Read models**
-    - `user_directory` – flattened profile plus `Issuer`, `Subject`, last seen, statuses for quick lookup & API
-      responses.
+- **Read models (projections)**
+    - `user_projections` – flattened profile plus `Issuer`, `Subject`, last seen, statuses for quick lookup & API
+      responses. Updated via `UserProjectionHandler` event handler.
     - `user_role_memberships` – per `(userId, role, customerId)` rows to power authorization checks and UI.
     - `user_login_audit` – append-only event projection capturing login timestamps from `UserRegistered` +
       `UserProfileUpdated`.
@@ -235,13 +235,14 @@ progress.
 
 #### Module Conventions
 
-Every bounded context ships the same three projects so dependencies remain predictable:
+Every bounded context ships four projects to support CQRS and database swappability:
 
-| Project                               | Responsibilities                                            | References                                           |
-|---------------------------------------|-------------------------------------------------------------|------------------------------------------------------|
-| `Holmes.<Feature>.Domain`             | Aggregates, domain events, `I<Feature>UnitOfWork`, policies | `Holmes.Core.Domain`                                 |
-| `Holmes.<Feature>.Application`        | Commands, queries, handlers, DTOs                           | `<Feature>.Domain`, `Holmes.Core.Application`        |
-| `Holmes.<Feature>.Infrastructure.Sql` | DbContext, repositories, UnitOfWork, DI helpers             | `<Feature>.Domain`, `Holmes.Core.Infrastructure.Sql` |
+| Project                                     | Responsibilities                                                                             | References                                                                                 |
+|---------------------------------------------|----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`                   | Aggregates, domain events, `I<Feature>UnitOfWork`, write-focused repository interfaces       | `Holmes.Core.Domain`                                                                       |
+| `Holmes.<Feature>.Application.Abstractions` | DTOs, query interfaces (`I<Feature>Queries`), broadcasters                                   | `<Feature>.Domain`, `Holmes.Core.Domain`                                                   |
+| `Holmes.<Feature>.Application`              | Commands, MediatR query objects (`*Query` + handlers in `Queries/` folder), command handlers | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql`       | DbContext, repositories, query implementations (`Sql<Feature>Queries`), Specifications       | `<Feature>.Domain`, `<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
 
 Additional infrastructure (e.g., caching, queues) follows the same naming pattern
 (`Infrastructure.Redis`, `Infrastructure.Search`, etc.) but **never** references the Application layer.
@@ -257,7 +258,12 @@ public static IServiceCollection Add<Feature>InfrastructureSql(
     services.AddDbContext<<Feature>DbContext>(options =>
         options.UseMySql(connectionString, version));
 
+    // Write side
     services.AddScoped<I<Feature>UnitOfWork, <Feature>UnitOfWork>();
+
+    // Read side (CQRS)
+    services.AddScoped<I<Feature>Queries, Sql<Feature>Queries>();
+
     return services;
 }
 ```
@@ -293,6 +299,120 @@ pipeline and no additional queueing infrastructure is necessary.
 > See `Holmes.Core.Tests/UnitOfWorkDomainEventsTests` for integration coverage of
 > multi-aggregate commits and failure paths. Future modules should add similar
 > tests whenever they extend the UnitOfWork abstraction.
+
+### Event Persistence & Projections
+
+Domain events are persisted to the `EventRecord` table during `SaveChangesAsync()` within the same database transaction
+as the aggregate state changes. This ensures atomicity between state and events.
+
+**Event Flow:**
+
+1. Aggregate emits domain events via `AddDomainEvent()`
+2. `UnitOfWork.SaveChangesAsync()` begins a transaction
+3. Aggregate state is saved to the database
+4. Events are serialized and written to `EventRecord` table via `IEventStore`
+5. Transaction commits
+6. Events are dispatched via MediatR to handlers (including projection handlers)
+
+**Projection Architecture:**
+
+Read models (projections) are updated via MediatR event handlers rather than synchronous writes in repositories. This
+provides clear separation between write-side (aggregates) and read-side (projections) updates.
+
+| Module    | Projection Table             | Handler                          | Events Handled                                         |
+|-----------|------------------------------|----------------------------------|--------------------------------------------------------|
+| Users     | `user_projections`           | `UserProjectionHandler`          | UserInvited, UserRegistered, UserProfileUpdated, etc.  |
+| Customers | `customer_projections`       | `CustomerProjectionHandler`      | CustomerRegistered, CustomerRenamed, CustomerSuspended |
+| Subjects  | `subject_projections`        | `SubjectProjectionHandler`       | SubjectRegistered, SubjectMerged, SubjectAliasAdded    |
+| Workflow  | `order_summaries`            | `OrderSummaryHandler`            | Various Order events                                   |
+| Intake    | `intake_session_projections` | `IntakeSessionProjectionHandler` | IntakeSession events                                   |
+
+**Benefits:**
+
+- Events are the source of truth and can be replayed to rebuild projections
+- Projections can be rebuilt from event history at any time
+- Clear audit trail of all state changes
+- Consistent architecture across all modules
+
+**Projection Writers:**
+
+Each projection has a corresponding writer interface (e.g., `IUserProjectionWriter`, `ICustomerProjectionWriter`)
+implemented in the Infrastructure layer. These writers handle the actual database operations for maintaining projection
+tables.
+
+### Query Pattern (CQRS Read Side)
+
+Controllers access read data through MediatR Query objects that delegate to Query Interfaces. This ensures:
+
+- Consistent MediatR pipeline for all operations (logging, validation, caching via behaviors)
+- Database-agnostic query interfaces in Application.Abstractions
+- Uniform controller injection (only `IMediator` + security interfaces)
+
+**Query Flow:**
+
+```
+Controller -> IMediator.Send(Query) -> QueryHandler -> I*Queries -> Sql*Queries -> DbContext
+```
+
+**Query Naming Conventions:**
+
+| Pattern            | Example                        |
+|--------------------|--------------------------------|
+| Single by ID       | `Get{Entity}ByIdQuery`         |
+| Single by criteria | `Get{Entity}By{Criteria}Query` |
+| List/paginated     | `List{Entities}Query`          |
+| Existence check    | `Check{Entity}ExistsQuery`     |
+| Specific property  | `Get{Entity}{Property}Query`   |
+| Stats/aggregations | `Get{Entity}StatsQuery`        |
+
+**Query Handler Pattern:**
+
+Query handlers in `*.Application/Queries/` inject query interfaces from `*.Application.Abstractions/Queries/`
+and delegate all database access. Query handlers contain no direct DbContext usage.
+
+```csharp
+public sealed record GetCustomerByIdQuery(string CustomerId) : RequestBase<Result<CustomerDetailDto>>;
+
+public sealed class GetCustomerByIdQueryHandler(
+    ICustomerQueries customerQueries
+) : IRequestHandler<GetCustomerByIdQuery, Result<CustomerDetailDto>>
+{
+    public async Task<Result<CustomerDetailDto>> Handle(
+        GetCustomerByIdQuery request,
+        CancellationToken cancellationToken
+    )
+    {
+        var customer = await customerQueries.GetByIdAsync(request.CustomerId, cancellationToken);
+        if (customer is null)
+        {
+            return Result.Fail<CustomerDetailDto>($"Customer {request.CustomerId} not found");
+        }
+        return Result.Success(customer);
+    }
+}
+```
+
+**Controller Usage:**
+
+Controllers inject only `IMediator` for queries (plus security interfaces like `ICurrentUserAccess`).
+They never inject query interfaces directly.
+
+```csharp
+public sealed class CustomersController(
+    IMediator mediator,
+    ICurrentUserAccess currentUserAccess
+) : ControllerBase
+{
+    [HttpGet("{customerId}")]
+    public async Task<ActionResult<CustomerDetailDto>> GetCustomerById(
+        string customerId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetCustomerByIdQuery(customerId), cancellationToken);
+        if (!result.IsSuccess) return NotFound();
+        return Ok(result.Value);
+    }
+}
+```
 
 ### Client Application (Holmes.Internal)
 
@@ -346,18 +466,24 @@ pipeline and no additional queueing infrastructure is necessary.
 - `Holmes.Core.*` is the kernel module; all feature modules depend on it for primitives, cross-cutting behaviors, and
   shared integrations.
 - A module's `*.Domain` project is pure (no Infrastructure or Application dependencies) and may depend only on
-  `Holmes.Core.Domain`.
-- Each module exposes `*.Application.Abstractions` for DTOs, projection contracts, broadcasters, and other ports the
-  host or Infrastructure must consume. These assemblies depend on the module's `*.Domain` (and `Holmes.Core.Domain`)
-  but contain no handlers.
+  `Holmes.Core.Domain`. Repository interfaces here are **write-focused** (`GetByIdAsync`, `Add`, `Update`).
+- Each module exposes `*.Application.Abstractions` for DTOs, **query interfaces** (`I<Feature>Queries`), projection
+  contracts, broadcasters, and other ports the host or Infrastructure must consume. These assemblies depend on the
+  module's `*.Domain` (and `Holmes.Core.Domain`) but contain no handlers.
 - `*.Application` projects depend on their matching `*.Domain`, their module's `*.Application.Abstractions`, and
-  `Holmes.Core.Application`; they expose commands, queries, and pipelines for the host.
-- `*.Infrastructure` projects depend on `*.Domain`, the module's `*.Application.Abstractions`, and
-  `Holmes.Core.Infrastructure.*`. They never reference the module's `*.Application`, and `*.Application` cannot
-  reference `*.Infrastructure`. Cross-module calls flow only through other modules' `*.Application.Abstractions`
-  (e.g., Workflow consumes the Intake replay source interface rather than its EF DbContext).
+  `Holmes.Core.Application`; they expose commands and query handlers for the host. Query handlers delegate to
+  `I<Feature>Queries` interfaces—they do not access DbContext directly.
+- `*.Infrastructure.Sql` projects depend on `*.Domain`, the module's `*.Application.Abstractions`, and
+  `Holmes.Core.Infrastructure.Sql`. They implement both repository interfaces (write side) and query interfaces
+  (read side via `Sql<Feature>Queries`). They never reference the module's `*.Application`, and `*.Application` cannot
+  reference `*.Infrastructure`. Cross-module calls flow only through other modules' `*.Application.Abstractions`.
+- `Holmes.App.Infrastructure` references **only** `*.Application.Abstractions` projects—never `*.Infrastructure.Sql`.
+  This ensures middleware and security code remain database-agnostic.
 - Host projects (`Holmes.App.Server`) wire modules through DI by referencing each module's
-  `*.Application` and `*.Infrastructure`.
+  `*.Application` and `*.Infrastructure.Sql`.
+- Controllers inject `IMediator` for all queries and commands—never query interfaces or DbContext directly.
+  Security interfaces (`ICurrentUserAccess`, `ICurrentUserInitializer`) and special-case infrastructure
+  (e.g., `IEventStore` for audit) are the only other allowed injections.
 - Build outputs (`bin/`, `obj/`) stay inside each project and remain git-ignored.
 
 **Cross-module boundary rule (CRITICAL)**
@@ -366,12 +492,15 @@ A module **MUST NEVER** directly reference another module's `*.Domain` or `*.App
 fundamental DDD principle — bounded contexts communicate through explicit contracts, not internal implementation
 details.
 
-| Reference Type | Allowed? | Example |
-|----------------|----------|---------|
-| `ModuleA.Application` → `ModuleB.Domain` | ❌ NO | SlaClocks.App → Workflow.Domain |
-| `ModuleA.Application` → `ModuleB.Application` | ❌ NO | Services.App → Subjects.App |
-| `ModuleA.Application` → `ModuleB.Application.Abstractions` | ✅ YES | SlaClocks.App → Workflow.App.Abstractions |
-| `ModuleA.Infrastructure` → `ModuleB.Application.Abstractions` | ✅ YES | Intake.Infra → Workflow.App.Abstractions |
+| Reference Type                                                    | Allowed? | Example                                      |
+|-------------------------------------------------------------------|----------|----------------------------------------------|
+| `ModuleA.Application` → `ModuleB.Domain`                          | ❌ NO     | SlaClocks.App → Workflow.Domain              |
+| `ModuleA.Application` → `ModuleB.Application`                     | ❌ NO     | Services.App → Subjects.App                  |
+| `ModuleA.Infrastructure.Sql` → `ModuleB.Infrastructure.Sql`       | ❌ NO     | Customers.Infra.Sql → Users.Infra.Sql        |
+| `ModuleA.Application` → `ModuleB.Application.Abstractions`        | ✅ YES    | SlaClocks.App → Workflow.App.Abstractions    |
+| `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions` | ✅ YES    | Intake.Infra.Sql → Workflow.App.Abstractions |
+| `App.Infrastructure` → `Module.Application.Abstractions`          | ✅ YES    | App.Infra → Users.App.Abstractions           |
+| `App.Infrastructure` → `Module.Infrastructure.Sql`                | ❌ NO     | App.Infra → Users.Infra.Sql                  |
 
 When a module needs types from another bounded context, the owning module must expose them via
 `*.Application.Abstractions` (DTOs, interfaces, integration events). See `docs/MODULE_TEMPLATE.md` for detailed
@@ -764,6 +893,96 @@ create table adverse_action_clocks(
 
 ---
 
+## 16.1) Identity Architecture (Broker Model)
+
+Holmes.Identity.Server operates as a **federated identity broker**, not just a development stub.
+
+**Modes of Authentication:**
+
+- **Mode A: Tenant uses external IdP** (Azure AD, Okta, generic OIDC)
+    - Holmes.Identity redirects to upstream IdP
+    - Normalizes external identity into Holmes User Registry
+
+- **Mode B: Holmes-managed credentials** (for smaller tenants)
+    - Local password-based authentication in Holmes.Identity
+    - Still issues the same Holmes-standard tokens
+
+**Why a Broker?**
+
+- Uniform claims model across all tenants
+- Holmes enforces TenantId, roles, and policies centrally
+- Clean multi-tenant isolation
+- White-label friendly authentication UX
+- Supports mixed environments (some tenants bring IdP, others don't)
+
+Holmes.Identity.Server is the **single IdP for Holmes.App and Holmes.Internal**, delegating upstream only as needed.
+
+---
+
+## 16.2) White-Label & Multi-Tenant Architecture
+
+Holmes supports private-label deployments with:
+
+- Tenant-specific branding metadata (logo, colors, templates)
+- Themed login flows via Holmes.Identity
+- Themed Holmes.Internal UI
+- Tenant-scoped IdP configuration (BYO IdP)
+- Per-tenant features and billing entitlements
+
+**Deployment Options:**
+
+- Row-level tenant isolation via `TenantId` (default)
+- Separate schemas per bounded context
+- Optional per-tenant databases for enterprise deployments
+- Azure deployments via AKS with horizontal pod scaling
+
+---
+
+## 16.3) WORM Artifacts & Evidence Packs
+
+The `IConsentArtifactStore` abstraction supports **write-once, immutable storage** for:
+
+- Policy snapshots
+- Consent signatures
+- Adverse notices
+- Dispute submissions
+- Evidence bundles
+
+**Implementation:**
+
+- Hash verification for regulator integrity requirements
+- Backed initially by encrypted MySQL BLOBs (swappable to Azure Blob Storage)
+- Deterministic **Evidence Packs** (ZIP of PDFs + JSON manifest) containing:
+    - Full event history relevant to an order
+    - All artifacts pertaining to adverse action or disputes
+    - JSON manifest for reproducibility
+
+---
+
+## 16.4) Usage Metering & Entitlements
+
+A dedicated module records billable events via `ComplianceUsageRecord`:
+
+| Event Type | Description |
+|------------|-------------|
+| `AdverseActionCaseCreated` | Pre/final AA workflow initiated |
+| `EvidencePackGenerated` | Evidence bundle export |
+| `NotificationRequested` | Email/SMS/webhook fired |
+| `DisputeOpened` | Candidate dispute initiation |
+| `SimulationRun` | Policy what-if request |
+
+**Entitlements gate features:**
+
+- Compliance Suite
+- Adverse Action Automation
+- Evidence Packs
+- Dispute Portal
+- Adjudication Engine
+
+This allows Holmes to run multiple SaaS tiers in one deployment. See `docs/monetize/PRICING.md` for tier definitions.
+
+---
+
 ## 17) Observability
 
 - **Metrics**: invite→submit, intake P50/P90, on_track/at_risk/breached counts, notification send/fail, §611 dispute
@@ -829,7 +1048,7 @@ create table adverse_action_clocks(
 - Subject registry aggregates + merge flows; canonical identity read model.
 - Users module (invite, activate, suspend) with tenant membership + role claims.
 - Customers module (register, assign policy snapshot, contact roster) tied to tenants.
-- Read models: `subject_summary`, `user_directory`, `customer_registry`.
+- Read models: `subject_projections`, `user_projections`, `customer_projections`.
 - Integration tests for user activation, subject merge, and customer linkage.
 
 **Acceptance**: Tenant admin can invite a user, activate, assign roles, and create a customer bound to policy snapshot.

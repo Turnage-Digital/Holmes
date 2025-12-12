@@ -11,7 +11,7 @@ public sealed record OrderSummaryDto(
     string Status,
     string? LastStatusReason,
     DateTimeOffset LastUpdatedAt,
-    DateTimeOffset? ReadyForRoutingAt,
+    DateTimeOffset? ReadyForFulfillmentAt,
     DateTimeOffset? ClosedAt,
     DateTimeOffset? CanceledAt
 );
@@ -31,7 +31,21 @@ public sealed record OrderStatsDto(
     int Invited,
     int IntakeInProgress,
     int IntakeComplete,
-    int ReadyForRouting,
+    int ReadyForFulfillment,
     int Blocked,
     int Canceled
+);
+
+/// <summary>
+///     A raw domain event from the event store, used for audit purposes.
+/// </summary>
+public sealed record OrderAuditEventDto(
+    long Position,
+    long Version,
+    string EventId,
+    string EventName,
+    JsonElement Payload,
+    DateTimeOffset CreatedAt,
+    string? CorrelationId,
+    string? ActorId
 );

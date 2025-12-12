@@ -60,7 +60,7 @@ public sealed class OrderSummaryProjectionRunnerTests
             Assert.That(summary.OrderId, Is.EqualTo(order.Id.ToString()));
             Assert.That(summary.Status, Is.EqualTo(OrderStatus.Canceled.ToString()));
             Assert.That(summary.CanceledAt, Is.EqualTo(order.CanceledAt));
-            Assert.That(summary.ReadyForRoutingAt, Is.EqualTo(order.ReadyForRoutingAt));
+            Assert.That(summary.ReadyForFulfillmentAt, Is.EqualTo(order.ReadyForFulfillmentAt));
         });
 
         var checkpoint = _coreDbContext.ProjectionCheckpoints.Single();
@@ -107,7 +107,7 @@ public sealed class OrderSummaryProjectionRunnerTests
         order.RecordInvite(sessionId, baseTime.AddMinutes(1));
         order.MarkIntakeInProgress(sessionId, baseTime.AddMinutes(2));
         order.MarkIntakeSubmitted(sessionId, baseTime.AddMinutes(3));
-        order.MarkReadyForRouting(baseTime.AddMinutes(4));
+        order.MarkReadyForFulfillment(baseTime.AddMinutes(4));
         order.Cancel("customer canceled", baseTime.AddMinutes(5));
         return order;
     }

@@ -279,4 +279,14 @@ public sealed class NotificationRequest : AggregateRoot
             throw new InvalidOperationException($"Notification must be pending. Current status: {Status}");
         }
     }
+
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
+
+    public override string GetStreamType()
+    {
+        return "NotificationRequest";
+    }
 }

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain.Events;
+using Holmes.Customers.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Customers.Domain;
@@ -130,5 +131,15 @@ public sealed class Customer : AggregateRoot
     private void Emit(INotification @event)
     {
         AddDomainEvent(@event);
+    }
+
+    public override string GetStreamId()
+    {
+        return $"{GetStreamType()}:{Id}";
+    }
+
+    public override string GetStreamType()
+    {
+        return "Customer";
     }
 }

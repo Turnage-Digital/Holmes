@@ -98,6 +98,52 @@ const ServiceStatusCard = ({
   };
 
   const timestampInfo = getRelevantTimestamp();
+  const chipColor = hasError ? "error" : "default";
+
+  const vendorDisplay = service.vendorCode ? (
+    <Typography variant="caption" color="text.secondary">
+      Vendor: {service.vendorCode}
+    </Typography>
+  ) : null;
+
+  const scopeDisplay = service.scopeValue ? (
+    <Tooltip title={service.scopeType ?? "Scope"}>
+      <Typography variant="caption" color="text.secondary">
+        {service.scopeValue}
+      </Typography>
+    </Tooltip>
+  ) : null;
+
+  const retriesDisplay = hasRetries ? (
+    <Tooltip
+      title={`Attempt ${service.attemptCount} of ${service.maxAttempts}`}
+    >
+      <Chip
+        label={`${service.attemptCount}/${service.maxAttempts}`}
+        size="small"
+        color={chipColor}
+        variant="outlined"
+      />
+    </Tooltip>
+  ) : null;
+
+  const errorDisplay =
+    hasError && service.lastError ? (
+      <Typography
+        variant="caption"
+        color="error.main"
+        sx={{
+          mt: 0.5,
+          p: 1,
+          bgcolor: "error.50",
+          borderRadius: 1,
+          border: "1px solid",
+          borderColor: "error.200",
+        }}
+      >
+        {service.lastError}
+      </Typography>
+    ) : null;
 
   return (
     <Card
@@ -159,32 +205,11 @@ const ServiceStatusCard = ({
               <Typography variant="caption" color="text.secondary">
                 Tier {service.tier}
               </Typography>
-              {service.vendorCode && (
-                <Typography variant="caption" color="text.secondary">
-                  Vendor: {service.vendorCode}
-                </Typography>
-              )}
-              {service.scopeValue && (
-                <Tooltip title={service.scopeType ?? "Scope"}>
-                  <Typography variant="caption" color="text.secondary">
-                    {service.scopeValue}
-                  </Typography>
-                </Tooltip>
-              )}
+              {vendorDisplay}
+              {scopeDisplay}
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
-              {hasRetries && (
-                <Tooltip
-                  title={`Attempt ${service.attemptCount} of ${service.maxAttempts}`}
-                >
-                  <Chip
-                    label={`${service.attemptCount}/${service.maxAttempts}`}
-                    size="small"
-                    color={hasError ? "error" : "default"}
-                    variant="outlined"
-                  />
-                </Tooltip>
-              )}
+              {retriesDisplay}
               <Typography variant="caption" color="text.secondary">
                 {timestampInfo.label}{" "}
                 {formatDistanceToNow(new Date(timestampInfo.time), {
@@ -195,22 +220,7 @@ const ServiceStatusCard = ({
           </Box>
 
           {/* Error message */}
-          {hasError && service.lastError && (
-            <Typography
-              variant="caption"
-              color="error.main"
-              sx={{
-                mt: 0.5,
-                p: 1,
-                bgcolor: "error.50",
-                borderRadius: 1,
-                border: "1px solid",
-                borderColor: "error.200",
-              }}
-            >
-              {service.lastError}
-            </Typography>
-          )}
+          {errorDisplay}
         </Stack>
       </CardContent>
     </Card>

@@ -33,7 +33,7 @@ public sealed class SqlOrderSummaryWriter(WorkflowDbContext dbContext)
         record.Status = order.Status.ToString();
         record.LastStatusReason = order.LastStatusReason;
         record.LastUpdatedAt = order.LastUpdatedAt;
-        record.ReadyForRoutingAt = order.ReadyForRoutingAt;
+        record.ReadyForFulfillmentAt = order.ReadyForFulfillmentAt;
         record.ClosedAt = order.ClosedAt;
         record.CanceledAt = order.CanceledAt;
 

@@ -1,12 +1,10 @@
 using Holmes.Intake.Application.Abstractions.Projections;
-using Holmes.Intake.Application.Abstractions.Sessions;
-using Holmes.Intake.Application.Services;
+using Holmes.Intake.Application.Abstractions.Queries;
+using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Domain;
-using Holmes.Intake.Domain.Storage;
 using Holmes.Intake.Infrastructure.Sql.Projections;
+using Holmes.Intake.Infrastructure.Sql.Queries;
 using Holmes.Intake.Infrastructure.Sql.Services;
-using Holmes.Intake.Infrastructure.Sql.Sessions;
-using Holmes.Intake.Infrastructure.Sql.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,11 +22,19 @@ public static class DependencyInjection
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(IntakeDbContext).Assembly.FullName)));
 
+        // Write side
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
+
+        // Read side (CQRS)
+        services.AddScoped<IIntakeSessionQueries, SqlIntakeSessionQueries>();
+
+        // Projections
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
         services.AddScoped<IIntakeSessionReplaySource, SqlIntakeSessionReplaySource>();
         services.AddScoped<IntakeSessionProjectionRunner>();
+
+        // Services
         services.AddScoped<IIntakeAnswersDecryptor, IntakeAnswersDecryptor>();
 
         return services;

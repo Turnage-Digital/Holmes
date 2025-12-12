@@ -7,6 +7,8 @@ using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
+using Holmes.Workflow.Application.Commands;
+using Holmes.Workflow.Infrastructure.Sql;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +48,7 @@ public sealed class SeedData(
             var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
             var subjectsDb = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
             var usersDb = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
+            var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
 
             if (await HasExistingSeedAsync(usersDb, cancellationToken))
             {
@@ -57,8 +60,12 @@ public sealed class SeedData(
             var adminUserId = await EnsureAdminUserAsync(mediator, now, cancellationToken);
             await EnsureAdminRoleAsync(mediator, adminUserId, now, cancellationToken);
             await EnsureAdminApprovedAsync(mediator, adminUserId, now, cancellationToken);
-            await EnsureDemoCustomerAsync(mediator, customersDb, adminUserId, now, cancellationToken);
-            await EnsureDemoSubjectAsync(mediator, subjectsDb, adminUserId, now, cancellationToken);
+            var customerId = await EnsureDemoCustomerAsync(mediator, customersDb, adminUserId, now, cancellationToken);
+            var subjectIds = await EnsureDemoSubjectsAsync(mediator, subjectsDb, adminUserId, now, cancellationToken);
+            await EnsureDemoOrdersAsync(mediator, workflowDb, customerId, subjectIds, adminUserId, now,
+                cancellationToken);
+
+            logger.LogInformation("Development seed data created successfully");
         }
         catch (Exception ex)
         {
@@ -125,7 +132,7 @@ public sealed class SeedData(
         await mediator.Send(approve, cancellationToken);
     }
 
-    private static async Task EnsureDemoCustomerAsync(
+    private static async Task<UlidId> EnsureDemoCustomerAsync(
         IMediator mediator,
         CustomersDbContext customersDb,
         UlidId adminUserId,
@@ -134,7 +141,7 @@ public sealed class SeedData(
     )
     {
         const string demoCustomerName = "Holmes Demo Customer";
-        var directory = await customersDb.CustomerDirectory
+        var directory = await customersDb.CustomerProjections
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Name == demoCustomerName, cancellationToken);
 
@@ -159,6 +166,7 @@ public sealed class SeedData(
         }
 
         await EnsureDemoCustomerProfileAsync(customersDb, customerId.ToString(), timestamp, cancellationToken);
+        return customerId;
     }
 
     private static async Task EnsureDemoCustomerProfileAsync(
@@ -201,7 +209,7 @@ public sealed class SeedData(
         await customersDb.SaveChangesAsync(cancellationToken);
     }
 
-    private static async Task EnsureDemoSubjectAsync(
+    private static async Task<List<UlidId>> EnsureDemoSubjectsAsync(
         IMediator mediator,
         SubjectsDbContext subjectsDb,
         UlidId adminUserId,
@@ -209,27 +217,204 @@ public sealed class SeedData(
         CancellationToken cancellationToken
     )
     {
-        const string demoGivenName = "Casey";
-        const string demoFamilyName = "Holmes";
-        var existing = await subjectsDb.SubjectDirectory
-            .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.GivenName == demoGivenName && s.FamilyName == demoFamilyName,
-                cancellationToken);
+        var subjectIds = new List<UlidId>();
 
-        if (existing is not null)
+        // Sample subjects for testing
+        var subjects = new[]
+        {
+            ("Casey", "Holmes", new DateOnly(1994, 4, 12), "casey@example.com"),
+            ("Jordan", "Smith", new DateOnly(1988, 7, 22), "jordan.smith@example.com"),
+            ("Taylor", "Johnson", new DateOnly(1991, 11, 3), "taylor.j@example.com"),
+            ("Morgan", "Williams", new DateOnly(1985, 2, 14), "morgan.w@example.com"),
+            ("Riley", "Brown", new DateOnly(1996, 9, 8), "riley.brown@example.com"),
+            ("Alex", "Davis", new DateOnly(1990, 5, 30), "alex.d@example.com"),
+            ("Jamie", "Miller", new DateOnly(1993, 12, 17), "jamie.miller@example.com"),
+            ("Quinn", "Wilson", new DateOnly(1987, 6, 25), "quinn.w@example.com"),
+            ("Drew", "Moore", new DateOnly(1995, 1, 9), "drew.moore@example.com"),
+            ("Avery", "Taylor", new DateOnly(1992, 8, 11), "avery.t@example.com")
+        };
+
+        foreach (var (givenName, familyName, dob, email) in subjects)
+        {
+            var existing = await subjectsDb.SubjectProjections
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.GivenName == givenName && s.FamilyName == familyName,
+                    cancellationToken);
+
+            if (existing is not null)
+            {
+                subjectIds.Add(UlidId.Parse(existing.SubjectId));
+                continue;
+            }
+
+            var createSubject = new RegisterSubjectCommand(
+                givenName,
+                familyName,
+                dob,
+                email,
+                timestamp)
+            {
+                UserId = adminUserId.ToString()
+            };
+            var subjectId = await mediator.Send(createSubject, cancellationToken);
+            subjectIds.Add(subjectId);
+        }
+
+        return subjectIds;
+    }
+
+    private static async Task EnsureDemoOrdersAsync(
+        IMediator mediator,
+        WorkflowDbContext workflowDb,
+        UlidId customerId,
+        List<UlidId> subjectIds,
+        UlidId adminUserId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    )
+    {
+        // Check if we already have orders
+        var existingOrderCount = await workflowDb.Orders.CountAsync(cancellationToken);
+        if (existingOrderCount > 0)
         {
             return;
         }
 
-        var createSubject = new RegisterSubjectCommand(
-            demoGivenName,
-            demoFamilyName,
-            new DateOnly(1994, 4, 12),
-            "casey@holmes.dev",
-            timestamp)
+        const string policySnapshotId = "policy-default";
+
+        // Create orders in various states
+        var orderScenarios = new[]
         {
-            UserId = adminUserId.ToString()
+            // Recent orders - Created status
+            (subjectIds[0], TimeSpan.FromMinutes(-30), "Created"),
+            (subjectIds[1], TimeSpan.FromHours(-2), "Created"),
+
+            // Invited status - waiting for subject to start intake
+            (subjectIds[2], TimeSpan.FromHours(-6), "Invited"),
+            (subjectIds[3], TimeSpan.FromDays(-1), "Invited"),
+
+            // Intake in progress
+            (subjectIds[4], TimeSpan.FromHours(-4), "IntakeInProgress"),
+            (subjectIds[5], TimeSpan.FromDays(-2), "IntakeInProgress"),
+
+            // Intake complete - ready for review
+            (subjectIds[6], TimeSpan.FromDays(-3), "IntakeComplete"),
+            (subjectIds[7], TimeSpan.FromDays(-4), "IntakeComplete"),
+
+            // Ready for fulfillment
+            (subjectIds[8], TimeSpan.FromDays(-5), "ReadyForFulfillment"),
+
+            // Blocked order
+            (subjectIds[9], TimeSpan.FromDays(-7), "Blocked")
         };
-        await mediator.Send(createSubject, cancellationToken);
+
+        foreach (var (subjectId, ageOffset, targetStatus) in orderScenarios)
+        {
+            var orderId = UlidId.NewUlid();
+            var createdAt = now.Add(ageOffset);
+
+            // Create the order
+            var createCommand = new CreateOrderCommand(
+                orderId,
+                subjectId,
+                customerId,
+                policySnapshotId,
+                createdAt,
+                "standard")
+            {
+                UserId = adminUserId.ToString()
+            };
+            await mediator.Send(createCommand, cancellationToken);
+
+            // Progress the order to the target status
+            await ProgressOrderToStatusAsync(mediator, orderId, subjectId,
+                targetStatus, createdAt, adminUserId, cancellationToken);
+        }
+    }
+
+    private static async Task ProgressOrderToStatusAsync(
+        IMediator mediator,
+        UlidId orderId,
+        UlidId subjectId,
+        string targetStatus,
+        DateTimeOffset createdAt,
+        UlidId adminUserId,
+        CancellationToken cancellationToken
+    )
+    {
+        if (targetStatus == "Created")
+        {
+            return; // Already at Created
+        }
+
+        // Create a fake intake session ID for order workflow tracking
+        var intakeSessionId = UlidId.NewUlid();
+
+        // Record invite (moves to Invited)
+        var inviteTimestamp = createdAt.AddMinutes(5);
+        var inviteCommand =
+            new RecordOrderInviteCommand(orderId, intakeSessionId, inviteTimestamp, "Intake invitation sent")
+            {
+                UserId = adminUserId.ToString()
+            };
+        await mediator.Send(inviteCommand, cancellationToken);
+
+        if (targetStatus == "Invited")
+        {
+            return;
+        }
+
+        // Mark intake started (moves to IntakeInProgress)
+        var startTimestamp = inviteTimestamp.AddHours(1);
+        var startCommand =
+            new MarkOrderIntakeStartedCommand(orderId, intakeSessionId, startTimestamp, "Subject began intake")
+            {
+                UserId = adminUserId.ToString()
+            };
+        await mediator.Send(startCommand, cancellationToken);
+
+        if (targetStatus == "IntakeInProgress")
+        {
+            return;
+        }
+
+        // Mark intake submitted (moves to IntakeComplete)
+        var submitTimestamp = startTimestamp.AddHours(2);
+        var submitCommand =
+            new MarkOrderIntakeSubmittedCommand(orderId, intakeSessionId, submitTimestamp, "Intake form completed")
+            {
+                UserId = adminUserId.ToString()
+            };
+        await mediator.Send(submitCommand, cancellationToken);
+
+        if (targetStatus == "IntakeComplete")
+        {
+            return;
+        }
+
+        // Mark ready for fulfillment
+        var readyTimestamp = submitTimestamp.AddHours(1);
+        var readyCommand =
+            new MarkOrderReadyForFulfillmentCommand(orderId, readyTimestamp, "Intake reviewed and approved")
+            {
+                UserId = adminUserId.ToString()
+            };
+        await mediator.Send(readyCommand, cancellationToken);
+
+        if (targetStatus == "ReadyForFulfillment")
+        {
+            return;
+        }
+
+        // Block the order (we don't have BeginFulfillment command, so skip to block from ReadyForFulfillment)
+        if (targetStatus == "Blocked")
+        {
+            var blockTimestamp = readyTimestamp.AddHours(1);
+            var blockCommand = new BlockOrderCommand(orderId, "Awaiting additional documentation", blockTimestamp)
+            {
+                UserId = adminUserId.ToString()
+            };
+            await mediator.Send(blockCommand, cancellationToken);
+        }
     }
 }

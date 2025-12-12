@@ -2,6 +2,7 @@ using System.Globalization;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Application.Abstractions.Dtos;
 using Holmes.Subjects.Domain;
+using Holmes.Subjects.Domain.ValueObjects;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 
 namespace Holmes.Subjects.Infrastructure.Sql.Mappers;
@@ -237,7 +238,7 @@ public static class SubjectMapper
     }
 
     // DTO mapping methods for API responses
-    public static SubjectSummaryDto ToSummary(SubjectDirectoryDb directory)
+    public static SubjectSummaryDto ToSummary(SubjectProjectionDb directory)
     {
         return new SubjectSummaryDto(
             directory.SubjectId,
@@ -276,6 +277,34 @@ public static class SubjectMapper
             aliases,
             subject.CreatedAt,
             subject.MergedAt ?? subject.CreatedAt);
+    }
+
+    /// <summary>
+    ///     Maps from projection table (read model) to list item DTO.
+    ///     Uses AliasCount to create placeholder aliases for the count display.
+    /// </summary>
+    public static SubjectListItemDto ToListItemFromProjection(SubjectProjectionDb projection)
+    {
+        var status = projection.IsMerged ? "Merged" : "Active";
+
+        // Create placeholder alias entries for the count display
+        // The grid only shows aliases.length, so we create empty placeholders
+        var aliases = Enumerable.Range(0, projection.AliasCount)
+            .Select(_ => new SubjectAliasDto(string.Empty, string.Empty, string.Empty, null, projection.CreatedAt))
+            .ToList();
+
+        return new SubjectListItemDto(
+            projection.SubjectId,
+            projection.GivenName,
+            null, // MiddleName not stored in projection (not displayed in grid)
+            projection.FamilyName,
+            projection.DateOfBirth,
+            projection.Email,
+            status,
+            null, // MergeParentId not stored in projection (not needed for list view)
+            aliases,
+            projection.CreatedAt,
+            projection.CreatedAt); // UpdatedAt approximated as CreatedAt
     }
 
     public static SubjectDetailDto ToDetail(SubjectDb subject)

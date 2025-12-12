@@ -1,11 +1,19 @@
 using System.Diagnostics;
+using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Core.Infrastructure.Sql;
 
-public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediator)
+public abstract class UnitOfWork<TContext>(
+    TContext dbContext,
+    IMediator mediator,
+    IEventStore? eventStore = null,
+    IDomainEventSerializer? serializer = null,
+    ITenantContext? tenantContext = null
+)
     : IUnitOfWork where TContext : DbContext
 {
     private bool _disposed;
@@ -24,6 +32,9 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
 
         var startTimestamp = Stopwatch.GetTimestamp();
 
+        // Collect aggregates before any database operations
+        var aggregates = DomainEventTracker.Collect();
+
         try
         {
             int retval;
@@ -34,7 +45,12 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
                 await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
+                    // 1. Save aggregate state changes
                     retval = await dbContext.SaveChangesAsync(cancellationToken);
+
+                    // 2. Persist events to EventRecord (within transaction)
+                    await PersistEventsAsync(aggregates, cancellationToken);
+
                     await transaction.CommitAsync(cancellationToken);
                 }
                 catch
@@ -47,9 +63,14 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
             {
                 // InMemory and other non-relational providers: no transaction
                 retval = await dbContext.SaveChangesAsync(cancellationToken);
+
+                // Still persist events for non-relational (testing) scenarios
+                await PersistEventsAsync(aggregates, cancellationToken);
             }
 
-            await DispatchDomainEventsAsync(cancellationToken);
+            // 3. Dispatch events via MediatR (after commit)
+            await DispatchDomainEventsAsync(aggregates, cancellationToken);
+
             activity?.SetStatus(ActivityStatusCode.Ok);
             activity?.SetTag("holmes.unit_of_work.result", "success");
 
@@ -92,10 +113,48 @@ public abstract class UnitOfWork<TContext>(TContext dbContext, IMediator mediato
         _disposed = true;
     }
 
-    private async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
+    private async Task PersistEventsAsync(
+        IReadOnlyCollection<IHasDomainEvents> aggregates,
+        CancellationToken cancellationToken
+    )
     {
-        var aggregates = DomainEventTracker.Collect();
-        if (aggregates.Count is 0)
+        // Skip if event persistence infrastructure is not configured
+        if (eventStore is null || serializer is null)
+        {
+            return;
+        }
+
+        var tenant = tenantContext?.TenantId ?? "*";
+        var actorId = tenantContext?.ActorId;
+        var correlationId = Activity.Current?.TraceId.ToString();
+        var causationId = Activity.Current?.ParentSpanId.ToString();
+
+        foreach (var aggregate in aggregates.OfType<AggregateRoot>())
+        {
+            if (aggregate.DomainEvents.Count == 0)
+            {
+                continue;
+            }
+
+            var envelopes = aggregate.DomainEvents
+                .Select(e => serializer.Serialize(e, correlationId, causationId, actorId))
+                .ToList();
+
+            await eventStore.AppendEventsAsync(
+                tenant,
+                aggregate.GetStreamId(),
+                aggregate.GetStreamType(),
+                envelopes,
+                cancellationToken);
+        }
+    }
+
+    private async Task DispatchDomainEventsAsync(
+        IReadOnlyCollection<IHasDomainEvents> aggregates,
+        CancellationToken cancellationToken
+    )
+    {
+        if (aggregates.Count == 0)
         {
             return;
         }

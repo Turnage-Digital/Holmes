@@ -1,6 +1,8 @@
 using Holmes.Workflow.Application.Abstractions.Projections;
+using Holmes.Workflow.Application.Abstractions.Queries;
 using Holmes.Workflow.Domain;
 using Holmes.Workflow.Infrastructure.Sql.Projections;
+using Holmes.Workflow.Infrastructure.Sql.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
+        services.AddScoped<IOrderQueries, SqlOrderQueries>();
         services.AddScoped<OrderSummaryProjectionRunner>();
         services.AddScoped<OrderTimelineProjectionRunner>();
         return services;
