@@ -6,7 +6,7 @@ using Holmes.Workflow.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Holmes.App.Integration.NotificationHandlers;
+namespace Holmes.App.Integration.EventHandlers;
 
 /// <summary>
 ///     Handles ServiceRequestCompleted events to check if all services for an order

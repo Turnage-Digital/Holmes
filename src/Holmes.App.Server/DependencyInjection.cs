@@ -35,11 +35,13 @@ using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
 using Holmes.Services.Infrastructure.Sql.Queries;
+using Holmes.SlaClocks.Application.Abstractions.Projections;
 using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
+using Holmes.SlaClocks.Infrastructure.Sql.Projections;
 using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
 using Holmes.Subjects.Application.Abstractions.Projections;
@@ -337,6 +339,7 @@ internal static class DependencyInjection
         services.AddScoped<ISlaClockRepository, SlaClockRepository>();
         services.AddScoped<ISlaClockQueries,
             SqlSlaClockQueries>();
+        services.AddScoped<ISlaClockProjectionWriter, SqlSlaClockProjectionWriter>();
         services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
         services.AddAppIntegration();
         return services;

@@ -3,7 +3,7 @@ using Holmes.SlaClocks.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Holmes.App.Integration.NotificationHandlers;
+namespace Holmes.App.Integration.EventHandlers;
 
 public sealed class SlaClockAtRiskNotificationHandler(
 #pragma warning disable CS9113 // Parameter is unread - will be used when notification implementation is complete

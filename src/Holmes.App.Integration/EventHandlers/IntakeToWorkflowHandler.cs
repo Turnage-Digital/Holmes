@@ -3,7 +3,7 @@ using Holmes.Workflow.Application.Commands;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Holmes.App.Integration.NotificationHandlers;
+namespace Holmes.App.Integration.EventHandlers;
 
 /// <summary>
 ///     Bridges Intake domain events to Workflow commands.

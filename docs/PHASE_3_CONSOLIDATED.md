@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-12 (Order fulfillment handler completed)
+**Last Updated:** 2025-12-12 (SLA Clocks controller added)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -167,14 +167,14 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 | `GET /api/services/{orderId}` | ServicesController | ✅ Exists |
 | `SSE /api/order-changes` | OrderChangesController | ✅ Working |
 | `SSE /api/service-changes` | ServiceChangesController | ✅ Exists |
+| `GET /api/clocks/sla?orderId={id}` | SlaClocksController | ✅ Working |
+| `POST /api/clocks/sla/{id}/pause` | SlaClocksController | ✅ Working |
+| `POST /api/clocks/sla/{id}/resume` | SlaClocksController | ✅ Working |
 
 ### Needed but Missing
 
 | Endpoint | Purpose | Priority |
 |----------|---------|----------|
-| `GET /api/clocks/sla` | Query SLA clocks | High |
-| `POST /api/clocks/sla/{id}/pause` | Pause clock | Medium |
-| `POST /api/clocks/sla/{id}/resume` | Resume clock | Medium |
 | `GET /api/notifications` | Query notifications | High |
 | `POST /api/notifications/{id}/retry` | Retry notification | Medium |
 | `GET /api/services/queue` | Fulfillment queue | High |
@@ -220,7 +220,7 @@ Read-only projections are needed before frontend can wire to real APIs.
 
 Once projections exist, wire frontend components.
 
-1. **Create SLA Clocks controller** with query endpoints
+1. ~~**Create SLA Clocks controller**~~ ✅ DONE — `SlaClocksController` with `GET /api/clocks/sla?orderId={id}`, `POST /api/clocks/sla/{id}/pause`, `POST /api/clocks/sla/{id}/resume`
 2. **Wire FulfillmentDashboardPage** to real service queue endpoint
 3. **Add Services tab to OrderDetailPage** with real service data
 4. **Wire ServiceCatalogEditor** to customer catalog APIs

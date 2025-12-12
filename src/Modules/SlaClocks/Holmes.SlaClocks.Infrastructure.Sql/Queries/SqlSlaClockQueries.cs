@@ -10,6 +10,41 @@ namespace Holmes.SlaClocks.Infrastructure.Sql.Queries;
 
 public sealed class SqlSlaClockQueries(SlaClockDbContext dbContext) : ISlaClockQueries
 {
+    public async Task<SlaClockDto?> GetByIdAsync(
+        string clockId,
+        CancellationToken cancellationToken
+    )
+    {
+        var entity = await dbContext.SlaClocks
+            .AsNoTracking()
+            .Where(c => c.Id == clockId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (entity is null)
+        {
+            return null;
+        }
+
+        return new SlaClockDto(
+            UlidId.Parse(entity.Id),
+            UlidId.Parse(entity.OrderId),
+            UlidId.Parse(entity.CustomerId),
+            (ClockKind)entity.Kind,
+            (ClockState)entity.State,
+            new DateTimeOffset(entity.StartedAt, TimeSpan.Zero),
+            new DateTimeOffset(entity.DeadlineAt, TimeSpan.Zero),
+            new DateTimeOffset(entity.AtRiskThresholdAt, TimeSpan.Zero),
+            entity.AtRiskAt.HasValue ? new DateTimeOffset(entity.AtRiskAt.Value, TimeSpan.Zero) : null,
+            entity.BreachedAt.HasValue ? new DateTimeOffset(entity.BreachedAt.Value, TimeSpan.Zero) : null,
+            entity.PausedAt.HasValue ? new DateTimeOffset(entity.PausedAt.Value, TimeSpan.Zero) : null,
+            entity.CompletedAt.HasValue ? new DateTimeOffset(entity.CompletedAt.Value, TimeSpan.Zero) : null,
+            entity.PauseReason,
+            TimeSpan.FromMilliseconds(entity.AccumulatedPauseMs),
+            entity.TargetBusinessDays,
+            entity.AtRiskThresholdPercent
+        );
+    }
+
     public async Task<IReadOnlyList<SlaClockDto>> GetByOrderIdAsync(
         string orderId,
         CancellationToken cancellationToken

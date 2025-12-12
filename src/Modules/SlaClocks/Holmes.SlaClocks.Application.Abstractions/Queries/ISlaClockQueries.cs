@@ -9,6 +9,14 @@ namespace Holmes.SlaClocks.Application.Abstractions.Queries;
 public interface ISlaClockQueries
 {
     /// <summary>
+    ///     Gets an SLA clock by its ID.
+    /// </summary>
+    Task<SlaClockDto?> GetByIdAsync(
+        string clockId,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     ///     Gets all SLA clocks for an order.
     /// </summary>
     Task<IReadOnlyList<SlaClockDto>> GetByOrderIdAsync(
