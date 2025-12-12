@@ -133,9 +133,9 @@ public class SlaClocksEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        SetDefaultAuth(client, "clocks-ops", "ops@holmes.dev", "Operations");
+        SetDefaultAuth(client, "clocks-ops-pause", "clocks-ops-pause@holmes.dev", "Operations");
 
-        await PromoteCurrentUserToAdminAsync(factory, "clocks-ops", "ops@holmes.dev");
+        await PromoteCurrentUserToAdminAsync(factory, "clocks-ops-pause", "clocks-ops-pause@holmes.dev");
 
         var customerId = Ulid.NewUlid().ToString();
         var orderId = Ulid.NewUlid().ToString();
@@ -164,9 +164,9 @@ public class SlaClocksEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        SetDefaultAuth(client, "clocks-ops", "ops@holmes.dev", "Operations");
+        SetDefaultAuth(client, "clocks-ops-bad", "clocks-ops-bad@holmes.dev", "Operations");
 
-        await PromoteCurrentUserToAdminAsync(factory, "clocks-ops", "ops@holmes.dev");
+        await PromoteCurrentUserToAdminAsync(factory, "clocks-ops-bad", "clocks-ops-bad@holmes.dev");
 
         var customerId = Ulid.NewUlid().ToString();
         var orderId = Ulid.NewUlid().ToString();
