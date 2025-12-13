@@ -9,8 +9,8 @@ namespace Holmes.Services.Tests;
 
 public sealed class ServiceProjectionHandlerTests
 {
-    private Mock<IServiceProjectionWriter> _writerMock = null!;
     private ServiceProjectionHandler _handler = null!;
+    private Mock<IServiceProjectionWriter> _writerMock = null!;
 
     [SetUp]
     public void SetUp()
@@ -33,9 +33,9 @@ public sealed class ServiceProjectionHandlerTests
             customerId,
             ServiceType.SsnTrace.Code,
             ServiceCategory.Identity,
-            Tier: 1,
-            ScopeType: null,
-            ScopeValue: null,
+            1,
+            null,
+            null,
             createdAt);
 
         ServiceProjectionModel? capturedModel = null;
@@ -80,9 +80,9 @@ public sealed class ServiceProjectionHandlerTests
             customerId,
             ServiceType.CountySearch.Code,
             ServiceCategory.Criminal,
-            Tier: 2,
-            ScopeType: "County",
-            ScopeValue: "48201",
+            2,
+            "County",
+            "48201",
             createdAt);
 
         ServiceProjectionModel? capturedModel = null;
@@ -150,7 +150,7 @@ public sealed class ServiceProjectionHandlerTests
             customerId,
             ServiceType.SsnTrace.Code,
             vendorCode,
-            VendorReferenceId: null,
+            null,
             dispatchedAt);
 
         await _handler.Handle(notification, CancellationToken.None);
@@ -233,7 +233,7 @@ public sealed class ServiceProjectionHandlerTests
             customerId,
             ServiceType.SsnTrace.Code,
             ServiceResultStatus.Clear,
-            RecordCount: 0,
+            0,
             completedAt);
 
         await _handler.Handle(notification, CancellationToken.None);
@@ -265,8 +265,8 @@ public sealed class ServiceProjectionHandlerTests
             ServiceType.SsnTrace.Code,
             errorMessage,
             attemptCount,
-            MaxAttempts: 3,
-            WillRetry: true,
+            3,
+            true,
             failedAt);
 
         await _handler.Handle(notification, CancellationToken.None);
@@ -299,8 +299,8 @@ public sealed class ServiceProjectionHandlerTests
             ServiceType.SsnTrace.Code,
             errorMessage,
             attemptCount,
-            MaxAttempts: 3,
-            WillRetry: false,
+            3,
+            false,
             failedAt);
 
         await _handler.Handle(notification, CancellationToken.None);

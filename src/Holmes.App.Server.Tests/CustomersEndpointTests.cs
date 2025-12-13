@@ -322,10 +322,12 @@ public class CustomersEndpointTests
             [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
             null);
 
-        var allowedResponse = await client.PutAsJsonAsync($"/api/customers/{allowedCustomer}/service-catalog", updateRequest);
+        var allowedResponse =
+            await client.PutAsJsonAsync($"/api/customers/{allowedCustomer}/service-catalog", updateRequest);
         Assert.That(allowedResponse.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
-        var deniedResponse = await client.PutAsJsonAsync($"/api/customers/{deniedCustomer}/service-catalog", updateRequest);
+        var deniedResponse =
+            await client.PutAsJsonAsync($"/api/customers/{deniedCustomer}/service-catalog", updateRequest);
         Assert.That(deniedResponse.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
 
@@ -343,7 +345,8 @@ public class CustomersEndpointTests
             [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
             null);
 
-        var response = await client.PutAsJsonAsync($"/api/customers/{nonExistentCustomerId}/service-catalog", updateRequest);
+        var response =
+            await client.PutAsJsonAsync($"/api/customers/{nonExistentCustomerId}/service-catalog", updateRequest);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
     }
@@ -382,7 +385,11 @@ public class CustomersEndpointTests
         }
     }
 
-    private static async Task<UlidId> CreateUserIdAsync(HolmesWebApplicationFactory factory, string subject, string email)
+    private static async Task<UlidId> CreateUserIdAsync(
+        HolmesWebApplicationFactory factory,
+        string subject,
+        string email
+    )
     {
         using var scope = factory.Services.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();

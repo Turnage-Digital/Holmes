@@ -11,9 +11,9 @@ namespace Holmes.SlaClocks.Tests;
 
 public sealed class SlaClockProjectionHandlerTests
 {
-    private Mock<ISlaClockProjectionWriter> _writerMock = null!;
-    private Mock<ISlaClockQueries> _queriesMock = null!;
     private SlaClockProjectionHandler _handler = null!;
+    private Mock<ISlaClockQueries> _queriesMock = null!;
+    private Mock<ISlaClockProjectionWriter> _writerMock = null!;
 
     [SetUp]
     public void SetUp()
@@ -171,7 +171,7 @@ public sealed class SlaClockProjectionHandlerTests
             ClockKind.Fulfillment,
             completedAt,
             deadlineAt,
-            WasAtRisk: false,
+            false,
             TimeSpan.FromHours(12));
 
         await _handler.Handle(notification, CancellationToken.None);

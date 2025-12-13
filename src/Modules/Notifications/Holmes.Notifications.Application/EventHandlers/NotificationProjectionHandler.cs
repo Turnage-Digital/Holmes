@@ -18,29 +18,21 @@ public sealed class NotificationProjectionHandler(
         INotificationHandler<NotificationBounced>,
         INotificationHandler<NotificationCancelled>
 {
-    public Task Handle(NotificationRequestCreated notification, CancellationToken cancellationToken)
+    public Task Handle(NotificationBounced notification, CancellationToken cancellationToken)
     {
-        var model = new NotificationProjectionModel(
+        return writer.UpdateBouncedAsync(
             notification.NotificationId.ToString(),
-            notification.CustomerId.ToString(),
-            notification.OrderId?.ToString(),
-            notification.SubjectId?.ToString(),
-            notification.TriggerType,
-            notification.Channel,
-            DeliveryStatus.Pending,
-            notification.IsAdverseAction,
-            notification.CreatedAt,
-            notification.ScheduledFor
-        );
-
-        return writer.UpsertAsync(model, cancellationToken);
+            notification.BouncedAt,
+            notification.Reason,
+            cancellationToken);
     }
 
-    public Task Handle(NotificationQueued notification, CancellationToken cancellationToken)
+    public Task Handle(NotificationCancelled notification, CancellationToken cancellationToken)
     {
-        return writer.UpdateQueuedAsync(
+        return writer.UpdateCancelledAsync(
             notification.NotificationId.ToString(),
-            notification.QueuedAt,
+            notification.CancelledAt,
+            notification.Reason,
             cancellationToken);
     }
 
@@ -63,21 +55,29 @@ public sealed class NotificationProjectionHandler(
             cancellationToken);
     }
 
-    public Task Handle(NotificationBounced notification, CancellationToken cancellationToken)
+    public Task Handle(NotificationQueued notification, CancellationToken cancellationToken)
     {
-        return writer.UpdateBouncedAsync(
+        return writer.UpdateQueuedAsync(
             notification.NotificationId.ToString(),
-            notification.BouncedAt,
-            notification.Reason,
+            notification.QueuedAt,
             cancellationToken);
     }
 
-    public Task Handle(NotificationCancelled notification, CancellationToken cancellationToken)
+    public Task Handle(NotificationRequestCreated notification, CancellationToken cancellationToken)
     {
-        return writer.UpdateCancelledAsync(
+        var model = new NotificationProjectionModel(
             notification.NotificationId.ToString(),
-            notification.CancelledAt,
-            notification.Reason,
-            cancellationToken);
+            notification.CustomerId.ToString(),
+            notification.OrderId?.ToString(),
+            notification.SubjectId?.ToString(),
+            notification.TriggerType,
+            notification.Channel,
+            DeliveryStatus.Pending,
+            notification.IsAdverseAction,
+            notification.CreatedAt,
+            notification.ScheduledFor
+        );
+
+        return writer.UpsertAsync(model, cancellationToken);
     }
 }

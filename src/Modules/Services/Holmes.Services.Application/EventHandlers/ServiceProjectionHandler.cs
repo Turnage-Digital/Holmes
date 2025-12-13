@@ -19,6 +19,25 @@ public sealed class ServiceProjectionHandler(
         INotificationHandler<ServiceRequestCanceled>,
         INotificationHandler<ServiceRequestRetried>
 {
+    public Task Handle(ServiceRequestCanceled notification, CancellationToken cancellationToken)
+    {
+        return writer.UpdateCanceledAsync(
+            notification.ServiceRequestId.ToString(),
+            notification.Reason,
+            notification.CanceledAt,
+            cancellationToken);
+    }
+
+    public Task Handle(ServiceRequestCompleted notification, CancellationToken cancellationToken)
+    {
+        return writer.UpdateCompletedAsync(
+            notification.ServiceRequestId.ToString(),
+            notification.ResultStatus,
+            notification.RecordCount,
+            notification.CompletedAt,
+            cancellationToken);
+    }
+
     public Task Handle(ServiceRequestCreated notification, CancellationToken cancellationToken)
     {
         var model = new ServiceProjectionModel(
@@ -47,24 +66,6 @@ public sealed class ServiceProjectionHandler(
             cancellationToken);
     }
 
-    public Task Handle(ServiceRequestInProgress notification, CancellationToken cancellationToken)
-    {
-        return writer.UpdateInProgressAsync(
-            notification.ServiceRequestId.ToString(),
-            notification.UpdatedAt,
-            cancellationToken);
-    }
-
-    public Task Handle(ServiceRequestCompleted notification, CancellationToken cancellationToken)
-    {
-        return writer.UpdateCompletedAsync(
-            notification.ServiceRequestId.ToString(),
-            notification.ResultStatus,
-            notification.RecordCount,
-            notification.CompletedAt,
-            cancellationToken);
-    }
-
     public Task Handle(ServiceRequestFailed notification, CancellationToken cancellationToken)
     {
         return writer.UpdateFailedAsync(
@@ -76,12 +77,11 @@ public sealed class ServiceProjectionHandler(
             cancellationToken);
     }
 
-    public Task Handle(ServiceRequestCanceled notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceRequestInProgress notification, CancellationToken cancellationToken)
     {
-        return writer.UpdateCanceledAsync(
+        return writer.UpdateInProgressAsync(
             notification.ServiceRequestId.ToString(),
-            notification.Reason,
-            notification.CanceledAt,
+            notification.UpdatedAt,
             cancellationToken);
     }
 

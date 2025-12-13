@@ -149,25 +149,25 @@ public sealed class UpdateCustomerServiceCatalogCommandHandler(
     {
         return
         [
-            new("SSN_TRACE", "SSN Trace", "Identity", true, 1, null),
-            new("NATL_CRIM", "National Criminal Search", "Criminal", true, 1, null),
-            new("STATE_CRIM", "State Criminal Search", "Criminal", true, 2, null),
-            new("COUNTY_CRIM", "County Criminal Search", "Criminal", true, 2, null),
-            new("FED_CRIM", "Federal Criminal Search", "Criminal", true, 2, null),
-            new("SEX_OFFENDER", "Sex Offender Registry", "Criminal", true, 1, null),
-            new("GLOBAL_WATCH", "Global Watchlist Search", "Criminal", true, 1, null),
-            new("MVR", "Motor Vehicle Report", "Driving", true, 2, null),
-            new("CREDIT_CHECK", "Credit Report", "Credit", false, 3, null),
-            new("TWN_EMP", "Employment Verification (TWN)", "Employment", true, 3, null),
-            new("MANUAL_EMP", "Employment Verification (Manual)", "Employment", false, 3, null),
-            new("EDU_VERIFY", "Education Verification", "Education", true, 3, null),
-            new("PRO_LICENSE", "Professional License Verification", "Employment", false, 3, null),
-            new("REF_CHECK", "Reference Check", "Reference", false, 4, null),
-            new("DRUG_5", "5-Panel Drug Screen", "Drug", false, 4, null),
-            new("DRUG_10", "10-Panel Drug Screen", "Drug", false, 4, null),
-            new("CIVIL_COURT", "Civil Court Search", "Civil", false, 2, null),
-            new("BANKRUPTCY", "Bankruptcy Search", "Civil", false, 2, null),
-            new("HEALTHCARE_SANCTION", "Healthcare Sanctions Check", "Healthcare", false, 2, null)
+            new ServiceConfigDto("SSN_TRACE", "SSN Trace", "Identity", true, 1, null),
+            new ServiceConfigDto("NATL_CRIM", "National Criminal Search", "Criminal", true, 1, null),
+            new ServiceConfigDto("STATE_CRIM", "State Criminal Search", "Criminal", true, 2, null),
+            new ServiceConfigDto("COUNTY_CRIM", "County Criminal Search", "Criminal", true, 2, null),
+            new ServiceConfigDto("FED_CRIM", "Federal Criminal Search", "Criminal", true, 2, null),
+            new ServiceConfigDto("SEX_OFFENDER", "Sex Offender Registry", "Criminal", true, 1, null),
+            new ServiceConfigDto("GLOBAL_WATCH", "Global Watchlist Search", "Criminal", true, 1, null),
+            new ServiceConfigDto("MVR", "Motor Vehicle Report", "Driving", true, 2, null),
+            new ServiceConfigDto("CREDIT_CHECK", "Credit Report", "Credit", false, 3, null),
+            new ServiceConfigDto("TWN_EMP", "Employment Verification (TWN)", "Employment", true, 3, null),
+            new ServiceConfigDto("MANUAL_EMP", "Employment Verification (Manual)", "Employment", false, 3, null),
+            new ServiceConfigDto("EDU_VERIFY", "Education Verification", "Education", true, 3, null),
+            new ServiceConfigDto("PRO_LICENSE", "Professional License Verification", "Employment", false, 3, null),
+            new ServiceConfigDto("REF_CHECK", "Reference Check", "Reference", false, 4, null),
+            new ServiceConfigDto("DRUG_5", "5-Panel Drug Screen", "Drug", false, 4, null),
+            new ServiceConfigDto("DRUG_10", "10-Panel Drug Screen", "Drug", false, 4, null),
+            new ServiceConfigDto("CIVIL_COURT", "Civil Court Search", "Civil", false, 2, null),
+            new ServiceConfigDto("BANKRUPTCY", "Bankruptcy Search", "Civil", false, 2, null),
+            new ServiceConfigDto("HEALTHCARE_SANCTION", "Healthcare Sanctions Check", "Healthcare", false, 2, null)
         ];
     }
 
@@ -175,14 +175,14 @@ public sealed class UpdateCustomerServiceCatalogCommandHandler(
     {
         return
         [
-            new(1, "Identity & Preliminary Checks", "Initial identity verification and basic searches",
+            new TierConfigDto(1, "Identity & Preliminary Checks", "Initial identity verification and basic searches",
                 ["SSN_TRACE", "NATL_CRIM", "SEX_OFFENDER", "GLOBAL_WATCH"], [], true, false),
-            new(2, "Criminal & Driving", "Detailed criminal and motor vehicle checks",
+            new TierConfigDto(2, "Criminal & Driving", "Detailed criminal and motor vehicle checks",
                 ["STATE_CRIM", "FED_CRIM"], ["COUNTY_CRIM", "MVR", "CIVIL_COURT", "BANKRUPTCY", "HEALTHCARE_SANCTION"],
                 true, true),
-            new(3, "Employment & Education", "Employment and education verifications",
+            new TierConfigDto(3, "Employment & Education", "Employment and education verifications",
                 [], ["TWN_EMP", "MANUAL_EMP", "EDU_VERIFY", "PRO_LICENSE", "CREDIT_CHECK"], false, true),
-            new(4, "Additional Checks", "Drug screening and reference checks",
+            new TierConfigDto(4, "Additional Checks", "Drug screening and reference checks",
                 [], ["REF_CHECK", "DRUG_5", "DRUG_10"], false, true)
         ];
     }

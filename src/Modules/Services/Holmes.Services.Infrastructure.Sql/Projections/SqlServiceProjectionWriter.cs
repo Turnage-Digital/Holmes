@@ -79,7 +79,8 @@ public sealed class SqlServiceProjectionWriter(
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for in-progress update: {ServiceRequestId}", serviceRequestId);
+            logger.LogWarning("Service projection not found for in-progress update: {ServiceRequestId}",
+                serviceRequestId);
             return;
         }
 
@@ -102,7 +103,8 @@ public sealed class SqlServiceProjectionWriter(
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for completion update: {ServiceRequestId}", serviceRequestId);
+            logger.LogWarning("Service projection not found for completion update: {ServiceRequestId}",
+                serviceRequestId);
             return;
         }
 

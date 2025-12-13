@@ -40,7 +40,8 @@ public sealed class NotificationEventProjectionRunner : EventProjectionRunner
         }
         else
         {
-            _notificationsDbContext.NotificationProjections.RemoveRange(_notificationsDbContext.NotificationProjections);
+            _notificationsDbContext.NotificationProjections.RemoveRange(_notificationsDbContext
+                .NotificationProjections);
             await _notificationsDbContext.SaveChangesAsync(cancellationToken);
         }
 

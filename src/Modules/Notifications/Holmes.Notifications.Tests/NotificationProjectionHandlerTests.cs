@@ -9,8 +9,8 @@ namespace Holmes.Notifications.Tests;
 
 public sealed class NotificationProjectionHandlerTests
 {
-    private Mock<INotificationProjectionWriter> _writerMock = null!;
     private NotificationProjectionHandler _handler = null!;
+    private Mock<INotificationProjectionWriter> _writerMock = null!;
 
     [SetUp]
     public void SetUp()
@@ -36,7 +36,7 @@ public sealed class NotificationProjectionHandlerTests
             subjectId,
             NotificationTriggerType.IntakeSessionInvited,
             NotificationChannel.Email,
-            IsAdverseAction: false,
+            false,
             createdAt,
             scheduledFor);
 
@@ -78,13 +78,13 @@ public sealed class NotificationProjectionHandlerTests
         var notification = new NotificationRequestCreated(
             notificationId,
             customerId,
-            OrderId: null,
-            SubjectId: null,
+            null,
+            null,
             NotificationTriggerType.SlaClockAtRisk,
             NotificationChannel.Webhook,
-            IsAdverseAction: false,
+            false,
             createdAt,
-            ScheduledFor: null);
+            null);
 
         NotificationProjectionModel? capturedModel = null;
         _writerMock
@@ -159,10 +159,10 @@ public sealed class NotificationProjectionHandlerTests
         var notification = new NotificationDelivered(
             notificationId,
             customerId,
-            OrderId: null,
+            null,
             NotificationChannel.Sms,
             deliveredAt,
-            ProviderMessageId: null);
+            null);
 
         await _handler.Handle(notification, CancellationToken.None);
 

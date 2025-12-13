@@ -307,7 +307,10 @@ public class SubjectsEndpointTests
         string? Email
     );
 
-    private static async Task EnsureTestUserAsync(HolmesWebApplicationFactory factory, string email = "tester@holmes.dev")
+    private static async Task EnsureTestUserAsync(
+        HolmesWebApplicationFactory factory,
+        string email = "tester@holmes.dev"
+    )
     {
         using var scope = factory.Services.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();

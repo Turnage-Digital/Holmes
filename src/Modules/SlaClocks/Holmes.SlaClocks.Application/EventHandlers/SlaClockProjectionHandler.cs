@@ -20,22 +20,31 @@ public sealed class SlaClockProjectionHandler(
         INotificationHandler<SlaClockBreached>,
         INotificationHandler<SlaClockCompleted>
 {
-    public Task Handle(SlaClockStarted notification, CancellationToken cancellationToken)
+    public Task Handle(SlaClockAtRisk notification, CancellationToken cancellationToken)
     {
-        var model = new SlaClockProjectionModel(
+        return writer.UpdateAtRiskAsync(
             notification.ClockId.ToString(),
-            notification.OrderId.ToString(),
-            notification.CustomerId.ToString(),
-            notification.Kind,
-            ClockState.Running,
-            notification.StartedAt,
-            notification.DeadlineAt,
-            notification.AtRiskThresholdAt,
-            notification.TargetBusinessDays,
-            0.80m // Default at-risk threshold (event doesn't carry this)
-        );
+            ClockState.AtRisk,
+            notification.AtRiskAt,
+            cancellationToken);
+    }
 
-        return writer.UpsertAsync(model, cancellationToken);
+    public Task Handle(SlaClockBreached notification, CancellationToken cancellationToken)
+    {
+        return writer.UpdateBreachedAsync(
+            notification.ClockId.ToString(),
+            ClockState.Breached,
+            notification.BreachedAt,
+            cancellationToken);
+    }
+
+    public Task Handle(SlaClockCompleted notification, CancellationToken cancellationToken)
+    {
+        return writer.UpdateCompletedAsync(
+            notification.ClockId.ToString(),
+            ClockState.Completed,
+            notification.CompletedAt,
+            cancellationToken);
     }
 
     public Task Handle(SlaClockPaused notification, CancellationToken cancellationToken)
@@ -77,30 +86,21 @@ public sealed class SlaClockProjectionHandler(
             cancellationToken);
     }
 
-    public Task Handle(SlaClockAtRisk notification, CancellationToken cancellationToken)
+    public Task Handle(SlaClockStarted notification, CancellationToken cancellationToken)
     {
-        return writer.UpdateAtRiskAsync(
+        var model = new SlaClockProjectionModel(
             notification.ClockId.ToString(),
-            ClockState.AtRisk,
-            notification.AtRiskAt,
-            cancellationToken);
-    }
+            notification.OrderId.ToString(),
+            notification.CustomerId.ToString(),
+            notification.Kind,
+            ClockState.Running,
+            notification.StartedAt,
+            notification.DeadlineAt,
+            notification.AtRiskThresholdAt,
+            notification.TargetBusinessDays,
+            0.80m // Default at-risk threshold (event doesn't carry this)
+        );
 
-    public Task Handle(SlaClockBreached notification, CancellationToken cancellationToken)
-    {
-        return writer.UpdateBreachedAsync(
-            notification.ClockId.ToString(),
-            ClockState.Breached,
-            notification.BreachedAt,
-            cancellationToken);
-    }
-
-    public Task Handle(SlaClockCompleted notification, CancellationToken cancellationToken)
-    {
-        return writer.UpdateCompletedAsync(
-            notification.ClockId.ToString(),
-            ClockState.Completed,
-            notification.CompletedAt,
-            cancellationToken);
+        return writer.UpsertAsync(model, cancellationToken);
     }
 }

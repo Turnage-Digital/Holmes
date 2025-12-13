@@ -369,7 +369,9 @@ export const useOrderServices = (orderId: Ulid) =>
 // ============================================================================
 
 const fetchCustomerCatalog = (customerId: Ulid) =>
-  apiFetch<CustomerServiceCatalogDto>(`/customers/${customerId}/service-catalog`);
+  apiFetch<CustomerServiceCatalogDto>(
+    `/customers/${customerId}/service-catalog`,
+  );
 
 export const useCustomerCatalog = (customerId: Ulid) =>
   useQuery({

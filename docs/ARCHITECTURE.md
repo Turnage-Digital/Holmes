@@ -614,11 +614,11 @@ idle → pre_sent → [paused ←→ pre_sent] → ready_final → final_sent �
 
 SLA clocks track time-bound obligations on Orders. Implemented in `Holmes.SlaClocks` module.
 
-| Clock Kind      | Trigger States                          | Default Target  |
-|-----------------|----------------------------------------|-----------------|
-| **Intake**      | `Invited` → `IntakeComplete`            | 1 business day  |
-| **Fulfillment** | `ReadyForFulfillment` → `ReadyForReport`| 3 business days |
-| **Overall**     | `Created` → `Closed`                    | 5 business days |
+| Clock Kind      | Trigger States                           | Default Target  |
+|-----------------|------------------------------------------|-----------------|
+| **Intake**      | `Invited` → `IntakeComplete`             | 1 business day  |
+| **Fulfillment** | `ReadyForFulfillment` → `ReadyForReport` | 3 business days |
+| **Overall**     | `Created` → `Closed`                     | 5 business days |
 
 Default SLAs are fallbacks; actual targets come from customer service agreements.
 
@@ -961,13 +961,13 @@ The `IConsentArtifactStore` abstraction supports **write-once, immutable storage
 
 A dedicated module records billable events via `ComplianceUsageRecord`:
 
-| Event Type | Description |
-|------------|-------------|
+| Event Type                 | Description                     |
+|----------------------------|---------------------------------|
 | `AdverseActionCaseCreated` | Pre/final AA workflow initiated |
-| `EvidencePackGenerated` | Evidence bundle export |
-| `NotificationRequested` | Email/SMS/webhook fired |
-| `DisputeOpened` | Candidate dispute initiation |
-| `SimulationRun` | Policy what-if request |
+| `EvidencePackGenerated`    | Evidence bundle export          |
+| `NotificationRequested`    | Email/SMS/webhook fired         |
+| `DisputeOpened`            | Candidate dispute initiation    |
+| `SimulationRun`            | Policy what-if request          |
 
 **Entitlements gate features:**
 

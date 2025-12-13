@@ -44,7 +44,8 @@ public class ServicesEndpointTests
         await SeedCustomerAsync(factory, customerId, "tenant-services-queue");
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.InProgress);
+        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
+            ServiceStatus.InProgress);
         await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Completed);
 
         // Filter by customerId to isolate test data
@@ -55,7 +56,8 @@ public class ServicesEndpointTests
         Assert.That(result, Is.Not.Null);
         // Should only return pending and in-progress by default (not completed)
         Assert.That(result!.Items, Has.Count.EqualTo(2));
-        Assert.That(result.Items.All(s => s.Status == ServiceStatus.Pending || s.Status == ServiceStatus.InProgress), Is.True);
+        Assert.That(result.Items.All(s => s.Status == ServiceStatus.Pending || s.Status == ServiceStatus.InProgress),
+            Is.True);
     }
 
     [Test]
@@ -72,7 +74,8 @@ public class ServicesEndpointTests
         await SeedCustomerAsync(factory, customerId, "tenant-services-status");
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.InProgress);
+        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
+            ServiceStatus.InProgress);
         await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Failed);
 
         var response = await client.GetAsync("/api/services/queue?status=Failed");
@@ -131,7 +134,8 @@ public class ServicesEndpointTests
         // Seed 5 pending services
         for (var i = 0; i < 5; i++)
         {
-            await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
+            await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
+                ServiceStatus.Pending);
         }
 
         // Filter by customerId to isolate test data
@@ -153,7 +157,8 @@ public class ServicesEndpointTests
         SetDefaultAuth(client, "services-limited-queue", "services-limited-queue@holmes.dev", "Operations");
 
         var userId = await CreateUserAsync(factory, "services-limited-queue", "services-limited-queue@holmes.dev");
-        var adminId = await PromoteCurrentUserToAdminAsync(factory, "services-admin-seed-queue", "admin-queue@holmes.dev");
+        var adminId =
+            await PromoteCurrentUserToAdminAsync(factory, "services-admin-seed-queue", "admin-queue@holmes.dev");
 
         var allowedCustomer = Ulid.NewUlid().ToString();
         var deniedCustomer = Ulid.NewUlid().ToString();
@@ -166,8 +171,10 @@ public class ServicesEndpointTests
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
         await SeedOrderSummaryAsync(factory, deniedOrder, deniedCustomer);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer, ServiceStatus.Pending);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer, ServiceStatus.Pending);
+        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer,
+            ServiceStatus.Pending);
+        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer,
+            ServiceStatus.Pending);
 
         // Should only return services from allowed customer
         var response = await client.GetAsync("/api/services/queue");
@@ -187,7 +194,8 @@ public class ServicesEndpointTests
         SetDefaultAuth(client, "services-denied-queue", "services-denied-queue@holmes.dev", "Operations");
 
         var userId = await CreateUserAsync(factory, "services-denied-queue", "services-denied-queue@holmes.dev");
-        var adminId = await PromoteCurrentUserToAdminAsync(factory, "services-admin-seed-denied", "admin-denied@holmes.dev");
+        var adminId =
+            await PromoteCurrentUserToAdminAsync(factory, "services-admin-seed-denied", "admin-denied@holmes.dev");
 
         var allowedCustomer = Ulid.NewUlid().ToString();
         var deniedCustomer = Ulid.NewUlid().ToString();

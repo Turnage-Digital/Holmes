@@ -72,7 +72,8 @@ public sealed class SqlNotificationProjectionWriter(
 
         if (record is null)
         {
-            logger.LogWarning("Notification projection not found for delivery update: {NotificationId}", notificationId);
+            logger.LogWarning("Notification projection not found for delivery update: {NotificationId}",
+                notificationId);
             return;
         }
 

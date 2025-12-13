@@ -43,8 +43,10 @@ public class SlaClocksEndpointTests
         var orderId = Ulid.NewUlid().ToString();
         await SeedCustomerAsync(factory, customerId, "tenant-clocks");
         await SeedOrderSummaryAsync(factory, orderId, customerId);
-        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ClockKind.Intake, ClockState.Running);
-        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ClockKind.Overall, ClockState.Running);
+        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ClockKind.Intake,
+            ClockState.Running);
+        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ClockKind.Overall,
+            ClockState.Running);
 
         var response = await client.GetAsync($"/api/clocks/sla?orderId={orderId}");
 
@@ -75,8 +77,10 @@ public class SlaClocksEndpointTests
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
         await SeedOrderSummaryAsync(factory, deniedOrder, deniedCustomer);
-        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer, ClockKind.Intake, ClockState.Running);
-        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer, ClockKind.Intake, ClockState.Running);
+        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer, ClockKind.Intake,
+            ClockState.Running);
+        await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer, ClockKind.Intake,
+            ClockState.Running);
 
         var allowedResponse = await client.GetAsync($"/api/clocks/sla?orderId={allowedOrder}");
         Assert.That(allowedResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -205,8 +209,10 @@ public class SlaClocksEndpointTests
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
         await SeedOrderSummaryAsync(factory, deniedOrder, deniedCustomer);
-        await SeedSlaClockAsync(factory, allowedClock, allowedOrder, allowedCustomer, ClockKind.Intake, ClockState.Running);
-        await SeedSlaClockAsync(factory, deniedClock, deniedOrder, deniedCustomer, ClockKind.Intake, ClockState.Running);
+        await SeedSlaClockAsync(factory, allowedClock, allowedOrder, allowedCustomer, ClockKind.Intake,
+            ClockState.Running);
+        await SeedSlaClockAsync(factory, deniedClock, deniedOrder, deniedCustomer, ClockKind.Intake,
+            ClockState.Running);
 
         var request = new SlaClocksController.PauseClockRequest("Test pause");
 
@@ -232,7 +238,8 @@ public class SlaClocksEndpointTests
 
         await SeedCustomerAsync(factory, customerId, "tenant-resume");
         await SeedOrderSummaryAsync(factory, orderId, customerId);
-        await SeedSlaClockAsync(factory, clockId, orderId, customerId, ClockKind.Intake, ClockState.Paused, "Previously paused");
+        await SeedSlaClockAsync(factory, clockId, orderId, customerId, ClockKind.Intake, ClockState.Paused,
+            "Previously paused");
 
         var response = await client.PostAsync($"/api/clocks/sla/{clockId}/resume", null);
 
@@ -269,8 +276,10 @@ public class SlaClocksEndpointTests
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
         await SeedOrderSummaryAsync(factory, deniedOrder, deniedCustomer);
-        await SeedSlaClockAsync(factory, allowedClock, allowedOrder, allowedCustomer, ClockKind.Intake, ClockState.Paused, "Paused");
-        await SeedSlaClockAsync(factory, deniedClock, deniedOrder, deniedCustomer, ClockKind.Intake, ClockState.Paused, "Paused");
+        await SeedSlaClockAsync(factory, allowedClock, allowedOrder, allowedCustomer, ClockKind.Intake,
+            ClockState.Paused, "Paused");
+        await SeedSlaClockAsync(factory, deniedClock, deniedOrder, deniedCustomer, ClockKind.Intake, ClockState.Paused,
+            "Paused");
 
         var allowedResponse = await client.PostAsync($"/api/clocks/sla/{allowedClock}/resume", null);
         Assert.That(allowedResponse.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));

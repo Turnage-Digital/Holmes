@@ -48,7 +48,8 @@ public class NotificationsEndpointTests
         var response = await client.GetAsync($"/api/notifications?orderId={orderId}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var notifications = await response.Content.ReadFromJsonAsync<IReadOnlyList<NotificationSummaryDto>>(JsonOptions);
+        var notifications =
+            await response.Content.ReadFromJsonAsync<IReadOnlyList<NotificationSummaryDto>>(JsonOptions);
         Assert.That(notifications, Is.Not.Null);
         Assert.That(notifications!, Has.Count.EqualTo(2));
     }
@@ -74,8 +75,10 @@ public class NotificationsEndpointTests
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
         await SeedOrderSummaryAsync(factory, deniedOrder, deniedCustomer);
-        await SeedNotificationAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer, DeliveryStatus.Delivered);
-        await SeedNotificationAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer, DeliveryStatus.Delivered);
+        await SeedNotificationAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer,
+            DeliveryStatus.Delivered);
+        await SeedNotificationAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer,
+            DeliveryStatus.Delivered);
 
         var allowedResponse = await client.GetAsync($"/api/notifications?orderId={allowedOrder}");
         Assert.That(allowedResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -171,7 +174,8 @@ public class NotificationsEndpointTests
         SetDefaultAuth(client, "notif-ops-limited", "notif-ops-limited@holmes.dev", "Operations");
 
         var userId = await CreateUserAsync(factory, "notif-ops-limited", "notif-ops-limited@holmes.dev");
-        var adminId = await PromoteCurrentUserToAdminAsync(factory, "notif-admin-retry", "notif-admin-retry@holmes.dev");
+        var adminId =
+            await PromoteCurrentUserToAdminAsync(factory, "notif-admin-retry", "notif-admin-retry@holmes.dev");
 
         var allowedCustomer = Ulid.NewUlid().ToString();
         var deniedCustomer = Ulid.NewUlid().ToString();

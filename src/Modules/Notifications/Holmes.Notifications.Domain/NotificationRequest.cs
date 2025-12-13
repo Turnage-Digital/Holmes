@@ -276,7 +276,8 @@ public sealed class NotificationRequest : AggregateRoot
     {
         if (Status != DeliveryStatus.Pending && Status != DeliveryStatus.Failed)
         {
-            throw new InvalidOperationException($"Notification must be pending or failed to queue. Current status: {Status}");
+            throw new InvalidOperationException(
+                $"Notification must be pending or failed to queue. Current status: {Status}");
         }
     }
 
