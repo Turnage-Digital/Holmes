@@ -26,7 +26,7 @@ import type {
   Ulid,
 } from "@/types/api";
 
-import { useUpdateTierConfiguration } from "@/hooks/api";
+import { useUpdateServiceCatalog } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
 // ============================================================================
@@ -54,7 +54,7 @@ const TierCard = ({
   const [errorMessage, setErrorMessage] = useState<string>();
   const [successMessage, setSuccessMessage] = useState<string>();
 
-  const updateMutation = useUpdateTierConfiguration();
+  const updateMutation = useUpdateServiceCatalog();
 
   // Get service display names by code
   const serviceNameMap = new Map(
@@ -76,14 +76,18 @@ const TierCard = ({
       await updateMutation.mutateAsync({
         customerId,
         payload: {
-          tier: tier.tier,
-          name: updates.name ?? tier.name,
-          description: updates.description ?? tier.description,
-          autoDispatch: updates.autoDispatch ?? tier.autoDispatch,
-          waitForPreviousTier:
-            updates.waitForPreviousTier ?? tier.waitForPreviousTier,
-          requiredServices: tier.requiredServices,
-          optionalServices: tier.optionalServices,
+          tiers: [
+            {
+              tier: tier.tier,
+              name: updates.name ?? tier.name,
+              description: updates.description ?? tier.description,
+              autoDispatch: updates.autoDispatch ?? tier.autoDispatch,
+              waitForPreviousTier:
+                updates.waitForPreviousTier ?? tier.waitForPreviousTier,
+              requiredServices: [...tier.requiredServices],
+              optionalServices: [...tier.optionalServices],
+            },
+          ],
         },
       });
       setSuccessMessage("Configuration saved");

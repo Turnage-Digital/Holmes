@@ -12,6 +12,7 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
     public async Task<NotificationRequest?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
     {
         var db = await context.NotificationRequests
+            .AsNoTracking()
             .Include(n => n.DeliveryAttempts)
             .FirstOrDefaultAsync(n => n.Id == id.ToString(), cancellationToken);
 
@@ -26,6 +27,7 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         var spec = new PendingNotificationsSpec(DateTime.UtcNow, limit);
 
         var pending = await context.NotificationRequests
+            .AsNoTracking()
             .Include(n => n.DeliveryAttempts)
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
@@ -41,6 +43,7 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         var spec = new NotificationsByOrderIdSpec(orderId.ToString());
 
         var notifications = await context.NotificationRequests
+            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
@@ -58,6 +61,7 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         var spec = new FailedNotificationsForRetrySpec(maxAttempts, cutoff, limit);
 
         var failed = await context.NotificationRequests
+            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 

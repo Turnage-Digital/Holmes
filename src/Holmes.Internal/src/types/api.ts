@@ -489,19 +489,24 @@ export interface CustomerServiceCatalogDto {
   updatedAt: string;
 }
 
-export interface UpdateCatalogServiceRequest {
+export interface ServiceCatalogServiceInput {
   serviceTypeCode: string;
   isEnabled: boolean;
-  tier?: number;
+  tier: number;
   vendorCode?: string;
 }
 
-export interface UpdateTierConfigurationRequest {
+export interface ServiceCatalogTierInput {
   tier: number;
-  name?: string;
+  name: string;
   description?: string;
   requiredServices?: string[];
   optionalServices?: string[];
-  autoDispatch?: boolean;
-  waitForPreviousTier?: boolean;
+  autoDispatch: boolean;
+  waitForPreviousTier: boolean;
+}
+
+export interface UpdateServiceCatalogRequest {
+  services?: ServiceCatalogServiceInput[];
+  tiers?: ServiceCatalogTierInput[];
 }

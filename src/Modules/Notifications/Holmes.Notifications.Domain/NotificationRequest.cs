@@ -173,7 +173,7 @@ public sealed class NotificationRequest : AggregateRoot
 
     public void MarkQueued(DateTimeOffset queuedAt)
     {
-        EnsurePending();
+        EnsureCanQueue();
 
         Status = DeliveryStatus.Queued;
         ProcessedAt = queuedAt;
@@ -272,11 +272,11 @@ public sealed class NotificationRequest : AggregateRoot
         AddDomainEvent(new NotificationCancelled(Id, cancelledAt, reason));
     }
 
-    private void EnsurePending()
+    private void EnsureCanQueue()
     {
-        if (Status != DeliveryStatus.Pending)
+        if (Status != DeliveryStatus.Pending && Status != DeliveryStatus.Failed)
         {
-            throw new InvalidOperationException($"Notification must be pending. Current status: {Status}");
+            throw new InvalidOperationException($"Notification must be pending or failed to queue. Current status: {Status}");
         }
     }
 

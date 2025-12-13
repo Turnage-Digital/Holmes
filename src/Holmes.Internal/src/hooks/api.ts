@@ -30,8 +30,7 @@ import type {
   SubjectListItemDto,
   SubjectSummaryDto,
   Ulid,
-  UpdateCatalogServiceRequest,
-  UpdateTierConfigurationRequest,
+  UpdateServiceCatalogRequest,
   UserDto,
 } from "@/types/api";
 
@@ -370,7 +369,7 @@ export const useOrderServices = (orderId: Ulid) =>
 // ============================================================================
 
 const fetchCustomerCatalog = (customerId: Ulid) =>
-  apiFetch<CustomerServiceCatalogDto>(`/customers/${customerId}/catalog`);
+  apiFetch<CustomerServiceCatalogDto>(`/customers/${customerId}/service-catalog`);
 
 export const useCustomerCatalog = (customerId: Ulid) =>
   useQuery({
@@ -379,46 +378,22 @@ export const useCustomerCatalog = (customerId: Ulid) =>
     enabled: !!customerId,
   });
 
-const updateCatalogService = ({
+const updateServiceCatalog = ({
   customerId,
   payload,
 }: {
   customerId: Ulid;
-  payload: UpdateCatalogServiceRequest;
+  payload: UpdateServiceCatalogRequest;
 }) =>
-  apiFetch<void>(`/customers/${customerId}/catalog/services`, {
+  apiFetch<void>(`/customers/${customerId}/service-catalog`, {
     method: "PUT",
     body: payload,
   });
 
-export const useUpdateCatalogService = () => {
+export const useUpdateServiceCatalog = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateCatalogService,
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.customerCatalog(variables.customerId),
-      });
-    },
-  });
-};
-
-const updateTierConfiguration = ({
-  customerId,
-  payload,
-}: {
-  customerId: Ulid;
-  payload: UpdateTierConfigurationRequest;
-}) =>
-  apiFetch<void>(`/customers/${customerId}/catalog/tiers`, {
-    method: "PUT",
-    body: payload,
-  });
-
-export const useUpdateTierConfiguration = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: updateTierConfiguration,
+    mutationFn: updateServiceCatalog,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.customerCatalog(variables.customerId),

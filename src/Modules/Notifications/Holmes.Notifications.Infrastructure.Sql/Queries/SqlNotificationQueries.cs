@@ -10,6 +10,32 @@ namespace Holmes.Notifications.Infrastructure.Sql.Queries;
 
 public sealed class SqlNotificationQueries(NotificationsDbContext dbContext) : INotificationQueries
 {
+    public async Task<NotificationSummaryDto?> GetByIdAsync(
+        string notificationId,
+        CancellationToken cancellationToken
+    )
+    {
+        var notification = await dbContext.NotificationRequests
+            .AsNoTracking()
+            .Where(n => n.Id == notificationId)
+            .Select(n => new NotificationSummaryDto(
+                UlidId.Parse(n.Id),
+                UlidId.Parse(n.CustomerId),
+                n.OrderId != null ? UlidId.Parse(n.OrderId) : null,
+                (NotificationTriggerType)n.TriggerType,
+                (NotificationChannel)n.Channel,
+                n.RecipientAddress,
+                (DeliveryStatus)n.Status,
+                n.IsAdverseAction,
+                new DateTimeOffset(n.CreatedAt, TimeSpan.Zero),
+                n.DeliveredAt.HasValue ? new DateTimeOffset(n.DeliveredAt.Value, TimeSpan.Zero) : null,
+                n.DeliveryAttempts.Count
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return notification;
+    }
+
     public async Task<IReadOnlyList<NotificationPendingDto>> GetPendingAsync(
         int limit,
         CancellationToken cancellationToken

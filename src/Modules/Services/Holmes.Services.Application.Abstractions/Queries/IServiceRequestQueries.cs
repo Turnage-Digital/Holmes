@@ -1,6 +1,8 @@
 using Holmes.Services.Application.Abstractions.Dtos;
 using Holmes.Services.Domain;
 
+// ReSharper disable once CheckNamespace
+
 namespace Holmes.Services.Application.Abstractions.Queries;
 
 /// <summary>
@@ -75,6 +77,16 @@ public interface IServiceRequestQueries
         string orderId,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    ///     Gets paginated service requests for the fulfillment queue (pending and in-progress).
+    /// </summary>
+    Task<ServiceFulfillmentQueuePagedResult> GetFulfillmentQueuePagedAsync(
+        ServiceFulfillmentQueueFilter filter,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken
+    );
 }
 
 /// <summary>
@@ -103,4 +115,21 @@ public sealed record OrderCompletionStatusDto(
     int FailedServices,
     int CanceledServices,
     bool AllCompleted
+);
+
+/// <summary>
+///     Filter for service fulfillment queue queries.
+/// </summary>
+public sealed record ServiceFulfillmentQueueFilter(
+    IReadOnlyCollection<string>? AllowedCustomerIds,
+    string? CustomerId,
+    IReadOnlyCollection<ServiceStatus>? Statuses
+);
+
+/// <summary>
+///     Paginated result for service fulfillment queue.
+/// </summary>
+public sealed record ServiceFulfillmentQueuePagedResult(
+    IReadOnlyList<ServiceRequestSummaryDto> Items,
+    int TotalCount
 );

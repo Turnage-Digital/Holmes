@@ -24,10 +24,12 @@ using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
+using Holmes.Notifications.Application.Abstractions.Projections;
 using Holmes.Notifications.Application.Abstractions.Queries;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql;
+using Holmes.Notifications.Infrastructure.Sql.Projections;
 using Holmes.Notifications.Infrastructure.Sql.Queries;
 using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Queries;
@@ -333,8 +335,11 @@ internal static class DependencyInjection
         services.AddDbContext<NotificationsDbContext>(options => options.UseInMemoryDatabase("holmes-notifications"));
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
         services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
-        services.AddScoped<INotificationQueries,
-            SqlNotificationQueries>();
+        services.AddScoped<INotificationQueries, SqlNotificationQueries>();
+        services.AddScoped<INotificationProjectionWriter, SqlNotificationProjectionWriter>();
+        services.AddScoped<INotificationProvider, LoggingEmailProvider>();
+        services.AddScoped<INotificationProvider, LoggingSmsProvider>();
+        services.AddScoped<INotificationProvider, LoggingWebhookProvider>();
         services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
         services.AddScoped<ISlaClockRepository, SlaClockRepository>();
         services.AddScoped<ISlaClockQueries,

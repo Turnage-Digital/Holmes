@@ -11,6 +11,8 @@
         <ProjectReference Include="..\Holmes.Customers.Application.Abstractions\Holmes.Customers.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Holmes.Customers.Domain\Holmes.Customers.Domain.csproj"/>
         <ProjectReference Include="..\..\Users\Holmes.Users.Application.Abstractions\Holmes.Users.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\Services\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\Services\Holmes.Services.Domain\Holmes.Services.Domain.csproj"/>
     </ItemGroup>
 
 </Project>

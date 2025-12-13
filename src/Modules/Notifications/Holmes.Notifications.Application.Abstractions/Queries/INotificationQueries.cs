@@ -9,6 +9,14 @@ namespace Holmes.Notifications.Application.Abstractions.Queries;
 public interface INotificationQueries
 {
     /// <summary>
+    ///     Gets a notification by its ID.
+    /// </summary>
+    Task<NotificationSummaryDto?> GetByIdAsync(
+        string notificationId,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     ///     Gets pending notifications ready for processing.
     /// </summary>
     Task<IReadOnlyList<NotificationPendingDto>> GetPendingAsync(

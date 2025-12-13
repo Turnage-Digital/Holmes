@@ -28,7 +28,7 @@ import {
 
 import type { CatalogServiceItemDto, ServiceCategory, Ulid } from "@/types/api";
 
-import { useUpdateCatalogService } from "@/hooks/api";
+import { useUpdateServiceCatalog } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
 // ============================================================================
@@ -188,7 +188,7 @@ const ServiceCatalogEditor = ({
   const [successMessage, setSuccessMessage] = useState<string>();
   const [errorMessage, setErrorMessage] = useState<string>();
 
-  const updateMutation = useUpdateCatalogService();
+  const updateMutation = useUpdateServiceCatalog();
 
   // Available categories from service list
   const availableCategories = useMemo(() => {
@@ -233,10 +233,14 @@ const ServiceCatalogEditor = ({
       await updateMutation.mutateAsync({
         customerId,
         payload: {
-          serviceTypeCode,
-          isEnabled: updates.isEnabled ?? service.isEnabled,
-          tier: updates.tier ?? service.tier,
-          vendorCode: updates.vendorCode ?? service.vendorCode,
+          services: [
+            {
+              serviceTypeCode,
+              isEnabled: updates.isEnabled ?? service.isEnabled,
+              tier: updates.tier ?? service.tier,
+              vendorCode: updates.vendorCode ?? service.vendorCode,
+            },
+          ],
         },
       });
       setSuccessMessage(`Updated ${service.displayName}`);

@@ -35,15 +35,18 @@ public class OrdersEndpointTests
     {
         await using var factory = new HolmesWebApplicationFactory();
         var client = factory.CreateClient();
-        SetDefaultAuth(client, "orders-admin", "admin@holmes.dev");
+        SetDefaultAuth(client, "orders-admin-page", "orders-admin-page@holmes.dev");
 
-        await PromoteCurrentUserToAdminAsync(factory, "orders-admin", "admin@holmes.dev");
-        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(),
+        await PromoteCurrentUserToAdminAsync(factory, "orders-admin-page", "orders-admin-page@holmes.dev");
+
+        // Use a specific customer ID to isolate test data
+        var customerId = Ulid.NewUlid().ToString();
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), customerId,
             Ulid.NewUlid().ToString(), OrderStatus.Invited);
-        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), Ulid.NewUlid().ToString(),
+        await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), customerId,
             Ulid.NewUlid().ToString(), OrderStatus.ReadyForFulfillment);
 
-        var response = await client.GetAsync("/api/orders/summary?page=1&pageSize=1");
+        var response = await client.GetAsync($"/api/orders/summary?page=1&pageSize=1&customerId={customerId}");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
         var payload = await response.Content.ReadFromJsonAsync<PaginatedResponse<OrderSummaryDto>>(JsonOptions);

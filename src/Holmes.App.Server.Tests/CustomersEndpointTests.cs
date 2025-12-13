@@ -4,7 +4,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions.Dtos;
+using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
+using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Services.Application.Abstractions.Dtos;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using MediatR;
@@ -150,4 +153,353 @@ public class CustomersEndpointTests
     );
 
     private sealed record ModifyCustomerAdminRequest(string UserId);
+
+    // ==========================================================================
+    // Service Catalog Tests
+    // ==========================================================================
+
+    [Test]
+    public async Task GetServiceCatalog_Returns_Catalog_For_Customer()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-admin", "catalog-admin@holmes.dev");
+
+        await PromoteUserToAdminAsync(factory, "catalog-admin", "catalog-admin@holmes.dev");
+
+        var customerId = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, customerId, "tenant-catalog");
+
+        var response = await client.GetAsync($"/api/customers/{customerId}/service-catalog");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var catalog = await response.Content.ReadFromJsonAsync<CustomerServiceCatalogDto>(JsonOptions);
+        Assert.That(catalog, Is.Not.Null);
+        Assert.That(catalog!.CustomerId, Is.EqualTo(customerId));
+        Assert.That(catalog.Services, Is.Not.Empty);
+        Assert.That(catalog.Tiers, Is.Not.Empty);
+    }
+
+    [Test]
+    public async Task GetServiceCatalog_Enforces_Customer_Access()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-viewer", "catalog-viewer@holmes.dev");
+
+        var userId = await CreateUserIdAsync(factory, "catalog-viewer", "catalog-viewer@holmes.dev");
+        var adminId = await PromoteUserToAdminAsync(factory, "catalog-admin-seed", "catalog-admin-seed@holmes.dev");
+
+        var allowedCustomer = Ulid.NewUlid().ToString();
+        var deniedCustomer = Ulid.NewUlid().ToString();
+
+        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-cat");
+        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-cat");
+        await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
+
+        var allowedResponse = await client.GetAsync($"/api/customers/{allowedCustomer}/service-catalog");
+        Assert.That(allowedResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var deniedResponse = await client.GetAsync($"/api/customers/{deniedCustomer}/service-catalog");
+        Assert.That(deniedResponse.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    [Test]
+    public async Task GetServiceCatalog_Returns_NotFound_For_NonExistent_Customer()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-admin-nf", "catalog-admin-nf@holmes.dev");
+
+        await PromoteUserToAdminAsync(factory, "catalog-admin-nf", "catalog-admin-nf@holmes.dev");
+
+        var nonExistentCustomerId = Ulid.NewUlid().ToString();
+        var response = await client.GetAsync($"/api/customers/{nonExistentCustomerId}/service-catalog");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task GetServiceCatalog_Returns_BadRequest_For_Invalid_CustomerId()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-admin-bad", "catalog-admin-bad@holmes.dev");
+
+        await PromoteUserToAdminAsync(factory, "catalog-admin-bad", "catalog-admin-bad@holmes.dev");
+
+        var response = await client.GetAsync("/api/customers/not-a-ulid/service-catalog");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task UpdateServiceCatalog_Updates_Catalog_For_Customer()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-ops", "catalog-ops@holmes.dev", "Operations");
+
+        await PromoteUserToAdminAsync(factory, "catalog-ops", "catalog-ops@holmes.dev");
+
+        var customerId = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, customerId, "tenant-catalog-update");
+
+        var updateRequest = new UpdateServiceCatalogRequest(
+            [
+                new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null),
+                new ServiceCatalogServiceRequestItem("NATL_CRIM", true, 2, "VENDOR_A")
+            ],
+            [
+                new ServiceCatalogTierRequestItem(1, "Custom Tier 1", "My custom tier", ["SSN_TRACE"], [], true, false)
+            ]);
+
+        var response = await client.PutAsJsonAsync($"/api/customers/{customerId}/service-catalog", updateRequest);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+        // Verify the catalog was updated
+        var getResponse = await client.GetAsync($"/api/customers/{customerId}/service-catalog");
+        Assert.That(getResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var catalog = await getResponse.Content.ReadFromJsonAsync<CustomerServiceCatalogDto>(JsonOptions);
+        Assert.That(catalog, Is.Not.Null);
+
+        var ssnTrace = catalog!.Services.FirstOrDefault(s => s.ServiceTypeCode == "SSN_TRACE");
+        Assert.That(ssnTrace, Is.Not.Null);
+        Assert.That(ssnTrace!.IsEnabled, Is.False);
+
+        var natlCrim = catalog.Services.FirstOrDefault(s => s.ServiceTypeCode == "NATL_CRIM");
+        Assert.That(natlCrim, Is.Not.Null);
+        Assert.That(natlCrim!.Tier, Is.EqualTo(2));
+        Assert.That(natlCrim.VendorCode, Is.EqualTo("VENDOR_A"));
+
+        var tier1 = catalog.Tiers.FirstOrDefault(t => t.Tier == 1);
+        Assert.That(tier1, Is.Not.Null);
+        Assert.That(tier1!.Name, Is.EqualTo("Custom Tier 1"));
+    }
+
+    [Test]
+    public async Task UpdateServiceCatalog_Requires_Ops_Role()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-no-ops", "catalog-no-ops@holmes.dev", "Viewer"); // No Operations role
+
+        // Just create user without Admin role - middleware enrichment will NOT add Admin role
+        await CreateUserIdAsync(factory, "catalog-no-ops", "catalog-no-ops@holmes.dev");
+
+        var customerId = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, customerId, "tenant-catalog-no-ops");
+
+        var updateRequest = new UpdateServiceCatalogRequest(
+            [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
+            null);
+
+        var response = await client.PutAsJsonAsync($"/api/customers/{customerId}/service-catalog", updateRequest);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    [Test]
+    public async Task UpdateServiceCatalog_Enforces_Customer_Access()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-ops-limited", "catalog-ops-limited@holmes.dev", "Operations");
+
+        var userId = await CreateUserIdAsync(factory, "catalog-ops-limited", "catalog-ops-limited@holmes.dev");
+        var adminId = await PromoteUserToAdminAsync(factory, "catalog-admin-seed-2", "catalog-admin-seed-2@holmes.dev");
+
+        var allowedCustomer = Ulid.NewUlid().ToString();
+        var deniedCustomer = Ulid.NewUlid().ToString();
+
+        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-update");
+        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-update");
+        await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
+
+        var updateRequest = new UpdateServiceCatalogRequest(
+            [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
+            null);
+
+        var allowedResponse = await client.PutAsJsonAsync($"/api/customers/{allowedCustomer}/service-catalog", updateRequest);
+        Assert.That(allowedResponse.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+        var deniedResponse = await client.PutAsJsonAsync($"/api/customers/{deniedCustomer}/service-catalog", updateRequest);
+        Assert.That(deniedResponse.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    [Test]
+    public async Task UpdateServiceCatalog_Returns_NotFound_For_NonExistent_Customer()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-ops-nf", "catalog-ops-nf@holmes.dev", "Operations");
+
+        await PromoteUserToAdminAsync(factory, "catalog-ops-nf", "catalog-ops-nf@holmes.dev");
+
+        var nonExistentCustomerId = Ulid.NewUlid().ToString();
+        var updateRequest = new UpdateServiceCatalogRequest(
+            [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
+            null);
+
+        var response = await client.PutAsJsonAsync($"/api/customers/{nonExistentCustomerId}/service-catalog", updateRequest);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task UpdateServiceCatalog_Returns_BadRequest_For_Empty_Request()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "catalog-ops-empty", "catalog-ops-empty@holmes.dev", "Operations");
+
+        await PromoteUserToAdminAsync(factory, "catalog-ops-empty", "catalog-ops-empty@holmes.dev");
+
+        var customerId = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, customerId, "tenant-catalog-empty");
+
+        var updateRequest = new UpdateServiceCatalogRequest([], []);
+
+        var response = await client.PutAsJsonAsync($"/api/customers/{customerId}/service-catalog", updateRequest);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    // ==========================================================================
+    // Helper Methods for Service Catalog Tests
+    // ==========================================================================
+
+    private static void SetDefaultAuth(HttpClient client, string subject, string email, string? roles = null)
+    {
+        client.DefaultRequestHeaders.Add("X-Auth-Issuer", "https://issuer.holmes.test");
+        client.DefaultRequestHeaders.Add("X-Auth-Subject", subject);
+        client.DefaultRequestHeaders.Add("X-Auth-Email", email);
+        if (!string.IsNullOrWhiteSpace(roles))
+        {
+            client.DefaultRequestHeaders.Add("X-Auth-Roles", roles);
+        }
+    }
+
+    private static async Task<UlidId> CreateUserIdAsync(HolmesWebApplicationFactory factory, string subject, string email)
+    {
+        using var scope = factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        return await mediator.Send(new RegisterExternalUserCommand(
+            "https://issuer.holmes.test",
+            subject,
+            email,
+            subject,
+            "pwd",
+            DateTimeOffset.UtcNow,
+            true));
+    }
+
+    private static async Task<UlidId> PromoteUserToAdminAsync(
+        HolmesWebApplicationFactory factory,
+        string subject,
+        string email
+    )
+    {
+        using var scope = factory.Services.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        var id = await mediator.Send(new RegisterExternalUserCommand(
+            "https://issuer.holmes.test",
+            subject,
+            email,
+            subject,
+            "pwd",
+            DateTimeOffset.UtcNow,
+            true));
+
+        var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow)
+        {
+            UserId = id.ToString()
+        };
+        await mediator.Send(grant);
+        return id;
+    }
+
+    private static async Task SeedCustomerAsync(
+        HolmesWebApplicationFactory factory,
+        string customerId,
+        string tenantId
+    )
+    {
+        using var scope = factory.Services.CreateScope();
+        var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
+        customersDb.Customers.Add(new CustomerDb
+        {
+            CustomerId = customerId,
+            Name = $"Customer-{customerId}",
+            Status = CustomerStatus.Active,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        customersDb.CustomerProfiles.Add(new CustomerProfileDb
+        {
+            CustomerId = customerId,
+            TenantId = tenantId,
+            PolicySnapshotId = "policy-dev",
+            BillingEmail = null,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+
+        customersDb.CustomerProjections.Add(new CustomerProjectionDb
+        {
+            CustomerId = customerId,
+            Name = $"Customer {customerId}",
+            Status = CustomerStatus.Active,
+            CreatedAt = DateTimeOffset.UtcNow,
+            AdminCount = 0
+        });
+
+        await customersDb.SaveChangesAsync();
+    }
+
+    private static async Task AssignCustomerAdminAsync(
+        HolmesWebApplicationFactory factory,
+        string customerId,
+        UlidId userId,
+        UlidId assignedBy
+    )
+    {
+        using var scope = factory.Services.CreateScope();
+        var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
+        customersDb.CustomerAdmins.Add(new CustomerAdminDb
+        {
+            CustomerId = customerId,
+            UserId = userId.ToString(),
+            AssignedBy = assignedBy,
+            AssignedAt = DateTimeOffset.UtcNow
+        });
+
+        var directory = await customersDb.CustomerProjections.SingleAsync(d => d.CustomerId == customerId);
+        directory.AdminCount += 1;
+        await customersDb.SaveChangesAsync();
+    }
+
+    private sealed record UpdateServiceCatalogRequest(
+        IReadOnlyCollection<ServiceCatalogServiceRequestItem>? Services,
+        IReadOnlyCollection<ServiceCatalogTierRequestItem>? Tiers
+    );
+
+    private sealed record ServiceCatalogServiceRequestItem(
+        string ServiceTypeCode,
+        bool IsEnabled,
+        int Tier,
+        string? VendorCode
+    );
+
+    private sealed record ServiceCatalogTierRequestItem(
+        int Tier,
+        string Name,
+        string? Description,
+        IReadOnlyCollection<string>? RequiredServices,
+        IReadOnlyCollection<string>? OptionalServices,
+        bool AutoDispatch,
+        bool WaitForPreviousTier
+    );
 }

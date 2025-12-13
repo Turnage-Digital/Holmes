@@ -221,4 +221,70 @@ public sealed class SqlServiceRequestQueries(ServicesDbContext dbContext) : ISer
             allCompleted
         );
     }
+
+    public async Task<ServiceFulfillmentQueuePagedResult> GetFulfillmentQueuePagedAsync(
+        ServiceFulfillmentQueueFilter filter,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken
+    )
+    {
+        var query = dbContext.ServiceRequests.AsNoTracking().AsQueryable();
+
+        // Default to pending and in-progress statuses for the fulfillment queue
+        if (filter.Statuses is not null && filter.Statuses.Count > 0)
+        {
+            query = query.Where(s => filter.Statuses.Contains(s.Status));
+        }
+        else
+        {
+            // Default: show pending, dispatched, and in-progress for fulfillment queue
+            query = query.Where(s =>
+                s.Status == ServiceStatus.Pending ||
+                s.Status == ServiceStatus.Dispatched ||
+                s.Status == ServiceStatus.InProgress);
+        }
+
+        // Apply customer filter
+        if (filter.CustomerId is not null)
+        {
+            query = query.Where(s => s.CustomerId == filter.CustomerId);
+        }
+        else if (filter.AllowedCustomerIds is not null && filter.AllowedCustomerIds.Count > 0)
+        {
+            query = query.Where(s => filter.AllowedCustomerIds.Contains(s.CustomerId));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(s => s.CreatedAt)
+            .ThenBy(s => s.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(s => new ServiceRequestSummaryDto(
+                s.Id,
+                s.OrderId,
+                s.CustomerId,
+                s.ServiceTypeCode,
+                s.Category,
+                s.Tier,
+                s.Status,
+                s.VendorCode,
+                s.VendorReferenceId,
+                s.AttemptCount,
+                s.MaxAttempts,
+                s.LastError,
+                s.ScopeType,
+                s.ScopeValue,
+                new DateTimeOffset(s.CreatedAt, TimeSpan.Zero),
+                s.DispatchedAt.HasValue ? new DateTimeOffset(s.DispatchedAt.Value, TimeSpan.Zero) : null,
+                s.CompletedAt.HasValue ? new DateTimeOffset(s.CompletedAt.Value, TimeSpan.Zero) : null,
+                s.FailedAt.HasValue ? new DateTimeOffset(s.FailedAt.Value, TimeSpan.Zero) : null,
+                s.CanceledAt.HasValue ? new DateTimeOffset(s.CanceledAt.Value, TimeSpan.Zero) : null
+            ))
+            .ToListAsync(cancellationToken);
+
+        return new ServiceFulfillmentQueuePagedResult(items, totalCount);
+    }
 }

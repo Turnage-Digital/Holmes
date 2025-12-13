@@ -5,8 +5,6 @@ using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Application.Queries;
 using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Commands;
-using Holmes.Services.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -170,7 +168,7 @@ public sealed class CustomersController(
     // Service Catalog
     // ==========================================================================
 
-    [HttpGet("{customerId}/catalog")]
+    [HttpGet("{customerId}/service-catalog")]
     public async Task<ActionResult<CustomerServiceCatalogDto>> GetServiceCatalog(
         string customerId,
         CancellationToken cancellationToken
@@ -186,7 +184,6 @@ public sealed class CustomersController(
             return Forbid();
         }
 
-        // Check customer exists via MediatR query
         if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
         {
             return NotFound();
@@ -203,11 +200,11 @@ public sealed class CustomersController(
         return Ok(catalogResult.Value);
     }
 
-    [HttpPut("{customerId}/catalog/services")]
+    [HttpPut("{customerId}/service-catalog")]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]
-    public async Task<IActionResult> UpdateCatalogService(
+    public async Task<IActionResult> UpdateServiceCatalog(
         string customerId,
-        [FromBody] UpdateCatalogServiceRequest request,
+        [FromBody] UpdateServiceCatalogRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -221,53 +218,36 @@ public sealed class CustomersController(
             return Forbid();
         }
 
-        var caller = await currentUserAccess.GetUserIdAsync(cancellationToken);
-
-        var result = await mediator.Send(new UpdateCatalogServiceCommand(
-            customerId,
-            request.ServiceTypeCode,
-            request.IsEnabled,
-            request.Tier,
-            request.VendorCode,
-            caller), cancellationToken);
-
-        if (!result.IsSuccess)
+        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
         {
-            return BadRequest(result.Error);
-        }
-
-        return NoContent();
-    }
-
-    [HttpPut("{customerId}/catalog/tiers")]
-    [Authorize(Policy = AuthorizationPolicies.RequireOps)]
-    public async Task<IActionResult> UpdateTierConfiguration(
-        string customerId,
-        [FromBody] UpdateTierConfigurationRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        if (!Ulid.TryParse(customerId, out var parsed))
-        {
-            return BadRequest("Invalid customer id format.");
-        }
-
-        if (!await HasCustomerAccessAsync(parsed, cancellationToken))
-        {
-            return Forbid();
+            return NotFound();
         }
 
         var caller = await currentUserAccess.GetUserIdAsync(cancellationToken);
 
-        var result = await mediator.Send(new UpdateTierConfigurationCommand(
+        var services = request.Services?
+            .Select(s => new ServiceCatalogServiceInput(
+                s.ServiceTypeCode,
+                s.IsEnabled,
+                s.Tier,
+                s.VendorCode))
+            .ToList() ?? [];
+
+        var tiers = request.Tiers?
+            .Select(t => new ServiceCatalogTierInput(
+                t.Tier,
+                t.Name,
+                t.Description,
+                t.RequiredServices ?? [],
+                t.OptionalServices ?? [],
+                t.AutoDispatch,
+                t.WaitForPreviousTier))
+            .ToList() ?? [];
+
+        var result = await mediator.Send(new UpdateCustomerServiceCatalogCommand(
             customerId,
-            request.Tier,
-            request.Name,
-            request.Description,
-            request.RequiredServices,
-            request.OptionalServices,
-            request.AutoDispatch,
-            request.WaitForPreviousTier,
+            services,
+            tiers,
             caller), cancellationToken);
 
         if (!result.IsSuccess)
@@ -304,20 +284,25 @@ public sealed class CustomersController(
 
     public sealed record ModifyCustomerAdminRequest(string UserId);
 
-    public sealed record UpdateCatalogServiceRequest(
+    public sealed record UpdateServiceCatalogRequest(
+        IReadOnlyCollection<ServiceCatalogServiceRequestItem>? Services,
+        IReadOnlyCollection<ServiceCatalogTierRequestItem>? Tiers
+    );
+
+    public sealed record ServiceCatalogServiceRequestItem(
         string ServiceTypeCode,
         bool IsEnabled,
-        int? Tier,
+        int Tier,
         string? VendorCode
     );
 
-    public sealed record UpdateTierConfigurationRequest(
+    public sealed record ServiceCatalogTierRequestItem(
         int Tier,
-        string? Name,
+        string Name,
         string? Description,
         IReadOnlyCollection<string>? RequiredServices,
         IReadOnlyCollection<string>? OptionalServices,
-        bool? AutoDispatch,
-        bool? WaitForPreviousTier
+        bool AutoDispatch,
+        bool WaitForPreviousTier
     );
 }
