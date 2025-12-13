@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-12 (SLA Clocks controller added)
+**Last Updated:** 2025-12-13 (Notifications, Services queue, Customer catalog endpoints added)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -10,17 +10,18 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 
 ## Executive Summary
 
-| Phase | Focus | Backend Status | Frontend Status | Overall |
-|-------|-------|----------------|-----------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ Complete | ❌ Not integrated | 85% |
-| **3.1** | Services & Fulfillment | ✅ Complete | 🟡 Mock data | 80% |
-| **3.2** | Subject Data & Frontend | 🟡 Partial | 🟡 Scaffolded | 40% |
+| Phase   | Focus                      | Backend Status | Frontend Status  | Overall |
+|---------|----------------------------|----------------|------------------|---------|
+| **3.0** | SLA Clocks & Notifications | ✅ Complete     | 🟡 APIs ready    | 90%     |
+| **3.1** | Services & Fulfillment     | ✅ Complete     | 🟡 APIs ready    | 85%     |
+| **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded    | 40%     |
 
-**Bottom line:** Backend aggregates, commands, and read-only projections exist for all modules. The order
-fulfillment handler is now complete — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
+**Bottom line:** Backend aggregates, commands, read-only projections, and API endpoints exist for all modules.
+The order fulfillment handler is complete — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
 `ReadyForFulfillment` and transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler` advances
-Order to `ReadyForReport` when all services complete. Frontend is scaffolded but uses mock data and hasn't
-been wired to real APIs.
+Order to `ReadyForReport` when all services complete. All API endpoints for SLA Clocks, Notifications, Services
+queue, and Customer service catalog are now implemented. Frontend is scaffolded but needs to be wired to these
+real APIs.
 
 ---
 
@@ -29,6 +30,7 @@ been wired to real APIs.
 ### Backend: ✅ COMPLETE
 
 **SlaClocks Module** (`src/Modules/SlaClocks/`)
+
 - [x] `SlaClock` aggregate with state machine (Running → AtRisk → Breached → Paused → Completed)
 - [x] `ClockKind` enum: Intake, Fulfillment, Overall, Service, Custom
 - [x] Domain events: Started, AtRisk, Breached, Paused, Resumed, Completed
@@ -37,9 +39,11 @@ been wired to real APIs.
 - [x] `SlaClockWatchdogService` background service
 - [x] `OrderStatusChangedSlaHandler` integration
 - [x] Unit tests: `SlaClockTests`, `BusinessCalendarServiceTests`, `SlaClockProjectionHandlerTests`
-- [x] **Read-only projections** (`sla_clock_projections` table, `SlaClockProjectionHandler`, `SlaClockEventProjectionRunner`)
+- [x] **Read-only projections** (`sla_clock_projections` table, `SlaClockProjectionHandler`,
+  `SlaClockEventProjectionRunner`)
 
 **Notifications Module** (`src/Modules/Notifications/`)
+
 - [x] `NotificationRequest` aggregate with delivery lifecycle
 - [x] Channels: Email, SMS, Webhook
 - [x] Triggers: IntakeSessionInvited, SlaClockAtRisk, SlaClockBreached, etc.
@@ -47,19 +51,26 @@ been wired to real APIs.
 - [x] Stub providers: LoggingEmailProvider, LoggingSmsProvider, LoggingWebhookProvider
 - [x] `NotificationProcessingService` background service
 - [x] Unit tests: `NotificationRequestTests`, `NotificationProjectionHandlerTests`
-- [x] **Read-only projections** (`notification_projections` table, `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
+- [x] **Read-only projections** (`notification_projections` table, `NotificationProjectionHandler`,
+  `NotificationEventProjectionRunner`)
 
-### Frontend: ❌ NOT INTEGRATED
+### Frontend: 🟡 APIs READY
 
-**Holmes.Internal gaps:**
+**API endpoints complete:**
+
+- [x] `GET /api/clocks/sla?orderId={id}` — returns clock data for order
+- [x] `POST /api/clocks/sla/{id}/pause` — pause a clock
+- [x] `POST /api/clocks/sla/{id}/resume` — resume a clock
+- [x] `GET /api/notifications?orderId={id}` — returns notifications for order
+- [x] `GET /api/notifications/{id}` — get single notification
+- [x] `POST /api/notifications/{id}/retry` — retry failed notification
+
+**Holmes.Internal gaps (need to wire to APIs):**
+
 - [ ] SLA clock dashboard (show at-risk/breached counts)
 - [ ] Notification history view
 - [ ] Clock detail panel on Order detail page
 - [ ] Wire `SlaBadge` component to real API data
-
-**API endpoints needed:**
-- [ ] `GET /api/clocks/sla?orderId={id}` — returns clock data for order
-- [ ] `GET /api/notifications?orderId={id}` — returns notifications for order
 - [ ] SSE extension for `clock.at_risk`, `clock.breached` events
 
 ### Observability: DEFERRED
@@ -73,27 +84,42 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 ### Backend: ✅ COMPLETE
 
 **Services Module** (`src/Modules/Services/`)
+
 - [x] `ServiceRequest` aggregate with state machine (Pending → Dispatched → InProgress → Completed/Failed/Canceled)
-- [x] Service type taxonomy (Criminal, Identity, Employment, Education, Driving, Credit, Drug, Civil, Reference, Healthcare, Custom)
+- [x] Service type taxonomy (Criminal, Identity, Employment, Education, Driving, Credit, Drug, Civil, Reference,
+  Healthcare, Custom)
 - [x] `ServiceCatalog` for customer-specific service configuration
 - [x] Tier execution logic (customer-defined execution order)
 - [x] Commands: Create, Dispatch, Cancel, Retry, RecordResult, ProcessVendorCallback
 - [x] Commands: UpdateCatalogService, UpdateTierConfiguration
-- [x] Queries: GetServiceRequestsByOrder, GetServiceRequest, GetCustomerServiceCatalog, ListServiceTypes, GetOrderCompletionStatus
+- [x] Queries: GetServiceRequestsByOrder, GetServiceRequest, GetCustomerServiceCatalog, ListServiceTypes,
+  GetOrderCompletionStatus
 - [x] `IVendorAdapter` interface with credential store abstraction
 - [x] `IServiceChangeBroadcaster` for SSE
-- [x] **Read-only projections** (`service_projections` table, `ServiceProjectionHandler`, `ServiceEventProjectionRunner`)
+- [x] **Read-only projections** (`service_projections` table, `ServiceProjectionHandler`,
+  `ServiceEventProjectionRunner`)
 - [x] Unit tests: `ServiceRequestTests`, `ServiceProjectionHandlerTests`
-- [x] **Order fulfillment handler** — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches `ReadyForFulfillment`
-- [x] **Service completion handler** — `ServiceCompletionOrderHandler` advances Order to `ReadyForReport` when all services complete
+- [x] **Order fulfillment handler** — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
+  `ReadyForFulfillment`
+- [x] **Service completion handler** — `ServiceCompletionOrderHandler` advances Order to `ReadyForReport` when all
+  services complete
 
 **Controllers:**
+
 - [x] `ServicesController` — CRUD for service requests
 - [x] `ServiceChangesController` — SSE for service status updates
 
-### Frontend: 🟡 MOCK DATA
+### Frontend: 🟡 APIs READY
+
+**API endpoints complete:**
+
+- [x] `GET /api/services/queue` — fulfillment queue with customer access filtering
+- [x] `GET /api/services/{orderId}` — services for an order
+- [x] `GET /api/customers/{id}/service-catalog` — customer service catalog
+- [x] `PUT /api/customers/{id}/service-catalog` — update customer catalog
 
 **Holmes.Internal implemented (with mock data):**
+
 - [x] `FulfillmentDashboardPage` — stats cards, filters, data grid (MOCK DATA)
 - [x] `ServiceStatusCard` component
 - [x] `TierProgressView` component
@@ -101,7 +127,8 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - [x] `TierConfigurationEditor` component
 - [x] Types defined in `@/types/api` for ServiceCategory, ServiceStatus, etc.
 
-**Gaps:**
+**Gaps (need to wire to APIs):**
+
 - [ ] Wire `FulfillmentDashboardPage` to real `/api/services/queue` endpoint
 - [ ] Wire service components to real APIs
 - [ ] Add Services tab to `OrderDetailPage` with real data
@@ -115,6 +142,7 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 ### Backend: 🟡 PARTIAL
 
 **Subject domain expansion needed:**
+
 - [ ] `SubjectAddress` collection (with county FIPS)
 - [ ] `SubjectEmployment` collection
 - [ ] `SubjectEducation` collection
@@ -126,12 +154,14 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - [ ] Update `SubmitIntakeCommand` to persist all collections
 
 **County resolution:**
+
 - [ ] `ICountyResolutionService` interface
 - [ ] ZIP-to-County lookup table (covers ~95%)
 
 ### Frontend: 🟡 SCAFFOLDED
 
 **Holmes.Intake has scaffolds:**
+
 - [x] `AddressHistoryForm.tsx` — exists but needs completion
 - [x] `EmploymentHistoryForm.tsx` — exists but needs completion
 - [x] `EducationHistoryForm.tsx` — exists but needs completion
@@ -139,6 +169,7 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - [x] `IntakeFlow.tsx` — exists but incomplete
 
 **Holmes.Intake gaps:**
+
 - [ ] Dynamic form sections based on policy
 - [ ] Wire forms to intake submission API
 - [ ] Progress persistence to encrypted snapshot
@@ -147,6 +178,7 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - [ ] Policy-driven field requirements (7-year address history, etc.)
 
 **Holmes.Internal gaps:**
+
 - [ ] Customer detail page with Services/Tiers tabs (components exist, not wired)
 - [ ] Subject detail page showing address/employment/education history
 - [ ] Real API integration for customer service catalog
@@ -157,37 +189,39 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 
 ### Implemented (Controllers exist)
 
-| Endpoint | Controller | Status |
-|----------|------------|--------|
-| `GET/POST /api/customers` | CustomersController | ✅ Working |
-| `GET/POST /api/subjects` | SubjectsController | ✅ Working |
-| `GET/POST /api/orders` | OrdersController | ✅ Working |
-| `GET/POST /api/users` | UsersController | ✅ Working |
-| `GET /api/intake/sessions` | IntakeSessionsController | ✅ Working |
-| `GET /api/services/{orderId}` | ServicesController | ✅ Exists |
-| `SSE /api/order-changes` | OrderChangesController | ✅ Working |
-| `SSE /api/service-changes` | ServiceChangesController | ✅ Exists |
-| `GET /api/clocks/sla?orderId={id}` | SlaClocksController | ✅ Working |
-| `POST /api/clocks/sla/{id}/pause` | SlaClocksController | ✅ Working |
-| `POST /api/clocks/sla/{id}/resume` | SlaClocksController | ✅ Working |
+| Endpoint                           | Controller               | Status    |
+|------------------------------------|--------------------------|-----------|
+| `GET/POST /api/customers`          | CustomersController      | ✅ Working |
+| `GET/POST /api/subjects`           | SubjectsController       | ✅ Working |
+| `GET/POST /api/orders`             | OrdersController         | ✅ Working |
+| `GET/POST /api/users`              | UsersController          | ✅ Working |
+| `GET /api/intake/sessions`         | IntakeSessionsController | ✅ Working |
+| `GET /api/services/{orderId}`      | ServicesController       | ✅ Exists  |
+| `SSE /api/order-changes`           | OrderChangesController   | ✅ Working |
+| `SSE /api/service-changes`         | ServiceChangesController | ✅ Exists  |
+| `GET /api/clocks/sla?orderId={id}` | SlaClocksController      | ✅ Working |
+| `POST /api/clocks/sla/{id}/pause`  | SlaClocksController      | ✅ Working |
+| `POST /api/clocks/sla/{id}/resume` | SlaClocksController      | ✅ Working |
+| `GET /api/notifications`                  | NotificationsController  | ✅ Working |
+| `GET /api/notifications/{id}`             | NotificationsController  | ✅ Working |
+| `POST /api/notifications/{id}/retry`      | NotificationsController  | ✅ Working |
+| `GET /api/services/queue`                 | ServicesController       | ✅ Working |
+| `GET /api/customers/{id}/service-catalog` | CustomersController      | ✅ Working |
+| `PUT /api/customers/{id}/service-catalog` | CustomersController      | ✅ Working |
 
 ### Needed but Missing
 
-| Endpoint | Purpose | Priority |
-|----------|---------|----------|
-| `GET /api/notifications` | Query notifications | High |
-| `POST /api/notifications/{id}/retry` | Retry notification | Medium |
-| `GET /api/services/queue` | Fulfillment queue | High |
-| `GET /api/customers/{id}/service-catalog` | Customer services | High |
-| `PUT /api/customers/{id}/service-catalog` | Update services | Medium |
-| `GET /api/subjects/{id}/addresses` | Subject addresses | Medium |
-| `GET /api/subjects/{id}/employments` | Subject employment | Medium |
+| Endpoint                                  | Purpose             | Priority |
+|-------------------------------------------|---------------------|----------|
+| `GET /api/subjects/{id}/addresses`        | Subject addresses   | Medium   |
+| `GET /api/subjects/{id}/employments`      | Subject employment  | Medium   |
 
 ---
 
 ## Documentation Cleanup
 
 ### Files to keep (authoritative):
+
 - `docs/ARCHITECTURE.md` — main architecture reference
 - `docs/PLAN.md` — high-level phase roadmap
 - `docs/PHASE_3_CONSOLIDATED.md` — THIS FILE (replaces individual phase docs for tracking)
@@ -196,6 +230,7 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - `docs/MODULE_TEMPLATE.md` — module scaffolding guide
 
 ### Files to archive/merge:
+
 - `docs/PHASE_3.md` → content merged here
 - `docs/PHASE_3_1.md` → content merged here
 - `docs/PHASE_3_2.md` → content merged here
@@ -211,19 +246,29 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 
 Read-only projections are needed before frontend can wire to real APIs.
 
-1. ~~**Add SlaClocks read-only projections**~~ ✅ DONE (`sla_clock_projections` table, `SlaClockProjectionHandler`, `SlaClockEventProjectionRunner`)
-2. ~~**Add Notifications read-only projections**~~ ✅ DONE (`notification_projections` table, `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
-3. ~~**Add Services read-only projections**~~ ✅ DONE (`service_projections` table, `ServiceProjectionHandler`, `ServiceEventProjectionRunner`)
-4. ~~**Create order fulfillment handler**~~ ✅ DONE — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches `ReadyForFulfillment`, then transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler` transitions Order to `ReadyForReport` when all services complete.
+1. ~~**Add SlaClocks read-only projections**~~ ✅ DONE (`sla_clock_projections` table, `SlaClockProjectionHandler`,
+   `SlaClockEventProjectionRunner`)
+2. ~~**Add Notifications read-only projections**~~ ✅ DONE (`notification_projections` table,
+   `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
+3. ~~**Add Services read-only projections**~~ ✅ DONE (`service_projections` table, `ServiceProjectionHandler`,
+   `ServiceEventProjectionRunner`)
+4. ~~**Create order fulfillment handler**~~ ✅ DONE — `OrderFulfillmentHandler` creates ServiceRequests when Order
+   reaches `ReadyForFulfillment`, then transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler`
+   transitions Order to `ReadyForReport` when all services complete.
 
 ### Priority 2: Wire Frontend to Real APIs
 
 Once projections exist, wire frontend components.
 
-1. ~~**Create SLA Clocks controller**~~ ✅ DONE — `SlaClocksController` with `GET /api/clocks/sla?orderId={id}`, `POST /api/clocks/sla/{id}/pause`, `POST /api/clocks/sla/{id}/resume`
-2. **Wire FulfillmentDashboardPage** to real service queue endpoint
-3. **Add Services tab to OrderDetailPage** with real service data
-4. **Wire ServiceCatalogEditor** to customer catalog APIs
+1. ~~**Create SLA Clocks controller**~~ ✅ DONE — `SlaClocksController` with `GET /api/clocks/sla?orderId={id}`,
+   `POST /api/clocks/sla/{id}/pause`, `POST /api/clocks/sla/{id}/resume`
+2. ~~**Create Notifications controller**~~ ✅ DONE — `NotificationsController` with `GET /api/notifications`,
+   `GET /api/notifications/{id}`, `POST /api/notifications/{id}/retry`
+3. ~~**Create Services queue endpoint**~~ ✅ DONE — `GET /api/services/queue` for fulfillment queue
+4. ~~**Create Customer catalog endpoints**~~ ✅ DONE — `GET/PUT /api/customers/{id}/service-catalog`
+5. **Wire FulfillmentDashboardPage** to real `/api/services/queue` endpoint
+6. **Add Services tab to OrderDetailPage** with real service data
+7. **Wire ServiceCatalogEditor** to customer catalog APIs
 
 ### Priority 3: Complete Intake Flow
 
