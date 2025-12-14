@@ -66,7 +66,7 @@ public sealed class SeedData(
             await EnsureAdminApprovedAsync(mediator, adminUserId, now, cancellationToken);
             var customerId = await EnsureDemoCustomerAsync(mediator, customersDb, adminUserId, now, cancellationToken);
             var subjectIds = await EnsureDemoSubjectsAsync(mediator, subjectsDb, adminUserId, now, cancellationToken);
-            await EnsureDemoOrdersAsync(mediator, workflowDb, customerId, subjectIds, adminUserId, now,
+            await EnsureDemoOrdersAsync(services, workflowDb, customerId, subjectIds, adminUserId, now,
                 cancellationToken);
 
             logger.LogInformation("Development seed data created successfully");
@@ -268,7 +268,7 @@ public sealed class SeedData(
     }
 
     private static async Task EnsureDemoOrdersAsync(
-        IMediator mediator,
+        IServiceProvider services,
         WorkflowDbContext workflowDb,
         UlidId customerId,
         List<UlidId> subjectIds,
@@ -314,6 +314,10 @@ public sealed class SeedData(
 
         foreach (var (subjectId, ageOffset, targetStatus) in orderScenarios)
         {
+            // Use fresh scope for each order to avoid EF tracking conflicts
+            using var scope = services.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
             var orderId = UlidId.NewUlid();
             var createdAt = now.Add(ageOffset);
 
