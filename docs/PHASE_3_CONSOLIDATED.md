@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-13 (Notifications, Services queue, Customer catalog endpoints added)
+**Last Updated:** 2025-12-13 (SLA Clocks tab, Notifications tab wired to real APIs)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -12,16 +12,17 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 
 | Phase   | Focus                      | Backend Status | Frontend Status  | Overall |
 |---------|----------------------------|----------------|------------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ Complete     | 🟡 APIs ready    | 90%     |
-| **3.1** | Services & Fulfillment     | ✅ Complete     | 🟡 APIs ready    | 85%     |
+| **3.0** | SLA Clocks & Notifications | ✅ Complete     | ✅ Complete      | 95%     |
+| **3.1** | Services & Fulfillment     | ✅ Complete     | ✅ Complete      | 95%     |
 | **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded    | 40%     |
 
 **Bottom line:** Backend aggregates, commands, read-only projections, and API endpoints exist for all modules.
 The order fulfillment handler is complete — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
 `ReadyForFulfillment` and transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler` advances
 Order to `ReadyForReport` when all services complete. All API endpoints for SLA Clocks, Notifications, Services
-queue, and Customer service catalog are now implemented. Frontend is scaffolded but needs to be wired to these
-real APIs.
+queue, and Customer service catalog are now implemented. **Frontend is now wired to real APIs** — OrderDetailPage
+includes SLA Clocks tab (with pause/resume) and Notifications tab (with retry), using React Query hooks. Remaining
+work: SSE real-time updates and dashboard aggregations.
 
 ---
 
@@ -65,12 +66,18 @@ real APIs.
 - [x] `GET /api/notifications/{id}` — get single notification
 - [x] `POST /api/notifications/{id}/retry` — retry failed notification
 
-**Holmes.Internal gaps (need to wire to APIs):**
+**Holmes.Internal implemented:**
 
-- [ ] SLA clock dashboard (show at-risk/breached counts)
-- [ ] Notification history view
-- [ ] Clock detail panel on Order detail page
-- [ ] Wire `SlaBadge` component to real API data
+- [x] SLA Clocks tab on Order detail page (shows all clocks with status, pause/resume actions)
+- [x] Notifications tab on Order detail page (shows notification history with retry action)
+- [x] `SlaBadge` component wired to real API data via `clockStateToSlaStatus` helper
+- [x] React Query hooks: `useOrderSlaClocks`, `usePauseSlaClock`, `useResumeSlaClock`
+- [x] React Query hooks: `useOrderNotifications`, `useRetryNotification`
+- [x] TypeScript types for SLA clocks and notifications in `@/types/api`
+
+**Holmes.Internal gaps (remaining):**
+
+- [ ] SLA clock dashboard (show at-risk/breached counts aggregated across orders)
 - [ ] SSE extension for `clock.at_risk`, `clock.breached` events
 
 ### Observability: DEFERRED
@@ -118,20 +125,18 @@ Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging ex
 - [x] `GET /api/customers/{id}/service-catalog` — customer service catalog
 - [x] `PUT /api/customers/{id}/service-catalog` — update customer catalog
 
-**Holmes.Internal implemented (with mock data):**
+**Holmes.Internal implemented:**
 
-- [x] `FulfillmentDashboardPage` — stats cards, filters, data grid (MOCK DATA)
+- [x] `FulfillmentDashboardPage` — stats cards, filters, data grid (wired to real API)
 - [x] `ServiceStatusCard` component
 - [x] `TierProgressView` component
-- [x] `ServiceCatalogEditor` component
-- [x] `TierConfigurationEditor` component
+- [x] `ServiceCatalogEditor` component (wired to customer catalog APIs)
+- [x] `TierConfigurationEditor` component (wired to customer catalog APIs)
 - [x] Types defined in `@/types/api` for ServiceCategory, ServiceStatus, etc.
+- [x] Services tab on `OrderDetailPage` with real data
 
-**Gaps (need to wire to APIs):**
+**Gaps (remaining):**
 
-- [ ] Wire `FulfillmentDashboardPage` to real `/api/services/queue` endpoint
-- [ ] Wire service components to real APIs
-- [ ] Add Services tab to `OrderDetailPage` with real data
 - [ ] SSE integration for real-time service updates
 - [ ] Retry/Cancel actions calling real endpoints
 
@@ -266,9 +271,9 @@ Once projections exist, wire frontend components.
    `GET /api/notifications/{id}`, `POST /api/notifications/{id}/retry`
 3. ~~**Create Services queue endpoint**~~ ✅ DONE — `GET /api/services/queue` for fulfillment queue
 4. ~~**Create Customer catalog endpoints**~~ ✅ DONE — `GET/PUT /api/customers/{id}/service-catalog`
-5. **Wire FulfillmentDashboardPage** to real `/api/services/queue` endpoint
-6. **Add Services tab to OrderDetailPage** with real service data
-7. **Wire ServiceCatalogEditor** to customer catalog APIs
+5. ~~**Wire FulfillmentDashboardPage**~~ ✅ DONE — `useFulfillmentQueue` hook with server-side pagination
+6. ~~**Add Services tab to OrderDetailPage**~~ ✅ DONE — `useOrderServices` hook with `TierProgressView`
+7. ~~**Wire ServiceCatalogEditor**~~ ✅ DONE — `useCustomerCatalog` and `useUpdateServiceCatalog` hooks
 
 ### Priority 3: Complete Intake Flow
 
@@ -290,19 +295,19 @@ Once projections exist, wire frontend components.
 
 ### Must Have
 
-- [ ] SLA clocks visible in UI with at-risk/breached indicators
-- [ ] Notifications history viewable per order
-- [ ] Fulfillment dashboard showing real service data
-- [ ] Order detail shows service status with real data
+- [x] SLA clocks visible in UI with at-risk/breached indicators
+- [x] Notifications history viewable per order
+- [x] Fulfillment dashboard showing real service data
+- [x] Order detail shows service status with real data
 - [ ] Intake form captures address history (7 years)
-- [ ] Customer service catalog configurable via UI
+- [x] Customer service catalog configurable via UI
 
 ### Should Have
 
 - [ ] SSE real-time updates for service status
 - [ ] Retry/Cancel service actions work
 - [ ] Employment/Education captured in intake
-- [ ] Clock pause/resume from UI
+- [x] Clock pause/resume from UI
 
 ### Deferred (Post Phase 3.x)
 

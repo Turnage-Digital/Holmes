@@ -13,10 +13,12 @@ import type {
   CustomerDetailDto,
   CustomerListItemDto,
   CustomerServiceCatalogDto,
+  FulfillmentQueueQuery,
   GrantUserRoleRequest,
   InviteUserRequest,
   InviteUserResponse,
   IssueIntakeInviteRequest,
+  NotificationSummaryDto,
   OrderAuditEventDto,
   OrderServicesDto,
   OrderStatsDto,
@@ -24,8 +26,11 @@ import type {
   OrderSummaryQuery,
   OrderTimelineEntryDto,
   PaginatedResult,
+  PauseClockRequest,
   RegisterSubjectRequest,
+  ServiceRequestSummaryDto,
   ServiceTypeDto,
+  SlaClockDto,
   SubjectDetailDto,
   SubjectListItemDto,
   SubjectSummaryDto,
@@ -53,8 +58,12 @@ export const queryKeys = {
   orderTimeline: (id: Ulid) => ["orders", "timeline", id] as const,
   orderEvents: (id: Ulid) => ["orders", id, "events"] as const,
   orderServices: (id: Ulid) => ["orders", id, "services"] as const,
+  orderSlaClocks: (id: Ulid) => ["orders", id, "slaClocks"] as const,
+  orderNotifications: (id: Ulid) => ["orders", id, "notifications"] as const,
   orderStats: ["orders", "stats"] as const,
   serviceTypes: ["services", "types"] as const,
+  fulfillmentQueue: (query: FulfillmentQueueQuery) =>
+    ["services", "queue", query] as const,
 };
 
 // ============================================================================
@@ -365,6 +374,21 @@ export const useOrderServices = (orderId: Ulid) =>
   });
 
 // ============================================================================
+// Fulfillment Queue
+// ============================================================================
+
+const fetchFulfillmentQueue = (query: FulfillmentQueueQuery) =>
+  apiFetch<PaginatedResult<ServiceRequestSummaryDto>>(
+    `/services/queue${toQueryString(query)}`,
+  );
+
+export const useFulfillmentQueue = (query: FulfillmentQueueQuery) =>
+  useQuery({
+    queryKey: queryKeys.fulfillmentQueue(query),
+    queryFn: () => fetchFulfillmentQueue(query),
+  });
+
+// ============================================================================
 // Customer Service Catalog
 // ============================================================================
 
@@ -400,6 +424,86 @@ export const useUpdateServiceCatalog = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.customerCatalog(variables.customerId),
       });
+    },
+  });
+};
+
+// ============================================================================
+// SLA Clocks
+// ============================================================================
+
+const fetchOrderSlaClocks = (orderId: Ulid) =>
+  apiFetch<SlaClockDto[]>(`/clocks/sla?orderId=${orderId}`);
+
+export const useOrderSlaClocks = (orderId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.orderSlaClocks(orderId),
+    queryFn: () => fetchOrderSlaClocks(orderId),
+    enabled: !!orderId,
+  });
+
+const pauseSlaClock = ({
+  clockId,
+  payload,
+}: {
+  clockId: Ulid;
+  payload: PauseClockRequest;
+}) =>
+  apiFetch<void>(`/clocks/sla/${clockId}/pause`, {
+    method: "POST",
+    body: payload,
+  });
+
+export const usePauseSlaClock = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: pauseSlaClock,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+const resumeSlaClock = (clockId: Ulid) =>
+  apiFetch<void>(`/clocks/sla/${clockId}/resume`, {
+    method: "POST",
+  });
+
+export const useResumeSlaClock = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: resumeSlaClock,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+// ============================================================================
+// Notifications
+// ============================================================================
+
+const fetchOrderNotifications = (orderId: Ulid) =>
+  apiFetch<NotificationSummaryDto[]>(`/notifications?orderId=${orderId}`);
+
+export const useOrderNotifications = (orderId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.orderNotifications(orderId),
+    queryFn: () => fetchOrderNotifications(orderId),
+    enabled: !!orderId,
+  });
+
+const retryNotification = (notificationId: Ulid) =>
+  apiFetch<void>(`/notifications/${notificationId}/retry`, {
+    method: "POST",
+  });
+
+export const useRetryNotification = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: retryNotification,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
   });
 };

@@ -123,7 +123,8 @@ public sealed record OrderCompletionStatusDto(
 public sealed record ServiceFulfillmentQueueFilter(
     IReadOnlyCollection<string>? AllowedCustomerIds,
     string? CustomerId,
-    IReadOnlyCollection<ServiceStatus>? Statuses
+    IReadOnlyCollection<ServiceStatus>? Statuses,
+    IReadOnlyCollection<ServiceCategory>? Categories
 );
 
 /// <summary>

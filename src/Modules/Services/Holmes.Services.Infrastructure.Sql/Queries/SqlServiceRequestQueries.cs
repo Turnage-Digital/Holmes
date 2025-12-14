@@ -255,6 +255,12 @@ public sealed class SqlServiceRequestQueries(ServicesDbContext dbContext) : ISer
             query = query.Where(s => filter.AllowedCustomerIds.Contains(s.CustomerId));
         }
 
+        // Apply category filter
+        if (filter.Categories is not null && filter.Categories.Count > 0)
+        {
+            query = query.Where(s => filter.Categories.Contains(s.Category));
+        }
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query

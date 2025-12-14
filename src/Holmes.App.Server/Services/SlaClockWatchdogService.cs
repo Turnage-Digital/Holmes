@@ -1,3 +1,4 @@
+using Holmes.Core.Domain;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;
 using MediatR;
@@ -58,7 +59,11 @@ public sealed class SlaClockWatchdogService(
         {
             try
             {
-                await sender.Send(new MarkClockAtRiskCommand(clock.Id, now), cancellationToken);
+                var command = new MarkClockAtRiskCommand(clock.Id, now)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                };
+                await sender.Send(command, cancellationToken);
                 logger.LogInformation(
                     "Marked clock {ClockId} as at-risk for order {OrderId}",
                     clock.Id, clock.OrderId);
@@ -80,7 +85,11 @@ public sealed class SlaClockWatchdogService(
         {
             try
             {
-                await sender.Send(new MarkClockBreachedCommand(clock.Id, now), cancellationToken);
+                var command = new MarkClockBreachedCommand(clock.Id, now)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                };
+                await sender.Send(command, cancellationToken);
                 logger.LogWarning(
                     "Marked clock {ClockId} as breached for order {OrderId}",
                     clock.Id, clock.OrderId);

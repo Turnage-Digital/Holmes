@@ -77,7 +77,8 @@ public sealed class ServicesController(
         var filter = new ServiceFulfillmentQueueFilter(
             customerId is null ? allowedCustomers : null,
             customerId,
-            NormalizeStatuses(query.Status));
+            NormalizeStatuses(query.Status),
+            NormalizeCategories(query.Category));
 
         var queryResult = await mediator.Send(
             new GetServiceFulfillmentQueueQuery(filter, page, pageSize), cancellationToken);
@@ -110,6 +111,25 @@ public sealed class ServicesController(
         return normalized.Count > 0 ? normalized : null;
     }
 
+    private static IReadOnlyCollection<ServiceCategory>? NormalizeCategories(IReadOnlyCollection<string>? categories)
+    {
+        if (categories is null || categories.Count is 0)
+        {
+            return null;
+        }
+
+        var normalized = new List<ServiceCategory>(categories.Count);
+        foreach (var candidate in categories)
+        {
+            if (Enum.TryParse<ServiceCategory>(candidate, true, out var parsed))
+            {
+                normalized.Add(parsed);
+            }
+        }
+
+        return normalized.Count > 0 ? normalized : null;
+    }
+
     public sealed record ServiceQueueQuery
     {
         public int Page { get; init; } = 1;
@@ -119,5 +139,7 @@ public sealed class ServicesController(
         public string? CustomerId { get; init; }
 
         public IReadOnlyCollection<string>? Status { get; init; }
+
+        public IReadOnlyCollection<string>? Category { get; init; }
     }
 }
