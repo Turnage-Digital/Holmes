@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -38,6 +38,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -45,6 +46,8 @@ import type {
   NotificationSummaryDto,
   OrderAuditEventDto,
   OrderTimelineEntryDto,
+  ServiceChangeEvent,
+  SlaClockChangeEvent,
   SlaClockDto,
 } from "@/types/api";
 
@@ -53,6 +56,9 @@ import SlaBadge, {
 } from "@/components/patterns/SlaBadge";
 import { TierProgressView } from "@/components/services";
 import {
+  createServiceChangesStream,
+  createSlaClockChangesStream,
+  queryKeys,
   useCustomer,
   useIsAdmin,
   useOrder,
@@ -1135,6 +1141,7 @@ const NotificationsTab = ({ orderId }: NotificationsTabProps) => {
 
 const OrderDetailPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { orderId } = useParams<{ orderId: string }>();
   const [activeTab, setActiveTab] = useState(0);
 
@@ -1151,6 +1158,66 @@ const OrderDetailPage = () => {
 
   // Fetch services for badge count
   const { data: orderServices } = useOrderServices(orderId!);
+
+  // SSE for real-time service updates
+  useEffect(() => {
+    if (!orderId) return;
+
+    const eventSource = createServiceChangesStream(orderId);
+
+    const handleServiceChange = (event: MessageEvent) => {
+      try {
+        const payload: ServiceChangeEvent = JSON.parse(event.data);
+
+        // Only process events for this order
+        if (payload.orderId === orderId) {
+          // Invalidate services query to refetch
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.orderServices(orderId),
+          });
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    };
+
+    eventSource.addEventListener("service.change", handleServiceChange);
+
+    return () => {
+      eventSource.removeEventListener("service.change", handleServiceChange);
+      eventSource.close();
+    };
+  }, [orderId, queryClient]);
+
+  // SSE for real-time SLA clock updates
+  useEffect(() => {
+    if (!orderId) return;
+
+    const eventSource = createSlaClockChangesStream(orderId);
+
+    const handleClockChange = (event: MessageEvent) => {
+      try {
+        const payload: SlaClockChangeEvent = JSON.parse(event.data);
+
+        // Only process events for this order
+        if (payload.orderId === orderId) {
+          // Invalidate SLA clocks query to refetch
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.orderSlaClocks(orderId),
+          });
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    };
+
+    eventSource.addEventListener("clock.change", handleClockChange);
+
+    return () => {
+      eventSource.removeEventListener("clock.change", handleClockChange);
+      eventSource.close();
+    };
+  }, [orderId, queryClient]);
 
   // Loading state
   if (orderLoading) {

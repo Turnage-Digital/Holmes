@@ -514,3 +514,13 @@ export const useRetryNotification = () => {
 
 export const createOrderChangesStream = () =>
   createEventSource("/orders/changes");
+
+export const createServiceChangesStream = (orderId?: Ulid) =>
+  createEventSource(
+    orderId ? `/services/changes?orderId=${orderId}` : "/services/changes",
+  );
+
+export const createSlaClockChangesStream = (orderId?: Ulid) =>
+  createEventSource(
+    orderId ? `/clocks/sla/changes?orderId=${orderId}` : "/clocks/sla/changes",
+  );
