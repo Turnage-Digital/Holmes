@@ -13,8 +13,7 @@ public abstract class UnitOfWork<TContext>(
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
     ITenantContext? tenantContext = null
-)
-    : IUnitOfWork where TContext : DbContext
+) : IUnitOfWork where TContext : DbContext
 {
     private bool _disposed;
 
