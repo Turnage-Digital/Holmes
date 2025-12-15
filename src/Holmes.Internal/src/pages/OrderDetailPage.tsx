@@ -59,6 +59,7 @@ import {
   createServiceChangesStream,
   createSlaClockChangesStream,
   queryKeys,
+  useCancelServiceRequest,
   useCustomer,
   useIsAdmin,
   useOrder,
@@ -70,6 +71,7 @@ import {
   usePauseSlaClock,
   useResumeSlaClock,
   useRetryNotification,
+  useRetryServiceRequest,
   useSubject,
 } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
@@ -322,7 +324,49 @@ interface ServicesTabProps {
 }
 
 const ServicesTab = ({ orderId }: ServicesTabProps) => {
+  const isAdmin = useIsAdmin();
   const { data: orderServices, isLoading, error } = useOrderServices(orderId);
+  const retryMutation = useRetryServiceRequest();
+  const cancelMutation = useCancelServiceRequest();
+
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelServiceId, setCancelServiceId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+
+  const handleRetry = (serviceId: string) => {
+    setRetryingId(serviceId);
+    retryMutation.mutate(serviceId, {
+      onSettled: () => setRetryingId(null),
+    });
+  };
+
+  const handleCancelClick = (serviceId: string) => {
+    setCancelServiceId(serviceId);
+    setCancelReason("");
+    setCancelDialogOpen(true);
+  };
+
+  const handleCancelConfirm = () => {
+    if (cancelServiceId && cancelReason.trim()) {
+      setCancelingId(cancelServiceId);
+      cancelMutation.mutate(
+        {
+          serviceRequestId: cancelServiceId,
+          payload: { reason: cancelReason.trim() },
+        },
+        {
+          onSuccess: () => {
+            setCancelDialogOpen(false);
+            setCancelServiceId(null);
+            setCancelReason("");
+          },
+          onSettled: () => setCancelingId(null),
+        },
+      );
+    }
+  };
 
   if (isLoading) {
     return (
@@ -344,7 +388,59 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
     );
   }
 
-  return <TierProgressView services={orderServices.services} />;
+  const retryHandler = isAdmin ? handleRetry : undefined;
+  const cancelHandler = isAdmin ? handleCancelClick : undefined;
+
+  return (
+    <>
+      <TierProgressView
+        services={orderServices.services}
+        onRetry={retryHandler}
+        onCancel={cancelHandler}
+        retryingId={retryingId}
+        cancelingId={cancelingId}
+      />
+
+      {/* Cancel Dialog */}
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+      >
+        <DialogTitle>Cancel Service Request</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Please provide a reason for canceling this service request. This
+            action cannot be undone.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Reason"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="e.g., No longer needed, duplicate request"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelDialogOpen(false)}>Back</Button>
+          {(() => {
+            const buttonLabel = cancelMutation.isPending
+              ? "Canceling…"
+              : "Cancel Service";
+            return (
+              <Button
+                onClick={handleCancelConfirm}
+                variant="contained"
+                color="error"
+                disabled={!cancelReason.trim() || cancelMutation.isPending}
+              >
+                {buttonLabel}
+              </Button>
+            );
+          })()}
+        </DialogActions>
+      </Dialog>
+    </>
+  );
 };
 
 // ============================================================================

@@ -530,6 +530,10 @@ export interface UpdateServiceCatalogRequest {
   tiers?: ServiceCatalogTierInput[];
 }
 
+export interface CancelServiceRequest {
+  reason: string;
+}
+
 // ============================================================================
 // Fulfillment Queue Types
 // ============================================================================

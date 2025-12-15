@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 
 import type {
+  CancelServiceRequest,
   CreateCustomerRequest,
   CreateOrderRequest,
   CurrentUserDto,
@@ -387,6 +388,45 @@ export const useFulfillmentQueue = (query: FulfillmentQueueQuery) =>
     queryKey: queryKeys.fulfillmentQueue(query),
     queryFn: () => fetchFulfillmentQueue(query),
   });
+
+const retryServiceRequest = (serviceRequestId: Ulid) =>
+  apiFetch<void>(`/services/${serviceRequestId}/retry`, {
+    method: "POST",
+  });
+
+export const useRetryServiceRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: retryServiceRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    },
+  });
+};
+
+const cancelServiceRequest = ({
+  serviceRequestId,
+  payload,
+}: {
+  serviceRequestId: Ulid;
+  payload: CancelServiceRequest;
+}) =>
+  apiFetch<void>(`/services/${serviceRequestId}/cancel`, {
+    method: "POST",
+    body: payload,
+  });
+
+export const useCancelServiceRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: cancelServiceRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+    },
+  });
+};
 
 // ============================================================================
 // Customer Service Catalog
