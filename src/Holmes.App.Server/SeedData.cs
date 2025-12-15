@@ -353,8 +353,8 @@ public sealed class SeedData(
     {
         // Start Overall SLA clock for all orders
         await mediator.Send(new StartSlaClockCommand(
-            orderId, customerId, ClockKind.Overall, createdAt)
-        { UserId = adminUserId.ToString() }, cancellationToken);
+                orderId, customerId, ClockKind.Overall, createdAt)
+            { UserId = adminUserId.ToString() }, cancellationToken);
 
         if (targetStatus == "Created")
         {
@@ -375,8 +375,8 @@ public sealed class SeedData(
 
         // Start Intake SLA clock
         await mediator.Send(new StartSlaClockCommand(
-            orderId, customerId, ClockKind.Intake, inviteTimestamp)
-        { UserId = adminUserId.ToString() }, cancellationToken);
+                orderId, customerId, ClockKind.Intake, inviteTimestamp)
+            { UserId = adminUserId.ToString() }, cancellationToken);
 
         if (targetStatus == "Invited")
         {
@@ -408,8 +408,8 @@ public sealed class SeedData(
 
         // Complete the Intake clock
         await mediator.Send(new CompleteSlaClockCommand(
-            orderId, ClockKind.Intake, submitTimestamp)
-        { UserId = adminUserId.ToString() }, cancellationToken);
+                orderId, ClockKind.Intake, submitTimestamp)
+            { UserId = adminUserId.ToString() }, cancellationToken);
 
         if (targetStatus == "IntakeComplete")
         {
@@ -427,8 +427,8 @@ public sealed class SeedData(
 
         // Start Fulfillment SLA clock
         await mediator.Send(new StartSlaClockCommand(
-            orderId, customerId, ClockKind.Fulfillment, readyTimestamp)
-        { UserId = adminUserId.ToString() }, cancellationToken);
+                orderId, customerId, ClockKind.Fulfillment, readyTimestamp)
+            { UserId = adminUserId.ToString() }, cancellationToken);
 
         // Create service requests for fulfillment dashboard
         await CreateServiceRequestsForOrderAsync(
@@ -465,7 +465,7 @@ public sealed class SeedData(
         var tier1Services = new[]
         {
             ("SSN_TRACE", ServiceCategory.Identity),
-            ("ADDR_VERIFY", ServiceCategory.Identity),
+            ("ADDR_VERIFY", ServiceCategory.Identity)
         };
 
         // Tier 2: Core searches (run after tier 1)
@@ -473,35 +473,35 @@ public sealed class SeedData(
         {
             ("FED_CRIM", ServiceCategory.Criminal),
             ("STATE_CRIM", ServiceCategory.Criminal),
-            ("COUNTY_CRIM", ServiceCategory.Criminal),
+            ("COUNTY_CRIM", ServiceCategory.Criminal)
         };
 
         // Tier 3: Employment and education verifications
         var tier3Services = new[]
         {
             ("TWN_EMP", ServiceCategory.Employment),
-            ("EDU_VERIFY", ServiceCategory.Education),
+            ("EDU_VERIFY", ServiceCategory.Education)
         };
 
         foreach (var (code, _) in tier1Services)
         {
             await mediator.Send(new CreateServiceRequestCommand(
-                orderId, customerId, code, 1, null, null, timestamp)
-            { UserId = adminUserId.ToString() }, cancellationToken);
+                    orderId, customerId, code, 1, null, null, timestamp)
+                { UserId = adminUserId.ToString() }, cancellationToken);
         }
 
         foreach (var (code, _) in tier2Services)
         {
             await mediator.Send(new CreateServiceRequestCommand(
-                orderId, customerId, code, 2, null, null, timestamp.AddSeconds(1))
-            { UserId = adminUserId.ToString() }, cancellationToken);
+                    orderId, customerId, code, 2, null, null, timestamp.AddSeconds(1))
+                { UserId = adminUserId.ToString() }, cancellationToken);
         }
 
         foreach (var (code, _) in tier3Services)
         {
             await mediator.Send(new CreateServiceRequestCommand(
-                orderId, customerId, code, 3, null, null, timestamp.AddSeconds(2))
-            { UserId = adminUserId.ToString() }, cancellationToken);
+                    orderId, customerId, code, 3, null, null, timestamp.AddSeconds(2))
+                { UserId = adminUserId.ToString() }, cancellationToken);
         }
     }
 }
