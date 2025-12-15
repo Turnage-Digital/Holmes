@@ -28,7 +28,7 @@ public sealed class CompleteSlaClockCommandHandler(
         }
 
         clock.Complete(request.CompletedAt);
-        unitOfWork.SlaClocks.Update(clock);
+        await unitOfWork.SlaClocks.UpdateAsync(clock, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

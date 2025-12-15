@@ -4,9 +4,12 @@ This document describes how Holmes captures and stores domain events for audit, 
 
 ## Overview
 
-Every mutation to domain aggregates (Order, Subject, User, Customer, IntakeSession, ServiceRequest, etc.) raises a domain event. These events are persisted to the `event_records` table within the same database transaction as the aggregate state change, ensuring consistency.
+Every mutation to domain aggregates (Order, Subject, User, Customer, IntakeSession, ServiceRequest, etc.) raises a
+domain event. These events are persisted to the `event_records` table within the same database transaction as the
+aggregate state change, ensuring consistency.
 
 This provides:
+
 - **Complete audit trail** of all changes to any entity
 - **Point-in-time reconstruction** of entity state
 - **Compliance evidence** for regulatory requirements
@@ -35,22 +38,22 @@ CREATE TABLE event_records (
 
 ### Column Reference
 
-| Column | Description | Audit Use |
-|--------|-------------|-----------|
-| `position` | Global sequence number | Ordering events across all streams |
-| `tenant_id` | Customer organization ID | Multi-tenant isolation |
-| `stream_id` | Entity identifier (e.g., `Order:01HXYZ...`) | Query all events for an entity |
-| `stream_type` | Aggregate type (e.g., `Order`, `Subject`) | Query by entity type |
-| `version` | Per-stream sequence number | Optimistic concurrency |
-| `event_id` | Unique event identifier (ULID) | Deduplication |
-| `name` | Event type (e.g., `OrderStatusChanged`) | Filter by event type |
-| `payload` | Full event data as JSON | The actual change details |
-| `metadata` | Optional additional context | Custom audit metadata |
-| `created_at` | Event timestamp (UTC) | When the change occurred |
-| `correlation_id` | Distributed trace ID | Links to HTTP request/trace |
-| `causation_id` | Parent span ID | What triggered this event |
-| `actor_id` | User who caused the change | WHO made this change |
-| `idempotency_key` | Prevents duplicate writes | Exactly-once persistence |
+| Column            | Description                                 | Audit Use                          |
+|-------------------|---------------------------------------------|------------------------------------|
+| `position`        | Global sequence number                      | Ordering events across all streams |
+| `tenant_id`       | Customer organization ID                    | Multi-tenant isolation             |
+| `stream_id`       | Entity identifier (e.g., `Order:01HXYZ...`) | Query all events for an entity     |
+| `stream_type`     | Aggregate type (e.g., `Order`, `Subject`)   | Query by entity type               |
+| `version`         | Per-stream sequence number                  | Optimistic concurrency             |
+| `event_id`        | Unique event identifier (ULID)              | Deduplication                      |
+| `name`            | Event type (e.g., `OrderStatusChanged`)     | Filter by event type               |
+| `payload`         | Full event data as JSON                     | The actual change details          |
+| `metadata`        | Optional additional context                 | Custom audit metadata              |
+| `created_at`      | Event timestamp (UTC)                       | When the change occurred           |
+| `correlation_id`  | Distributed trace ID                        | Links to HTTP request/trace        |
+| `causation_id`    | Parent span ID                              | What triggered this event          |
+| `actor_id`        | User who caused the change                  | WHO made this change               |
+| `idempotency_key` | Prevents duplicate writes                   | Exactly-once persistence           |
 
 ## Stream Types and Events
 
@@ -58,105 +61,105 @@ CREATE TABLE event_records (
 
 Stream ID format: `Order:{orderId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
+| Event                | Description                      | Key Payload Fields                                              |
+|----------------------|----------------------------------|-----------------------------------------------------------------|
 | `OrderStatusChanged` | Order transitioned to new status | `OrderId`, `PreviousStatus`, `NewStatus`, `Reason`, `ChangedAt` |
 
 ### Subject
 
 Stream ID format: `Subject:{subjectId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
-| `SubjectRegistered` | New subject created | `SubjectId`, `GivenName`, `FamilyName`, `DateOfBirth`, `Email` |
-| `SubjectDataUpdated` | Subject PII updated | `SubjectId`, `GivenName`, `FamilyName`, `DateOfBirth`, `Email`, `UpdatedAt` |
-| `SubjectAddressAdded` | Address added to subject | `SubjectId`, `Address` |
-| `SubjectEmploymentAdded` | Employment record added | `SubjectId`, `Employment` |
-| `SubjectEducationAdded` | Education record added | `SubjectId`, `Education` |
-| `SubjectAliasAdded` | Alias/AKA added | `SubjectId`, `Alias` |
-| `SubjectMerged` | Subject merged into another | `SourceSubjectId`, `TargetSubjectId`, `MergedAt` |
+| Event                    | Description                 | Key Payload Fields                                                          |
+|--------------------------|-----------------------------|-----------------------------------------------------------------------------|
+| `SubjectRegistered`      | New subject created         | `SubjectId`, `GivenName`, `FamilyName`, `DateOfBirth`, `Email`              |
+| `SubjectDataUpdated`     | Subject PII updated         | `SubjectId`, `GivenName`, `FamilyName`, `DateOfBirth`, `Email`, `UpdatedAt` |
+| `SubjectAddressAdded`    | Address added to subject    | `SubjectId`, `Address`                                                      |
+| `SubjectEmploymentAdded` | Employment record added     | `SubjectId`, `Employment`                                                   |
+| `SubjectEducationAdded`  | Education record added      | `SubjectId`, `Education`                                                    |
+| `SubjectAliasAdded`      | Alias/AKA added             | `SubjectId`, `Alias`                                                        |
+| `SubjectMerged`          | Subject merged into another | `SourceSubjectId`, `TargetSubjectId`, `MergedAt`                            |
 
 ### User
 
 Stream ID format: `User:{userId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
-| `UserInvited` | User invited to system | `UserId`, `Email`, `DisplayName`, `InvitedAt` |
-| `UserRegistered` | User completed registration | `UserId`, `Email`, `DisplayName`, `Issuer`, `Subject`, `RegisteredAt` |
-| `UserProfileUpdated` | User profile changed | `UserId`, `Email`, `DisplayName`, `UpdatedAt` |
-| `UserSuspended` | User account suspended | `UserId`, `SuspendedAt`, `Reason` |
-| `UserReactivated` | User account reactivated | `UserId`, `ReactivatedAt` |
-| `UserRoleGranted` | Role assigned to user | `UserId`, `Role`, `GrantedAt` |
-| `UserRoleRevoked` | Role removed from user | `UserId`, `Role`, `RevokedAt` |
+| Event                | Description                 | Key Payload Fields                                                    |
+|----------------------|-----------------------------|-----------------------------------------------------------------------|
+| `UserInvited`        | User invited to system      | `UserId`, `Email`, `DisplayName`, `InvitedAt`                         |
+| `UserRegistered`     | User completed registration | `UserId`, `Email`, `DisplayName`, `Issuer`, `Subject`, `RegisteredAt` |
+| `UserProfileUpdated` | User profile changed        | `UserId`, `Email`, `DisplayName`, `UpdatedAt`                         |
+| `UserSuspended`      | User account suspended      | `UserId`, `SuspendedAt`, `Reason`                                     |
+| `UserReactivated`    | User account reactivated    | `UserId`, `ReactivatedAt`                                             |
+| `UserRoleGranted`    | Role assigned to user       | `UserId`, `Role`, `GrantedAt`                                         |
+| `UserRoleRevoked`    | Role removed from user      | `UserId`, `Role`, `RevokedAt`                                         |
 
 ### Customer
 
 Stream ID format: `Customer:{customerId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
-| `CustomerRegistered` | New customer org created | `CustomerId`, `Name`, `RegisteredAt` |
-| `CustomerRenamed` | Customer name changed | `CustomerId`, `Name`, `RenamedAt` |
-| `CustomerSuspended` | Customer account suspended | `CustomerId`, `SuspendedAt` |
-| `CustomerReactivated` | Customer account reactivated | `CustomerId`, `ReactivatedAt` |
-| `CustomerAdminAssigned` | Admin added to customer | `CustomerId`, `UserId`, `AssignedAt` |
-| `CustomerAdminRemoved` | Admin removed from customer | `CustomerId`, `UserId`, `RemovedAt` |
+| Event                   | Description                  | Key Payload Fields                   |
+|-------------------------|------------------------------|--------------------------------------|
+| `CustomerRegistered`    | New customer org created     | `CustomerId`, `Name`, `RegisteredAt` |
+| `CustomerRenamed`       | Customer name changed        | `CustomerId`, `Name`, `RenamedAt`    |
+| `CustomerSuspended`     | Customer account suspended   | `CustomerId`, `SuspendedAt`          |
+| `CustomerReactivated`   | Customer account reactivated | `CustomerId`, `ReactivatedAt`        |
+| `CustomerAdminAssigned` | Admin added to customer      | `CustomerId`, `UserId`, `AssignedAt` |
+| `CustomerAdminRemoved`  | Admin removed from customer  | `CustomerId`, `UserId`, `RemovedAt`  |
 
 ### IntakeSession
 
 Stream ID format: `IntakeSession:{sessionId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
-| `IntakeSessionInvited` | Intake invite sent | `IntakeSessionId`, `OrderId`, `SubjectId`, `ExpiresAt` |
-| `IntakeSessionStarted` | Subject began intake | `IntakeSessionId`, `StartedAt` |
-| `IntakeProgressSaved` | Progress checkpoint saved | `IntakeSessionId`, `AnswersSnapshot` |
-| `ConsentCaptured` | Consent form signed | `IntakeSessionId`, `Artifact` |
-| `IntakeSubmissionReceived` | Intake form submitted | `IntakeSessionId`, `SubmittedAt` |
-| `IntakeSubmissionAccepted` | Submission approved | `IntakeSessionId`, `AcceptedAt` |
-| `IntakeSessionExpired` | Session timed out | `IntakeSessionId`, `ExpiredAt`, `Reason` |
-| `IntakeSessionSuperseded` | Replaced by new session | `IntakeSessionId`, `SupersededByIntakeSessionId` |
+| Event                      | Description               | Key Payload Fields                                     |
+|----------------------------|---------------------------|--------------------------------------------------------|
+| `IntakeSessionInvited`     | Intake invite sent        | `IntakeSessionId`, `OrderId`, `SubjectId`, `ExpiresAt` |
+| `IntakeSessionStarted`     | Subject began intake      | `IntakeSessionId`, `StartedAt`                         |
+| `IntakeProgressSaved`      | Progress checkpoint saved | `IntakeSessionId`, `AnswersSnapshot`                   |
+| `ConsentCaptured`          | Consent form signed       | `IntakeSessionId`, `Artifact`                          |
+| `IntakeSubmissionReceived` | Intake form submitted     | `IntakeSessionId`, `SubmittedAt`                       |
+| `IntakeSubmissionAccepted` | Submission approved       | `IntakeSessionId`, `AcceptedAt`                        |
+| `IntakeSessionExpired`     | Session timed out         | `IntakeSessionId`, `ExpiredAt`, `Reason`               |
+| `IntakeSessionSuperseded`  | Replaced by new session   | `IntakeSessionId`, `SupersededByIntakeSessionId`       |
 
 ### ServiceRequest
 
 Stream ID format: `ServiceRequest:{requestId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
-| `ServiceRequestCreated` | Service request created | `ServiceRequestId`, `OrderId`, `ServiceType` |
-| `ServiceRequestDispatched` | Sent to vendor | `ServiceRequestId`, `DispatchedAt` |
-| `ServiceRequestInProgress` | Vendor processing | `ServiceRequestId`, `StartedAt` |
-| `ServiceRequestCompleted` | Service completed | `ServiceRequestId`, `CompletedAt`, `Result` |
-| `ServiceRequestFailed` | Service failed | `ServiceRequestId`, `FailedAt`, `Reason` |
-| `ServiceRequestRetried` | Retry attempted | `ServiceRequestId`, `RetriedAt`, `AttemptNumber` |
-| `ServiceRequestCanceled` | Service canceled | `ServiceRequestId`, `CanceledAt`, `Reason` |
+| Event                      | Description             | Key Payload Fields                               |
+|----------------------------|-------------------------|--------------------------------------------------|
+| `ServiceRequestCreated`    | Service request created | `ServiceRequestId`, `OrderId`, `ServiceType`     |
+| `ServiceRequestDispatched` | Sent to vendor          | `ServiceRequestId`, `DispatchedAt`               |
+| `ServiceRequestInProgress` | Vendor processing       | `ServiceRequestId`, `StartedAt`                  |
+| `ServiceRequestCompleted`  | Service completed       | `ServiceRequestId`, `CompletedAt`, `Result`      |
+| `ServiceRequestFailed`     | Service failed          | `ServiceRequestId`, `FailedAt`, `Reason`         |
+| `ServiceRequestRetried`    | Retry attempted         | `ServiceRequestId`, `RetriedAt`, `AttemptNumber` |
+| `ServiceRequestCanceled`   | Service canceled        | `ServiceRequestId`, `CanceledAt`, `Reason`       |
 
 ### SlaClock
 
 Stream ID format: `SlaClock:{clockId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
-| `SlaClockStarted` | SLA timer started | `SlaClockId`, `OrderId`, `DueAt` |
-| `SlaClockPaused` | Timer paused | `SlaClockId`, `PausedAt`, `Reason` |
-| `SlaClockResumed` | Timer resumed | `SlaClockId`, `ResumedAt` |
-| `SlaClockAtRisk` | Approaching deadline | `SlaClockId`, `AtRiskAt` |
-| `SlaClockBreached` | Deadline missed | `SlaClockId`, `BreachedAt` |
-| `SlaClockCompleted` | Completed within SLA | `SlaClockId`, `CompletedAt` |
+| Event               | Description          | Key Payload Fields                 |
+|---------------------|----------------------|------------------------------------|
+| `SlaClockStarted`   | SLA timer started    | `SlaClockId`, `OrderId`, `DueAt`   |
+| `SlaClockPaused`    | Timer paused         | `SlaClockId`, `PausedAt`, `Reason` |
+| `SlaClockResumed`   | Timer resumed        | `SlaClockId`, `ResumedAt`          |
+| `SlaClockAtRisk`    | Approaching deadline | `SlaClockId`, `AtRiskAt`           |
+| `SlaClockBreached`  | Deadline missed      | `SlaClockId`, `BreachedAt`         |
+| `SlaClockCompleted` | Completed within SLA | `SlaClockId`, `CompletedAt`        |
 
 ### Notification
 
 Stream ID format: `NotificationRequest:{requestId}`
 
-| Event | Description | Key Payload Fields |
-|-------|-------------|-------------------|
-| `NotificationRequestCreated` | Notification queued | `NotificationRequestId`, `Channel`, `Recipient` |
-| `NotificationQueued` | Sent to delivery queue | `NotificationRequestId`, `QueuedAt` |
-| `NotificationDelivered` | Successfully delivered | `NotificationRequestId`, `DeliveredAt` |
-| `NotificationBounced` | Delivery bounced | `NotificationRequestId`, `BouncedAt`, `Reason` |
-| `NotificationDeliveryFailed` | Delivery failed | `NotificationRequestId`, `FailedAt`, `Reason` |
-| `NotificationCancelled` | Notification canceled | `NotificationRequestId`, `CancelledAt` |
+| Event                        | Description            | Key Payload Fields                              |
+|------------------------------|------------------------|-------------------------------------------------|
+| `NotificationRequestCreated` | Notification queued    | `NotificationRequestId`, `Channel`, `Recipient` |
+| `NotificationQueued`         | Sent to delivery queue | `NotificationRequestId`, `QueuedAt`             |
+| `NotificationDelivered`      | Successfully delivered | `NotificationRequestId`, `DeliveredAt`          |
+| `NotificationBounced`        | Delivery bounced       | `NotificationRequestId`, `BouncedAt`, `Reason`  |
+| `NotificationDeliveryFailed` | Delivery failed        | `NotificationRequestId`, `FailedAt`, `Reason`   |
+| `NotificationCancelled`      | Notification canceled  | `NotificationRequestId`, `CancelledAt`          |
 
 ## Common Audit Queries
 
@@ -311,6 +314,7 @@ Event records are immutable and should be retained according to your compliance 
 - **GDPR**: As long as necessary for the purpose; subject to right of erasure
 
 For GDPR right-to-erasure requests affecting event data, consider:
+
 1. Pseudonymization of PII in event payloads
 2. Logical deletion markers rather than physical deletion
 3. Consult legal counsel for your specific jurisdiction
@@ -323,8 +327,8 @@ For GDPR right-to-erasure requests affecting event data, consider:
 2. Aggregate raises domain event(s) internally
 3. `UnitOfWork.SaveChangesAsync()` is called
 4. Within a database transaction:
-   - Aggregate state saved to its table
-   - Events serialized and written to `event_records`
+    - Aggregate state saved to its table
+    - Events serialized and written to `event_records`
 5. Transaction commits (atomic)
 6. Events dispatched via MediatR to handlers (projections, notifications, etc.)
 
@@ -338,6 +342,7 @@ For GDPR right-to-erasure requests affecting event data, consider:
 ### Actor Identification
 
 The `actor_id` is extracted from the authenticated user's JWT claims:
+
 - `sub` claim (OpenID Connect standard)
 - `NameIdentifier` claim (legacy)
 

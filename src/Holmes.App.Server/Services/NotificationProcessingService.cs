@@ -1,3 +1,4 @@
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Notifications.Application.Abstractions.Queries;
 using Holmes.Notifications.Application.Commands;
@@ -63,9 +64,11 @@ public sealed class NotificationProcessingService(
         {
             try
             {
-                var result = await sender.Send(
-                    new ProcessNotificationCommand(UlidId.Parse(notification.Id)),
-                    cancellationToken);
+                var command = new ProcessNotificationCommand(UlidId.Parse(notification.Id))
+                {
+                    UserId = SystemActors.NotificationProcessor
+                };
+                var result = await sender.Send(command, cancellationToken);
 
                 if (result.IsSuccess)
                 {

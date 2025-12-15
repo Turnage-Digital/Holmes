@@ -1,37 +1,41 @@
 # Phase 3.2 Delivery Plan — Frontend & Subject Data Expansion
 
 **Phase Window:** Immediate (following Phase 3.1 backend completion)
-**Outcome Target:** Complete intake captures rich subject data (employment, education, addresses), Internal UI supports ordering, customer setup with services/tiers, and fulfillment visibility.
+**Outcome Target:** Complete intake captures rich subject data (employment, education, addresses), Internal UI supports
+ordering, customer setup with services/tiers, and fulfillment visibility.
 
-**Commercial Alignment:** Without comprehensive data capture and internal tooling, Holmes is a backend skeleton. This phase delivers the **usable product** — what ops teams and subjects actually interact with.
+**Commercial Alignment:** Without comprehensive data capture and internal tooling, Holmes is a backend skeleton. This
+phase delivers the **usable product** — what ops teams and subjects actually interact with.
 
 ## 1. The Gap: Backend vs Frontend Reality
 
 ### What Backend Supports vs What Frontend Captures
 
-| Data Domain | Backend Model | Intake UI | Internal UI | Gap |
-|-------------|---------------|-----------|-------------|-----|
-| **Subject Identity** | Name, DOB, Email, Aliases | Name, DOB, Email | View only | MATCHED |
-| **Subject SSN** | Not stored | Captured (last 4) | Not shown | INTAKE ONLY |
-| **Subject Phone** | Not stored | Captured | Not shown | NO PERSISTENCE |
-| **Subject Address (Current)** | Not modeled | Captured | Not shown | NO PERSISTENCE |
-| **Subject Address History** | Not modeled | Not captured | Not shown | TOTAL GAP |
-| **Employment History** | Not modeled | Not captured | Not shown | TOTAL GAP |
-| **Education History** | Not modeled | Not captured | Not shown | TOTAL GAP |
-| **References** | Not modeled | Not captured | Not shown | TOTAL GAP |
-| **Customer Services** | ServiceCatalog backend exists | N/A | Not built | TOTAL GAP |
-| **Customer Tiers** | Tiering backend exists | N/A | Not built | TOTAL GAP |
-| **Order Services** | ServiceRequest backend exists | N/A | Not built | TOTAL GAP |
-| **Fulfillment Dashboard** | Events exist | N/A | Not built | TOTAL GAP |
+| Data Domain                   | Backend Model                 | Intake UI         | Internal UI | Gap            |
+|-------------------------------|-------------------------------|-------------------|-------------|----------------|
+| **Subject Identity**          | Name, DOB, Email, Aliases     | Name, DOB, Email  | View only   | MATCHED        |
+| **Subject SSN**               | Not stored                    | Captured (last 4) | Not shown   | INTAKE ONLY    |
+| **Subject Phone**             | Not stored                    | Captured          | Not shown   | NO PERSISTENCE |
+| **Subject Address (Current)** | Not modeled                   | Captured          | Not shown   | NO PERSISTENCE |
+| **Subject Address History**   | Not modeled                   | Not captured      | Not shown   | TOTAL GAP      |
+| **Employment History**        | Not modeled                   | Not captured      | Not shown   | TOTAL GAP      |
+| **Education History**         | Not modeled                   | Not captured      | Not shown   | TOTAL GAP      |
+| **References**                | Not modeled                   | Not captured      | Not shown   | TOTAL GAP      |
+| **Customer Services**         | ServiceCatalog backend exists | N/A               | Not built   | TOTAL GAP      |
+| **Customer Tiers**            | Tiering backend exists        | N/A               | Not built   | TOTAL GAP      |
+| **Order Services**            | ServiceRequest backend exists | N/A               | Not built   | TOTAL GAP      |
+| **Fulfillment Dashboard**     | Events exist                  | N/A               | Not built   | TOTAL GAP      |
 
 ### Current State Summary
 
 **Holmes.Intake (React SPA):**
+
 - 5-step flow: Verify → OTP → Consent → Data → Review → Success
 - Captures: name, DOB, email, phone, SSN (last 4), single address, consent
 - Missing: employment history, education history, previous addresses, references
 
 **Holmes.Internal (React SPA):**
+
 - Pages: Dashboard, Orders, Order Detail, Subjects, Customers, Users
 - Can: create orders, view order timeline, list subjects/customers
 - Missing: service configuration, tier management, fulfillment visibility, customer setup
@@ -40,47 +44,47 @@
 
 ### Track A: Subject Domain Expansion
 
-| Deliverable | Description | Backend | Frontend |
-|-------------|-------------|---------|----------|
-| **Address History** | Collection of addresses with date ranges | Subject aggregate | Intake multi-address form |
-| **Employment History** | Collection of employment records | Subject aggregate | Intake employment form |
-| **Education History** | Collection of education records | Subject aggregate | Intake education form |
-| **Phone Numbers** | Collection of phone numbers | Subject aggregate | Intake phone capture |
-| **SSN Storage** | Encrypted SSN storage | Subject aggregate | Already captured |
-| **References** | Personal/professional references | Subject aggregate | Intake reference form |
+| Deliverable            | Description                              | Backend           | Frontend                  |
+|------------------------|------------------------------------------|-------------------|---------------------------|
+| **Address History**    | Collection of addresses with date ranges | Subject aggregate | Intake multi-address form |
+| **Employment History** | Collection of employment records         | Subject aggregate | Intake employment form    |
+| **Education History**  | Collection of education records          | Subject aggregate | Intake education form     |
+| **Phone Numbers**      | Collection of phone numbers              | Subject aggregate | Intake phone capture      |
+| **SSN Storage**        | Encrypted SSN storage                    | Subject aggregate | Already captured          |
+| **References**         | Personal/professional references         | Subject aggregate | Intake reference form     |
 
 ### Track B: Intake UI Expansion
 
-| Deliverable | Description | Components |
-|-------------|-------------|------------|
-| **Dynamic Form Sections** | Show/hide sections based on policy | Policy-driven rendering |
-| **Address History Section** | Multi-address entry with date ranges | AddressHistoryForm |
-| **Employment Section** | Multi-employer entry with verification consent | EmploymentHistoryForm |
-| **Education Section** | Multi-institution entry | EducationHistoryForm |
-| **Reference Section** | Reference collection | ReferenceForm |
-| **Progress Persistence** | Save all sections to encrypted snapshot | IntakeAnswersSnapshot |
+| Deliverable                 | Description                                    | Components              |
+|-----------------------------|------------------------------------------------|-------------------------|
+| **Dynamic Form Sections**   | Show/hide sections based on policy             | Policy-driven rendering |
+| **Address History Section** | Multi-address entry with date ranges           | AddressHistoryForm      |
+| **Employment Section**      | Multi-employer entry with verification consent | EmploymentHistoryForm   |
+| **Education Section**       | Multi-institution entry                        | EducationHistoryForm    |
+| **Reference Section**       | Reference collection                           | ReferenceForm           |
+| **Progress Persistence**    | Save all sections to encrypted snapshot        | IntakeAnswersSnapshot   |
 
 ### Track C: Internal UI — Customer Setup
 
-| Deliverable | Description | Components |
-|-------------|-------------|------------|
-| **Customer Detail Page** | Full customer view with tabs | CustomerDetailPage |
-| **Service Catalog Tab** | Enable/disable services for customer | ServiceCatalogEditor |
-| **Tier Configuration Tab** | Define execution tiers | TierConfigurationEditor |
-| **Stop Conditions Tab** | Configure tier stop conditions | StopConditionEditor |
-| **Vendor Mappings Tab** | Assign vendors per service type | VendorMappingEditor |
-| **Policy Snapshot View** | View customer's policy configuration | PolicySnapshotView |
+| Deliverable                | Description                          | Components              |
+|----------------------------|--------------------------------------|-------------------------|
+| **Customer Detail Page**   | Full customer view with tabs         | CustomerDetailPage      |
+| **Service Catalog Tab**    | Enable/disable services for customer | ServiceCatalogEditor    |
+| **Tier Configuration Tab** | Define execution tiers               | TierConfigurationEditor |
+| **Stop Conditions Tab**    | Configure tier stop conditions       | StopConditionEditor     |
+| **Vendor Mappings Tab**    | Assign vendors per service type      | VendorMappingEditor     |
+| **Policy Snapshot View**   | View customer's policy configuration | PolicySnapshotView      |
 
 ### Track D: Internal UI — Order Services & Fulfillment
 
-| Deliverable | Description | Components |
-|-------------|-------------|------------|
-| **Order Services Tab** | View services for order | OrderServicesPanel |
-| **Service Status Cards** | Show status per service | ServiceStatusCard |
-| **Service Timeline** | Events per service | ServiceTimeline |
+| Deliverable               | Description                    | Components           |
+|---------------------------|--------------------------------|----------------------|
+| **Order Services Tab**    | View services for order        | OrderServicesPanel   |
+| **Service Status Cards**  | Show status per service        | ServiceStatusCard    |
+| **Service Timeline**      | Events per service             | ServiceTimeline      |
 | **Fulfillment Dashboard** | Cross-order service visibility | FulfillmentDashboard |
-| **Tier Progress View** | Show tier completion status | TierProgressView |
-| **Retry/Cancel Actions** | Ops actions on services | ServiceActionButtons |
+| **Tier Progress View**    | Show tier completion status    | TierProgressView     |
+| **Retry/Cancel Actions**  | Ops actions on services        | ServiceActionButtons |
 
 ## 3. Subject Domain Model Expansion
 
@@ -668,12 +672,12 @@ ALTER TABLE subjects.subjects
 
 ## 11. Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Form complexity overwhelming subjects | High | Progressive disclosure; show sections based on policy; save progress frequently |
-| SSN encryption key management | High | Use existing encryption infrastructure; never log SSN |
-| Policy schema changes breaking intake | Medium | Version policy schema; migration path for in-flight sessions |
-| Large subject data slowing queries | Medium | Eager loading strategies; read model projections |
+| Risk                                  | Impact | Mitigation                                                                      |
+|---------------------------------------|--------|---------------------------------------------------------------------------------|
+| Form complexity overwhelming subjects | High   | Progressive disclosure; show sections based on policy; save progress frequently |
+| SSN encryption key management         | High   | Use existing encryption infrastructure; never log SSN                           |
+| Policy schema changes breaking intake | Medium | Version policy schema; migration path for in-flight sessions                    |
+| Large subject data slowing queries    | Medium | Eager loading strategies; read model projections                                |
 
 ## 12. Dependencies
 
@@ -684,4 +688,5 @@ ALTER TABLE subjects.subjects
 
 ---
 
-This document is the authoritative reference for Phase 3.2 delivery. It should be updated at each checkpoint to reflect decisions, scope changes, and readiness status.
+This document is the authoritative reference for Phase 3.2 delivery. It should be updated at each checkpoint to reflect
+decisions, scope changes, and readiness status.

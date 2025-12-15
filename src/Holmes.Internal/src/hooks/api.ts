@@ -13,10 +13,12 @@ import type {
   CustomerDetailDto,
   CustomerListItemDto,
   CustomerServiceCatalogDto,
+  FulfillmentQueueQuery,
   GrantUserRoleRequest,
   InviteUserRequest,
   InviteUserResponse,
   IssueIntakeInviteRequest,
+  NotificationSummaryDto,
   OrderAuditEventDto,
   OrderServicesDto,
   OrderStatsDto,
@@ -24,14 +26,16 @@ import type {
   OrderSummaryQuery,
   OrderTimelineEntryDto,
   PaginatedResult,
+  PauseClockRequest,
   RegisterSubjectRequest,
+  ServiceRequestSummaryDto,
   ServiceTypeDto,
+  SlaClockDto,
   SubjectDetailDto,
   SubjectListItemDto,
   SubjectSummaryDto,
   Ulid,
-  UpdateCatalogServiceRequest,
-  UpdateTierConfigurationRequest,
+  UpdateServiceCatalogRequest,
   UserDto,
 } from "@/types/api";
 
@@ -54,8 +58,12 @@ export const queryKeys = {
   orderTimeline: (id: Ulid) => ["orders", "timeline", id] as const,
   orderEvents: (id: Ulid) => ["orders", id, "events"] as const,
   orderServices: (id: Ulid) => ["orders", id, "services"] as const,
+  orderSlaClocks: (id: Ulid) => ["orders", id, "slaClocks"] as const,
+  orderNotifications: (id: Ulid) => ["orders", id, "notifications"] as const,
   orderStats: ["orders", "stats"] as const,
   serviceTypes: ["services", "types"] as const,
+  fulfillmentQueue: (query: FulfillmentQueueQuery) =>
+    ["services", "queue", query] as const,
 };
 
 // ============================================================================
@@ -366,11 +374,28 @@ export const useOrderServices = (orderId: Ulid) =>
   });
 
 // ============================================================================
+// Fulfillment Queue
+// ============================================================================
+
+const fetchFulfillmentQueue = (query: FulfillmentQueueQuery) =>
+  apiFetch<PaginatedResult<ServiceRequestSummaryDto>>(
+    `/services/queue${toQueryString(query)}`,
+  );
+
+export const useFulfillmentQueue = (query: FulfillmentQueueQuery) =>
+  useQuery({
+    queryKey: queryKeys.fulfillmentQueue(query),
+    queryFn: () => fetchFulfillmentQueue(query),
+  });
+
+// ============================================================================
 // Customer Service Catalog
 // ============================================================================
 
 const fetchCustomerCatalog = (customerId: Ulid) =>
-  apiFetch<CustomerServiceCatalogDto>(`/customers/${customerId}/catalog`);
+  apiFetch<CustomerServiceCatalogDto>(
+    `/customers/${customerId}/service-catalog`,
+  );
 
 export const useCustomerCatalog = (customerId: Ulid) =>
   useQuery({
@@ -379,22 +404,22 @@ export const useCustomerCatalog = (customerId: Ulid) =>
     enabled: !!customerId,
   });
 
-const updateCatalogService = ({
+const updateServiceCatalog = ({
   customerId,
   payload,
 }: {
   customerId: Ulid;
-  payload: UpdateCatalogServiceRequest;
+  payload: UpdateServiceCatalogRequest;
 }) =>
-  apiFetch<void>(`/customers/${customerId}/catalog/services`, {
+  apiFetch<void>(`/customers/${customerId}/service-catalog`, {
     method: "PUT",
     body: payload,
   });
 
-export const useUpdateCatalogService = () => {
+export const useUpdateServiceCatalog = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateCatalogService,
+    mutationFn: updateServiceCatalog,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.customerCatalog(variables.customerId),
@@ -403,26 +428,82 @@ export const useUpdateCatalogService = () => {
   });
 };
 
-const updateTierConfiguration = ({
-  customerId,
+// ============================================================================
+// SLA Clocks
+// ============================================================================
+
+const fetchOrderSlaClocks = (orderId: Ulid) =>
+  apiFetch<SlaClockDto[]>(`/clocks/sla?orderId=${orderId}`);
+
+export const useOrderSlaClocks = (orderId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.orderSlaClocks(orderId),
+    queryFn: () => fetchOrderSlaClocks(orderId),
+    enabled: !!orderId,
+  });
+
+const pauseSlaClock = ({
+  clockId,
   payload,
 }: {
-  customerId: Ulid;
-  payload: UpdateTierConfigurationRequest;
+  clockId: Ulid;
+  payload: PauseClockRequest;
 }) =>
-  apiFetch<void>(`/customers/${customerId}/catalog/tiers`, {
-    method: "PUT",
+  apiFetch<void>(`/clocks/sla/${clockId}/pause`, {
+    method: "POST",
     body: payload,
   });
 
-export const useUpdateTierConfiguration = () => {
+export const usePauseSlaClock = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateTierConfiguration,
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.customerCatalog(variables.customerId),
-      });
+    mutationFn: pauseSlaClock,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+const resumeSlaClock = (clockId: Ulid) =>
+  apiFetch<void>(`/clocks/sla/${clockId}/resume`, {
+    method: "POST",
+  });
+
+export const useResumeSlaClock = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: resumeSlaClock,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+// ============================================================================
+// Notifications
+// ============================================================================
+
+const fetchOrderNotifications = (orderId: Ulid) =>
+  apiFetch<NotificationSummaryDto[]>(`/notifications?orderId=${orderId}`);
+
+export const useOrderNotifications = (orderId: Ulid) =>
+  useQuery({
+    queryKey: queryKeys.orderNotifications(orderId),
+    queryFn: () => fetchOrderNotifications(orderId),
+    enabled: !!orderId,
+  });
+
+const retryNotification = (notificationId: Ulid) =>
+  apiFetch<void>(`/notifications/${notificationId}/retry`, {
+    method: "POST",
+  });
+
+export const useRetryNotification = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: retryNotification,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
   });
 };

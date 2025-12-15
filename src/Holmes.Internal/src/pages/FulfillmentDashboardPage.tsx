@@ -26,6 +26,7 @@ import {
   GridRenderCellParams,
   GridRowParams,
 } from "@mui/x-data-grid";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
@@ -41,75 +42,7 @@ import {
   MonospaceIdCell,
   StatusBadge,
 } from "@/components/patterns";
-
-// ============================================================================
-// Mock Data - Replace with real API when backend is ready
-// ============================================================================
-
-// This is mock data for demonstration. In production, you'd use useQuery
-// with a fulfillment queue endpoint like /services/queue
-const mockFulfillmentQueue: ServiceRequestSummaryDto[] = [
-  {
-    id: "01HXN2ABCD1234567890ABCD",
-    orderId: "01HXN2EFGH1234567890EFGH",
-    customerId: "01HXN2IJKL1234567890IJKL",
-    serviceTypeCode: "SSN_TRACE",
-    category: "Identity",
-    tier: 1,
-    status: "Pending",
-    attemptCount: 0,
-    maxAttempts: 3,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: "01HXN2MNOP1234567890MNOP",
-    orderId: "01HXN2QRST1234567890QRST",
-    customerId: "01HXN2IJKL1234567890IJKL",
-    serviceTypeCode: "STATE_CRIM",
-    category: "Criminal",
-    tier: 2,
-    status: "InProgress",
-    vendorCode: "CHECKR",
-    vendorReferenceId: "CHK-123456",
-    attemptCount: 1,
-    maxAttempts: 3,
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-    dispatchedAt: new Date(Date.now() - 3600000).toISOString(),
-    scopeType: "State",
-    scopeValue: "CA",
-  },
-  {
-    id: "01HXN2UVWX1234567890UVWX",
-    orderId: "01HXN2YZ121234567890YZ12",
-    customerId: "01HXN3ABCD1234567890ABCD",
-    serviceTypeCode: "FED_CRIM",
-    category: "Criminal",
-    tier: 2,
-    status: "Failed",
-    vendorCode: "CHECKR",
-    attemptCount: 2,
-    maxAttempts: 3,
-    lastError: "Vendor timeout after 30 seconds",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    dispatchedAt: new Date(Date.now() - 82800000).toISOString(),
-    failedAt: new Date(Date.now() - 79200000).toISOString(),
-  },
-  {
-    id: "01HXN3EFGH1234567890EFGH",
-    orderId: "01HXN3IJKL1234567890IJKL",
-    customerId: "01HXN2IJKL1234567890IJKL",
-    serviceTypeCode: "TWN_EMP",
-    category: "Employment",
-    tier: 3,
-    status: "Dispatched",
-    vendorCode: "TWN",
-    vendorReferenceId: "TWN-789012",
-    attemptCount: 1,
-    maxAttempts: 3,
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    dispatchedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
+import { queryKeys, useFulfillmentQueue } from "@/hooks/api";
 
 // ============================================================================
 // Stats Cards Component
@@ -167,6 +100,7 @@ const categoryColors: Record<
 
 const FulfillmentDashboardPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<ServiceStatus | "all">(
     "all",
   );
@@ -178,21 +112,31 @@ const FulfillmentDashboardPage = () => {
     pageSize: 25,
   });
 
-  // In production, this would be a useQuery hook
-  const fulfillmentQueue = mockFulfillmentQueue;
-  const isLoading = false;
+  // Build query based on filters - API uses 1-based pages
+  const query = useMemo(
+    () => ({
+      page: paginationModel.page + 1,
+      pageSize: paginationModel.pageSize,
+      status:
+        statusFilter === "all"
+          ? undefined
+          : ([statusFilter] as ServiceStatus[]),
+      category:
+        categoryFilter === "all"
+          ? undefined
+          : ([categoryFilter] as ServiceCategory[]),
+    }),
+    [paginationModel, statusFilter, categoryFilter],
+  );
 
-  // Filter data
-  const filteredQueue = useMemo(() => {
-    return fulfillmentQueue.filter((item) => {
-      if (statusFilter !== "all" && item.status !== statusFilter) return false;
-      if (categoryFilter !== "all" && item.category !== categoryFilter)
-        return false;
-      return true;
-    });
-  }, [fulfillmentQueue, statusFilter, categoryFilter]);
+  // Fetch data from real API
+  const { data, isLoading } = useFulfillmentQueue(query);
+  const totalCount = data?.totalItems ?? 0;
 
-  // Calculate stats
+  // Memoize the fulfillment queue to prevent unnecessary re-renders
+  const fulfillmentQueue = useMemo(() => data?.items ?? [], [data?.items]);
+
+  // Calculate stats from current page data
   const stats = useMemo(() => {
     return {
       pending: fulfillmentQueue.filter((s) => s.status === "Pending").length,
@@ -200,15 +144,18 @@ const FulfillmentDashboardPage = () => {
         (s) => s.status === "InProgress" || s.status === "Dispatched",
       ).length,
       failed: fulfillmentQueue.filter((s) => s.status === "Failed").length,
-      total: fulfillmentQueue.length,
+      total: totalCount,
     };
-  }, [fulfillmentQueue]);
+  }, [fulfillmentQueue, totalCount]);
 
-  // Get unique categories for filter
+  // Get unique categories for filter from current page
   const availableCategories = useMemo(() => {
     const categories = new Set(fulfillmentQueue.map((s) => s.category));
     return Array.from(categories).sort();
   }, [fulfillmentQueue]);
+
+  // Row count for server-side pagination - always use totalCount since filtering is server-side
+  const rowCount = totalCount;
 
   const handleRowClick = (params: GridRowParams<ServiceRequestSummaryDto>) => {
     navigate(`/orders/${params.row.orderId}`);
@@ -358,8 +305,11 @@ const FulfillmentDashboardPage = () => {
           <Button
             variant="outlined"
             startIcon={<RefreshIcon />}
+            disabled={isLoading}
             onClick={() => {
-              // In production: queryClient.invalidateQueries(["fulfillment"])
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.fulfillmentQueue(query),
+              });
             }}
           >
             Refresh
@@ -434,7 +384,7 @@ const FulfillmentDashboardPage = () => {
               </Select>
             </FormControl>
             <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-              Showing {filteredQueue.length} of {fulfillmentQueue.length} items
+              Showing {fulfillmentQueue.length} of {totalCount} items
             </Typography>
           </Stack>
         </CardContent>
@@ -442,10 +392,12 @@ const FulfillmentDashboardPage = () => {
 
       {/* Data Grid */}
       <DataGrid
-        rows={filteredQueue}
+        rows={fulfillmentQueue}
         columns={columns}
         getRowId={(row) => row.id}
         loading={isLoading}
+        paginationMode="server"
+        rowCount={rowCount}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         pageSizeOptions={[10, 25, 50, 100]}

@@ -1,10 +1,19 @@
 import React, { ReactElement } from "react";
 
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { Chip, ChipProps } from "@mui/material";
 
-export type SlaStatus = "on_track" | "at_risk" | "breached";
+import type { ClockState } from "@/types/api";
+
+export type SlaStatus =
+  | "on_track"
+  | "at_risk"
+  | "breached"
+  | "paused"
+  | "completed";
 
 const statusConfig: Record<
   SlaStatus,
@@ -25,6 +34,36 @@ const statusConfig: Record<
     color: "error",
     icon: <WarningAmberIcon fontSize="small" />,
   },
+  paused: {
+    label: "Paused",
+    color: "default",
+    icon: <PauseCircleIcon fontSize="small" />,
+  },
+  completed: {
+    label: "Completed",
+    color: "success",
+    icon: <CheckCircleIcon fontSize="small" />,
+  },
+};
+
+/**
+ * Maps backend ClockState to frontend SlaStatus for display.
+ */
+export const clockStateToSlaStatus = (state: ClockState): SlaStatus => {
+  switch (state) {
+    case "Running":
+      return "on_track";
+    case "AtRisk":
+      return "at_risk";
+    case "Breached":
+      return "breached";
+    case "Paused":
+      return "paused";
+    case "Completed":
+      return "completed";
+    default:
+      return "on_track";
+  }
 };
 
 interface SlaBadgeProps {

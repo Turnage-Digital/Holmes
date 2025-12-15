@@ -49,4 +49,15 @@ public static class SlaClockMapper
             AtRiskThresholdPercent = clock.AtRiskThresholdPercent
         };
     }
+
+    public static void UpdateDb(SlaClockDb db, SlaClock clock)
+    {
+        db.State = (int)clock.State;
+        db.AtRiskAt = clock.AtRiskAt?.UtcDateTime;
+        db.BreachedAt = clock.BreachedAt?.UtcDateTime;
+        db.PausedAt = clock.PausedAt?.UtcDateTime;
+        db.CompletedAt = clock.CompletedAt?.UtcDateTime;
+        db.PauseReason = clock.PauseReason;
+        db.AccumulatedPauseMs = (long)clock.AccumulatedPauseTime.TotalMilliseconds;
+    }
 }

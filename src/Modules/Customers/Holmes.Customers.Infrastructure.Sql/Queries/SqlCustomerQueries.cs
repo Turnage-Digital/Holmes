@@ -71,7 +71,7 @@ public sealed class SqlCustomerQueries(CustomersDbContext dbContext) : ICustomer
         var profile = await dbContext.CustomerProfiles.AsNoTracking()
             .Include(p => p.Contacts)
             .SingleOrDefaultAsync(p => p.CustomerId == customerId, cancellationToken);
-        
+
         var admins = await dbContext.CustomerAdmins.AsNoTracking()
             .Where(a => a.CustomerId == customerId)
             .Select(a => new CustomerAdminDto(a.UserId, a.AssignedBy.ToString(), a.AssignedAt))

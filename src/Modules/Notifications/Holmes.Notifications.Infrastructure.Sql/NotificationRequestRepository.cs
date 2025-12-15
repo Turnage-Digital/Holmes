@@ -70,10 +70,17 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         await context.NotificationRequests.AddAsync(db, cancellationToken);
     }
 
-    public Task UpdateAsync(NotificationRequest request, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(NotificationRequest request, CancellationToken cancellationToken = default)
     {
-        var db = NotificationRequestMapper.ToDb(request);
-        context.NotificationRequests.Update(db);
-        return Task.CompletedTask;
+        var db = await context.NotificationRequests
+            .Include(n => n.DeliveryAttempts)
+            .FirstOrDefaultAsync(n => n.Id == request.Id.ToString(), cancellationToken);
+
+        if (db is null)
+        {
+            throw new InvalidOperationException($"Notification request '{request.Id}' not found.");
+        }
+
+        NotificationRequestMapper.UpdateDb(db, request);
     }
 }

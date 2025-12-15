@@ -37,5 +37,5 @@ public interface ISlaClockRepository
 
     void Add(SlaClock clock);
 
-    void Update(SlaClock clock);
+    Task UpdateAsync(SlaClock clock, CancellationToken cancellationToken = default);
 }

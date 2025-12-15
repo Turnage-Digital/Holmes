@@ -93,9 +93,16 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         context.SlaClocks.Add(SlaClockMapper.ToDb(clock));
     }
 
-    public void Update(SlaClock clock)
+    public async Task UpdateAsync(SlaClock clock, CancellationToken cancellationToken = default)
     {
-        var entity = SlaClockMapper.ToDb(clock);
-        context.SlaClocks.Update(entity);
+        var entity = await context.SlaClocks
+            .FirstOrDefaultAsync(c => c.Id == clock.Id.ToString(), cancellationToken);
+
+        if (entity is null)
+        {
+            throw new InvalidOperationException($"SLA clock '{clock.Id}' not found.");
+        }
+
+        SlaClockMapper.UpdateDb(entity, clock);
     }
 }

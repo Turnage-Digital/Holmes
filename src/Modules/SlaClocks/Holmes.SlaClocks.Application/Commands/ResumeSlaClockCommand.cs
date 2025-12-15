@@ -24,7 +24,7 @@ public sealed class ResumeSlaClockCommandHandler(
         }
 
         clock.Resume(request.ResumedAt);
-        unitOfWork.SlaClocks.Update(clock);
+        await unitOfWork.SlaClocks.UpdateAsync(clock, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

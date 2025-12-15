@@ -63,6 +63,110 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                     b.ToTable("service_catalog_snapshots", (string)null);
                 });
 
+            modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceProjectionDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("char(26)")
+                        .IsFixedLength();
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateTime?>("CanceledAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("char(26)")
+                        .IsFixedLength();
+
+                    b.Property<DateTime?>("DispatchedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FailedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1024)
+                        .HasColumnType("varchar(1024)");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("char(26)")
+                        .IsFixedLength();
+
+                    b.Property<int>("RecordCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ResultStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ScopeType")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("ScopeValue")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("ServiceTypeCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("VendorCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("VendorReferenceId")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("idx_proj_order");
+
+                    b.HasIndex("CustomerId", "Status")
+                        .HasDatabaseName("idx_proj_customer_status");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("idx_proj_status_created");
+
+                    b.ToTable("service_projections", (string)null);
+                });
+
             modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceRequestDb", b =>
                 {
                     b.Property<string>("Id")

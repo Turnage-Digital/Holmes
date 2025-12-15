@@ -2,6 +2,10 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Services.Application.Commands;
+using Holmes.Services.Domain;
+using Holmes.SlaClocks.Application.Commands;
+using Holmes.SlaClocks.Domain;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
@@ -62,7 +66,7 @@ public sealed class SeedData(
             await EnsureAdminApprovedAsync(mediator, adminUserId, now, cancellationToken);
             var customerId = await EnsureDemoCustomerAsync(mediator, customersDb, adminUserId, now, cancellationToken);
             var subjectIds = await EnsureDemoSubjectsAsync(mediator, subjectsDb, adminUserId, now, cancellationToken);
-            await EnsureDemoOrdersAsync(mediator, workflowDb, customerId, subjectIds, adminUserId, now,
+            await EnsureDemoOrdersAsync(services, workflowDb, customerId, subjectIds, adminUserId, now,
                 cancellationToken);
 
             logger.LogInformation("Development seed data created successfully");
@@ -264,7 +268,7 @@ public sealed class SeedData(
     }
 
     private static async Task EnsureDemoOrdersAsync(
-        IMediator mediator,
+        IServiceProvider services,
         WorkflowDbContext workflowDb,
         UlidId customerId,
         List<UlidId> subjectIds,
@@ -295,13 +299,13 @@ public sealed class SeedData(
 
             // Intake in progress
             (subjectIds[4], TimeSpan.FromHours(-4), "IntakeInProgress"),
-            (subjectIds[5], TimeSpan.FromDays(-2), "IntakeInProgress"),
 
             // Intake complete - ready for review
-            (subjectIds[6], TimeSpan.FromDays(-3), "IntakeComplete"),
-            (subjectIds[7], TimeSpan.FromDays(-4), "IntakeComplete"),
+            (subjectIds[5], TimeSpan.FromDays(-2), "IntakeComplete"),
 
-            // Ready for fulfillment
+            // Ready for fulfillment / FulfillmentInProgress (these will have service requests)
+            (subjectIds[6], TimeSpan.FromDays(-3), "ReadyForFulfillment"),
+            (subjectIds[7], TimeSpan.FromDays(-4), "ReadyForFulfillment"),
             (subjectIds[8], TimeSpan.FromDays(-5), "ReadyForFulfillment"),
 
             // Blocked order
@@ -310,6 +314,10 @@ public sealed class SeedData(
 
         foreach (var (subjectId, ageOffset, targetStatus) in orderScenarios)
         {
+            // Use fresh scope for each order to avoid EF tracking conflicts
+            using var scope = services.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
             var orderId = UlidId.NewUlid();
             var createdAt = now.Add(ageOffset);
 
@@ -327,7 +335,7 @@ public sealed class SeedData(
             await mediator.Send(createCommand, cancellationToken);
 
             // Progress the order to the target status
-            await ProgressOrderToStatusAsync(mediator, orderId, subjectId,
+            await ProgressOrderToStatusAsync(mediator, orderId, customerId, subjectId,
                 targetStatus, createdAt, adminUserId, cancellationToken);
         }
     }
@@ -335,6 +343,7 @@ public sealed class SeedData(
     private static async Task ProgressOrderToStatusAsync(
         IMediator mediator,
         UlidId orderId,
+        UlidId customerId,
         UlidId subjectId,
         string targetStatus,
         DateTimeOffset createdAt,
@@ -342,6 +351,11 @@ public sealed class SeedData(
         CancellationToken cancellationToken
     )
     {
+        // Start Overall SLA clock for all orders
+        await mediator.Send(new StartSlaClockCommand(
+            orderId, customerId, ClockKind.Overall, createdAt)
+        { UserId = adminUserId.ToString() }, cancellationToken);
+
         if (targetStatus == "Created")
         {
             return; // Already at Created
@@ -358,6 +372,11 @@ public sealed class SeedData(
                 UserId = adminUserId.ToString()
             };
         await mediator.Send(inviteCommand, cancellationToken);
+
+        // Start Intake SLA clock
+        await mediator.Send(new StartSlaClockCommand(
+            orderId, customerId, ClockKind.Intake, inviteTimestamp)
+        { UserId = adminUserId.ToString() }, cancellationToken);
 
         if (targetStatus == "Invited")
         {
@@ -387,6 +406,11 @@ public sealed class SeedData(
             };
         await mediator.Send(submitCommand, cancellationToken);
 
+        // Complete the Intake clock
+        await mediator.Send(new CompleteSlaClockCommand(
+            orderId, ClockKind.Intake, submitTimestamp)
+        { UserId = adminUserId.ToString() }, cancellationToken);
+
         if (targetStatus == "IntakeComplete")
         {
             return;
@@ -401,7 +425,16 @@ public sealed class SeedData(
             };
         await mediator.Send(readyCommand, cancellationToken);
 
-        if (targetStatus == "ReadyForFulfillment")
+        // Start Fulfillment SLA clock
+        await mediator.Send(new StartSlaClockCommand(
+            orderId, customerId, ClockKind.Fulfillment, readyTimestamp)
+        { UserId = adminUserId.ToString() }, cancellationToken);
+
+        // Create service requests for fulfillment dashboard
+        await CreateServiceRequestsForOrderAsync(
+            mediator, orderId, customerId, adminUserId, readyTimestamp, cancellationToken);
+
+        if (targetStatus == "ReadyForFulfillment" || targetStatus == "FulfillmentInProgress")
         {
             return;
         }
@@ -415,6 +448,60 @@ public sealed class SeedData(
                 UserId = adminUserId.ToString()
             };
             await mediator.Send(blockCommand, cancellationToken);
+        }
+    }
+
+    private static async Task CreateServiceRequestsForOrderAsync(
+        IMediator mediator,
+        UlidId orderId,
+        UlidId customerId,
+        UlidId adminUserId,
+        DateTimeOffset timestamp,
+        CancellationToken cancellationToken
+    )
+    {
+        // Create a standard set of services for demo purposes
+        // Tier 1: Identity verification services (run first)
+        var tier1Services = new[]
+        {
+            ("SSN_TRACE", ServiceCategory.Identity),
+            ("ADDR_VERIFY", ServiceCategory.Identity),
+        };
+
+        // Tier 2: Core searches (run after tier 1)
+        var tier2Services = new[]
+        {
+            ("FED_CRIM", ServiceCategory.Criminal),
+            ("STATE_CRIM", ServiceCategory.Criminal),
+            ("COUNTY_CRIM", ServiceCategory.Criminal),
+        };
+
+        // Tier 3: Employment and education verifications
+        var tier3Services = new[]
+        {
+            ("TWN_EMP", ServiceCategory.Employment),
+            ("EDU_VERIFY", ServiceCategory.Education),
+        };
+
+        foreach (var (code, _) in tier1Services)
+        {
+            await mediator.Send(new CreateServiceRequestCommand(
+                orderId, customerId, code, 1, null, null, timestamp)
+            { UserId = adminUserId.ToString() }, cancellationToken);
+        }
+
+        foreach (var (code, _) in tier2Services)
+        {
+            await mediator.Send(new CreateServiceRequestCommand(
+                orderId, customerId, code, 2, null, null, timestamp.AddSeconds(1))
+            { UserId = adminUserId.ToString() }, cancellationToken);
+        }
+
+        foreach (var (code, _) in tier3Services)
+        {
+            await mediator.Send(new CreateServiceRequestCommand(
+                orderId, customerId, code, 3, null, null, timestamp.AddSeconds(2))
+            { UserId = adminUserId.ToString() }, cancellationToken);
         }
     }
 }

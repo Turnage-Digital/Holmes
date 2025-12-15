@@ -1,6 +1,7 @@
 .idea
 .DS_Store
 .claude
+*.DotSettings.user
 
 bin
 obj

@@ -489,19 +489,118 @@ export interface CustomerServiceCatalogDto {
   updatedAt: string;
 }
 
-export interface UpdateCatalogServiceRequest {
+export interface ServiceCatalogServiceInput {
   serviceTypeCode: string;
   isEnabled: boolean;
-  tier?: number;
+  tier: number;
   vendorCode?: string;
 }
 
-export interface UpdateTierConfigurationRequest {
+export interface ServiceCatalogTierInput {
   tier: number;
-  name?: string;
+  name: string;
   description?: string;
   requiredServices?: string[];
   optionalServices?: string[];
-  autoDispatch?: boolean;
-  waitForPreviousTier?: boolean;
+  autoDispatch: boolean;
+  waitForPreviousTier: boolean;
+}
+
+export interface UpdateServiceCatalogRequest {
+  services?: ServiceCatalogServiceInput[];
+  tiers?: ServiceCatalogTierInput[];
+}
+
+// ============================================================================
+// Fulfillment Queue Types
+// ============================================================================
+
+export interface FulfillmentQueueQuery {
+  page?: number;
+  pageSize?: number;
+  customerId?: Ulid;
+  status?: ServiceStatus[];
+  category?: ServiceCategory[];
+
+  [key: string]:
+    | string
+    | number
+    | ServiceStatus[]
+    | ServiceCategory[]
+    | Ulid
+    | undefined;
+}
+
+// ============================================================================
+// SLA Clock Types
+// ============================================================================
+
+export type ClockKind = "Intake" | "Fulfillment" | "Overall" | "Custom";
+
+export type ClockState =
+  | "Running"
+  | "AtRisk"
+  | "Breached"
+  | "Paused"
+  | "Completed";
+
+export interface SlaClockDto {
+  id: Ulid;
+  orderId: Ulid;
+  customerId: Ulid;
+  kind: ClockKind;
+  state: ClockState;
+  startedAt: string;
+  deadlineAt: string;
+  atRiskThresholdAt: string;
+  atRiskAt?: string | null;
+  breachedAt?: string | null;
+  pausedAt?: string | null;
+  completedAt?: string | null;
+  pauseReason?: string | null;
+  accumulatedPauseTime: string;
+  targetBusinessDays: number;
+  atRiskThresholdPercent: number;
+}
+
+export interface PauseClockRequest {
+  reason: string;
+}
+
+// ============================================================================
+// Notification Types
+// ============================================================================
+
+export type NotificationTriggerType =
+  | "IntakeSessionInvited"
+  | "IntakeSubmissionReceived"
+  | "ConsentCaptured"
+  | "OrderStateChanged"
+  | "SlaClockAtRisk"
+  | "SlaClockBreached"
+  | "NotificationFailed";
+
+export type NotificationChannel = "Email" | "Sms" | "Webhook";
+
+export type DeliveryStatus =
+  | "Pending"
+  | "Queued"
+  | "Sending"
+  | "Delivered"
+  | "Failed"
+  | "Bounced"
+  | "Cancelled";
+
+export interface NotificationSummaryDto {
+  id: Ulid;
+  customerId: Ulid;
+  orderId?: Ulid | null;
+  triggerType: NotificationTriggerType;
+  channel: NotificationChannel;
+  recipientAddress: string;
+  status: DeliveryStatus;
+  isAdverseAction: boolean;
+  createdAt: string;
+  deliveredAt?: string | null;
+  deliveryAttemptCount: number;
 }

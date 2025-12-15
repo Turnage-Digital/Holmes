@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BuildIcon from "@mui/icons-material/Build";
+import EmailIcon from "@mui/icons-material/Email";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import HistoryIcon from "@mui/icons-material/History";
 import InfoIcon from "@mui/icons-material/Info";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import SmsIcon from "@mui/icons-material/Sms";
 import TimelineIcon from "@mui/icons-material/Timeline";
+import WebhookIcon from "@mui/icons-material/Webhook";
 import {
   Accordion,
   AccordionDetails,
@@ -17,26 +25,45 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Skeleton,
   Stack,
   Tab,
   Tabs,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
-import type { OrderAuditEventDto, OrderTimelineEntryDto } from "@/types/api";
+import type {
+  NotificationSummaryDto,
+  OrderAuditEventDto,
+  OrderTimelineEntryDto,
+  SlaClockDto,
+} from "@/types/api";
 
+import SlaBadge, {
+  clockStateToSlaStatus,
+} from "@/components/patterns/SlaBadge";
 import { TierProgressView } from "@/components/services";
 import {
   useCustomer,
+  useIsAdmin,
   useOrder,
   useOrderEvents,
+  useOrderNotifications,
   useOrderServices,
+  useOrderSlaClocks,
   useOrderTimeline,
+  usePauseSlaClock,
+  useResumeSlaClock,
+  useRetryNotification,
   useSubject,
 } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
@@ -346,8 +373,11 @@ interface AuditLogTabProps {
 }
 
 const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
-  // Extract a human-readable event name from the full type name
-  const displayName = event.eventName.split(".").pop() ?? event.eventName;
+  // Extract a human-readable event name from the assembly-qualified type name
+  // Format: "Namespace.ClassName, AssemblyName, Version=x.x.x.x, Culture=neutral, PublicKeyToken=xxx"
+  // First split by ", " to isolate the type name, then split by "." to get the class name
+  const typeName = event.eventName.split(", ")[0];
+  const displayName = typeName.split(".").pop() ?? event.eventName;
 
   return (
     <Accordion
@@ -510,6 +540,596 @@ const AuditLogTab = ({ orderId }: AuditLogTabProps) => {
 };
 
 // ============================================================================
+// SLA Clocks Panel Component
+// ============================================================================
+
+const getClockKindLabel = (kind: SlaClockDto["kind"]) => {
+  switch (kind) {
+    case "Intake":
+      return "Intake";
+    case "Fulfillment":
+      return "Fulfillment";
+    case "Overall":
+      return "Overall";
+    case "Custom":
+      return "Custom";
+    default:
+      return kind;
+  }
+};
+
+interface SlaClockCardProps {
+  clock: SlaClockDto;
+  canPauseResume: boolean;
+  onPause: (clockId: string) => void;
+  onResume: (clockId: string) => void;
+  isPausing: boolean;
+  isResuming: boolean;
+}
+
+const SlaClockCard = ({
+  clock,
+  canPauseResume,
+  onPause,
+  onResume,
+  isPausing,
+  isResuming,
+}: SlaClockCardProps) => {
+  const status = clockStateToSlaStatus(clock.state);
+  const isPaused = clock.state === "Paused";
+  const isTerminal = clock.state === "Completed" || clock.state === "Breached";
+  const canTakeAction = canPauseResume && !isTerminal;
+
+  return (
+    <Card variant="outlined" sx={{ mb: 2 }}>
+      <CardContent>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          <Box>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ mb: 1 }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                {getClockKindLabel(clock.kind)}
+              </Typography>
+              <SlaBadge status={status} />
+            </Stack>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "100px 1fr",
+                gap: 0.5,
+                fontSize: "0.875rem",
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Started
+              </Typography>
+              <Typography variant="body2">
+                {format(new Date(clock.startedAt), "MMM d, yyyy h:mm a")}
+              </Typography>
+
+              <Typography variant="body2" color="text.secondary">
+                Deadline
+              </Typography>
+              <Typography variant="body2">
+                {format(new Date(clock.deadlineAt), "MMM d, yyyy h:mm a")}
+                {" · "}
+                {formatDistanceToNow(new Date(clock.deadlineAt), {
+                  addSuffix: true,
+                })}
+              </Typography>
+
+              <Typography variant="body2" color="text.secondary">
+                Target
+              </Typography>
+              {(() => {
+                const dayLabel =
+                  clock.targetBusinessDays === 1 ? "day" : "days";
+                return (
+                  <Typography variant="body2">
+                    {clock.targetBusinessDays} business {dayLabel}
+                  </Typography>
+                );
+              })()}
+
+              {(() => {
+                const pauseReasonDisplay = clock.pauseReason ? (
+                  <>
+                    <Typography variant="body2" color="text.secondary">
+                      Pause Reason
+                    </Typography>
+                    <Typography variant="body2">{clock.pauseReason}</Typography>
+                  </>
+                ) : null;
+                return pauseReasonDisplay;
+              })()}
+
+              {(() => {
+                const completedAtDisplay = clock.completedAt ? (
+                  <>
+                    <Typography variant="body2" color="text.secondary">
+                      Completed
+                    </Typography>
+                    <Typography variant="body2">
+                      {format(
+                        new Date(clock.completedAt),
+                        "MMM d, yyyy h:mm a",
+                      )}
+                    </Typography>
+                  </>
+                ) : null;
+                return completedAtDisplay;
+              })()}
+            </Box>
+          </Box>
+
+          {(() => {
+            const resumeIcon = isResuming ? (
+              <CircularProgress size={20} />
+            ) : (
+              <PlayArrowIcon />
+            );
+            const pauseIcon = isPausing ? (
+              <CircularProgress size={20} />
+            ) : (
+              <PauseIcon />
+            );
+            const actionButton = isPaused ? (
+              <Tooltip title="Resume clock">
+                <IconButton
+                  size="small"
+                  onClick={() => onResume(clock.id)}
+                  disabled={isResuming}
+                  color="primary"
+                >
+                  {resumeIcon}
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Pause clock">
+                <IconButton
+                  size="small"
+                  onClick={() => onPause(clock.id)}
+                  disabled={isPausing}
+                  color="warning"
+                >
+                  {pauseIcon}
+                </IconButton>
+              </Tooltip>
+            );
+            const actionDisplay = canTakeAction ? (
+              <Box>{actionButton}</Box>
+            ) : null;
+            return actionDisplay;
+          })()}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+};
+
+interface SlaClocksTabProps {
+  orderId: string;
+}
+
+const SlaClocksTab = ({ orderId }: SlaClocksTabProps) => {
+  const isAdmin = useIsAdmin();
+  const { data: clocks, isLoading, error } = useOrderSlaClocks(orderId);
+  const pauseMutation = usePauseSlaClock();
+  const resumeMutation = useResumeSlaClock();
+
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
+  const [pauseClockId, setPauseClockId] = useState<string | null>(null);
+  const [pauseReason, setPauseReason] = useState("");
+
+  const handlePauseClick = (clockId: string) => {
+    setPauseClockId(clockId);
+    setPauseReason("");
+    setPauseDialogOpen(true);
+  };
+
+  const handlePauseConfirm = () => {
+    if (pauseClockId && pauseReason.trim()) {
+      pauseMutation.mutate(
+        { clockId: pauseClockId, payload: { reason: pauseReason.trim() } },
+        {
+          onSuccess: () => {
+            setPauseDialogOpen(false);
+            setPauseClockId(null);
+            setPauseReason("");
+          },
+        },
+      );
+    }
+  };
+
+  const handleResume = (clockId: string) => {
+    resumeMutation.mutate(clockId);
+  };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error">
+        Failed to load SLA clocks. Please try again.
+      </Alert>
+    );
+  }
+
+  if (!clocks || clocks.length === 0) {
+    return (
+      <Card variant="outlined">
+        <CardContent>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            SLA Clocks
+          </Typography>
+          <Typography color="text.secondary">
+            No SLA clocks have been started for this order yet.
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card variant="outlined">
+        <CardContent>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ mb: 2 }}
+          >
+            <Typography variant="h6">SLA Clocks</Typography>
+            <Chip
+              label={`${clocks.length} clock${clocks.length === 1 ? "" : "s"}`}
+              size="small"
+              color="default"
+            />
+          </Stack>
+          {clocks.map((clock) => (
+            <SlaClockCard
+              key={clock.id}
+              clock={clock}
+              canPauseResume={isAdmin}
+              onPause={handlePauseClick}
+              onResume={handleResume}
+              isPausing={pauseMutation.isPending && pauseClockId === clock.id}
+              isResuming={resumeMutation.isPending}
+            />
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Pause Dialog */}
+      <Dialog open={pauseDialogOpen} onClose={() => setPauseDialogOpen(false)}>
+        <DialogTitle>Pause SLA Clock</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Please provide a reason for pausing this clock. Time will not count
+            while the clock is paused.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Reason"
+            value={pauseReason}
+            onChange={(e) => setPauseReason(e.target.value)}
+            placeholder="e.g., Waiting for candidate response"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPauseDialogOpen(false)}>Cancel</Button>
+          {(() => {
+            const buttonLabel = pauseMutation.isPending
+              ? "Pausing…"
+              : "Pause Clock";
+            return (
+              <Button
+                onClick={handlePauseConfirm}
+                variant="contained"
+                disabled={!pauseReason.trim() || pauseMutation.isPending}
+              >
+                {buttonLabel}
+              </Button>
+            );
+          })()}
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
+
+// ============================================================================
+// Notifications Tab Component
+// ============================================================================
+
+const getChannelIcon = (channel: NotificationSummaryDto["channel"]) => {
+  switch (channel) {
+    case "Email":
+      return <EmailIcon fontSize="small" />;
+    case "Sms":
+      return <SmsIcon fontSize="small" />;
+    case "Webhook":
+      return <WebhookIcon fontSize="small" />;
+    default:
+      return <NotificationsIcon fontSize="small" />;
+  }
+};
+
+const getDeliveryStatusColor = (
+  status: NotificationSummaryDto["status"],
+): "success" | "warning" | "error" | "default" | "info" => {
+  switch (status) {
+    case "Delivered":
+      return "success";
+    case "Pending":
+    case "Queued":
+    case "Sending":
+      return "info";
+    case "Failed":
+    case "Bounced":
+      return "error";
+    case "Cancelled":
+      return "default";
+    default:
+      return "default";
+  }
+};
+
+const getTriggerTypeLabel = (
+  triggerType: NotificationSummaryDto["triggerType"],
+) => {
+  switch (triggerType) {
+    case "IntakeSessionInvited":
+      return "Intake Invited";
+    case "IntakeSubmissionReceived":
+      return "Intake Submitted";
+    case "ConsentCaptured":
+      return "Consent Captured";
+    case "OrderStateChanged":
+      return "Order Status Changed";
+    case "SlaClockAtRisk":
+      return "SLA At Risk";
+    case "SlaClockBreached":
+      return "SLA Breached";
+    case "NotificationFailed":
+      return "Notification Failed";
+    default:
+      return triggerType;
+  }
+};
+
+interface NotificationCardProps {
+  notification: NotificationSummaryDto;
+  canRetry: boolean;
+  onRetry: (notificationId: string) => void;
+  isRetrying: boolean;
+}
+
+const NotificationCard = ({
+  notification,
+  canRetry,
+  onRetry,
+  isRetrying,
+}: NotificationCardProps) => {
+  const canRetryThis =
+    canRetry &&
+    (notification.status === "Failed" || notification.status === "Bounced");
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        gap: 2,
+        py: 2,
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        "&:last-child": { borderBottom: "none" },
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 40,
+          height: 40,
+          borderRadius: 1,
+          bgcolor: "grey.100",
+          color: "grey.600",
+        }}
+      >
+        {getChannelIcon(notification.channel)}
+      </Box>
+      <Box sx={{ flexGrow: 1 }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {getTriggerTypeLabel(notification.triggerType)}
+          </Typography>
+          <Chip
+            label={notification.status}
+            size="small"
+            color={getDeliveryStatusColor(notification.status)}
+            variant="outlined"
+          />
+          {notification.isAdverseAction && (
+            <Chip label="Adverse Action" size="small" color="warning" />
+          )}
+        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          {notification.channel} to {notification.recipientAddress}
+        </Typography>
+        <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
+          <Typography variant="caption" color="text.secondary">
+            Created{" "}
+            {format(new Date(notification.createdAt), "MMM d, yyyy h:mm a")}
+          </Typography>
+          {notification.deliveredAt && (
+            <Typography variant="caption" color="text.secondary">
+              Delivered{" "}
+              {format(new Date(notification.deliveredAt), "MMM d, yyyy h:mm a")}
+            </Typography>
+          )}
+          {notification.deliveryAttemptCount > 1 && (
+            <Typography variant="caption" color="text.secondary">
+              {notification.deliveryAttemptCount} attempts
+            </Typography>
+          )}
+        </Stack>
+      </Box>
+      {(() => {
+        const retryIcon = isRetrying ? (
+          <CircularProgress size={20} />
+        ) : (
+          <RefreshIcon />
+        );
+        const retryButton = canRetryThis ? (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Tooltip title="Retry notification">
+              <IconButton
+                size="small"
+                onClick={() => onRetry(notification.id)}
+                disabled={isRetrying}
+                color="primary"
+              >
+                {retryIcon}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ) : null;
+        return retryButton;
+      })()}
+    </Box>
+  );
+};
+
+interface NotificationsTabProps {
+  orderId: string;
+}
+
+const NotificationsTab = ({ orderId }: NotificationsTabProps) => {
+  const isAdmin = useIsAdmin();
+  const {
+    data: notifications,
+    isLoading,
+    error,
+  } = useOrderNotifications(orderId);
+  const retryMutation = useRetryNotification();
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+
+  const handleRetry = (notificationId: string) => {
+    setRetryingId(notificationId);
+    retryMutation.mutate(notificationId, {
+      onSettled: () => setRetryingId(null),
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error">
+        Failed to load notifications. Please try again.
+      </Alert>
+    );
+  }
+
+  if (!notifications || notifications.length === 0) {
+    return (
+      <Card variant="outlined">
+        <CardContent>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Notifications
+          </Typography>
+          <Typography color="text.secondary">
+            No notifications have been sent for this order yet.
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const deliveredCount = notifications.filter(
+    (n) => n.status === "Delivered",
+  ).length;
+  const failedCount = notifications.filter(
+    (n) => n.status === "Failed" || n.status === "Bounced",
+  ).length;
+
+  return (
+    <Card variant="outlined">
+      <CardContent>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 2 }}
+        >
+          <Typography variant="h6">Notifications</Typography>
+          <Stack direction="row" spacing={1}>
+            <Chip
+              label={`${notifications.length} total`}
+              size="small"
+              color="default"
+            />
+            {deliveredCount > 0 && (
+              <Chip
+                label={`${deliveredCount} delivered`}
+                size="small"
+                color="success"
+                variant="outlined"
+              />
+            )}
+            {failedCount > 0 && (
+              <Chip
+                label={`${failedCount} failed`}
+                size="small"
+                color="error"
+                variant="outlined"
+              />
+            )}
+          </Stack>
+        </Stack>
+        <Box>
+          {notifications.map((notification) => (
+            <NotificationCard
+              key={notification.id}
+              notification={notification}
+              canRetry={isAdmin}
+              onRetry={handleRetry}
+              isRetrying={
+                retryMutation.isPending && retryingId === notification.id
+              }
+            />
+          ))}
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============================================================================
 // Order Detail Page
 // ============================================================================
 
@@ -653,6 +1273,16 @@ const OrderDetailPage = () => {
             iconPosition="start"
             label={servicesLabel}
           />
+          <Tab
+            icon={<AccessTimeIcon />}
+            iconPosition="start"
+            label="SLA Clocks"
+          />
+          <Tab
+            icon={<NotificationsIcon />}
+            iconPosition="start"
+            label="Notifications"
+          />
           <Tab icon={<TimelineIcon />} iconPosition="start" label="Timeline" />
           <Tab icon={<HistoryIcon />} iconPosition="start" label="Audit Log" />
         </Tabs>
@@ -668,10 +1298,18 @@ const OrderDetailPage = () => {
       </TabPanel>
 
       <TabPanel value={activeTab} index={2}>
-        <TimelineTab orderId={orderId!} />
+        <SlaClocksTab orderId={orderId!} />
       </TabPanel>
 
       <TabPanel value={activeTab} index={3}>
+        <NotificationsTab orderId={orderId!} />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={4}>
+        <TimelineTab orderId={orderId!} />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={5}>
         <AuditLogTab orderId={orderId!} />
       </TabPanel>
     </Box>

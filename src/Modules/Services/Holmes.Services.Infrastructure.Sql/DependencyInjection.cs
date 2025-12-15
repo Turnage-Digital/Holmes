@@ -1,6 +1,8 @@
 using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Application.Abstractions.Projections;
 using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Domain;
+using Holmes.Services.Infrastructure.Sql.Projections;
 using Holmes.Services.Infrastructure.Sql.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +27,9 @@ public static class DependencyInjection
         services.AddScoped<IServiceRequestQueries, SqlServiceRequestQueries>();
         services.AddScoped<IServiceCatalogQueries, SqlServiceCatalogQueries>();
         services.AddScoped<IServiceCatalogRepository, ServiceCatalogRepository>();
+
+        // Projection writer
+        services.AddScoped<IServiceProjectionWriter, SqlServiceProjectionWriter>();
 
         // Vendor adapters
         services.AddSingleton<IVendorAdapter, StubVendorAdapter>();
