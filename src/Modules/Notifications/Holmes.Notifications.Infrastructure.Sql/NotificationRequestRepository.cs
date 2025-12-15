@@ -12,7 +12,6 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
     public async Task<NotificationRequest?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
     {
         var db = await context.NotificationRequests
-            .AsNoTracking()
             .Include(n => n.DeliveryAttempts)
             .FirstOrDefaultAsync(n => n.Id == id.ToString(), cancellationToken);
 
@@ -27,7 +26,6 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         var spec = new PendingNotificationsSpec(DateTime.UtcNow, limit);
 
         var pending = await context.NotificationRequests
-            .AsNoTracking()
             .Include(n => n.DeliveryAttempts)
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
@@ -43,7 +41,6 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         var spec = new NotificationsByOrderIdSpec(orderId.ToString());
 
         var notifications = await context.NotificationRequests
-            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
@@ -61,7 +58,6 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         var spec = new FailedNotificationsForRetrySpec(maxAttempts, cutoff, limit);
 
         var failed = await context.NotificationRequests
-            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
@@ -74,10 +70,17 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         await context.NotificationRequests.AddAsync(db, cancellationToken);
     }
 
-    public Task UpdateAsync(NotificationRequest request, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(NotificationRequest request, CancellationToken cancellationToken = default)
     {
-        var db = NotificationRequestMapper.ToDb(request);
-        context.NotificationRequests.Update(db);
-        return Task.CompletedTask;
+        var db = await context.NotificationRequests
+            .Include(n => n.DeliveryAttempts)
+            .FirstOrDefaultAsync(n => n.Id == request.Id.ToString(), cancellationToken);
+
+        if (db is null)
+        {
+            throw new InvalidOperationException($"Notification request '{request.Id}' not found.");
+        }
+
+        NotificationRequestMapper.UpdateDb(db, request);
     }
 }

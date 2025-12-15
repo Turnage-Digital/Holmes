@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-13 (SLA Clocks tab, Notifications tab wired to real APIs)
+**Last Updated:** 2025-12-14 (Frontend verified working)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -10,19 +10,20 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 
 ## Executive Summary
 
-| Phase   | Focus                      | Backend Status | Frontend Status  | Overall |
-|---------|----------------------------|----------------|------------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ Complete     | ✅ Complete      | 95%     |
-| **3.1** | Services & Fulfillment     | ✅ Complete     | ✅ Complete      | 95%     |
-| **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded    | 40%     |
+| Phase   | Focus                      | Backend Status | Frontend Status | Overall |
+|---------|----------------------------|----------------|-----------------|---------|
+| **3.0** | SLA Clocks & Notifications | ✅ Complete     | ✅ Verified      | 95%     |
+| **3.1** | Services & Fulfillment     | ✅ Complete     | ✅ Verified      | 95%     |
+| **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded   | 40%     |
 
 **Bottom line:** Backend aggregates, commands, read-only projections, and API endpoints exist for all modules.
 The order fulfillment handler is complete — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
 `ReadyForFulfillment` and transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler` advances
 Order to `ReadyForReport` when all services complete. All API endpoints for SLA Clocks, Notifications, Services
-queue, and Customer service catalog are now implemented. **Frontend is now wired to real APIs** — OrderDetailPage
-includes SLA Clocks tab (with pause/resume) and Notifications tab (with retry), using React Query hooks. Remaining
-work: SSE real-time updates and dashboard aggregations.
+queue, and Customer service catalog are now implemented. **Frontend verified working** — OrderDetailPage includes
+SLA Clocks tab (with pause/resume for Running clocks), Notifications tab, Services tab with tier progress, Audit
+Log tab, and Timeline tab. Customer Service Catalog editor works (partial: tier auto-creation needed when
+assigning services to new tiers). SeedData.cs creates demo orders with SLA clocks and service requests.
 
 ---
 
@@ -66,23 +67,21 @@ work: SSE real-time updates and dashboard aggregations.
 - [x] `GET /api/notifications/{id}` — get single notification
 - [x] `POST /api/notifications/{id}/retry` — retry failed notification
 
-**Holmes.Internal implemented:**
+**Holmes.Internal implemented (VERIFIED):**
 
-- [x] SLA Clocks tab on Order detail page (shows all clocks with status, pause/resume actions)
+- [x] SLA Clocks tab on Order detail page (shows all clocks with status, pause/resume for Running clocks)
 - [x] Notifications tab on Order detail page (shows notification history with retry action)
 - [x] `SlaBadge` component wired to real API data via `clockStateToSlaStatus` helper
 - [x] React Query hooks: `useOrderSlaClocks`, `usePauseSlaClock`, `useResumeSlaClock`
 - [x] React Query hooks: `useOrderNotifications`, `useRetryNotification`
 - [x] TypeScript types for SLA clocks and notifications in `@/types/api`
+- [x] Audit Log tab with proper event name formatting (assembly-qualified names handled)
+- [x] Timeline tab showing order activity events
 
 **Holmes.Internal gaps (remaining):**
 
 - [ ] SLA clock dashboard (show at-risk/breached counts aggregated across orders)
 - [ ] SSE extension for `clock.at_risk`, `clock.breached` events
-
-### Observability: DEFERRED
-
-Grafana dashboards and alerting are deferred to post-Phase 3.x. Basic logging exists.
 
 ---
 
@@ -300,14 +299,14 @@ Once projections exist, wire frontend components.
 - [x] Fulfillment dashboard showing real service data
 - [x] Order detail shows service status with real data
 - [ ] Intake form captures address history (7 years)
-- [x] Customer service catalog configurable via UI
+- [x] Customer service catalog configurable via UI (partial: tier auto-creation needed)
 
 ### Should Have
 
 - [ ] SSE real-time updates for service status
 - [ ] Retry/Cancel service actions work
 - [ ] Employment/Education captured in intake
-- [x] Clock pause/resume from UI
+- [x] Clock pause/resume from UI (works for Running clocks; hidden for terminal states)
 
 ### Deferred (Post Phase 3.x)
 

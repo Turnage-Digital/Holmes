@@ -116,4 +116,39 @@ public static class NotificationRequestMapper
                 .ToList()
         };
     }
+
+    public static void UpdateDb(NotificationRequestDb db, NotificationRequest request)
+    {
+        db.Status = (int)request.Status;
+        db.ProcessedAt = request.ProcessedAt?.UtcDateTime;
+        db.DeliveredAt = request.DeliveredAt?.UtcDateTime;
+
+        // Sync delivery attempts
+        var existingAttemptNumbers = db.DeliveryAttempts.Select(a => a.AttemptNumber).ToHashSet();
+        foreach (var attempt in request.DeliveryAttempts)
+        {
+            if (!existingAttemptNumbers.Contains(attempt.AttemptNumber))
+            {
+                db.DeliveryAttempts.Add(new DeliveryAttemptDb
+                {
+                    NotificationRequestId = request.Id.ToString(),
+                    Channel = (int)attempt.Channel,
+                    Status = (int)attempt.Status,
+                    AttemptedAt = attempt.AttemptedAt.UtcDateTime,
+                    AttemptNumber = attempt.AttemptNumber,
+                    ProviderMessageId = attempt.ProviderMessageId,
+                    FailureReason = attempt.FailureReason,
+                    NextRetryAfter = attempt.NextRetryAfter
+                });
+            }
+            else
+            {
+                var existingAttempt = db.DeliveryAttempts.First(a => a.AttemptNumber == attempt.AttemptNumber);
+                existingAttempt.Status = (int)attempt.Status;
+                existingAttempt.ProviderMessageId = attempt.ProviderMessageId;
+                existingAttempt.FailureReason = attempt.FailureReason;
+                existingAttempt.NextRetryAfter = attempt.NextRetryAfter;
+            }
+        }
+    }
 }

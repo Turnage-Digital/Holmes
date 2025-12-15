@@ -465,22 +465,22 @@ public sealed class SeedData(
         var tier1Services = new[]
         {
             ("SSN_TRACE", ServiceCategory.Identity),
-            ("ADDRESS_VERIFICATION", ServiceCategory.Identity),
+            ("ADDR_VERIFY", ServiceCategory.Identity),
         };
 
         // Tier 2: Core searches (run after tier 1)
         var tier2Services = new[]
         {
-            ("FEDERAL_CRIMINAL", ServiceCategory.Criminal),
-            ("STATE_CRIMINAL", ServiceCategory.Criminal),
-            ("COUNTY_CRIMINAL", ServiceCategory.Criminal),
+            ("FED_CRIM", ServiceCategory.Criminal),
+            ("STATE_CRIM", ServiceCategory.Criminal),
+            ("COUNTY_CRIM", ServiceCategory.Criminal),
         };
 
         // Tier 3: Employment and education verifications
         var tier3Services = new[]
         {
-            ("EMPLOYMENT_VERIFICATION", ServiceCategory.Employment),
-            ("EDUCATION_VERIFICATION", ServiceCategory.Education),
+            ("TWN_EMP", ServiceCategory.Employment),
+            ("EDU_VERIFY", ServiceCategory.Education),
         };
 
         foreach (var (code, _) in tier1Services)

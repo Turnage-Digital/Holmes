@@ -12,7 +12,6 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
     public async Task<SlaClock?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
     {
         var entity = await context.SlaClocks
-            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id.ToString(), cancellationToken);
 
         return entity is null ? null : SlaClockMapper.ToDomain(entity);
@@ -26,7 +25,6 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         var spec = new SlaClockByOrderIdSpec(orderId.ToString());
 
         var entities = await context.SlaClocks
-            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
@@ -42,7 +40,6 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         var spec = new SlaClockByOrderIdAndKindSpec(orderId.ToString(), kind);
 
         var entity = await context.SlaClocks
-            .AsNoTracking()
             .ApplySpecification(spec)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -57,7 +54,6 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         var spec = new ActiveSlaClocksByOrderIdSpec(orderId.ToString());
 
         var entities = await context.SlaClocks
-            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
@@ -72,7 +68,6 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         var spec = new RunningClocksPastThresholdSpec(asOf.UtcDateTime);
 
         var entities = await context.SlaClocks
-            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
@@ -87,7 +82,6 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         var spec = new RunningClocksPastDeadlineSpec(asOf.UtcDateTime);
 
         var entities = await context.SlaClocks
-            .AsNoTracking()
             .ApplySpecification(spec)
             .ToListAsync(cancellationToken);
 
@@ -99,9 +93,16 @@ public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRep
         context.SlaClocks.Add(SlaClockMapper.ToDb(clock));
     }
 
-    public void Update(SlaClock clock)
+    public async Task UpdateAsync(SlaClock clock, CancellationToken cancellationToken = default)
     {
-        var entity = SlaClockMapper.ToDb(clock);
-        context.SlaClocks.Update(entity);
+        var entity = await context.SlaClocks
+            .FirstOrDefaultAsync(c => c.Id == clock.Id.ToString(), cancellationToken);
+
+        if (entity is null)
+        {
+            throw new InvalidOperationException($"SLA clock '{clock.Id}' not found.");
+        }
+
+        SlaClockMapper.UpdateDb(entity, clock);
     }
 }

@@ -6,6 +6,7 @@ using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions;
 using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Application.Behaviors;
 using Holmes.Core.Infrastructure.Security;
@@ -136,6 +137,7 @@ internal static class DependencyInjection
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.Converters.Add(new UlidIdJsonConverter());
             });
 
         return services;
@@ -326,12 +328,9 @@ internal static class DependencyInjection
         services.AddScoped<IServicesUnitOfWork, ServicesUnitOfWork>();
         services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
         services.AddScoped<IServiceCatalogRepository, ServiceCatalogRepository>();
-        services.AddScoped<IServiceRequestQueries,
-            SqlServiceRequestQueries>();
-        services.AddScoped<IServiceCatalogQueries,
-            SqlServiceCatalogQueries>();
-        services.AddScoped<ICustomerProfileRepository,
-            SqlCustomerProfileRepository>();
+        services.AddScoped<IServiceRequestQueries, SqlServiceRequestQueries>();
+        services.AddScoped<IServiceCatalogQueries, SqlServiceCatalogQueries>();
+        services.AddScoped<ICustomerProfileRepository, SqlCustomerProfileRepository>();
         services.AddDbContext<NotificationsDbContext>(options => options.UseInMemoryDatabase("holmes-notifications"));
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
         services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
@@ -342,8 +341,7 @@ internal static class DependencyInjection
         services.AddScoped<INotificationProvider, LoggingWebhookProvider>();
         services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
         services.AddScoped<ISlaClockRepository, SlaClockRepository>();
-        services.AddScoped<ISlaClockQueries,
-            SqlSlaClockQueries>();
+        services.AddScoped<ISlaClockQueries, SqlSlaClockQueries>();
         services.AddScoped<ISlaClockProjectionWriter, SqlSlaClockProjectionWriter>();
         services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
         services.AddAppIntegration();

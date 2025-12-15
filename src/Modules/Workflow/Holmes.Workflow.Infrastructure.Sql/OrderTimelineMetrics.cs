@@ -1,6 +1,6 @@
 using System.Diagnostics.Metrics;
 
-namespace Holmes.Workflow.Infrastructure.Sql.Projections;
+namespace Holmes.Workflow.Infrastructure.Sql;
 
 internal static class OrderTimelineMetrics
 {

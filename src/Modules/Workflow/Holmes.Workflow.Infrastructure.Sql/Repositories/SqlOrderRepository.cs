@@ -16,7 +16,6 @@ public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepo
     public async Task<Order?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
     {
         var record = await dbContext.Orders
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.OrderId == id.ToString(), cancellationToken);
 
         return record is null ? null : OrderMapper.ToDomain(record);

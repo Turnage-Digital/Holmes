@@ -24,7 +24,7 @@ public sealed class MarkClockAtRiskCommandHandler(
         }
 
         clock.MarkAtRisk(request.AtRiskAt);
-        unitOfWork.SlaClocks.Update(clock);
+        await unitOfWork.SlaClocks.UpdateAsync(clock, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

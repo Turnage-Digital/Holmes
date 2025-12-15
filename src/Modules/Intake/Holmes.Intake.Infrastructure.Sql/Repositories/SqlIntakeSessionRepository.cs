@@ -18,7 +18,6 @@ public class SqlIntakeSessionRepository(IntakeDbContext dbContext)
     public async Task<IntakeSession?> GetByIdAsync(UlidId id, CancellationToken cancellationToken)
     {
         var db = await dbContext.IntakeSessions
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.IntakeSessionId == id.ToString(), cancellationToken);
 
         return db is null ? null : IntakeSessionMapper.ToDomain(db);

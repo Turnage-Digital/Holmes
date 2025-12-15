@@ -373,8 +373,11 @@ interface AuditLogTabProps {
 }
 
 const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
-  // Extract a human-readable event name from the full type name
-  const displayName = event.eventName.split(".").pop() ?? event.eventName;
+  // Extract a human-readable event name from the assembly-qualified type name
+  // Format: "Namespace.ClassName, AssemblyName, Version=x.x.x.x, Culture=neutral, PublicKeyToken=xxx"
+  // First split by ", " to isolate the type name, then split by "." to get the class name
+  const typeName = event.eventName.split(", ")[0];
+  const displayName = typeName.split(".").pop() ?? event.eventName;
 
   return (
     <Accordion
@@ -574,8 +577,8 @@ const SlaClockCard = ({
 }: SlaClockCardProps) => {
   const status = clockStateToSlaStatus(clock.state);
   const isPaused = clock.state === "Paused";
-  const isCompleted = clock.state === "Completed";
-  const canTakeAction = canPauseResume && !isCompleted;
+  const isTerminal = clock.state === "Completed" || clock.state === "Breached";
+  const canTakeAction = canPauseResume && !isTerminal;
 
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
