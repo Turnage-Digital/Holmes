@@ -27,7 +27,7 @@ public class SlaClocksEndpointTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter(), new UlidIdJsonConverter() }
     };
 
     [Test]
