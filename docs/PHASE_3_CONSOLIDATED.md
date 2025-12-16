@@ -197,35 +197,35 @@ assigning services to new tiers). SeedData.cs creates demo orders with SLA clock
 
 ### Implemented (Controllers exist)
 
-| Endpoint                                  | Controller               | Status    |
-|-------------------------------------------|--------------------------|-----------|
-| `GET/POST /api/customers`                 | CustomersController      | ✅ Working |
-| `GET/POST /api/subjects`                  | SubjectsController       | ✅ Working |
-| `GET/POST /api/orders`                    | OrdersController         | ✅ Working |
-| `GET/POST /api/users`                     | UsersController          | ✅ Working |
-| `GET /api/intake/sessions`                | IntakeSessionsController | ✅ Working |
-| `GET /api/services/{orderId}`             | ServicesController       | ✅ Exists  |
-| `SSE /api/orders/changes`                 | OrderChangesController   | ✅ Working |
-| `SSE /api/services/changes`               | ServiceChangesController | ✅ Working |
-| `SSE /api/clocks/sla/changes`             | SlaClockChangesController| ✅ Working |
-| `GET /api/clocks/sla?orderId={id}`        | SlaClocksController      | ✅ Working |
-| `POST /api/clocks/sla/{id}/pause`         | SlaClocksController      | ✅ Working |
-| `POST /api/clocks/sla/{id}/resume`        | SlaClocksController      | ✅ Working |
-| `GET /api/notifications`                  | NotificationsController  | ✅ Working |
-| `GET /api/notifications/{id}`             | NotificationsController  | ✅ Working |
-| `POST /api/notifications/{id}/retry`      | NotificationsController  | ✅ Working |
-| `GET /api/services/queue`                 | ServicesController       | ✅ Working |
-| `POST /api/services/{id}/retry`           | ServicesController       | ✅ Working |
-| `POST /api/services/{id}/cancel`          | ServicesController       | ✅ Working |
-| `GET /api/customers/{id}/service-catalog` | CustomersController      | ✅ Working |
-| `PUT /api/customers/{id}/service-catalog` | CustomersController      | ✅ Working |
+| Endpoint                                  | Controller                | Status    |
+|-------------------------------------------|---------------------------|-----------|
+| `GET/POST /api/customers`                 | CustomersController       | ✅ Working |
+| `GET/POST /api/subjects`                  | SubjectsController        | ✅ Working |
+| `GET/POST /api/orders`                    | OrdersController          | ✅ Working |
+| `GET/POST /api/users`                     | UsersController           | ✅ Working |
+| `GET /api/intake/sessions`                | IntakeSessionsController  | ✅ Working |
+| `GET /api/services/{orderId}`             | ServicesController        | ✅ Exists  |
+| `SSE /api/orders/changes`                 | OrderChangesController    | ✅ Working |
+| `SSE /api/services/changes`               | ServiceChangesController  | ✅ Working |
+| `SSE /api/clocks/sla/changes`             | SlaClockChangesController | ✅ Working |
+| `GET /api/clocks/sla?orderId={id}`        | SlaClocksController       | ✅ Working |
+| `POST /api/clocks/sla/{id}/pause`         | SlaClocksController       | ✅ Working |
+| `POST /api/clocks/sla/{id}/resume`        | SlaClocksController       | ✅ Working |
+| `GET /api/notifications`                  | NotificationsController   | ✅ Working |
+| `GET /api/notifications/{id}`             | NotificationsController   | ✅ Working |
+| `POST /api/notifications/{id}/retry`      | NotificationsController   | ✅ Working |
+| `GET /api/services/queue`                 | ServicesController        | ✅ Working |
+| `POST /api/services/{id}/retry`           | ServicesController        | ✅ Working |
+| `POST /api/services/{id}/cancel`          | ServicesController        | ✅ Working |
+| `GET /api/customers/{id}/service-catalog` | CustomersController       | ✅ Working |
+| `PUT /api/customers/{id}/service-catalog` | CustomersController       | ✅ Working |
 
 ### Needed but Missing
 
-| Endpoint                             | Purpose              | Priority |
-|--------------------------------------|----------------------|----------|
-| `GET /api/subjects/{id}/addresses`   | Subject addresses    | Medium   |
-| `GET /api/subjects/{id}/employments` | Subject employment   | Medium   |
+| Endpoint                             | Purpose            | Priority |
+|--------------------------------------|--------------------|----------|
+| `GET /api/subjects/{id}/addresses`   | Subject addresses  | Medium   |
+| `GET /api/subjects/{id}/employments` | Subject employment | Medium   |
 
 ---
 

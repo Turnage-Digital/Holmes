@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Domain.ValueObjects;
 using MediatR;
@@ -15,6 +16,7 @@ public sealed record IssueIntakeInviteCommand(
     string PolicySnapshotId,
     string PolicySnapshotSchemaVersion,
     IReadOnlyDictionary<string, string> PolicyMetadata,
+    IReadOnlyList<string>? OrderedServiceCodes,
     DateTimeOffset PolicyCapturedAt,
     DateTimeOffset InvitedAt,
     TimeSpan TimeToLive,
@@ -28,17 +30,22 @@ public sealed record IssueIntakeInviteResult(
 );
 
 public sealed class IssueIntakeInviteCommandHandler(
-    IIntakeUnitOfWork unitOfWork
+    IIntakeUnitOfWork unitOfWork,
+    IIntakeSectionMappingService sectionMappingService
 ) : IRequestHandler<IssueIntakeInviteCommand, Result<IssueIntakeInviteResult>>
 {
     private const int DefaultTimeToLiveHours = 168;
+    private const string RequiredSectionsKey = "requiredSections";
+    private const string OrderedServicesKey = "orderedServices";
 
     public async Task<Result<IssueIntakeInviteResult>> Handle(
         IssueIntakeInviteCommand request,
         CancellationToken cancellationToken
     )
     {
-        var metadata = request.PolicyMetadata;
+        // Build metadata with section requirements computed from ordered services
+        var metadata = BuildMetadataWithSections(request);
+
         var ttl = request.TimeToLive <= TimeSpan.Zero
             ? TimeSpan.FromHours(DefaultTimeToLiveHours)
             : request.TimeToLive;
@@ -78,5 +85,23 @@ public sealed class IssueIntakeInviteCommandHandler(
         Span<byte> bytes = stackalloc byte[32];
         RandomNumberGenerator.Fill(bytes);
         return Convert.ToHexString(bytes);
+    }
+
+    private IReadOnlyDictionary<string, string> BuildMetadataWithSections(IssueIntakeInviteCommand request)
+    {
+        // Start with the provided metadata
+        var metadata = new Dictionary<string, string>(
+            request.PolicyMetadata,
+            StringComparer.OrdinalIgnoreCase);
+
+        // If ordered services were provided, compute required sections
+        if (request.OrderedServiceCodes is { Count: > 0 })
+        {
+            var requiredSections = sectionMappingService.GetRequiredSections(request.OrderedServiceCodes);
+            metadata[RequiredSectionsKey] = string.Join(",", requiredSections);
+            metadata[OrderedServicesKey] = string.Join(",", request.OrderedServiceCodes);
+        }
+
+        return metadata;
     }
 }

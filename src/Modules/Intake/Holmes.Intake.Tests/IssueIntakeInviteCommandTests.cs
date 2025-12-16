@@ -1,4 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Application.Commands;
 using Holmes.Intake.Domain;
 using Moq;
@@ -8,6 +9,7 @@ namespace Holmes.Intake.Tests;
 public class IssueIntakeInviteCommandTests
 {
     private Mock<IIntakeSessionRepository> _repositoryMock = null!;
+    private Mock<IIntakeSectionMappingService> _sectionMappingServiceMock = null!;
     private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
@@ -16,12 +18,18 @@ public class IssueIntakeInviteCommandTests
         _repositoryMock = new Mock<IIntakeSessionRepository>();
         _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repositoryMock.Object);
+        _sectionMappingServiceMock = new Mock<IIntakeSectionMappingService>();
+        _sectionMappingServiceMock
+            .Setup(x => x.GetRequiredSections(It.IsAny<IEnumerable<string>>()))
+            .Returns(new HashSet<string>());
     }
 
     [Test]
     public async Task CreatesSession()
     {
-        var handler = new IssueIntakeInviteCommandHandler(_unitOfWorkMock.Object);
+        var handler = new IssueIntakeInviteCommandHandler(
+            _unitOfWorkMock.Object,
+            _sectionMappingServiceMock.Object);
         var command = new IssueIntakeInviteCommand(
             UlidId.NewUlid(),
             UlidId.NewUlid(),
@@ -29,6 +37,7 @@ public class IssueIntakeInviteCommandTests
             "policy",
             "schema",
             new Dictionary<string, string>(),
+            null, // OrderedServiceCodes
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow,
             TimeSpan.FromHours(24),

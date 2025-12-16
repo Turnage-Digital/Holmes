@@ -19,45 +19,6 @@ public sealed class SlaClockChangeBroadcastHandler(
         INotificationHandler<SlaClockBreached>,
         INotificationHandler<SlaClockCompleted>
 {
-    public Task Handle(SlaClockStarted notification, CancellationToken cancellationToken)
-    {
-        return broadcaster.PublishAsync(new SlaClockChange(
-            UlidId.NewUlid(),
-            notification.ClockId,
-            notification.OrderId,
-            notification.CustomerId,
-            notification.Kind,
-            ClockState.Running,
-            $"Started with {notification.TargetBusinessDays} business day target",
-            notification.StartedAt), cancellationToken);
-    }
-
-    public Task Handle(SlaClockPaused notification, CancellationToken cancellationToken)
-    {
-        return broadcaster.PublishAsync(new SlaClockChange(
-            UlidId.NewUlid(),
-            notification.ClockId,
-            notification.OrderId,
-            notification.CustomerId,
-            notification.Kind,
-            ClockState.Paused,
-            notification.Reason,
-            notification.PausedAt), cancellationToken);
-    }
-
-    public Task Handle(SlaClockResumed notification, CancellationToken cancellationToken)
-    {
-        return broadcaster.PublishAsync(new SlaClockChange(
-            UlidId.NewUlid(),
-            notification.ClockId,
-            notification.OrderId,
-            notification.CustomerId,
-            notification.Kind,
-            ClockState.Running,
-            $"Resumed after {notification.PauseDuration.TotalMinutes:F0} minutes paused",
-            notification.ResumedAt), cancellationToken);
-    }
-
     public Task Handle(SlaClockAtRisk notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new SlaClockChange(
@@ -99,5 +60,44 @@ public sealed class SlaClockChangeBroadcastHandler(
             ClockState.Completed,
             reason,
             notification.CompletedAt), cancellationToken);
+    }
+
+    public Task Handle(SlaClockPaused notification, CancellationToken cancellationToken)
+    {
+        return broadcaster.PublishAsync(new SlaClockChange(
+            UlidId.NewUlid(),
+            notification.ClockId,
+            notification.OrderId,
+            notification.CustomerId,
+            notification.Kind,
+            ClockState.Paused,
+            notification.Reason,
+            notification.PausedAt), cancellationToken);
+    }
+
+    public Task Handle(SlaClockResumed notification, CancellationToken cancellationToken)
+    {
+        return broadcaster.PublishAsync(new SlaClockChange(
+            UlidId.NewUlid(),
+            notification.ClockId,
+            notification.OrderId,
+            notification.CustomerId,
+            notification.Kind,
+            ClockState.Running,
+            $"Resumed after {notification.PauseDuration.TotalMinutes:F0} minutes paused",
+            notification.ResumedAt), cancellationToken);
+    }
+
+    public Task Handle(SlaClockStarted notification, CancellationToken cancellationToken)
+    {
+        return broadcaster.PublishAsync(new SlaClockChange(
+            UlidId.NewUlid(),
+            notification.ClockId,
+            notification.OrderId,
+            notification.CustomerId,
+            notification.Kind,
+            ClockState.Running,
+            $"Started with {notification.TargetBusinessDays} business day target",
+            notification.StartedAt), cancellationToken);
     }
 }

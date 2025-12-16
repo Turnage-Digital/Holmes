@@ -20,6 +20,30 @@ public sealed class ServiceChangeBroadcastHandler(
         INotificationHandler<ServiceRequestCanceled>,
         INotificationHandler<ServiceRequestRetried>
 {
+    public Task Handle(ServiceRequestCanceled notification, CancellationToken cancellationToken)
+    {
+        return broadcaster.PublishAsync(new ServiceChange(
+            UlidId.NewUlid(),
+            notification.ServiceRequestId,
+            notification.OrderId,
+            notification.ServiceTypeCode,
+            ServiceStatus.Canceled,
+            notification.Reason,
+            notification.CanceledAt), cancellationToken);
+    }
+
+    public Task Handle(ServiceRequestCompleted notification, CancellationToken cancellationToken)
+    {
+        return broadcaster.PublishAsync(new ServiceChange(
+            UlidId.NewUlid(),
+            notification.ServiceRequestId,
+            notification.OrderId,
+            notification.ServiceTypeCode,
+            ServiceStatus.Completed,
+            $"{notification.ResultStatus}: {notification.RecordCount} record(s)",
+            notification.CompletedAt), cancellationToken);
+    }
+
     public Task Handle(ServiceRequestCreated notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
@@ -44,30 +68,6 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.DispatchedAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestInProgress notification, CancellationToken cancellationToken)
-    {
-        return broadcaster.PublishAsync(new ServiceChange(
-            UlidId.NewUlid(),
-            notification.ServiceRequestId,
-            notification.OrderId,
-            notification.ServiceTypeCode,
-            ServiceStatus.InProgress,
-            null,
-            notification.UpdatedAt), cancellationToken);
-    }
-
-    public Task Handle(ServiceRequestCompleted notification, CancellationToken cancellationToken)
-    {
-        return broadcaster.PublishAsync(new ServiceChange(
-            UlidId.NewUlid(),
-            notification.ServiceRequestId,
-            notification.OrderId,
-            notification.ServiceTypeCode,
-            ServiceStatus.Completed,
-            $"{notification.ResultStatus}: {notification.RecordCount} record(s)",
-            notification.CompletedAt), cancellationToken);
-    }
-
     public Task Handle(ServiceRequestFailed notification, CancellationToken cancellationToken)
     {
         var reason = notification.WillRetry
@@ -84,16 +84,16 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.FailedAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestCanceled notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceRequestInProgress notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
             notification.ServiceRequestId,
             notification.OrderId,
             notification.ServiceTypeCode,
-            ServiceStatus.Canceled,
-            notification.Reason,
-            notification.CanceledAt), cancellationToken);
+            ServiceStatus.InProgress,
+            null,
+            notification.UpdatedAt), cancellationToken);
     }
 
     public Task Handle(ServiceRequestRetried notification, CancellationToken cancellationToken)

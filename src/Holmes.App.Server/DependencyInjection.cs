@@ -21,7 +21,9 @@ using Holmes.Customers.Infrastructure.Sql.Projections;
 using Holmes.Customers.Infrastructure.Sql.Queries;
 using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Holmes.Intake.Application.Abstractions.Projections;
+using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Application.Commands;
+using Holmes.Intake.Application.Services;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
@@ -276,6 +278,9 @@ internal static class DependencyInjection
         services.AddCustomersInfrastructureSql(connectionString, serverVersion);
         services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
         services.AddIntakeInfrastructureSql(connectionString, serverVersion);
+        services.AddSingleton<
+            IIntakeSectionMappingService,
+            IntakeSectionMappingService>();
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
         services.AddNotificationsInfrastructureSql(connectionString, serverVersion);
         services.AddSlaClockInfrastructureSql(connectionString, serverVersion);
@@ -321,6 +326,9 @@ internal static class DependencyInjection
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
+        services.AddSingleton<
+            IIntakeSectionMappingService,
+            IntakeSectionMappingService>();
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();

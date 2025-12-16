@@ -113,10 +113,13 @@ public sealed class SqlIntakeSessionQueries(IntakeDbContext dbContext) : IIntake
 
     private static IntakeSessionBootstrapDto MapToBootstrapDto(IntakeSessionDb session)
     {
-        // Parse policy snapshot JSON to extract ID and schema version
+        // Parse policy snapshot JSON to extract ID, schema version, and metadata
         var policyJson = JsonDocument.Parse(session.PolicySnapshotJson);
         var policySnapshotId = policyJson.RootElement.GetProperty("snapshotId").GetString() ?? "";
         var policySchemaVersion = policyJson.RootElement.GetProperty("schemaVersion").GetString() ?? "";
+
+        // Extract section config from policy metadata
+        var sectionConfig = ParseSectionConfig(policyJson.RootElement);
 
         ConsentArtifactDto? consent = null;
         if (session.ConsentArtifactId is not null &&
@@ -168,7 +171,50 @@ public sealed class SqlIntakeSessionQueries(IntakeDbContext dbContext) : IIntake
             session.CancellationReason,
             session.SupersededBySessionId,
             consent,
-            answers
+            answers,
+            sectionConfig
         );
+    }
+
+    private static IntakeSectionConfigDto? ParseSectionConfig(JsonElement policyElement)
+    {
+        // Try to get metadata from the policy snapshot
+        if (!policyElement.TryGetProperty("metadata", out var metadataElement) ||
+            metadataElement.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        // Parse requiredSections (comma-separated string)
+        var requiredSections = new List<string>();
+        if (metadataElement.TryGetProperty("requiredSections", out var sectionsElement) &&
+            sectionsElement.ValueKind == JsonValueKind.String)
+        {
+            var sectionsStr = sectionsElement.GetString();
+            if (!string.IsNullOrEmpty(sectionsStr))
+            {
+                requiredSections.AddRange(sectionsStr.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            }
+        }
+
+        // Parse orderedServices (comma-separated string)
+        var enabledServiceCodes = new List<string>();
+        if (metadataElement.TryGetProperty("orderedServices", out var servicesElement) &&
+            servicesElement.ValueKind == JsonValueKind.String)
+        {
+            var servicesStr = servicesElement.GetString();
+            if (!string.IsNullOrEmpty(servicesStr))
+            {
+                enabledServiceCodes.AddRange(servicesStr.Split(',', StringSplitOptions.RemoveEmptyEntries));
+            }
+        }
+
+        // Only return config if we have any section info
+        if (requiredSections.Count == 0 && enabledServiceCodes.Count == 0)
+        {
+            return null;
+        }
+
+        return new IntakeSectionConfigDto(requiredSections, enabledServiceCodes);
     }
 }
