@@ -35,7 +35,8 @@ public sealed record IntakeSessionBootstrapDto(
     string? CancellationReason,
     string? SupersededBySessionId,
     ConsentArtifactDto? Consent,
-    AnswersSnapshotDto? Answers
+    AnswersSnapshotDto? Answers,
+    IntakeSectionConfigDto? SectionConfig
 );
 
 public sealed record ConsentArtifactDto(
@@ -53,4 +54,13 @@ public sealed record AnswersSnapshotDto(
     string PayloadHash,
     string PayloadCipherText,
     DateTimeOffset UpdatedAt
+);
+
+/// <summary>
+///     Configuration for which intake form sections should be displayed,
+///     based on the services ordered for this background check.
+/// </summary>
+public sealed record IntakeSectionConfigDto(
+    IReadOnlyList<string> RequiredSections,
+    IReadOnlyList<string> EnabledServiceCodes
 );

@@ -28,7 +28,12 @@ import {
   AddressHistoryForm,
   EducationHistoryForm,
   EmploymentHistoryForm,
+  ReferenceForm,
 } from "@/components/forms";
+import {
+  IntakeSectionId,
+  useSectionVisibility,
+} from "@/hooks/useSectionVisibility";
 import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
 import {
   captureConsentArtifact,
@@ -41,6 +46,7 @@ import {
 import {
   CaptureConsentResponse,
   IntakeBootstrapResponse,
+  IntakeSectionConfig,
   SaveIntakeProgressRequest,
 } from "@/types/api";
 import {
@@ -48,6 +54,7 @@ import {
   IntakeAddress,
   IntakeEducation,
   IntakeEmployment,
+  IntakeReference,
 } from "@/types/intake";
 
 type IntakeStepId =
@@ -58,6 +65,7 @@ type IntakeStepId =
   | "addresses"
   | "employment"
   | "education"
+  | "references"
   | "review"
   | "success";
 
@@ -70,6 +78,8 @@ interface StepDefinition {
   isTerminal?: boolean;
   onPrimary?: () => Promise<boolean | void> | boolean | void;
   primaryButtonDisabled?: boolean;
+  /** If set, this step is only shown when the section is visible */
+  sectionId?: IntakeSectionId;
 }
 
 interface IntakeFormState {
@@ -84,6 +94,7 @@ interface IntakeFormState {
   addresses: IntakeAddress[];
   employments: IntakeEmployment[];
   educations: IntakeEducation[];
+  references: IntakeReference[];
 }
 
 const formSchemaVersion = "intake-extended-v2";
@@ -101,6 +112,7 @@ const initialFormState: IntakeFormState = {
   addresses: [createEmptyAddress()],
   employments: [],
   educations: [],
+  references: [],
 };
 
 const CONSENT_TEXT = `I authorize Holmes to obtain and share consumer reports for employment purposes.
@@ -190,6 +202,12 @@ const IntakeFlow = () => {
   const [progressError, setProgressError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+  const [sectionConfig, setSectionConfig] = useState<
+    IntakeSectionConfig | undefined
+  >();
+
+  // Determine which sections should be visible based on ordered services
+  const { isVisible } = useSectionVisibility(sectionConfig);
   const envPrefill = useMemo(
     () => ({
       firstName: import.meta.env.VITE_INTAKE_SUBJECT_FIRST ?? "",
@@ -376,7 +394,14 @@ const IntakeFlow = () => {
       phones: [
         { phoneNumber: formState.phone.trim(), type: 0, isPrimary: true },
       ],
-      references: [],
+      references: formState.references.map((r) => ({
+        name: r.name.trim(),
+        phone: r.phone.trim() || null,
+        email: r.email.trim() || null,
+        relationship: r.relationship.trim() || null,
+        yearsKnown: r.yearsKnown,
+        type: r.type,
+      })),
       consent: {
         artifactId: consentReceipt?.artifactId ?? null,
         acceptedAt: consentReceipt?.createdAt ?? null,
@@ -403,6 +428,11 @@ const IntakeFlow = () => {
   const applyBootstrap = useCallback((bootstrap: IntakeBootstrapResponse) => {
     setBootstrapError(null);
 
+    // Store section configuration for policy-driven visibility
+    if (bootstrap.sectionConfig) {
+      setSectionConfig(bootstrap.sectionConfig);
+    }
+
     if (bootstrap.consent) {
       setConsentReceipt({
         artifactId: bootstrap.consent.artifactId,
@@ -421,6 +451,7 @@ const IntakeFlow = () => {
       addresses?: IntakeAddress[];
       employments?: IntakeEmployment[];
       educations?: IntakeEducation[];
+      references?: IntakeReference[];
       phones?: { phoneNumber: string }[];
     }
 
@@ -456,6 +487,7 @@ const IntakeFlow = () => {
       addresses: decoded.addresses?.length ? decoded.addresses : prev.addresses,
       employments: decoded.employments ?? prev.employments,
       educations: decoded.educations ?? prev.educations,
+      references: decoded.references ?? prev.references,
       consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
     }));
   }, []);
@@ -560,7 +592,7 @@ const IntakeFlow = () => {
     otpVerified,
   ]);
 
-  const steps: StepDefinition[] = useMemo(
+  const allSteps: StepDefinition[] = useMemo(
     () => [
       {
         id: "verify",
@@ -855,6 +887,7 @@ const IntakeFlow = () => {
       },
       {
         id: "addresses",
+        sectionId: "addresses",
         title: "Address History",
         subtitle: "We need your residential history for the past 7 years.",
         render: () => {
@@ -891,6 +924,7 @@ const IntakeFlow = () => {
       },
       {
         id: "employment",
+        sectionId: "employment",
         title: "Employment History",
         subtitle: "Tell us about your work experience.",
         render: () => {
@@ -925,6 +959,7 @@ const IntakeFlow = () => {
       },
       {
         id: "education",
+        sectionId: "education",
         title: "Education History",
         subtitle: "Share your educational background.",
         render: () => {
@@ -946,6 +981,42 @@ const IntakeFlow = () => {
                   updateField("educations", educations);
                   setProgressError(null);
                 }}
+              />
+            </Stack>
+          );
+        },
+        primaryCtaLabel: "Continue",
+        onPrimary: () => {
+          setProgressError(null);
+          return true;
+        },
+      },
+      {
+        id: "references",
+        sectionId: "references",
+        title: "References",
+        subtitle: "Provide contacts who can verify your experience.",
+        render: () => {
+          const progressErrorAlert = progressError ? (
+            <Alert severity="error">{progressError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="Your references"
+                body="Add contacts who can speak to your work history and character."
+                helper="Include both professional and personal references if requested."
+              />
+              {progressErrorAlert}
+              <ReferenceForm
+                references={formState.references}
+                onChange={(references) => {
+                  updateField("references", references);
+                  setProgressError(null);
+                }}
+                minReferences={0}
+                maxReferences={5}
               />
             </Stack>
           );
@@ -987,14 +1058,14 @@ const IntakeFlow = () => {
 
           const currentAddress =
             formState.addresses.find((a) => a.isCurrent) ??
-            formState.addresses.at(0);
+            (formState.addresses[0] as IntakeAddress | undefined);
           const addressDisplay = currentAddress
             ? `${currentAddress.street1}${currentAddress.street2 ? `, ${currentAddress.street2}` : ""}, ${currentAddress.city}, ${currentAddress.state} ${currentAddress.postalCode}`
             : "—";
 
           const currentEmployer =
             formState.employments.find((e) => e.isCurrent) ??
-            formState.employments.at(0);
+            (formState.employments[0] as IntakeEmployment | undefined);
 
           return (
             <Stack spacing={2}>
@@ -1100,6 +1171,18 @@ const IntakeFlow = () => {
       verifyingOtp,
     ],
   );
+
+  // Filter steps based on section visibility from ordered services
+  const steps = useMemo(() => {
+    return allSteps.filter((step) => {
+      // Steps without sectionId are always visible (verify, otp, consent, personal, review, success)
+      if (!step.sectionId) {
+        return true;
+      }
+      // Steps with sectionId are visible only if the section is visible
+      return isVisible(step.sectionId);
+    });
+  }, [allSteps, isVisible]);
 
   const activeStep = steps[activeIndex];
   const totalSteps = steps.length;

@@ -2,15 +2,19 @@ import React from "react";
 
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import CancelIcon from "@mui/icons-material/Cancel";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   Box,
   Card,
   CardContent,
   Chip,
+  CircularProgress,
+  IconButton,
   LinearProgress,
   Stack,
   Tooltip,
@@ -76,16 +80,33 @@ const categoryColors: Record<
 interface ServiceStatusCardProps {
   service: ServiceRequestSummaryDto;
   showCategory?: boolean;
+  onRetry?: (serviceId: string) => void;
+  onCancel?: (serviceId: string) => void;
+  isRetrying?: boolean;
+  isCanceling?: boolean;
 }
 
 const ServiceStatusCard = ({
   service,
   showCategory = true,
+  onRetry,
+  onCancel,
+  isRetrying = false,
+  isCanceling = false,
 }: ServiceStatusCardProps) => {
   const isInProgress =
     service.status === "InProgress" || service.status === "Dispatched";
   const hasError = service.status === "Failed";
   const hasRetries = service.attemptCount > 1;
+
+  // Determine if actions are available
+  const canRetry =
+    hasError && onRetry && service.attemptCount < service.maxAttempts;
+  const canCancel =
+    onCancel &&
+    (service.status === "Pending" ||
+      service.status === "Dispatched" ||
+      service.status === "InProgress");
 
   // Get the most relevant timestamp
   const getRelevantTimestamp = () => {
@@ -182,6 +203,48 @@ const ServiceStatusCard = ({
               <Box sx={{ color: statusColors[service.status] }}>
                 {statusIcons[service.status]}
               </Box>
+              {(() => {
+                const retryIcon = isRetrying ? (
+                  <CircularProgress size={18} />
+                ) : (
+                  <RefreshIcon fontSize="small" />
+                );
+                const retryButton = canRetry ? (
+                  <Tooltip title="Retry service">
+                    <IconButton
+                      size="small"
+                      onClick={() => onRetry(service.id)}
+                      disabled={isRetrying}
+                      color="primary"
+                      sx={{ ml: 0.5 }}
+                    >
+                      {retryIcon}
+                    </IconButton>
+                  </Tooltip>
+                ) : null;
+                return retryButton;
+              })()}
+              {(() => {
+                const cancelIcon = isCanceling ? (
+                  <CircularProgress size={18} />
+                ) : (
+                  <CancelOutlinedIcon fontSize="small" />
+                );
+                const cancelButton = canCancel ? (
+                  <Tooltip title="Cancel service">
+                    <IconButton
+                      size="small"
+                      onClick={() => onCancel(service.id)}
+                      disabled={isCanceling}
+                      color="error"
+                      sx={{ ml: 0.5 }}
+                    >
+                      {cancelIcon}
+                    </IconButton>
+                  </Tooltip>
+                ) : null;
+                return cancelButton;
+              })()}
             </Stack>
           </Box>
 

@@ -396,6 +396,25 @@ export interface OrderChangeEvent {
   changedAt: string;
 }
 
+export interface ServiceChangeEvent {
+  serviceRequestId: Ulid;
+  orderId: Ulid;
+  serviceTypeCode: string;
+  status: ServiceStatus;
+  reason?: string;
+  changedAt: string;
+}
+
+export interface SlaClockChangeEvent {
+  clockId: Ulid;
+  orderId: Ulid;
+  customerId: Ulid;
+  kind: ClockKind;
+  state: ClockState;
+  reason?: string;
+  changedAt: string;
+}
+
 // ============================================================================
 // Service Types
 // ============================================================================
@@ -509,6 +528,10 @@ export interface ServiceCatalogTierInput {
 export interface UpdateServiceCatalogRequest {
   services?: ServiceCatalogServiceInput[];
   tiers?: ServiceCatalogTierInput[];
+}
+
+export interface CancelServiceRequest {
+  reason: string;
 }
 
 // ============================================================================

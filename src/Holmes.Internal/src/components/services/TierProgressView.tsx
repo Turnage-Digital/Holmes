@@ -23,7 +23,14 @@ import type { ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
 // Tier Summary Component
 // ============================================================================
 
-interface TierSummaryProps {
+interface ServiceActionsProps {
+  onRetry?: (serviceId: string) => void;
+  onCancel?: (serviceId: string) => void;
+  retryingId?: string | null;
+  cancelingId?: string | null;
+}
+
+interface TierSummaryProps extends ServiceActionsProps {
   tier: number;
   services: ServiceRequestSummaryDto[];
   defaultExpanded?: boolean;
@@ -85,6 +92,10 @@ const TierAccordion = ({
   tier,
   services,
   defaultExpanded = false,
+  onRetry,
+  onCancel,
+  retryingId,
+  cancelingId,
 }: TierSummaryProps) => {
   const status = getTierStatus(services);
 
@@ -187,6 +198,10 @@ const TierAccordion = ({
               key={service.id}
               service={service}
               showCategory
+              onRetry={onRetry}
+              onCancel={onCancel}
+              isRetrying={retryingId === service.id}
+              isCanceling={cancelingId === service.id}
             />
           ))}
         </Stack>
@@ -199,11 +214,17 @@ const TierAccordion = ({
 // Tier Progress View Component
 // ============================================================================
 
-interface TierProgressViewProps {
+interface TierProgressViewProps extends ServiceActionsProps {
   services: ServiceRequestSummaryDto[];
 }
 
-const TierProgressView = ({ services }: TierProgressViewProps) => {
+const TierProgressView = ({
+  services,
+  onRetry,
+  onCancel,
+  retryingId,
+  cancelingId,
+}: TierProgressViewProps) => {
   // Group services by tier
   const tierGroups = useMemo(() => {
     const groups = new Map<number, ServiceRequestSummaryDto[]>();
@@ -299,6 +320,10 @@ const TierProgressView = ({ services }: TierProgressViewProps) => {
           tier={tier}
           services={tierServices}
           defaultExpanded={index === 0}
+          onRetry={onRetry}
+          onCancel={onCancel}
+          retryingId={retryingId}
+          cancelingId={cancelingId}
         />
       ))}
     </Stack>

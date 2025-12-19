@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -38,6 +38,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -45,6 +46,8 @@ import type {
   NotificationSummaryDto,
   OrderAuditEventDto,
   OrderTimelineEntryDto,
+  ServiceChangeEvent,
+  SlaClockChangeEvent,
   SlaClockDto,
 } from "@/types/api";
 
@@ -53,6 +56,10 @@ import SlaBadge, {
 } from "@/components/patterns/SlaBadge";
 import { TierProgressView } from "@/components/services";
 import {
+  createServiceChangesStream,
+  createSlaClockChangesStream,
+  queryKeys,
+  useCancelServiceRequest,
   useCustomer,
   useIsAdmin,
   useOrder,
@@ -64,6 +71,7 @@ import {
   usePauseSlaClock,
   useResumeSlaClock,
   useRetryNotification,
+  useRetryServiceRequest,
   useSubject,
 } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
@@ -316,7 +324,49 @@ interface ServicesTabProps {
 }
 
 const ServicesTab = ({ orderId }: ServicesTabProps) => {
+  const isAdmin = useIsAdmin();
   const { data: orderServices, isLoading, error } = useOrderServices(orderId);
+  const retryMutation = useRetryServiceRequest();
+  const cancelMutation = useCancelServiceRequest();
+
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelServiceId, setCancelServiceId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+
+  const handleRetry = (serviceId: string) => {
+    setRetryingId(serviceId);
+    retryMutation.mutate(serviceId, {
+      onSettled: () => setRetryingId(null),
+    });
+  };
+
+  const handleCancelClick = (serviceId: string) => {
+    setCancelServiceId(serviceId);
+    setCancelReason("");
+    setCancelDialogOpen(true);
+  };
+
+  const handleCancelConfirm = () => {
+    if (cancelServiceId && cancelReason.trim()) {
+      setCancelingId(cancelServiceId);
+      cancelMutation.mutate(
+        {
+          serviceRequestId: cancelServiceId,
+          payload: { reason: cancelReason.trim() },
+        },
+        {
+          onSuccess: () => {
+            setCancelDialogOpen(false);
+            setCancelServiceId(null);
+            setCancelReason("");
+          },
+          onSettled: () => setCancelingId(null),
+        },
+      );
+    }
+  };
 
   if (isLoading) {
     return (
@@ -338,7 +388,59 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
     );
   }
 
-  return <TierProgressView services={orderServices.services} />;
+  const retryHandler = isAdmin ? handleRetry : undefined;
+  const cancelHandler = isAdmin ? handleCancelClick : undefined;
+
+  return (
+    <>
+      <TierProgressView
+        services={orderServices.services}
+        onRetry={retryHandler}
+        onCancel={cancelHandler}
+        retryingId={retryingId}
+        cancelingId={cancelingId}
+      />
+
+      {/* Cancel Dialog */}
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+      >
+        <DialogTitle>Cancel Service Request</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Please provide a reason for canceling this service request. This
+            action cannot be undone.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Reason"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="e.g., No longer needed, duplicate request"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelDialogOpen(false)}>Back</Button>
+          {(() => {
+            const buttonLabel = cancelMutation.isPending
+              ? "Canceling…"
+              : "Cancel Service";
+            return (
+              <Button
+                onClick={handleCancelConfirm}
+                variant="contained"
+                color="error"
+                disabled={!cancelReason.trim() || cancelMutation.isPending}
+              >
+                {buttonLabel}
+              </Button>
+            );
+          })()}
+        </DialogActions>
+      </Dialog>
+    </>
+  );
 };
 
 // ============================================================================
@@ -1135,6 +1237,7 @@ const NotificationsTab = ({ orderId }: NotificationsTabProps) => {
 
 const OrderDetailPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { orderId } = useParams<{ orderId: string }>();
   const [activeTab, setActiveTab] = useState(0);
 
@@ -1151,6 +1254,66 @@ const OrderDetailPage = () => {
 
   // Fetch services for badge count
   const { data: orderServices } = useOrderServices(orderId!);
+
+  // SSE for real-time service updates
+  useEffect(() => {
+    if (!orderId) return;
+
+    const eventSource = createServiceChangesStream(orderId);
+
+    const handleServiceChange = (event: MessageEvent) => {
+      try {
+        const payload: ServiceChangeEvent = JSON.parse(event.data);
+
+        // Only process events for this order
+        if (payload.orderId === orderId) {
+          // Invalidate services query to refetch
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.orderServices(orderId),
+          });
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    };
+
+    eventSource.addEventListener("service.change", handleServiceChange);
+
+    return () => {
+      eventSource.removeEventListener("service.change", handleServiceChange);
+      eventSource.close();
+    };
+  }, [orderId, queryClient]);
+
+  // SSE for real-time SLA clock updates
+  useEffect(() => {
+    if (!orderId) return;
+
+    const eventSource = createSlaClockChangesStream(orderId);
+
+    const handleClockChange = (event: MessageEvent) => {
+      try {
+        const payload: SlaClockChangeEvent = JSON.parse(event.data);
+
+        // Only process events for this order
+        if (payload.orderId === orderId) {
+          // Invalidate SLA clocks query to refetch
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.orderSlaClocks(orderId),
+          });
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    };
+
+    eventSource.addEventListener("clock.change", handleClockChange);
+
+    return () => {
+      eventSource.removeEventListener("clock.change", handleClockChange);
+      eventSource.close();
+    };
+  }, [orderId, queryClient]);
 
   // Loading state
   if (orderLoading) {

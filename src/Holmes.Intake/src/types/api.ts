@@ -42,6 +42,15 @@ export interface SubmitIntakeRequest {
   submittedAt?: string;
 }
 
+/**
+ * Configuration for which intake form sections should be displayed,
+ * based on the services ordered for this background check.
+ */
+export interface IntakeSectionConfig {
+  requiredSections: string[];
+  enabledServiceCodes: string[];
+}
+
 export interface IntakeBootstrapResponse {
   sessionId: string;
   orderId: string;
@@ -72,4 +81,5 @@ export interface IntakeBootstrapResponse {
     payloadCipherText: string;
     updatedAt: string;
   };
+  sectionConfig?: IntakeSectionConfig;
 }

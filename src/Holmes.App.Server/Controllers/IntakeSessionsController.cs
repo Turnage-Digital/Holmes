@@ -42,6 +42,7 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
             policySnapshotId,
             policySchemaVersion,
             request.PolicyMetadata ?? new Dictionary<string, string>(),
+            request.OrderedServiceCodes,
             request.PolicyCapturedAt ?? DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow,
             TimeSpan.FromHours(ttlHours),
@@ -283,6 +284,7 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
         string PolicySnapshotId,
         string? PolicySnapshotSchemaVersion,
         IReadOnlyDictionary<string, string>? PolicyMetadata,
+        IReadOnlyList<string>? OrderedServiceCodes,
         int? TimeToLiveHours,
         DateTimeOffset? PolicyCapturedAt,
         string? ResumeToken

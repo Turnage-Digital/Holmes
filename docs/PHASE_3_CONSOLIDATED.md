@@ -1,6 +1,6 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-14 (Frontend verified working)
+**Last Updated:** 2025-12-15 (Service Retry/Cancel endpoints and UI implemented)
 **Status:** In Progress
 
 This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
@@ -81,7 +81,8 @@ assigning services to new tiers). SeedData.cs creates demo orders with SLA clock
 **Holmes.Internal gaps (remaining):**
 
 - [ ] SLA clock dashboard (show at-risk/breached counts aggregated across orders)
-- [ ] SSE extension for `clock.at_risk`, `clock.breached` events
+- [x] SSE for real-time clock updates (`clock.change` events) — `SlaClockChangeBroadcaster`,
+  `SlaClockChangeBroadcastHandler`, `SlaClockChangesController`, frontend wired in `OrderDetailPage`
 
 ---
 
@@ -136,8 +137,11 @@ assigning services to new tiers). SeedData.cs creates demo orders with SLA clock
 
 **Gaps (remaining):**
 
-- [ ] SSE integration for real-time service updates
-- [ ] Retry/Cancel actions calling real endpoints
+- [x] SSE integration for real-time service updates — `ServiceChangeBroadcastHandler` publishes to existing
+  `IServiceChangeBroadcaster`, frontend wired in `OrderDetailPage`
+- [x] Retry/Cancel actions calling real endpoints — `POST /api/services/{id}/retry` and
+  `POST /api/services/{id}/cancel` wired to `ServicesController`, frontend hooks `useRetryServiceRequest`
+  and `useCancelServiceRequest` wired to `ServiceStatusCard` with action buttons
 
 ---
 
@@ -193,32 +197,35 @@ assigning services to new tiers). SeedData.cs creates demo orders with SLA clock
 
 ### Implemented (Controllers exist)
 
-| Endpoint                           | Controller               | Status    |
-|------------------------------------|--------------------------|-----------|
-| `GET/POST /api/customers`          | CustomersController      | ✅ Working |
-| `GET/POST /api/subjects`           | SubjectsController       | ✅ Working |
-| `GET/POST /api/orders`             | OrdersController         | ✅ Working |
-| `GET/POST /api/users`              | UsersController          | ✅ Working |
-| `GET /api/intake/sessions`         | IntakeSessionsController | ✅ Working |
-| `GET /api/services/{orderId}`      | ServicesController       | ✅ Exists  |
-| `SSE /api/order-changes`           | OrderChangesController   | ✅ Working |
-| `SSE /api/service-changes`         | ServiceChangesController | ✅ Exists  |
-| `GET /api/clocks/sla?orderId={id}` | SlaClocksController      | ✅ Working |
-| `POST /api/clocks/sla/{id}/pause`  | SlaClocksController      | ✅ Working |
-| `POST /api/clocks/sla/{id}/resume` | SlaClocksController      | ✅ Working |
-| `GET /api/notifications`                  | NotificationsController  | ✅ Working |
-| `GET /api/notifications/{id}`             | NotificationsController  | ✅ Working |
-| `POST /api/notifications/{id}/retry`      | NotificationsController  | ✅ Working |
-| `GET /api/services/queue`                 | ServicesController       | ✅ Working |
-| `GET /api/customers/{id}/service-catalog` | CustomersController      | ✅ Working |
-| `PUT /api/customers/{id}/service-catalog` | CustomersController      | ✅ Working |
+| Endpoint                                  | Controller                | Status    |
+|-------------------------------------------|---------------------------|-----------|
+| `GET/POST /api/customers`                 | CustomersController       | ✅ Working |
+| `GET/POST /api/subjects`                  | SubjectsController        | ✅ Working |
+| `GET/POST /api/orders`                    | OrdersController          | ✅ Working |
+| `GET/POST /api/users`                     | UsersController           | ✅ Working |
+| `GET /api/intake/sessions`                | IntakeSessionsController  | ✅ Working |
+| `GET /api/services/{orderId}`             | ServicesController        | ✅ Exists  |
+| `SSE /api/orders/changes`                 | OrderChangesController    | ✅ Working |
+| `SSE /api/services/changes`               | ServiceChangesController  | ✅ Working |
+| `SSE /api/clocks/sla/changes`             | SlaClockChangesController | ✅ Working |
+| `GET /api/clocks/sla?orderId={id}`        | SlaClocksController       | ✅ Working |
+| `POST /api/clocks/sla/{id}/pause`         | SlaClocksController       | ✅ Working |
+| `POST /api/clocks/sla/{id}/resume`        | SlaClocksController       | ✅ Working |
+| `GET /api/notifications`                  | NotificationsController   | ✅ Working |
+| `GET /api/notifications/{id}`             | NotificationsController   | ✅ Working |
+| `POST /api/notifications/{id}/retry`      | NotificationsController   | ✅ Working |
+| `GET /api/services/queue`                 | ServicesController        | ✅ Working |
+| `POST /api/services/{id}/retry`           | ServicesController        | ✅ Working |
+| `POST /api/services/{id}/cancel`          | ServicesController        | ✅ Working |
+| `GET /api/customers/{id}/service-catalog` | CustomersController       | ✅ Working |
+| `PUT /api/customers/{id}/service-catalog` | CustomersController       | ✅ Working |
 
 ### Needed but Missing
 
-| Endpoint                                  | Purpose             | Priority |
-|-------------------------------------------|---------------------|----------|
-| `GET /api/subjects/{id}/addresses`        | Subject addresses   | Medium   |
-| `GET /api/subjects/{id}/employments`      | Subject employment  | Medium   |
+| Endpoint                             | Purpose            | Priority |
+|--------------------------------------|--------------------|----------|
+| `GET /api/subjects/{id}/addresses`   | Subject addresses  | Medium   |
+| `GET /api/subjects/{id}/employments` | Subject employment | Medium   |
 
 ---
 
@@ -303,8 +310,8 @@ Once projections exist, wire frontend components.
 
 ### Should Have
 
-- [ ] SSE real-time updates for service status
-- [ ] Retry/Cancel service actions work
+- [x] SSE real-time updates for service and clock status (backend + frontend complete)
+- [x] Retry/Cancel service actions work (via Services tab on Order detail page)
 - [ ] Employment/Education captured in intake
 - [x] Clock pause/resume from UI (works for Running clocks; hidden for terminal states)
 

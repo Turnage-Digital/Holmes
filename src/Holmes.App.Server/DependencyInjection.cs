@@ -6,9 +6,9 @@ using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions;
 using Holmes.Core.Application.Abstractions.Events;
-using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Application.Behaviors;
+using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Security;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Events;
@@ -21,7 +21,9 @@ using Holmes.Customers.Infrastructure.Sql.Projections;
 using Holmes.Customers.Infrastructure.Sql.Queries;
 using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Holmes.Intake.Application.Abstractions.Projections;
+using Holmes.Intake.Application.Abstractions.Services;
 using Holmes.Intake.Application.Commands;
+using Holmes.Intake.Application.Services;
 using Holmes.Intake.Domain;
 using Holmes.Intake.Infrastructure.Sql;
 using Holmes.Intake.Infrastructure.Sql.Projections;
@@ -38,12 +40,14 @@ using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
 using Holmes.Services.Infrastructure.Sql.Queries;
+using Holmes.SlaClocks.Application.Abstractions.Notifications;
 using Holmes.SlaClocks.Application.Abstractions.Projections;
 using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
+using Holmes.SlaClocks.Infrastructure.Sql.Notifications;
 using Holmes.SlaClocks.Infrastructure.Sql.Projections;
 using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
@@ -274,6 +278,9 @@ internal static class DependencyInjection
         services.AddCustomersInfrastructureSql(connectionString, serverVersion);
         services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
         services.AddIntakeInfrastructureSql(connectionString, serverVersion);
+        services.AddSingleton<
+            IIntakeSectionMappingService,
+            IntakeSectionMappingService>();
         services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
         services.AddNotificationsInfrastructureSql(connectionString, serverVersion);
         services.AddSlaClockInfrastructureSql(connectionString, serverVersion);
@@ -319,6 +326,9 @@ internal static class DependencyInjection
         services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
         services.AddScoped<IIntakeSessionProjectionWriter, SqlIntakeSessionProjectionWriter>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
+        services.AddSingleton<
+            IIntakeSectionMappingService,
+            IntakeSectionMappingService>();
         services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
@@ -344,6 +354,7 @@ internal static class DependencyInjection
         services.AddScoped<ISlaClockQueries, SqlSlaClockQueries>();
         services.AddScoped<ISlaClockProjectionWriter, SqlSlaClockProjectionWriter>();
         services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
+        services.AddSingleton<ISlaClockChangeBroadcaster, SlaClockChangeBroadcaster>();
         services.AddAppIntegration();
         return services;
     }
