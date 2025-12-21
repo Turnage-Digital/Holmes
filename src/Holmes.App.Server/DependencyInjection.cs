@@ -163,6 +163,8 @@ internal static class DependencyInjection
             config.RegisterServicesFromAssemblyContaining<CreateNotificationRequestCommand>();
             config.RegisterServicesFromAssemblyContaining<StartSlaClockCommand>();
             config.RegisterServicesFromAssemblyContaining<CreateServiceRequestCommand>();
+            // Integration handlers (cross-module event handlers)
+            config.RegisterServicesFromAssemblyContaining<Holmes.App.Integration.EventHandlers.IntakeToWorkflowHandler>();
         });
 
         return services;
