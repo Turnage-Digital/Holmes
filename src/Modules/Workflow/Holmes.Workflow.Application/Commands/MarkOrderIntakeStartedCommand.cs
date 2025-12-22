@@ -11,7 +11,7 @@ public sealed record MarkOrderIntakeStartedCommand(
     UlidId IntakeSessionId,
     DateTimeOffset StartedAt,
     string? Reason
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class MarkOrderIntakeStartedCommandHandler(IWorkflowUnitOfWork unitOfWork)
     : IRequestHandler<MarkOrderIntakeStartedCommand, Result>

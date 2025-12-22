@@ -9,7 +9,7 @@ namespace Holmes.SlaClocks.Application.Commands;
 public sealed record ResumeSlaClockCommand(
     UlidId ClockId,
     DateTimeOffset ResumedAt
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class ResumeSlaClockCommandHandler(
     ISlaClockUnitOfWork unitOfWork

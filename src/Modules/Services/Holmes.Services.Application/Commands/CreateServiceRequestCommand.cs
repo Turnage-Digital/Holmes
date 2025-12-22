@@ -14,7 +14,7 @@ public sealed record CreateServiceRequestCommand(
     ServiceScope? Scope,
     UlidId? CatalogSnapshotId,
     DateTimeOffset CreatedAt
-) : RequestBase<Result<UlidId>>;
+) : RequestBase<Result<UlidId>>, ISkipUserAssignment;
 
 public sealed class CreateServiceRequestCommandHandler(
     IServicesUnitOfWork unitOfWork
@@ -31,7 +31,7 @@ public sealed class CreateServiceRequestCommandHandler(
             return Result.Fail<UlidId>($"Unknown service type code: {request.ServiceTypeCode}");
         }
 
-        var serviceRequest = ServiceRequest.Create(
+        var serviceRequest = Service.Create(
             UlidId.NewUlid(),
             request.OrderId,
             request.CustomerId,

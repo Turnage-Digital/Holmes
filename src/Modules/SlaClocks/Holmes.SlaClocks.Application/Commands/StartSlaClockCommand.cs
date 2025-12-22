@@ -14,7 +14,7 @@ public sealed record StartSlaClockCommand(
     DateTimeOffset StartedAt,
     int? TargetBusinessDays = null,
     decimal? AtRiskThresholdPercent = null
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class StartSlaClockCommandHandler(
     ISlaClockUnitOfWork unitOfWork,

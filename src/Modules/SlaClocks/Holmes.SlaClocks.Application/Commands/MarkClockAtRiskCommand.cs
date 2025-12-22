@@ -9,7 +9,7 @@ namespace Holmes.SlaClocks.Application.Commands;
 public sealed record MarkClockAtRiskCommand(
     UlidId ClockId,
     DateTimeOffset AtRiskAt
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class MarkClockAtRiskCommandHandler(
     ISlaClockUnitOfWork unitOfWork

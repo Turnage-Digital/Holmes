@@ -16,7 +16,7 @@ public sealed record CreateNotificationRequestCommand(
     NotificationPriority Priority = NotificationPriority.Normal,
     bool IsAdverseAction = false,
     string? CorrelationId = null
-) : RequestBase<Result<CreateNotificationRequestResult>>;
+) : RequestBase<Result<CreateNotificationRequestResult>>, ISkipUserAssignment;
 
 public sealed record CreateNotificationRequestResult(
     UlidId NotificationId,
@@ -36,7 +36,7 @@ public sealed class CreateNotificationRequestCommandHandler(
     {
         var now = timeProvider.GetUtcNow();
 
-        var notification = NotificationRequest.Create(
+        var notification = Notification.Create(
             request.CustomerId,
             request.Trigger,
             request.Recipient,

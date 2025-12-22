@@ -10,7 +10,7 @@ public sealed record CompleteSlaClockCommand(
     UlidId OrderId,
     ClockKind Kind,
     DateTimeOffset CompletedAt
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class CompleteSlaClockCommandHandler(
     ISlaClockUnitOfWork unitOfWork

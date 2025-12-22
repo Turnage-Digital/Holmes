@@ -14,7 +14,7 @@ public sealed record BeginOrderFulfillmentCommand(
     UlidId OrderId,
     DateTimeOffset StartedAt,
     string? Reason
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class BeginOrderFulfillmentCommandHandler(IWorkflowUnitOfWork unitOfWork)
     : IRequestHandler<BeginOrderFulfillmentCommand, Result>

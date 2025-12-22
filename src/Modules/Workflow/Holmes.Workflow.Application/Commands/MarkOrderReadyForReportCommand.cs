@@ -14,7 +14,7 @@ public sealed record MarkOrderReadyForReportCommand(
     UlidId OrderId,
     DateTimeOffset ReadyAt,
     string? Reason
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class MarkOrderReadyForReportCommandHandler(IWorkflowUnitOfWork unitOfWork)
     : IRequestHandler<MarkOrderReadyForReportCommand, Result>

@@ -11,7 +11,7 @@ public sealed record RecordOrderInviteCommand(
     UlidId IntakeSessionId,
     DateTimeOffset InvitedAt,
     string? Reason
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class RecordOrderInviteCommandHandler(IWorkflowUnitOfWork unitOfWork)
     : IRequestHandler<RecordOrderInviteCommand, Result>

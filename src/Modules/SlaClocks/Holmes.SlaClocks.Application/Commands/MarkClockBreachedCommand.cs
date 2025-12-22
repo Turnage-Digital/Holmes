@@ -9,7 +9,7 @@ namespace Holmes.SlaClocks.Application.Commands;
 public sealed record MarkClockBreachedCommand(
     UlidId ClockId,
     DateTimeOffset BreachedAt
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class MarkClockBreachedCommandHandler(
     ISlaClockUnitOfWork unitOfWork

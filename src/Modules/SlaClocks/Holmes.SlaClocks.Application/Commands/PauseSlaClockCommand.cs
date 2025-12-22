@@ -10,7 +10,7 @@ public sealed record PauseSlaClockCommand(
     UlidId ClockId,
     string Reason,
     DateTimeOffset PausedAt
-) : RequestBase<Result>;
+) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class PauseSlaClockCommandHandler(
     ISlaClockUnitOfWork unitOfWork
