@@ -8,7 +8,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Mappers;
 
 public static class NotificationRequestMapper
 {
-    public static NotificationRequest ToDomain(NotificationRequestDb db)
+    public static Notification ToDomain(NotificationRequestDb db)
     {
         var recipientMetadata = string.IsNullOrEmpty(db.RecipientMetadataJson)
             ? new Dictionary<string, string>()
@@ -55,7 +55,7 @@ public static class NotificationRequestMapper
             })
             .ToList();
 
-        return NotificationRequest.Rehydrate(
+        return Notification.Rehydrate(
             UlidId.Parse(db.Id),
             UlidId.Parse(db.CustomerId),
             db.OrderId is not null ? UlidId.Parse(db.OrderId) : null,
@@ -75,7 +75,7 @@ public static class NotificationRequestMapper
             attempts);
     }
 
-    public static NotificationRequestDb ToDb(NotificationRequest request)
+    public static NotificationRequestDb ToDb(Notification request)
     {
         return new NotificationRequestDb
         {
@@ -117,7 +117,7 @@ public static class NotificationRequestMapper
         };
     }
 
-    public static void UpdateDb(NotificationRequestDb db, NotificationRequest request)
+    public static void UpdateDb(NotificationRequestDb db, Notification request)
     {
         db.Status = (int)request.Status;
         db.ProcessedAt = request.ProcessedAt?.UtcDateTime;

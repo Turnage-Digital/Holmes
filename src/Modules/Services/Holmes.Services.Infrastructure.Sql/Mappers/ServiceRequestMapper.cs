@@ -13,7 +13,7 @@ public static class ServiceRequestMapper
         WriteIndented = false
     };
 
-    public static ServiceRequest ToDomain(ServiceRequestDb db)
+    public static Service ToDomain(ServiceRequestDb db)
     {
         ServiceResult? result = null;
         if (db.Result is not null)
@@ -21,7 +21,7 @@ public static class ServiceRequestMapper
             result = ToResultDomain(db.Result);
         }
 
-        return ServiceRequest.Rehydrate(
+        return Service.Rehydrate(
             UlidId.Parse(db.Id),
             UlidId.Parse(db.OrderId),
             UlidId.Parse(db.CustomerId),
@@ -46,7 +46,7 @@ public static class ServiceRequestMapper
             result);
     }
 
-    public static ServiceRequestDb ToDb(ServiceRequest domain)
+    public static ServiceRequestDb ToDb(Service domain)
     {
         var db = new ServiceRequestDb
         {
@@ -81,7 +81,7 @@ public static class ServiceRequestMapper
         return db;
     }
 
-    public static void UpdateDb(ServiceRequestDb db, ServiceRequest domain)
+    public static void UpdateDb(ServiceRequestDb db, Service domain)
     {
         db.CatalogSnapshotId = domain.CatalogSnapshotId?.ToString();
         db.Status = domain.Status;

@@ -1,6 +1,7 @@
 # Holmes State Machines & Lifecycle Documentation
 
-This document describes the state machines for the three primary aggregates (Order, IntakeSession, ServiceRequest) and how they interact.
+This document describes the state machines for the three primary aggregates (Order, IntakeSession, ServiceRequest) and
+how they interact.
 
 ---
 
@@ -59,18 +60,18 @@ Canceled ◄── Blocked ◄────────────────�
 
 ### Transitions
 
-| From | To | Trigger | Handler/Command | What Happens |
-|------|----|---------|-----------------|--------------|
-| `Created` | `Invited` | `RecordInvite()` | `RecordOrderInviteCommand` | IntakeSession created first, then Order updated |
-| `Invited` | `IntakeInProgress` | `MarkIntakeInProgress()` | `MarkOrderIntakeStartedCommand` | Subject opened intake form |
-| `IntakeInProgress` | `IntakeComplete` | `MarkIntakeSubmitted()` | `MarkOrderIntakeSubmittedCommand` | Subject submitted intake form |
-| `IntakeComplete` | `ReadyForFulfillment` | `MarkReadyForFulfillment()` | `MarkOrderReadyForFulfillmentCommand` | Intake accepted by system |
-| `ReadyForFulfillment` | `FulfillmentInProgress` | `BeginFulfillment()` | `BeginOrderFulfillmentCommand` | Services created and dispatched |
-| `FulfillmentInProgress` | `ReadyForReport` | `MarkReadyForReport()` | `MarkOrderReadyForReportCommand` | All services completed |
-| `ReadyForReport` | `Closed` | `Close()` | `CloseOrderCommand` | Report delivered, order finalized |
-| Any (non-terminal) | `Blocked` | `Block()` | `BlockOrderCommand` | Order paused due to issue |
-| `Blocked` | Previous | `ResumeFromBlock()` | `ResumeOrderCommand` | Issue resolved |
-| Any (non-terminal) | `Canceled` | `Cancel()` | `CancelOrderCommand` | Order abandoned |
+| From                    | To                      | Trigger                     | Handler/Command                       | What Happens                                    |
+|-------------------------|-------------------------|-----------------------------|---------------------------------------|-------------------------------------------------|
+| `Created`               | `Invited`               | `RecordInvite()`            | `RecordOrderInviteCommand`            | IntakeSession created first, then Order updated |
+| `Invited`               | `IntakeInProgress`      | `MarkIntakeInProgress()`    | `MarkOrderIntakeStartedCommand`       | Subject opened intake form                      |
+| `IntakeInProgress`      | `IntakeComplete`        | `MarkIntakeSubmitted()`     | `MarkOrderIntakeSubmittedCommand`     | Subject submitted intake form                   |
+| `IntakeComplete`        | `ReadyForFulfillment`   | `MarkReadyForFulfillment()` | `MarkOrderReadyForFulfillmentCommand` | Intake accepted by system                       |
+| `ReadyForFulfillment`   | `FulfillmentInProgress` | `BeginFulfillment()`        | `BeginOrderFulfillmentCommand`        | Services created and dispatched                 |
+| `FulfillmentInProgress` | `ReadyForReport`        | `MarkReadyForReport()`      | `MarkOrderReadyForReportCommand`      | All services completed                          |
+| `ReadyForReport`        | `Closed`                | `Close()`                   | `CloseOrderCommand`                   | Report delivered, order finalized               |
+| Any (non-terminal)      | `Blocked`               | `Block()`                   | `BlockOrderCommand`                   | Order paused due to issue                       |
+| `Blocked`               | Previous                | `ResumeFromBlock()`         | `ResumeOrderCommand`                  | Issue resolved                                  |
+| Any (non-terminal)      | `Canceled`              | `Cancel()`                  | `CancelOrderCommand`                  | Order abandoned                                 |
 
 ---
 
@@ -86,13 +87,13 @@ Invited ──► InProgress ──► AwaitingReview ──► Submitted
 
 ### Transitions
 
-| From | To | Trigger | Handler/Command | What Happens |
-|------|----|---------|-----------------|--------------|
-| (new) | `Invited` | `IntakeSession.Invite()` | `IssueIntakeInviteCommand` | Session created, resume token generated |
-| `Invited` | `InProgress` | `Start()` | `StartIntakeSessionCommand` | Subject opened form (via resume token) |
-| `InProgress` | `AwaitingReview` | `Submit()` | `SubmitIntakeCommand` | Subject submitted, data persisted to Subject |
-| `AwaitingReview` | `Submitted` | `AcceptSubmission()` | `AcceptIntakeSubmissionCommand` | System accepted, Order→ReadyForFulfillment |
-| Any (non-terminal) | `Abandoned` | `Expire()` or `Supersede()` | Watchdog or new invite | Session invalidated |
+| From               | To               | Trigger                     | Handler/Command                 | What Happens                                 |
+|--------------------|------------------|-----------------------------|---------------------------------|----------------------------------------------|
+| (new)              | `Invited`        | `IntakeSession.Invite()`    | `IssueIntakeInviteCommand`      | Session created, resume token generated      |
+| `Invited`          | `InProgress`     | `Start()`                   | `StartIntakeSessionCommand`     | Subject opened form (via resume token)       |
+| `InProgress`       | `AwaitingReview` | `Submit()`                  | `SubmitIntakeCommand`           | Subject submitted, data persisted to Subject |
+| `AwaitingReview`   | `Submitted`      | `AcceptSubmission()`        | `AcceptIntakeSubmissionCommand` | System accepted, Order→ReadyForFulfillment   |
+| Any (non-terminal) | `Abandoned`      | `Expire()` or `Supersede()` | Watchdog or new invite          | Session invalidated                          |
 
 ---
 
@@ -110,15 +111,15 @@ Pending ──► Dispatched ──► InProgress ──► Completed
 
 ### Transitions
 
-| From | To | Trigger | Handler/Command | What Happens |
-|------|----|---------|-----------------|--------------|
-| (new) | `Pending` | `ServiceRequest.Create()` | `CreateServiceRequestCommand` | Request created for vendor |
-| `Pending` | `Dispatched` | `Dispatch()` | `DispatchServiceRequestCommand` | Sent to vendor |
-| `Dispatched` | `InProgress` | `MarkInProgress()` | `ProcessVendorCallbackCommand` | Vendor acknowledged |
-| `InProgress` | `Completed` | `RecordResult()` | `RecordServiceResultCommand` | Vendor returned results |
-| `InProgress` | `Failed` | `Fail()` | `ProcessVendorCallbackCommand` | Vendor error |
-| `Failed` | `Pending` | `Retry()` | `RetryServiceRequestCommand` | Manual or auto retry |
-| Any (non-terminal) | `Canceled` | `Cancel()` | `CancelServiceRequestCommand` | Request abandoned |
+| From               | To           | Trigger                   | Handler/Command                 | What Happens               |
+|--------------------|--------------|---------------------------|---------------------------------|----------------------------|
+| (new)              | `Pending`    | `ServiceRequest.Create()` | `CreateServiceRequestCommand`   | Request created for vendor |
+| `Pending`          | `Dispatched` | `Dispatch()`              | `DispatchServiceRequestCommand` | Sent to vendor             |
+| `Dispatched`       | `InProgress` | `MarkInProgress()`        | `ProcessVendorCallbackCommand`  | Vendor acknowledged        |
+| `InProgress`       | `Completed`  | `RecordResult()`          | `RecordServiceResultCommand`    | Vendor returned results    |
+| `InProgress`       | `Failed`     | `Fail()`                  | `ProcessVendorCallbackCommand`  | Vendor error               |
+| `Failed`           | `Pending`    | `Retry()`                 | `RetryServiceRequestCommand`    | Manual or auto retry       |
+| Any (non-terminal) | `Canceled`   | `Cancel()`                | `CancelServiceRequestCommand`   | Request abandoned          |
 
 ---
 
@@ -130,12 +131,12 @@ SLA Clocks are created in response to Order status changes. They track time-to-c
 
 ### Clock Types
 
-| ClockKind | Started When | Completed When |
-|-----------|--------------|----------------|
-| `Overall` | Order → Created | Order → Closed |
-| `Intake` | Order → Invited | Order → IntakeComplete |
-| `Fulfillment` | Order → ReadyForFulfillment | Order → ReadyForReport |
-| `Service` | ServiceRequest dispatched | ServiceRequest completed |
+| ClockKind     | Started When                | Completed When           |
+|---------------|-----------------------------|--------------------------|
+| `Overall`     | Order → Created             | Order → Closed           |
+| `Intake`      | Order → Invited             | Order → IntakeComplete   |
+| `Fulfillment` | Order → ReadyForFulfillment | Order → ReadyForReport   |
+| `Service`     | ServiceRequest dispatched   | ServiceRequest completed |
 
 ### Clock States
 
@@ -157,67 +158,67 @@ The following handlers in `src/Holmes.App.Integration/EventHandlers/` orchestrat
 
 **Listens:** `IntakeSessionInvited`, `IntakeSessionStarted`
 
-| Event | Action |
-|-------|--------|
-| `IntakeSessionInvited` | Sends `RecordOrderInviteCommand` → Order moves to `Invited` |
+| Event                  | Action                                                                    |
+|------------------------|---------------------------------------------------------------------------|
+| `IntakeSessionInvited` | Sends `RecordOrderInviteCommand` → Order moves to `Invited`               |
 | `IntakeSessionStarted` | Sends `MarkOrderIntakeStartedCommand` → Order moves to `IntakeInProgress` |
 
 ### OrderWorkflowGateway
 
 **Called by:** `SubmitIntakeCommand`, `AcceptIntakeSubmissionCommand`
 
-| Method | Action |
-|--------|--------|
-| `NotifyIntakeSubmittedAsync()` | Sends `MarkOrderIntakeSubmittedCommand` → Order moves to `IntakeComplete` |
-| `NotifyIntakeAcceptedAsync()` | Sends `MarkOrderReadyForFulfillmentCommand` → Order moves to `ReadyForFulfillment` |
+| Method                         | Action                                                                             |
+|--------------------------------|------------------------------------------------------------------------------------|
+| `NotifyIntakeSubmittedAsync()` | Sends `MarkOrderIntakeSubmittedCommand` → Order moves to `IntakeComplete`          |
+| `NotifyIntakeAcceptedAsync()`  | Sends `MarkOrderReadyForFulfillmentCommand` → Order moves to `ReadyForFulfillment` |
 
 ### OrderStatusChangedSlaHandler
 
 **Listens:** `OrderStatusChanged`
 
-| Order Status | SLA Action |
-|--------------|------------|
-| `Created` | Start `Overall` clock |
-| `Invited` | Start `Intake` clock |
-| `IntakeComplete` | Complete `Intake` clock |
-| `ReadyForFulfillment` | Start `Fulfillment` clock |
-| `ReadyForReport` | Complete `Fulfillment` clock |
-| `Closed` | Complete `Overall` clock |
-| `Blocked` | Pause all active clocks |
-| `Canceled` | Complete all active clocks |
+| Order Status          | SLA Action                   |
+|-----------------------|------------------------------|
+| `Created`             | Start `Overall` clock        |
+| `Invited`             | Start `Intake` clock         |
+| `IntakeComplete`      | Complete `Intake` clock      |
+| `ReadyForFulfillment` | Start `Fulfillment` clock    |
+| `ReadyForReport`      | Complete `Fulfillment` clock |
+| `Closed`              | Complete `Overall` clock     |
+| `Blocked`             | Pause all active clocks      |
+| `Canceled`            | Complete all active clocks   |
 
 ### OrderFulfillmentHandler
 
 **Listens:** `OrderStatusChanged` (when status = `ReadyForFulfillment`)
 
-| Action |
-|--------|
-| 1. Query customer's service catalog |
-| 2. Create `ServiceRequest` for each enabled service |
+| Action                                                                          |
+|---------------------------------------------------------------------------------|
+| 1. Query customer's service catalog                                             |
+| 2. Create `ServiceRequest` for each enabled service                             |
 | 3. Send `BeginOrderFulfillmentCommand` → Order moves to `FulfillmentInProgress` |
 
 ### ServiceCompletionOrderHandler
 
 **Listens:** `ServiceRequestCompleted`
 
-| Condition | Action |
-|-----------|--------|
+| Condition              | Action                                                                  |
+|------------------------|-------------------------------------------------------------------------|
 | All services completed | Send `MarkOrderReadyForReportCommand` → Order moves to `ReadyForReport` |
 
 ---
 
 ## 6. Aggregate Existence Timeline
 
-| Order Status | IntakeSession Exists? | ServiceRequests Exist? | SLA Clocks |
-|--------------|----------------------|------------------------|------------|
-| `Created` | No | No | Overall (Running) |
-| `Invited` | Yes (Invited) | No | Overall, Intake (Running) |
-| `IntakeInProgress` | Yes (InProgress) | No | Overall, Intake (Running) |
-| `IntakeComplete` | Yes (AwaitingReview) | No | Overall (Running), Intake (Completed) |
-| `ReadyForFulfillment` | Yes (Submitted) | Being Created | Overall, Fulfillment (Running) |
-| `FulfillmentInProgress` | Yes (Submitted) | Yes (Pending/InProgress) | Overall, Fulfillment (Running) |
-| `ReadyForReport` | Yes (Submitted) | Yes (Completed) | Overall (Running), Fulfillment (Completed) |
-| `Closed` | Yes (Submitted) | Yes (Completed) | All (Completed) |
+| Order Status            | IntakeSession Exists? | ServiceRequests Exist?   | SLA Clocks                                 |
+|-------------------------|-----------------------|--------------------------|--------------------------------------------|
+| `Created`               | No                    | No                       | Overall (Running)                          |
+| `Invited`               | Yes (Invited)         | No                       | Overall, Intake (Running)                  |
+| `IntakeInProgress`      | Yes (InProgress)      | No                       | Overall, Intake (Running)                  |
+| `IntakeComplete`        | Yes (AwaitingReview)  | No                       | Overall (Running), Intake (Completed)      |
+| `ReadyForFulfillment`   | Yes (Submitted)       | Being Created            | Overall, Fulfillment (Running)             |
+| `FulfillmentInProgress` | Yes (Submitted)       | Yes (Pending/InProgress) | Overall, Fulfillment (Running)             |
+| `ReadyForReport`        | Yes (Submitted)       | Yes (Completed)          | Overall (Running), Fulfillment (Completed) |
+| `Closed`                | Yes (Submitted)       | Yes (Completed)          | All (Completed)                            |
 
 ---
 

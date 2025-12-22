@@ -9,7 +9,7 @@ namespace Holmes.Notifications.Infrastructure.Sql;
 
 public sealed class NotificationRequestRepository(NotificationsDbContext context) : INotificationRequestRepository
 {
-    public async Task<NotificationRequest?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
+    public async Task<Notification?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
     {
         var db = await context.NotificationRequests
             .Include(n => n.DeliveryAttempts)
@@ -18,7 +18,7 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         return db is null ? null : NotificationRequestMapper.ToDomain(db);
     }
 
-    public async Task<IReadOnlyList<NotificationRequest>> GetPendingAsync(
+    public async Task<IReadOnlyList<Notification>> GetPendingAsync(
         int limit,
         CancellationToken cancellationToken = default
     )
@@ -33,7 +33,7 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         return pending.Select(NotificationRequestMapper.ToDomain).ToList();
     }
 
-    public async Task<IReadOnlyList<NotificationRequest>> GetByOrderIdAsync(
+    public async Task<IReadOnlyList<Notification>> GetByOrderIdAsync(
         UlidId orderId,
         CancellationToken cancellationToken = default
     )
@@ -47,7 +47,7 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         return notifications.Select(NotificationRequestMapper.ToDomain).ToList();
     }
 
-    public async Task<IReadOnlyList<NotificationRequest>> GetFailedForRetryAsync(
+    public async Task<IReadOnlyList<Notification>> GetFailedForRetryAsync(
         int maxAttempts,
         TimeSpan retryAfter,
         int limit,
@@ -64,13 +64,13 @@ public sealed class NotificationRequestRepository(NotificationsDbContext context
         return failed.Select(NotificationRequestMapper.ToDomain).ToList();
     }
 
-    public async Task AddAsync(NotificationRequest request, CancellationToken cancellationToken = default)
+    public async Task AddAsync(Notification request, CancellationToken cancellationToken = default)
     {
         var db = NotificationRequestMapper.ToDb(request);
         await context.NotificationRequests.AddAsync(db, cancellationToken);
     }
 
-    public async Task UpdateAsync(NotificationRequest request, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(Notification request, CancellationToken cancellationToken = default)
     {
         var db = await context.NotificationRequests
             .Include(n => n.DeliveryAttempts)

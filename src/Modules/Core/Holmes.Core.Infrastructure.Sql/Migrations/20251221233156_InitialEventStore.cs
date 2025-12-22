@@ -61,7 +61,8 @@ namespace Holmes.Core.Infrastructure.Sql.Migrations
                     ActorId = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IdempotencyKey = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DispatchedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -120,6 +121,11 @@ namespace Holmes.Core.Infrastructure.Sql.Migrations
                 table: "events",
                 columns: new[] { "TenantId", "IdempotencyKey" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_events_outbox",
+                table: "events",
+                columns: new[] { "DispatchedAt", "Position" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_events_stream_version",

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.SlaClocks.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(SlaClockDbContext))]
-    [Migration("20251212160603_InitialSlaClocks")]
+    [Migration("20251221233237_InitialSlaClocks")]
     partial class InitialSlaClocks
     {
         /// <inheritdoc />

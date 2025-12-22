@@ -100,8 +100,7 @@ public sealed class IntakeInviteNotificationHandler(
                 recipient,
                 content,
                 null, // Immediate
-                NotificationPriority.High,
-                false),
+                NotificationPriority.High),
             cancellationToken);
 
         if (result.IsSuccess)

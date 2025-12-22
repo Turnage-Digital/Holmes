@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Holmes.App.Infrastructure.Security;
+using Holmes.App.Integration.Commands;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Domain.ValueObjects;
@@ -86,6 +87,64 @@ public sealed class OrdersController(
         }
 
         return Created($"/api/orders/{orderId}/timeline", summaryResult.Value);
+    }
+
+    /// <summary>
+    ///     Creates an order with intake session in a single atomic operation.
+    ///     This is the preferred method for creating orders as it:
+    ///     - Reuses existing subjects by email
+    ///     - Creates order and intake session atomically
+    ///     - Uses the outbox pattern for reliable event dispatch
+    /// </summary>
+    [HttpPost("with-intake")]
+    [Authorize(Policy = AuthorizationPolicies.RequireOps)]
+    public async Task<ActionResult<CreateOrderWithIntakeResponse>> CreateWithIntakeAsync(
+        [FromBody] CreateOrderWithIntakeRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (string.IsNullOrWhiteSpace(request.SubjectEmail))
+        {
+            return BadRequest("Subject email is required.");
+        }
+
+        if (!Ulid.TryParse(request.CustomerId, out var parsedCustomer))
+        {
+            return BadRequest("Invalid customer id format.");
+        }
+
+        var customerId = parsedCustomer.ToString();
+        if (!await currentUserAccess.HasCustomerAccessAsync(customerId, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
+        {
+            return NotFound($"Customer '{customerId}' not found.");
+        }
+
+        var command = new CreateOrderWithIntakeCommand(
+            request.SubjectEmail.Trim(),
+            request.SubjectPhone?.Trim(),
+            UlidId.FromUlid(parsedCustomer),
+            request.PolicySnapshotId);
+
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Error);
+        }
+
+        var response = new CreateOrderWithIntakeResponse(
+            result.Value.SubjectId.ToString(),
+            result.Value.SubjectWasExisting,
+            result.Value.OrderId.ToString(),
+            result.Value.IntakeSessionId.ToString(),
+            result.Value.ResumeToken,
+            result.Value.ExpiresAt);
+
+        return Created($"/api/orders/{result.Value.OrderId}/timeline", response);
     }
 
     [HttpGet("summary")]
@@ -384,5 +443,21 @@ public sealed class OrdersController(
         string SubjectId,
         string PolicySnapshotId,
         string? PackageCode = null
+    );
+
+    public sealed record CreateOrderWithIntakeRequest(
+        string SubjectEmail,
+        string? SubjectPhone,
+        string CustomerId,
+        string PolicySnapshotId
+    );
+
+    public sealed record CreateOrderWithIntakeResponse(
+        string SubjectId,
+        bool SubjectWasExisting,
+        string OrderId,
+        string IntakeSessionId,
+        string ResumeToken,
+        DateTimeOffset ExpiresAt
     );
 }

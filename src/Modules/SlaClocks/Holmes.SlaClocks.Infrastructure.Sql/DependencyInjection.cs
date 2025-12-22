@@ -1,9 +1,8 @@
-using Holmes.SlaClocks.Application.Abstractions.Notifications;
+using Holmes.SlaClocks.Application.Abstractions;
 using Holmes.SlaClocks.Application.Abstractions.Projections;
 using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Domain;
-using Holmes.SlaClocks.Infrastructure.Sql.Notifications;
 using Holmes.SlaClocks.Infrastructure.Sql.Projections;
 using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;

@@ -10,6 +10,8 @@ import type {
   CancelServiceRequest,
   CreateCustomerRequest,
   CreateOrderRequest,
+  CreateOrderWithIntakeRequest,
+  CreateOrderWithIntakeResponse,
   CurrentUserDto,
   CustomerDetailDto,
   CustomerListItemDto,
@@ -326,6 +328,25 @@ export const useCreateOrder = () => {
     mutationFn: createOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+const createOrderWithIntake = (
+  payload: CreateOrderWithIntakeRequest,
+): Promise<CreateOrderWithIntakeResponse> =>
+  apiFetch<CreateOrderWithIntakeResponse>("/orders/with-intake", {
+    method: "POST",
+    body: payload,
+  });
+
+export const useCreateOrderWithIntake = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createOrderWithIntake,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["subjects"] });
     },
   });
 };

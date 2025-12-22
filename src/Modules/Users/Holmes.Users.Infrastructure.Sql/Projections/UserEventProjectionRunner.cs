@@ -11,39 +11,32 @@ namespace Holmes.Users.Infrastructure.Sql.Projections;
 ///     Event-based projection runner for User projections.
 ///     Replays User domain events to rebuild the user_projections table.
 /// </summary>
-public sealed class UserEventProjectionRunner : EventProjectionRunner
+public sealed class UserEventProjectionRunner(
+    UsersDbContext usersDbContext,
+    CoreDbContext coreDbContext,
+    IEventStore eventStore,
+    IDomainEventSerializer serializer,
+    IPublisher publisher,
+    ILogger<UserEventProjectionRunner> logger
+)
+    : EventProjectionRunner(coreDbContext, eventStore, serializer, publisher, logger)
 {
-    private readonly UsersDbContext _usersDbContext;
-
-    public UserEventProjectionRunner(
-        UsersDbContext usersDbContext,
-        CoreDbContext coreDbContext,
-        IEventStore eventStore,
-        IDomainEventSerializer serializer,
-        IPublisher publisher,
-        ILogger<UserEventProjectionRunner> logger
-    )
-        : base(coreDbContext, eventStore, serializer, publisher, logger)
-    {
-        _usersDbContext = usersDbContext;
-    }
-
     protected override string ProjectionName => "users.user_projection.events";
 
     protected override string[]? StreamTypes => ["User"];
 
     protected override async Task ResetProjectionAsync(CancellationToken cancellationToken)
     {
-        if (_usersDbContext.Database.IsRelational())
+        if (usersDbContext.Database.IsRelational())
         {
-            await _usersDbContext.UserProjections.ExecuteDeleteAsync(cancellationToken);
+            await usersDbContext.UserProjections.ExecuteDeleteAsync(cancellationToken);
         }
         else
         {
-            _usersDbContext.UserProjections.RemoveRange(_usersDbContext.UserProjections);
-            await _usersDbContext.SaveChangesAsync(cancellationToken);
+            usersDbContext.UserProjections.RemoveRange(usersDbContext.UserProjections);
+            await usersDbContext.SaveChangesAsync(cancellationToken);
         }
 
-        _usersDbContext.ChangeTracker.Clear();
+        usersDbContext.ChangeTracker.Clear();
     }
 }

@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Holmes.Core.Application.Abstractions;
 
-namespace Holmes.App.Server.Infrastructure;
+namespace Holmes.App.Server;
 
 /// <summary>
 ///     HTTP-based tenant context that extracts tenant and actor from the current HTTP request claims.

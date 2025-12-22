@@ -129,6 +129,50 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         return records.Select(ToStoredEvent).ToList();
     }
 
+    public async Task<IReadOnlyList<StoredEvent>> ReadUndispatchedAsync(
+        int batchSize,
+        CancellationToken cancellationToken
+    )
+    {
+        var records = await dbContext.Events
+            .Where(e => e.DispatchedAt == null)
+            .OrderBy(e => e.Position)
+            .Take(batchSize)
+            .ToListAsync(cancellationToken);
+
+        return records.Select(ToStoredEvent).ToList();
+    }
+
+    public async Task MarkDispatchedAsync(
+        long position,
+        CancellationToken cancellationToken
+    )
+    {
+        await dbContext.Events
+            .Where(e => e.Position == position)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(e => e.DispatchedAt, DateTime.UtcNow),
+                cancellationToken);
+    }
+
+    public async Task MarkDispatchedBatchAsync(
+        IEnumerable<long> positions,
+        CancellationToken cancellationToken
+    )
+    {
+        var positionList = positions.ToList();
+        if (positionList.Count == 0)
+        {
+            return;
+        }
+
+        await dbContext.Events
+            .Where(e => positionList.Contains(e.Position))
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(e => e.DispatchedAt, DateTime.UtcNow),
+                cancellationToken);
+    }
+
     private static StoredEvent ToStoredEvent(EventRecord record)
     {
         return new StoredEvent(

@@ -10,14 +10,14 @@ namespace Holmes.Services.Infrastructure.Sql;
 public class ServiceRequestRepository : IServiceRequestRepository
 {
     private readonly ServicesDbContext _context;
-    private readonly Dictionary<string, ServiceRequest> _tracked = new();
+    private readonly Dictionary<string, Service> _tracked = new();
 
     public ServiceRequestRepository(ServicesDbContext context)
     {
         _context = context;
     }
 
-    public async Task<ServiceRequest?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
+    public async Task<Service?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
     {
         var idStr = id.ToString();
 
@@ -42,7 +42,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
         return domain;
     }
 
-    public async Task<IReadOnlyList<ServiceRequest>> GetByOrderIdAsync(
+    public async Task<IReadOnlyList<Service>> GetByOrderIdAsync(
         UlidId orderId,
         CancellationToken cancellationToken = default
     )
@@ -67,7 +67,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
             .ToList();
     }
 
-    public async Task<IReadOnlyList<ServiceRequest>> GetPendingByTierAsync(
+    public async Task<IReadOnlyList<Service>> GetPendingByTierAsync(
         UlidId orderId,
         int tier,
         CancellationToken cancellationToken = default
@@ -93,7 +93,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
             .ToList();
     }
 
-    public async Task<IReadOnlyList<ServiceRequest>> GetPendingForDispatchAsync(
+    public async Task<IReadOnlyList<Service>> GetPendingForDispatchAsync(
         int batchSize,
         CancellationToken cancellationToken = default
     )
@@ -118,7 +118,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
             .ToList();
     }
 
-    public async Task<IReadOnlyList<ServiceRequest>> GetRetryableAsync(
+    public async Task<IReadOnlyList<Service>> GetRetryableAsync(
         int batchSize,
         CancellationToken cancellationToken = default
     )
@@ -143,7 +143,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
             .ToList();
     }
 
-    public async Task<ServiceRequest?> GetByVendorReferenceAsync(
+    public async Task<Service?> GetByVendorReferenceAsync(
         string vendorCode,
         string vendorReferenceId,
         CancellationToken cancellationToken = default
@@ -190,14 +190,14 @@ public class ServiceRequestRepository : IServiceRequestRepository
                 cancellationToken);
     }
 
-    public void Add(ServiceRequest request)
+    public void Add(Service request)
     {
         var db = ServiceRequestMapper.ToDb(request);
         _context.ServiceRequests.Add(db);
         _tracked[request.Id.ToString()] = request;
     }
 
-    public void Update(ServiceRequest request)
+    public void Update(Service request)
     {
         var idStr = request.Id.ToString();
         var db = _context.ServiceRequests.Local.FirstOrDefault(r => r.Id == idStr);

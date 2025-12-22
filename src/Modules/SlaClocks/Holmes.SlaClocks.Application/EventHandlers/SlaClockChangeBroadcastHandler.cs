@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Application.Abstractions.Notifications;
+using Holmes.SlaClocks.Application.Abstractions;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Domain.Events;
 using MediatR;

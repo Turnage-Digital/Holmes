@@ -32,6 +32,22 @@ public class SqlSubjectRepository(SubjectsDbContext dbContext) : ISubjectReposit
         return db is null ? null : SubjectMapper.ToDomain(db);
     }
 
+    public async Task<Subject?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return null;
+        }
+
+        var spec = new SubjectByEmailSpec(email);
+
+        var db = await dbContext.Subjects
+            .ApplySpecification(spec)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return db is null ? null : SubjectMapper.ToDomain(db);
+    }
+
     public async Task UpdateAsync(Subject subject, CancellationToken cancellationToken)
     {
         var spec = new SubjectWithAllDetailsSpec(subject.Id.ToString());

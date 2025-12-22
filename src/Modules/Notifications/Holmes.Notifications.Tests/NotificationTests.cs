@@ -4,7 +4,7 @@ using Holmes.Notifications.Domain.ValueObjects;
 
 namespace Holmes.Notifications.Tests;
 
-public sealed class NotificationRequestTests
+public sealed class NotificationTests
 {
     [Test]
     public void Create_SetsInitialState()
@@ -19,7 +19,7 @@ public sealed class NotificationRequestTests
         var content = new NotificationContent { Subject = "Subject", Body = "Body" };
         var now = DateTimeOffset.UtcNow;
 
-        var request = NotificationRequest.Create(
+        var request = Notification.Create(
             customerId,
             trigger,
             recipient,
@@ -129,7 +129,7 @@ public sealed class NotificationRequestTests
             request.Cancel(now.AddSeconds(2), "Too late"));
     }
 
-    private static NotificationRequest CreateTestRequest()
+    private static Notification CreateTestRequest()
     {
         var customerId = UlidId.NewUlid();
         var trigger = NotificationTrigger.OrderStateChanged(
@@ -140,7 +140,7 @@ public sealed class NotificationRequestTests
         var recipient = NotificationRecipient.Email("test@example.com", "Test User");
         var content = new NotificationContent { Subject = "Subject", Body = "Body" };
 
-        return NotificationRequest.Create(
+        return Notification.Create(
             customerId,
             trigger,
             recipient,

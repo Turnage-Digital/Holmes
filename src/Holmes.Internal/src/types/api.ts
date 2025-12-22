@@ -341,6 +341,22 @@ export interface CreateOrderRequest {
   packageCode?: string;
 }
 
+export interface CreateOrderWithIntakeRequest {
+  subjectEmail: string;
+  subjectPhone?: string;
+  customerId: Ulid;
+  policySnapshotId: string;
+}
+
+export interface CreateOrderWithIntakeResponse {
+  subjectId: Ulid;
+  subjectWasExisting: boolean;
+  orderId: Ulid;
+  intakeSessionId: Ulid;
+  resumeToken: string;
+  expiresAt: string;
+}
+
 export interface OrderSummaryQuery {
   page?: number;
   pageSize?: number;

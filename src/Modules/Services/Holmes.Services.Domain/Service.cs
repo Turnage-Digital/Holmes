@@ -5,13 +5,13 @@ using Holmes.Services.Domain.Events;
 namespace Holmes.Services.Domain;
 
 /// <summary>
-///     Aggregate root representing a single background check service request.
+///     Aggregate root representing a single background check service.
 /// </summary>
-public sealed class ServiceRequest : AggregateRoot
+public sealed class Service : AggregateRoot
 {
     private const int DefaultMaxAttempts = 3;
 
-    private ServiceRequest()
+    private Service()
     {
     }
 
@@ -62,7 +62,7 @@ public sealed class ServiceRequest : AggregateRoot
     /// </summary>
     public bool CanRetry => Status == ServiceStatus.Failed && AttemptCount < MaxAttempts;
 
-    public static ServiceRequest Create(
+    public static Service Create(
         UlidId id,
         UlidId orderId,
         UlidId customerId,
@@ -74,7 +74,7 @@ public sealed class ServiceRequest : AggregateRoot
         int maxAttempts = DefaultMaxAttempts
     )
     {
-        var request = new ServiceRequest
+        var request = new Service
         {
             Id = id,
             OrderId = orderId,
@@ -266,7 +266,7 @@ public sealed class ServiceRequest : AggregateRoot
             canceledAt));
     }
 
-    public static ServiceRequest Rehydrate(
+    public static Service Rehydrate(
         UlidId id,
         UlidId orderId,
         UlidId customerId,
@@ -291,7 +291,7 @@ public sealed class ServiceRequest : AggregateRoot
         ServiceResult? result
     )
     {
-        return new ServiceRequest
+        return new Service
         {
             Id = id,
             OrderId = orderId,

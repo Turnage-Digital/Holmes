@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Application.Abstractions.Notifications;
+using Holmes.SlaClocks.Application.Abstractions;
 
-namespace Holmes.SlaClocks.Infrastructure.Sql.Notifications;
+namespace Holmes.SlaClocks.Infrastructure.Sql;
 
 public sealed class SlaClockChangeBroadcaster : ISlaClockChangeBroadcaster
 {

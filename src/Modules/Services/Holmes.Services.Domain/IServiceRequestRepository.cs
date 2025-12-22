@@ -4,30 +4,30 @@ namespace Holmes.Services.Domain;
 
 public interface IServiceRequestRepository
 {
-    Task<ServiceRequest?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default);
+    Task<Service?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ServiceRequest>> GetByOrderIdAsync(
+    Task<IReadOnlyList<Service>> GetByOrderIdAsync(
         UlidId orderId,
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<ServiceRequest>> GetPendingByTierAsync(
+    Task<IReadOnlyList<Service>> GetPendingByTierAsync(
         UlidId orderId,
         int tier,
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<ServiceRequest>> GetPendingForDispatchAsync(
+    Task<IReadOnlyList<Service>> GetPendingForDispatchAsync(
         int batchSize,
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<ServiceRequest>> GetRetryableAsync(
+    Task<IReadOnlyList<Service>> GetRetryableAsync(
         int batchSize,
         CancellationToken cancellationToken = default
     );
 
-    Task<ServiceRequest?> GetByVendorReferenceAsync(
+    Task<Service?> GetByVendorReferenceAsync(
         string vendorCode,
         string vendorReferenceId,
         CancellationToken cancellationToken = default
@@ -37,7 +37,7 @@ public interface IServiceRequestRepository
 
     Task<bool> TierCompletedAsync(UlidId orderId, int tier, CancellationToken cancellationToken = default);
 
-    void Add(ServiceRequest request);
+    void Add(Service request);
 
-    void Update(ServiceRequest request);
+    void Update(Service request);
 }

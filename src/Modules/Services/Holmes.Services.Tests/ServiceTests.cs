@@ -4,11 +4,11 @@ using Holmes.Services.Domain.Events;
 
 namespace Holmes.Services.Tests;
 
-public sealed class ServiceRequestTests
+public sealed class ServiceTests
 {
-    private static ServiceRequest CreatePendingRequest()
+    private static Service CreatePendingRequest()
     {
-        return ServiceRequest.Create(
+        return Service.Create(
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             UlidId.NewUlid(),
@@ -26,7 +26,7 @@ public sealed class ServiceRequestTests
         var customerId = UlidId.NewUlid();
         var now = DateTimeOffset.UtcNow;
 
-        var request = ServiceRequest.Create(
+        var request = Service.Create(
             UlidId.NewUlid(),
             orderId,
             customerId,
@@ -254,7 +254,7 @@ public sealed class ServiceRequestTests
     [Test]
     public void CanRetry_WhenFailedAtMaxAttempts_IsFalse()
     {
-        var request = ServiceRequest.Create(
+        var request = Service.Create(
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             UlidId.NewUlid(),
@@ -313,7 +313,7 @@ public sealed class ServiceRequestTests
     [Test]
     public void Retry_WhenCannotRetry_Throws()
     {
-        var request = ServiceRequest.Create(
+        var request = Service.Create(
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             UlidId.NewUlid(),

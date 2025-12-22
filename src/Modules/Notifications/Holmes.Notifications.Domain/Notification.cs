@@ -5,11 +5,11 @@ using Holmes.Notifications.Domain.ValueObjects;
 
 namespace Holmes.Notifications.Domain;
 
-public sealed class NotificationRequest : AggregateRoot
+public sealed class Notification : AggregateRoot
 {
     private readonly List<DeliveryAttempt> _deliveryAttempts = [];
 
-    private NotificationRequest()
+    private Notification()
     {
     }
 
@@ -31,7 +31,7 @@ public sealed class NotificationRequest : AggregateRoot
     public string? CorrelationId { get; private set; }
     public IReadOnlyList<DeliveryAttempt> DeliveryAttempts => _deliveryAttempts.AsReadOnly();
 
-    public static NotificationRequest Rehydrate(
+    public static Notification Rehydrate(
         UlidId id,
         UlidId customerId,
         UlidId? orderId,
@@ -51,7 +51,7 @@ public sealed class NotificationRequest : AggregateRoot
         IEnumerable<DeliveryAttempt> deliveryAttempts
     )
     {
-        var request = new NotificationRequest
+        var request = new Notification
         {
             Id = id,
             CustomerId = customerId,
@@ -74,7 +74,7 @@ public sealed class NotificationRequest : AggregateRoot
         return request;
     }
 
-    public static NotificationRequest Create(
+    public static Notification Create(
         UlidId customerId,
         NotificationTrigger trigger,
         NotificationRecipient recipient,
@@ -89,7 +89,7 @@ public sealed class NotificationRequest : AggregateRoot
         var effectiveSchedule = schedule ?? NotificationSchedule.Immediate();
         var scheduledFor = ComputeScheduledTime(effectiveSchedule, createdAt);
 
-        var request = new NotificationRequest
+        var request = new Notification
         {
             Id = UlidId.NewUlid(),
             CustomerId = customerId,

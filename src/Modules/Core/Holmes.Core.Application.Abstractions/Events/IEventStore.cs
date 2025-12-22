@@ -52,6 +52,32 @@ public interface IEventStore
         DateTime? asOfTimestamp,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    ///     Reads events that have not been dispatched yet (outbox pattern).
+    ///     Returns events ordered by position for consistent processing.
+    /// </summary>
+    Task<IReadOnlyList<StoredEvent>> ReadUndispatchedAsync(
+        int batchSize,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    ///     Marks an event as dispatched. Used by outbox processor after
+    ///     successfully publishing the event via MediatR.
+    /// </summary>
+    Task MarkDispatchedAsync(
+        long position,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    ///     Marks multiple events as dispatched in a single operation.
+    /// </summary>
+    Task MarkDispatchedBatchAsync(
+        IEnumerable<long> positions,
+        CancellationToken cancellationToken
+    );
 }
 
 /// <summary>

@@ -96,6 +96,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8
 		docs\AUDIT.md = docs\AUDIT.md
 		docs\PHASE_2.md = docs\PHASE_2.md
 		docs\PHASE_3_CONSOLIDATED.md = docs\PHASE_3_CONSOLIDATED.md
+		docs\STATE_MACHINES.md = docs\STATE_MACHINES.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server", "src\Holmes.Identity.Server\Holmes.Identity.Server.csproj", "{9CBFCA68-B0DD-4C70-9EF8-9526FF1F0804}"

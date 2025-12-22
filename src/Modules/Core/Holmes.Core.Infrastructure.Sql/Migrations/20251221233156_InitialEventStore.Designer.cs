@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Core.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(CoreDbContext))]
-    [Migration("20251212160522_InitialEventStore")]
+    [Migration("20251221233156_InitialEventStore")]
     partial class InitialEventStore
     {
         /// <inheritdoc />
@@ -50,6 +50,9 @@ namespace Holmes.Core.Infrastructure.Sql.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<DateTime?>("DispatchedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("EventId")
                         .IsRequired()
@@ -92,6 +95,9 @@ namespace Holmes.Core.Infrastructure.Sql.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Position");
+
+                    b.HasIndex("DispatchedAt", "Position")
+                        .HasDatabaseName("IX_events_outbox");
 
                     b.HasIndex("TenantId", "IdempotencyKey")
                         .IsUnique()

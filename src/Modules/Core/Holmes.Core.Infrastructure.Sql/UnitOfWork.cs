@@ -17,17 +17,24 @@ public abstract class UnitOfWork<TContext>(
 {
     private bool _disposed;
 
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        return SaveChangesAsync(false, cancellationToken);
+    }
+
+    public async Task<int> SaveChangesAsync(bool deferDispatch, CancellationToken cancellationToken)
     {
         using var activity = UnitOfWorkTelemetry.ActivitySource.StartActivity();
         var tags = new TagList
         {
             { "db.context", typeof(TContext).Name },
             { "db.provider", dbContext.Database.ProviderName ?? "unknown" },
-            { "db.transactional", dbContext.Database.IsRelational() }
+            { "db.transactional", dbContext.Database.IsRelational() },
+            { "holmes.defer_dispatch", deferDispatch }
         };
         activity?.SetTag("db.system", dbContext.Database.ProviderName);
         activity?.SetTag("holmes.unit_of_work.context", typeof(TContext).Name);
+        activity?.SetTag("holmes.unit_of_work.defer_dispatch", deferDispatch);
 
         var startTimestamp = Stopwatch.GetTimestamp();
 
@@ -48,6 +55,7 @@ public abstract class UnitOfWork<TContext>(
                     retval = await dbContext.SaveChangesAsync(cancellationToken);
 
                     // 2. Persist events to EventRecord (within transaction)
+                    // Events are stored with DispatchedAt = null (pending dispatch)
                     await PersistEventsAsync(aggregates, cancellationToken);
 
                     await transaction.CommitAsync(cancellationToken);
@@ -68,7 +76,11 @@ public abstract class UnitOfWork<TContext>(
             }
 
             // 3. Dispatch events via MediatR (after commit)
-            await DispatchDomainEventsAsync(aggregates, cancellationToken);
+            // When deferDispatch is true, skip this - OutboxProcessor will handle it
+            if (!deferDispatch)
+            {
+                await DispatchDomainEventsAsync(aggregates, cancellationToken);
+            }
 
             activity?.SetStatus(ActivityStatusCode.Ok);
             activity?.SetTag("holmes.unit_of_work.result", "success");

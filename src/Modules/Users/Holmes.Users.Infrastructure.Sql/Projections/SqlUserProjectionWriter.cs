@@ -13,8 +13,15 @@ public sealed class SqlUserProjectionWriter(
 {
     public async Task UpsertAsync(UserProjectionModel model, CancellationToken cancellationToken)
     {
+        // Look up by UserId first, then by Issuer+Subject (unique constraint)
+        // This handles idempotent re-delivery of events in the outbox pattern
         var record = await dbContext.UserProjections
             .FirstOrDefaultAsync(x => x.UserId == model.UserId, cancellationToken);
+
+        record ??= await dbContext.UserProjections
+            .FirstOrDefaultAsync(
+                x => x.Issuer == model.Issuer && x.Subject == model.Subject,
+                cancellationToken);
 
         if (record is null)
         {

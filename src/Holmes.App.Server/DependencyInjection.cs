@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Integration;
-using Holmes.App.Server.Infrastructure;
+using Holmes.App.Integration.EventHandlers;
 using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions;
@@ -40,14 +40,13 @@ using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
 using Holmes.Services.Infrastructure.Sql.Queries;
-using Holmes.SlaClocks.Application.Abstractions.Notifications;
+using Holmes.SlaClocks.Application.Abstractions;
 using Holmes.SlaClocks.Application.Abstractions.Projections;
 using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
-using Holmes.SlaClocks.Infrastructure.Sql.Notifications;
 using Holmes.SlaClocks.Infrastructure.Sql.Projections;
 using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
@@ -164,7 +163,7 @@ internal static class DependencyInjection
             config.RegisterServicesFromAssemblyContaining<StartSlaClockCommand>();
             config.RegisterServicesFromAssemblyContaining<CreateServiceRequestCommand>();
             // Integration handlers (cross-module event handlers)
-            config.RegisterServicesFromAssemblyContaining<Holmes.App.Integration.EventHandlers.IntakeToWorkflowHandler>();
+            config.RegisterServicesFromAssemblyContaining<IntakeToWorkflowHandler>();
         });
 
         return services;
@@ -230,6 +229,7 @@ internal static class DependencyInjection
             services.AddHostedService<SeedData>();
         }
 
+        services.AddHostedService<DeferredDispatchProcessor>();
         services.AddHostedService<NotificationProcessingService>();
         services.AddHostedService<SlaClockWatchdogService>();
 

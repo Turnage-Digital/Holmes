@@ -2,7 +2,7 @@ using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.SlaClocks.Domain;
 
-namespace Holmes.SlaClocks.Application.Abstractions.Notifications;
+namespace Holmes.SlaClocks.Application.Abstractions;
 
 public interface ISlaClockChangeBroadcaster
 {

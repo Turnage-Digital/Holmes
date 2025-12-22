@@ -4,26 +4,26 @@ namespace Holmes.Notifications.Domain;
 
 public interface INotificationRequestRepository
 {
-    Task<NotificationRequest?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default);
+    Task<Notification?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<NotificationRequest>> GetPendingAsync(
+    Task<IReadOnlyList<Notification>> GetPendingAsync(
         int limit,
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<NotificationRequest>> GetByOrderIdAsync(
+    Task<IReadOnlyList<Notification>> GetByOrderIdAsync(
         UlidId orderId,
         CancellationToken cancellationToken = default
     );
 
-    Task<IReadOnlyList<NotificationRequest>> GetFailedForRetryAsync(
+    Task<IReadOnlyList<Notification>> GetFailedForRetryAsync(
         int maxAttempts,
         TimeSpan retryAfter,
         int limit,
         CancellationToken cancellationToken = default
     );
 
-    Task AddAsync(NotificationRequest request, CancellationToken cancellationToken = default);
+    Task AddAsync(Notification request, CancellationToken cancellationToken = default);
 
-    Task UpdateAsync(NotificationRequest request, CancellationToken cancellationToken = default);
+    Task UpdateAsync(Notification request, CancellationToken cancellationToken = default);
 }
