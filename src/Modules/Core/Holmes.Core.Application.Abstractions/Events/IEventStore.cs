@@ -9,11 +9,21 @@ public interface IEventStore
     /// <summary>
     ///     Appends events to a stream. Events are persisted atomically.
     /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="streamId">The stream identifier (aggregate ID).</param>
+    /// <param name="streamType">The stream type (aggregate type).</param>
+    /// <param name="events">The events to append.</param>
+    /// <param name="markAsDispatched">
+    ///     If true, events are marked as already dispatched (DispatchedAt set to now).
+    ///     Use this when events will be dispatched immediately after persistence.
+    /// </param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task AppendEventsAsync(
         string tenantId,
         string streamId,
         string streamType,
         IReadOnlyCollection<EventEnvelope> events,
+        bool markAsDispatched,
         CancellationToken cancellationToken
     );
 

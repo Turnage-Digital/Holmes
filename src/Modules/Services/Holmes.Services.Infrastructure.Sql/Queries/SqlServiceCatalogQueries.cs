@@ -98,40 +98,52 @@ public sealed class SqlServiceCatalogQueries(ServicesDbContext dbContext) : ISer
 
     private static CatalogConfigDto BuildDefaultCatalogConfig()
     {
+        // Service codes must match those defined in ServiceType.cs
         var services = new List<ServiceConfigDto>
         {
+            // Identity services (Tier 1)
             new("SSN_TRACE", "SSN Trace", nameof(ServiceCategory.Identity), true, 1, null),
-            new("NATL_CRIM", "National Criminal Search", nameof(ServiceCategory.Criminal), true, 1, null),
-            new("STATE_CRIM", "State Criminal Search", nameof(ServiceCategory.Criminal), true, 2, null),
-            new("COUNTY_CRIM", "County Criminal Search", nameof(ServiceCategory.Criminal), true, 2, null),
-            new("FED_CRIM", "Federal Criminal Search", nameof(ServiceCategory.Criminal), true, 2, null),
-            new("SEX_OFFENDER", "Sex Offender Registry", nameof(ServiceCategory.Criminal), true, 1, null),
-            new("GLOBAL_WATCH", "Global Watchlist Search", nameof(ServiceCategory.Criminal), true, 1, null),
-            new("MVR", "Motor Vehicle Report", nameof(ServiceCategory.Driving), true, 2, null),
-            new("CREDIT_CHECK", "Credit Report", nameof(ServiceCategory.Credit), false, 3, null),
-            new("TWN_EMP", "Employment Verification (TWN)", nameof(ServiceCategory.Employment), true, 3, null),
-            new("MANUAL_EMP", "Employment Verification (Manual)", nameof(ServiceCategory.Employment), false, 3, null),
+            new("SSN_VERIFY", "SSN Verification", nameof(ServiceCategory.Identity), true, 1, null),
+            new("ADDR_VERIFY", "Address Verification", nameof(ServiceCategory.Identity), true, 1, null),
+            new("ID_VERIFY", "Identity Verification", nameof(ServiceCategory.Identity), false, 1, null),
+            new("DMF", "Death Master File", nameof(ServiceCategory.Identity), true, 1, null),
+            new("OFAC", "OFAC Sanctions", nameof(ServiceCategory.Identity), true, 1, null),
+
+            // Criminal services (Tier 2)
+            new("FED_CRIM", "Federal Criminal", nameof(ServiceCategory.Criminal), true, 2, null),
+            new("STATE_CRIM", "Statewide Criminal", nameof(ServiceCategory.Criminal), true, 2, null),
+            new("COUNTY_CRIM", "County Criminal", nameof(ServiceCategory.Criminal), true, 2, null),
+            new("MUNI_CRIM", "Municipal Criminal", nameof(ServiceCategory.Criminal), false, 2, null),
+            new("SEX_OFF", "Sex Offender Registry", nameof(ServiceCategory.Criminal), true, 2, null),
+            new("WATCHLIST", "Global Watchlist", nameof(ServiceCategory.Criminal), true, 2, null),
+
+            // Employment/Education services (Tier 3)
+            new("TWN_EMP", "TWN Employment Verification", nameof(ServiceCategory.Employment), true, 3, null),
+            new("DIRECT_EMP", "Direct Employment Verification", nameof(ServiceCategory.Employment), false, 3, null),
+            new("INCOME_VERIFY", "Income Verification", nameof(ServiceCategory.Employment), false, 3, null),
             new("EDU_VERIFY", "Education Verification", nameof(ServiceCategory.Education), true, 3, null),
-            new("PRO_LICENSE", "Professional License Verification", nameof(ServiceCategory.Employment), false, 3, null),
-            new("REF_CHECK", "Reference Check", nameof(ServiceCategory.Reference), false, 4, null),
-            new("DRUG_5", "5-Panel Drug Screen", nameof(ServiceCategory.Drug), false, 4, null),
-            new("DRUG_10", "10-Panel Drug Screen", nameof(ServiceCategory.Drug), false, 4, null),
-            new("CIVIL_COURT", "Civil Court Search", nameof(ServiceCategory.Civil), false, 2, null),
-            new("BANKRUPTCY", "Bankruptcy Search", nameof(ServiceCategory.Civil), false, 2, null),
-            new("HEALTHCARE_SANCTION", "Healthcare Sanctions Check", nameof(ServiceCategory.Healthcare), false, 2, null)
+            new("PROF_LICENSE", "Professional License", nameof(ServiceCategory.Education), false, 3, null),
+            new("CIVIL", "Civil Records Search", nameof(ServiceCategory.Civil), false, 3, null),
+            new("PROF_REF", "Professional Reference", nameof(ServiceCategory.Reference), false, 3, null),
+
+            // Expensive services (Tier 4)
+            new("MVR", "Motor Vehicle Record", nameof(ServiceCategory.Driving), true, 4, null),
+            new("CDL_VERIFY", "CDL Verification", nameof(ServiceCategory.Driving), false, 4, null),
+            new("CREDIT", "Credit Check", nameof(ServiceCategory.Credit), false, 4, null),
+            new("DRUG_TEST", "Drug Test", nameof(ServiceCategory.Drug), false, 4, null)
         };
 
         var tiers = new List<TierConfigDto>
         {
             new(1, "Identity & Preliminary Checks", "Initial identity verification and basic searches",
-                ["SSN_TRACE", "NATL_CRIM", "SEX_OFFENDER", "GLOBAL_WATCH"], [], true, false),
-            new(2, "Criminal & Driving", "Detailed criminal and motor vehicle checks",
-                ["STATE_CRIM", "FED_CRIM"], ["COUNTY_CRIM", "MVR", "CIVIL_COURT", "BANKRUPTCY", "HEALTHCARE_SANCTION"],
+                ["SSN_TRACE", "ADDR_VERIFY", "OFAC", "DMF"], ["SSN_VERIFY", "ID_VERIFY"], true, false),
+            new(2, "Criminal Searches", "Criminal background checks",
+                ["FED_CRIM", "STATE_CRIM", "WATCHLIST", "SEX_OFF"], ["COUNTY_CRIM", "MUNI_CRIM"],
                 true, true),
             new(3, "Employment & Education", "Employment and education verifications",
-                [], ["TWN_EMP", "MANUAL_EMP", "EDU_VERIFY", "PRO_LICENSE", "CREDIT_CHECK"], false, true),
-            new(4, "Additional Checks", "Drug screening and reference checks",
-                [], ["REF_CHECK", "DRUG_5", "DRUG_10"], false, true)
+                [], ["TWN_EMP", "DIRECT_EMP", "EDU_VERIFY", "PROF_LICENSE", "CIVIL", "PROF_REF", "INCOME_VERIFY"], false, true),
+            new(4, "Additional Checks", "Driving, credit, and drug screening",
+                [], ["MVR", "CDL_VERIFY", "CREDIT", "DRUG_TEST"], false, true)
         };
 
         return new CatalogConfigDto(services, tiers);

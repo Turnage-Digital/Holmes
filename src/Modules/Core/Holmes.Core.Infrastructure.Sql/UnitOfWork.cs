@@ -55,8 +55,9 @@ public abstract class UnitOfWork<TContext>(
                     retval = await dbContext.SaveChangesAsync(cancellationToken);
 
                     // 2. Persist events to EventRecord (within transaction)
-                    // Events are stored with DispatchedAt = null (pending dispatch)
-                    await PersistEventsAsync(aggregates, cancellationToken);
+                    // When deferDispatch is false, mark events as already dispatched since
+                    // they will be published immediately after commit
+                    await PersistEventsAsync(aggregates, markAsDispatched: !deferDispatch, cancellationToken);
 
                     await transaction.CommitAsync(cancellationToken);
                 }
@@ -72,7 +73,7 @@ public abstract class UnitOfWork<TContext>(
                 retval = await dbContext.SaveChangesAsync(cancellationToken);
 
                 // Still persist events for non-relational (testing) scenarios
-                await PersistEventsAsync(aggregates, cancellationToken);
+                await PersistEventsAsync(aggregates, markAsDispatched: !deferDispatch, cancellationToken);
             }
 
             // 3. Dispatch events via MediatR (after commit)
@@ -126,6 +127,7 @@ public abstract class UnitOfWork<TContext>(
 
     private async Task PersistEventsAsync(
         IReadOnlyCollection<IHasDomainEvents> aggregates,
+        bool markAsDispatched,
         CancellationToken cancellationToken
     )
     {
@@ -156,6 +158,7 @@ public abstract class UnitOfWork<TContext>(
                 aggregate.GetStreamId(),
                 aggregate.GetStreamType(),
                 envelopes,
+                markAsDispatched,
                 cancellationToken);
         }
     }

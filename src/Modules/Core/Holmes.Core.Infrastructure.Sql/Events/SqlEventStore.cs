@@ -14,6 +14,7 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         string streamId,
         string streamType,
         IReadOnlyCollection<EventEnvelope> events,
+        bool markAsDispatched,
         CancellationToken cancellationToken
     )
     {
@@ -29,6 +30,7 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
 
         var records = new List<EventRecord>(events.Count);
         var version = currentVersion;
+        var now = DateTime.UtcNow;
 
         foreach (var envelope in events)
         {
@@ -48,7 +50,8 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
                 CausationId = envelope.CausationId,
                 ActorId = envelope.ActorId,
                 IdempotencyKey = idempotencyKey,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = now,
+                DispatchedAt = markAsDispatched ? now : null
             });
         }
 

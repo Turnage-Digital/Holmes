@@ -16,13 +16,17 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
         TResponse retval;
         if (request is RequestBase<TResponse> requestBase)
         {
+            var actor = request is ISkipUserAssignment
+                ? "[System]"
+                : requestBase.UserId ?? "[Unknown]";
+
             logger.LogInformation("Handling {request}",
-                new { requestBase.GetType().Name, requestBase.UserId });
+                new { requestBase.GetType().Name, Actor = actor });
 
             retval = await next(cancellationToken);
 
             logger.LogInformation("Handled {request}",
-                new { requestBase.GetType().Name, requestBase.UserId });
+                new { requestBase.GetType().Name, Actor = actor });
         }
         else
         {
