@@ -4,8 +4,8 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Application.Abstractions.Queries;
 using Holmes.Customers.Domain;
-using Holmes.Intake.Domain.Events;
-using Holmes.Intake.Domain.ValueObjects;
+using Holmes.IntakeSessions.Domain.Events;
+using Holmes.IntakeSessions.Domain.ValueObjects;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Subjects.Application.Abstractions.Dtos;
@@ -52,7 +52,7 @@ public class IntakeInviteNotificationHandlerTests
     private IntakeInviteNotificationHandler _handler = null!;
 
     [Test]
-    public async Task Handle_CreatesNotificationRequest_WhenSubjectHasEmail()
+    public async Task Handle_CreatesNotification_WhenSubjectHasEmail()
     {
         // Arrange
         var sessionId = UlidId.NewUlid();
@@ -103,9 +103,9 @@ public class IntakeInviteNotificationHandlerTests
             .ReturnsAsync(customerListItem);
 
         _senderMock
-            .Setup(x => x.Send(It.IsAny<CreateNotificationRequestCommand>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.Send(It.IsAny<CreateNotificationCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success(
-                new CreateNotificationRequestResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
+                new CreateNotificationResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
 
         // Act
         await _handler.Handle(notification, CancellationToken.None);
@@ -113,7 +113,7 @@ public class IntakeInviteNotificationHandlerTests
         // Assert
         _senderMock.Verify(
             x => x.Send(
-                It.Is<CreateNotificationRequestCommand>(cmd =>
+                It.Is<CreateNotificationCommand>(cmd =>
                     cmd.CustomerId == customerId &&
                     cmd.Recipient.Address == "john.doe@test.com" &&
                     cmd.Recipient.DisplayName == "John Doe" &&
@@ -145,7 +145,7 @@ public class IntakeInviteNotificationHandlerTests
 
         // Assert
         _senderMock.Verify(
-            x => x.Send(It.IsAny<CreateNotificationRequestCommand>(), It.IsAny<CancellationToken>()),
+            x => x.Send(It.IsAny<CreateNotificationCommand>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -174,7 +174,7 @@ public class IntakeInviteNotificationHandlerTests
 
         // Assert
         _senderMock.Verify(
-            x => x.Send(It.IsAny<CreateNotificationRequestCommand>(), It.IsAny<CancellationToken>()),
+            x => x.Send(It.IsAny<CreateNotificationCommand>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -203,9 +203,9 @@ public class IntakeInviteNotificationHandlerTests
             .ReturnsAsync((CustomerListItemDto?)null);
 
         _senderMock
-            .Setup(x => x.Send(It.IsAny<CreateNotificationRequestCommand>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.Send(It.IsAny<CreateNotificationCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success(
-                new CreateNotificationRequestResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
+                new CreateNotificationResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
 
         // Act
         await _handler.Handle(notification, CancellationToken.None);
@@ -213,7 +213,7 @@ public class IntakeInviteNotificationHandlerTests
         // Assert
         _senderMock.Verify(
             x => x.Send(
-                It.Is<CreateNotificationRequestCommand>(cmd =>
+                It.Is<CreateNotificationCommand>(cmd =>
                     cmd.Content.TemplateData["CustomerName"].ToString() == "Your employer"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -230,9 +230,9 @@ public class IntakeInviteNotificationHandlerTests
         SetupSubjectAndCustomer(notification);
 
         _senderMock
-            .Setup(x => x.Send(It.IsAny<CreateNotificationRequestCommand>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.Send(It.IsAny<CreateNotificationCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success(
-                new CreateNotificationRequestResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
+                new CreateNotificationResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
 
         // Act
         await _handler.Handle(notification, CancellationToken.None);
@@ -240,7 +240,7 @@ public class IntakeInviteNotificationHandlerTests
         // Assert
         _senderMock.Verify(
             x => x.Send(
-                It.Is<CreateNotificationRequestCommand>(cmd =>
+                It.Is<CreateNotificationCommand>(cmd =>
                     cmd.Content.TemplateData["IntakeUrl"].ToString() ==
                     $"https://intake.test.holmes/intake/{sessionId}?token={resumeToken}"),
                 It.IsAny<CancellationToken>()),
@@ -270,9 +270,9 @@ public class IntakeInviteNotificationHandlerTests
         SetupDefaultCustomer(notification.CustomerId);
 
         _senderMock
-            .Setup(x => x.Send(It.IsAny<CreateNotificationRequestCommand>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.Send(It.IsAny<CreateNotificationCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success(
-                new CreateNotificationRequestResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
+                new CreateNotificationResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
 
         // Act
         await _handler.Handle(notification, CancellationToken.None);
@@ -280,7 +280,7 @@ public class IntakeInviteNotificationHandlerTests
         // Assert
         _senderMock.Verify(
             x => x.Send(
-                It.Is<CreateNotificationRequestCommand>(cmd =>
+                It.Is<CreateNotificationCommand>(cmd =>
                     cmd.Recipient.DisplayName == "test@example.com" &&
                     cmd.Content.TemplateData["SubjectName"].ToString() == "test@example.com"),
                 It.IsAny<CancellationToken>()),
@@ -297,9 +297,9 @@ public class IntakeInviteNotificationHandlerTests
         SetupSubjectAndCustomer(notification);
 
         _senderMock
-            .Setup(x => x.Send(It.IsAny<CreateNotificationRequestCommand>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.Send(It.IsAny<CreateNotificationCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success(
-                new CreateNotificationRequestResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
+                new CreateNotificationResult(UlidId.NewUlid(), DateTimeOffset.UtcNow, null)));
 
         // Act
         await _handler.Handle(notification, CancellationToken.None);
@@ -307,7 +307,7 @@ public class IntakeInviteNotificationHandlerTests
         // Assert
         _senderMock.Verify(
             x => x.Send(
-                It.Is<CreateNotificationRequestCommand>(cmd =>
+                It.Is<CreateNotificationCommand>(cmd =>
                     cmd.Content.TemplateData.ContainsKey("ExpiresAt") &&
                     cmd.Content.TemplateData.ContainsKey("ExpiresAtUtc")),
                 It.IsAny<CancellationToken>()),

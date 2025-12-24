@@ -1,4 +1,4 @@
-using Holmes.Intake.Application.Gateways;
+using Holmes.IntakeSessions.Application.Gateways;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using MediatR;

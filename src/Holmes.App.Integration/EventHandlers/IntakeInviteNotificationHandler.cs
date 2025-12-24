@@ -1,5 +1,5 @@
 using Holmes.Customers.Application.Abstractions.Queries;
-using Holmes.Intake.Domain.Events;
+using Holmes.IntakeSessions.Domain.Events;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Domain.ValueObjects;
@@ -92,9 +92,9 @@ public sealed class IntakeInviteNotificationHandler(
             }
         };
 
-        // Send the notification request
+        // Send the notification
         var result = await sender.Send(
-            new CreateNotificationRequestCommand(
+            new CreateNotificationCommand(
                 notification.CustomerId,
                 trigger,
                 recipient,

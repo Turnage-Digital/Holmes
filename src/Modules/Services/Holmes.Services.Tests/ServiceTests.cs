@@ -50,16 +50,16 @@ public sealed class ServiceTests
     }
 
     [Test]
-    public void Create_RaisesServiceRequestCreatedEvent()
+    public void Create_RaisesServiceCreatedEvent()
     {
         var request = CreatePendingRequest();
 
-        var events = request.DomainEvents.OfType<ServiceRequestCreated>().ToList();
+        var events = request.DomainEvents.OfType<ServiceCreated>().ToList();
 
         Assert.Multiple(() =>
         {
             Assert.That(events, Has.Count.EqualTo(1));
-            Assert.That(events[0].ServiceRequestId, Is.EqualTo(request.Id));
+            Assert.That(events[0].ServiceId, Is.EqualTo(request.Id));
             Assert.That(events[0].ServiceTypeCode, Is.EqualTo(ServiceType.SsnTrace.Code));
         });
     }
@@ -105,7 +105,7 @@ public sealed class ServiceTests
     }
 
     [Test]
-    public void Dispatch_RaisesServiceRequestDispatchedEvent()
+    public void Dispatch_RaisesServiceDispatchedEvent()
     {
         var request = CreatePendingRequest();
         request.AssignVendor("STUB", DateTimeOffset.UtcNow);
@@ -113,7 +113,7 @@ public sealed class ServiceTests
 
         request.Dispatch("REF-123", DateTimeOffset.UtcNow);
 
-        var events = request.DomainEvents.OfType<ServiceRequestDispatched>().ToList();
+        var events = request.DomainEvents.OfType<ServiceDispatched>().ToList();
 
         Assert.Multiple(() =>
         {
@@ -180,7 +180,7 @@ public sealed class ServiceTests
     }
 
     [Test]
-    public void RecordResult_RaisesServiceRequestCompletedEvent()
+    public void RecordResult_RaisesServiceCompletedEvent()
     {
         var request = CreatePendingRequest();
         request.AssignVendor("STUB", DateTimeOffset.UtcNow);
@@ -190,7 +190,7 @@ public sealed class ServiceTests
         var result = ServiceResult.Clear(UlidId.NewUlid(), "REF-123", DateTimeOffset.UtcNow);
         request.RecordResult(result, DateTimeOffset.UtcNow);
 
-        var events = request.DomainEvents.OfType<ServiceRequestCompleted>().ToList();
+        var events = request.DomainEvents.OfType<ServiceCompleted>().ToList();
 
         Assert.Multiple(() =>
         {
@@ -220,7 +220,7 @@ public sealed class ServiceTests
     }
 
     [Test]
-    public void Fail_RaisesServiceRequestFailedEvent()
+    public void Fail_RaisesServiceFailedEvent()
     {
         var request = CreatePendingRequest();
         request.AssignVendor("STUB", DateTimeOffset.UtcNow);
@@ -229,7 +229,7 @@ public sealed class ServiceTests
 
         request.Fail("Connection timeout", DateTimeOffset.UtcNow);
 
-        var events = request.DomainEvents.OfType<ServiceRequestFailed>().ToList();
+        var events = request.DomainEvents.OfType<ServiceFailed>().ToList();
 
         Assert.Multiple(() =>
         {
@@ -291,7 +291,7 @@ public sealed class ServiceTests
     }
 
     [Test]
-    public void Retry_RaisesServiceRequestRetriedEvent()
+    public void Retry_RaisesServiceRetriedEvent()
     {
         var request = CreatePendingRequest();
         request.AssignVendor("STUB", DateTimeOffset.UtcNow);
@@ -301,7 +301,7 @@ public sealed class ServiceTests
 
         request.Retry(DateTimeOffset.UtcNow);
 
-        var events = request.DomainEvents.OfType<ServiceRequestRetried>().ToList();
+        var events = request.DomainEvents.OfType<ServiceRetried>().ToList();
 
         Assert.Multiple(() =>
         {
@@ -349,14 +349,14 @@ public sealed class ServiceTests
     }
 
     [Test]
-    public void Cancel_RaisesServiceRequestCanceledEvent()
+    public void Cancel_RaisesServiceCanceledEvent()
     {
         var request = CreatePendingRequest();
         request.ClearDomainEvents();
 
         request.Cancel("Order canceled", DateTimeOffset.UtcNow);
 
-        var events = request.DomainEvents.OfType<ServiceRequestCanceled>().ToList();
+        var events = request.DomainEvents.OfType<ServiceCanceled>().ToList();
 
         Assert.Multiple(() =>
         {

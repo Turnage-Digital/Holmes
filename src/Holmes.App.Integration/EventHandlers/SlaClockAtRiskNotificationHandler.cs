@@ -55,7 +55,7 @@ public sealed class SlaClockAtRiskNotificationHandler(
         //         }
         //     };
         //
-        //     await sender.Send(new CreateNotificationRequestCommand(
+        //     await sender.Send(new CreateNotificationCommand(
         //         notification.CustomerId,
         //         trigger,
         //         recipient,

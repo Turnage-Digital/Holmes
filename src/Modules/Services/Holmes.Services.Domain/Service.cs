@@ -92,7 +92,7 @@ public sealed class Service : AggregateRoot
             UpdatedAt = createdAt
         };
 
-        request.AddDomainEvent(new ServiceRequestCreated(
+        request.AddDomainEvent(new ServiceCreated(
             id,
             orderId,
             customerId,
@@ -137,7 +137,7 @@ public sealed class Service : AggregateRoot
         Status = ServiceStatus.Dispatched;
         UpdatedAt = dispatchedAt;
 
-        AddDomainEvent(new ServiceRequestDispatched(
+        AddDomainEvent(new ServiceDispatched(
             Id,
             OrderId,
             CustomerId,
@@ -157,7 +157,7 @@ public sealed class Service : AggregateRoot
         Status = ServiceStatus.InProgress;
         UpdatedAt = timestamp;
 
-        AddDomainEvent(new ServiceRequestInProgress(
+        AddDomainEvent(new ServiceInProgress(
             Id,
             OrderId,
             ServiceTypeCode,
@@ -180,7 +180,7 @@ public sealed class Service : AggregateRoot
         UpdatedAt = completedAt;
         LastError = null;
 
-        AddDomainEvent(new ServiceRequestCompleted(
+        AddDomainEvent(new ServiceCompleted(
             Id,
             OrderId,
             CustomerId,
@@ -206,7 +206,7 @@ public sealed class Service : AggregateRoot
 
         var willRetry = CanRetry;
 
-        AddDomainEvent(new ServiceRequestFailed(
+        AddDomainEvent(new ServiceFailed(
             Id,
             OrderId,
             CustomerId,
@@ -231,7 +231,7 @@ public sealed class Service : AggregateRoot
         LastError = null;
         UpdatedAt = retriedAt;
 
-        AddDomainEvent(new ServiceRequestRetried(
+        AddDomainEvent(new ServiceRetried(
             Id,
             OrderId,
             ServiceTypeCode,
@@ -257,7 +257,7 @@ public sealed class Service : AggregateRoot
         Status = ServiceStatus.Canceled;
         UpdatedAt = canceledAt;
 
-        AddDomainEvent(new ServiceRequestCanceled(
+        AddDomainEvent(new ServiceCanceled(
             Id,
             OrderId,
             CustomerId,
@@ -325,6 +325,6 @@ public sealed class Service : AggregateRoot
 
     public override string GetStreamType()
     {
-        return "ServiceRequest";
+        return "Service";
     }
 }

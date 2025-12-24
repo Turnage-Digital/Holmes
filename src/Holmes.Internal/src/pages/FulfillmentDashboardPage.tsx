@@ -32,7 +32,7 @@ import { useNavigate } from "react-router-dom";
 
 import type {
   ServiceCategory,
-  ServiceRequestSummaryDto,
+  ServiceSummaryDto,
   ServiceStatus,
 } from "@/types/api";
 
@@ -157,11 +157,11 @@ const FulfillmentDashboardPage = () => {
   // Row count for server-side pagination - always use totalCount since filtering is server-side
   const rowCount = totalCount;
 
-  const handleRowClick = (params: GridRowParams<ServiceRequestSummaryDto>) => {
+  const handleRowClick = (params: GridRowParams<ServiceSummaryDto>) => {
     navigate(`/orders/${params.row.orderId}`);
   };
 
-  const columns: GridColDef<ServiceRequestSummaryDto>[] = [
+  const columns: GridColDef<ServiceSummaryDto>[] = [
     {
       field: "serviceTypeCode",
       headerName: "Service",
@@ -176,7 +176,7 @@ const FulfillmentDashboardPage = () => {
       field: "category",
       headerName: "Category",
       width: 120,
-      renderCell: (params: GridRenderCellParams<ServiceRequestSummaryDto>) => (
+      renderCell: (params: GridRenderCellParams<ServiceSummaryDto>) => (
         <Chip
           label={params.value}
           size="small"
@@ -233,7 +233,7 @@ const FulfillmentDashboardPage = () => {
       field: "scopeValue",
       headerName: "Scope",
       width: 100,
-      renderCell: (params: GridRenderCellParams<ServiceRequestSummaryDto>) => {
+      renderCell: (params: GridRenderCellParams<ServiceSummaryDto>) => {
         if (params.value) {
           return (
             <Tooltip title={params.row.scopeType ?? "Scope"}>
@@ -252,7 +252,7 @@ const FulfillmentDashboardPage = () => {
       field: "attemptCount",
       headerName: "Attempts",
       width: 90,
-      renderCell: (params: GridRenderCellParams<ServiceRequestSummaryDto>) => (
+      renderCell: (params: GridRenderCellParams<ServiceSummaryDto>) => (
         <Typography variant="body2">
           {params.value}/{params.row.maxAttempts}
         </Typography>
@@ -300,7 +300,7 @@ const FulfillmentDashboardPage = () => {
     <>
       <PageHeader
         title="Fulfillment Dashboard"
-        subtitle="Monitor and manage background check service requests"
+        subtitle="Monitor and manage background check services"
         action={
           <Button
             variant="outlined"
@@ -404,7 +404,7 @@ const FulfillmentDashboardPage = () => {
         onRowClick={handleRowClick}
         slots={{
           noRowsOverlay: () => (
-            <DataGridNoRowsOverlay message="No service requests in the fulfillment queue." />
+            <DataGridNoRowsOverlay message="No services in the fulfillment queue." />
           ),
         }}
         sx={{

@@ -38,7 +38,7 @@ public sealed class ServiceChangesController(IServiceChangeBroadcaster broadcast
             {
                 var payload = JsonSerializer.Serialize(new
                 {
-                    serviceRequestId = change.ServiceRequestId.ToString(),
+                    serviceId = change.ServiceId.ToString(),
                     orderId = change.OrderId.ToString(),
                     serviceTypeCode = change.ServiceTypeCode,
                     status = change.Status.ToString(),

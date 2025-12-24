@@ -71,7 +71,7 @@ src/
   Holmes.Intake.Server/   # Static file host for Intake SPA
 ```
 
-### 3.1 Holmes.Intake SPA
+### 3.1 Holmes.IntakeSessions SPA
 
 * React + Vite
 * Mobile-first layout
@@ -99,7 +99,7 @@ src/
 # 4. Data Flow
 
 ```
-User → Holmes.Intake → Holmes.App.Server → Intake / Workflow modules → Projections / Events
+User → Holmes.IntakeSessions → Holmes.App.Server → Intake / Workflow modules → Projections / Events
 ```
 
 ### 4.1 Authentication / Identification

@@ -15,8 +15,8 @@ public sealed class ServicesUnitOfWork(
 )
     : UnitOfWork<ServicesDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IServicesUnitOfWork
 {
-    private readonly Lazy<IServiceRequestRepository> _serviceRequests =
-        new(() => new ServiceRequestRepository(dbContext));
+    private readonly Lazy<IServiceRepository> _services =
+        new(() => new ServiceRepository(dbContext));
 
-    public IServiceRequestRepository ServiceRequests => _serviceRequests.Value;
+    public IServiceRepository Services => _services.Value;
 }

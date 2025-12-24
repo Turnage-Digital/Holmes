@@ -9,7 +9,7 @@ namespace Holmes.Services.Infrastructure.Sql.Projections;
 
 /// <summary>
 ///     Event-based projection runner for Service Request projections.
-///     Replays ServiceRequest domain events to rebuild the service_projections table.
+///     Replays Service domain events to rebuild the service_projections table.
 /// </summary>
 public sealed class ServiceEventProjectionRunner : EventProjectionRunner
 {
@@ -30,7 +30,7 @@ public sealed class ServiceEventProjectionRunner : EventProjectionRunner
 
     protected override string ProjectionName => "services.service_projection.events";
 
-    protected override string[]? StreamTypes => ["ServiceRequest"];
+    protected override string[]? StreamTypes => ["Service"];
 
     protected override async Task ResetProjectionAsync(CancellationToken cancellationToken)
     {

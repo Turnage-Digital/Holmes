@@ -3,7 +3,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.SlaClocks.Application.Abstractions.Dtos;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Application.Queries;
-using Holmes.Workflow.Application.Queries;
+using Holmes.Orders.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -11,7 +11,7 @@ namespace Holmes.Notifications.Application.EventHandlers;
 public sealed class NotificationProjectionHandler(
     INotificationProjectionWriter writer
 )
-    : INotificationHandler<NotificationRequestCreated>,
+    : INotificationHandler<NotificationCreated>,
         INotificationHandler<NotificationQueued>,
         INotificationHandler<NotificationDelivered>,
         INotificationHandler<NotificationDeliveryFailed>,
@@ -63,7 +63,7 @@ public sealed class NotificationProjectionHandler(
             cancellationToken);
     }
 
-    public Task Handle(NotificationRequestCreated notification, CancellationToken cancellationToken)
+    public Task Handle(NotificationCreated notification, CancellationToken cancellationToken)
     {
         var model = new NotificationProjectionModel(
             notification.NotificationId.ToString(),

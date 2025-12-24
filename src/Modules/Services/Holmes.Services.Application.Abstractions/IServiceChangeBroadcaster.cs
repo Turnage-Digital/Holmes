@@ -19,7 +19,7 @@ public interface IServiceChangeBroadcaster
 
 public sealed record ServiceChange(
     UlidId ChangeId,
-    UlidId ServiceRequestId,
+    UlidId ServiceId,
     UlidId OrderId,
     string ServiceTypeCode,
     ServiceStatus Status,

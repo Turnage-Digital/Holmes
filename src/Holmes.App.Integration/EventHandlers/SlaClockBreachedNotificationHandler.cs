@@ -58,7 +58,7 @@ public sealed class SlaClockBreachedNotificationHandler(
         //         }
         //     };
         //
-        //     await sender.Send(new CreateNotificationRequestCommand(
+        //     await sender.Send(new CreateNotificationCommand(
         //         notification.CustomerId,
         //         trigger,
         //         recipient,

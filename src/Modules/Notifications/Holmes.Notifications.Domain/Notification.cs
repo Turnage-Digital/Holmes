@@ -107,7 +107,7 @@ public sealed class Notification : AggregateRoot
             CorrelationId = correlationId
         };
 
-        request.AddDomainEvent(new NotificationRequestCreated(
+        request.AddDomainEvent(new NotificationCreated(
             request.Id,
             request.CustomerId,
             request.OrderId,
@@ -288,6 +288,6 @@ public sealed class Notification : AggregateRoot
 
     public override string GetStreamType()
     {
-        return "NotificationRequest";
+        return "Notification";
     }
 }

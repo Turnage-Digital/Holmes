@@ -14,13 +14,13 @@ public sealed class SqlServiceProjectionWriter(
     public async Task UpsertAsync(ServiceProjectionModel model, CancellationToken cancellationToken)
     {
         var record = await dbContext.ServiceProjections
-            .FirstOrDefaultAsync(x => x.Id == model.ServiceRequestId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == model.ServiceId, cancellationToken);
 
         if (record is null)
         {
             record = new ServiceProjectionDb
             {
-                Id = model.ServiceRequestId
+                Id = model.ServiceId
             };
             dbContext.ServiceProjections.Add(record);
         }
@@ -42,7 +42,7 @@ public sealed class SqlServiceProjectionWriter(
     }
 
     public async Task UpdateDispatchedAsync(
-        string serviceRequestId,
+        string serviceId,
         string vendorCode,
         string? vendorReferenceId,
         DateTimeOffset dispatchedAt,
@@ -50,11 +50,11 @@ public sealed class SqlServiceProjectionWriter(
     )
     {
         var record = await dbContext.ServiceProjections
-            .FirstOrDefaultAsync(x => x.Id == serviceRequestId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == serviceId, cancellationToken);
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for dispatch update: {ServiceRequestId}", serviceRequestId);
+            logger.LogWarning("Service projection not found for dispatch update: {ServiceId}", serviceId);
             return;
         }
 
@@ -69,18 +69,18 @@ public sealed class SqlServiceProjectionWriter(
     }
 
     public async Task UpdateInProgressAsync(
-        string serviceRequestId,
+        string serviceId,
         DateTimeOffset updatedAt,
         CancellationToken cancellationToken
     )
     {
         var record = await dbContext.ServiceProjections
-            .FirstOrDefaultAsync(x => x.Id == serviceRequestId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == serviceId, cancellationToken);
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for in-progress update: {ServiceRequestId}",
-                serviceRequestId);
+            logger.LogWarning("Service projection not found for in-progress update: {ServiceId}",
+                serviceId);
             return;
         }
 
@@ -91,7 +91,7 @@ public sealed class SqlServiceProjectionWriter(
     }
 
     public async Task UpdateCompletedAsync(
-        string serviceRequestId,
+        string serviceId,
         ServiceResultStatus resultStatus,
         int recordCount,
         DateTimeOffset completedAt,
@@ -99,12 +99,12 @@ public sealed class SqlServiceProjectionWriter(
     )
     {
         var record = await dbContext.ServiceProjections
-            .FirstOrDefaultAsync(x => x.Id == serviceRequestId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == serviceId, cancellationToken);
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for completion update: {ServiceRequestId}",
-                serviceRequestId);
+            logger.LogWarning("Service projection not found for completion update: {ServiceId}",
+                serviceId);
             return;
         }
 
@@ -119,7 +119,7 @@ public sealed class SqlServiceProjectionWriter(
     }
 
     public async Task UpdateFailedAsync(
-        string serviceRequestId,
+        string serviceId,
         string errorMessage,
         int attemptCount,
         bool willRetry,
@@ -128,11 +128,11 @@ public sealed class SqlServiceProjectionWriter(
     )
     {
         var record = await dbContext.ServiceProjections
-            .FirstOrDefaultAsync(x => x.Id == serviceRequestId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == serviceId, cancellationToken);
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for failure update: {ServiceRequestId}", serviceRequestId);
+            logger.LogWarning("Service projection not found for failure update: {ServiceId}", serviceId);
             return;
         }
 
@@ -146,18 +146,18 @@ public sealed class SqlServiceProjectionWriter(
     }
 
     public async Task UpdateCanceledAsync(
-        string serviceRequestId,
+        string serviceId,
         string reason,
         DateTimeOffset canceledAt,
         CancellationToken cancellationToken
     )
     {
         var record = await dbContext.ServiceProjections
-            .FirstOrDefaultAsync(x => x.Id == serviceRequestId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == serviceId, cancellationToken);
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for cancel update: {ServiceRequestId}", serviceRequestId);
+            logger.LogWarning("Service projection not found for cancel update: {ServiceId}", serviceId);
             return;
         }
 
@@ -170,18 +170,18 @@ public sealed class SqlServiceProjectionWriter(
     }
 
     public async Task UpdateRetriedAsync(
-        string serviceRequestId,
+        string serviceId,
         int attemptCount,
         DateTimeOffset retriedAt,
         CancellationToken cancellationToken
     )
     {
         var record = await dbContext.ServiceProjections
-            .FirstOrDefaultAsync(x => x.Id == serviceRequestId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == serviceId, cancellationToken);
 
         if (record is null)
         {
-            logger.LogWarning("Service projection not found for retry update: {ServiceRequestId}", serviceRequestId);
+            logger.LogWarning("Service projection not found for retry update: {ServiceId}", serviceId);
             return;
         }
 

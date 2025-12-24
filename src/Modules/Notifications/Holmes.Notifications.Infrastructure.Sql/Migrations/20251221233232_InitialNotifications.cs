@@ -51,7 +51,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "notification_requests",
+                name: "notifications",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
@@ -92,7 +92,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_notification_requests", x => x.Id);
+                    table.PrimaryKey("PK_notifications", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -102,7 +102,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    NotificationRequestId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                    NotificationId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Channel = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
@@ -118,9 +118,9 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 {
                     table.PrimaryKey("PK_delivery_attempts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_delivery_attempts_notification_requests_NotificationRequestId",
-                        column: x => x.NotificationRequestId,
-                        principalTable: "notification_requests",
+                        name: "FK_delivery_attempts_notifications_NotificationId",
+                        column: x => x.NotificationId,
+                        principalTable: "notifications",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -132,9 +132,9 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 column: "AttemptedAt");
 
             migrationBuilder.CreateIndex(
-                name: "IX_delivery_attempts_NotificationRequestId",
+                name: "IX_delivery_attempts_NotificationId",
                 table: "delivery_attempts",
-                column: "NotificationRequestId");
+                column: "NotificationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_notification_projections_CustomerId",
@@ -162,33 +162,33 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 columns: new[] { "Status", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_notification_requests_CorrelationId",
-                table: "notification_requests",
+                name: "IX_notifications_CorrelationId",
+                table: "notifications",
                 column: "CorrelationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_notification_requests_CustomerId",
-                table: "notification_requests",
+                name: "IX_notifications_CustomerId",
+                table: "notifications",
                 column: "CustomerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_notification_requests_OrderId",
-                table: "notification_requests",
+                name: "IX_notifications_OrderId",
+                table: "notifications",
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_notification_requests_Status",
-                table: "notification_requests",
+                name: "IX_notifications_Status",
+                table: "notifications",
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_notification_requests_Status_CreatedAt",
-                table: "notification_requests",
+                name: "IX_notifications_Status_CreatedAt",
+                table: "notifications",
                 columns: new[] { "Status", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_notification_requests_Status_ScheduledFor",
-                table: "notification_requests",
+                name: "IX_notifications_Status_ScheduledFor",
+                table: "notifications",
                 columns: new[] { "Status", "ScheduledFor" });
         }
 
@@ -202,7 +202,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                 name: "notification_projections");
 
             migrationBuilder.DropTable(
-                name: "notification_requests");
+                name: "notifications");
         }
     }
 }

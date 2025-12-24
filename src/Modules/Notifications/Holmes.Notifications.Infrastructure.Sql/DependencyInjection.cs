@@ -20,7 +20,7 @@ public static class DependencyInjection
             options.UseMySql(connectionString, version));
 
         // Write side
-        services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationsUnitOfWork, NotificationsUnitOfWork>();
 
         // Read side (CQRS)

@@ -7,24 +7,24 @@ using MediatR;
 namespace Holmes.Services.Application.EventHandlers;
 
 /// <summary>
-///     Handles service request domain events to broadcast real-time updates via SSE.
+///     Handles service domain events to broadcast real-time updates via SSE.
 /// </summary>
 public sealed class ServiceChangeBroadcastHandler(
     IServiceChangeBroadcaster broadcaster
 )
-    : INotificationHandler<ServiceRequestCreated>,
-        INotificationHandler<ServiceRequestDispatched>,
-        INotificationHandler<ServiceRequestInProgress>,
-        INotificationHandler<ServiceRequestCompleted>,
-        INotificationHandler<ServiceRequestFailed>,
-        INotificationHandler<ServiceRequestCanceled>,
-        INotificationHandler<ServiceRequestRetried>
+    : INotificationHandler<ServiceCreated>,
+        INotificationHandler<ServiceDispatched>,
+        INotificationHandler<ServiceInProgress>,
+        INotificationHandler<ServiceCompleted>,
+        INotificationHandler<ServiceFailed>,
+        INotificationHandler<ServiceCanceled>,
+        INotificationHandler<ServiceRetried>
 {
-    public Task Handle(ServiceRequestCanceled notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceCanceled notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
-            notification.ServiceRequestId,
+            notification.ServiceId,
             notification.OrderId,
             notification.ServiceTypeCode,
             ServiceStatus.Canceled,
@@ -32,11 +32,11 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.CanceledAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestCompleted notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceCompleted notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
-            notification.ServiceRequestId,
+            notification.ServiceId,
             notification.OrderId,
             notification.ServiceTypeCode,
             ServiceStatus.Completed,
@@ -44,11 +44,11 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.CompletedAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestCreated notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceCreated notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
-            notification.ServiceRequestId,
+            notification.ServiceId,
             notification.OrderId,
             notification.ServiceTypeCode,
             ServiceStatus.Pending,
@@ -56,11 +56,11 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.CreatedAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestDispatched notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceDispatched notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
-            notification.ServiceRequestId,
+            notification.ServiceId,
             notification.OrderId,
             notification.ServiceTypeCode,
             ServiceStatus.Dispatched,
@@ -68,7 +68,7 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.DispatchedAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestFailed notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceFailed notification, CancellationToken cancellationToken)
     {
         var reason = notification.WillRetry
             ? $"Failed (attempt {notification.AttemptCount}/{notification.MaxAttempts}): {notification.ErrorMessage}"
@@ -76,7 +76,7 @@ public sealed class ServiceChangeBroadcastHandler(
 
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
-            notification.ServiceRequestId,
+            notification.ServiceId,
             notification.OrderId,
             notification.ServiceTypeCode,
             ServiceStatus.Failed,
@@ -84,11 +84,11 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.FailedAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestInProgress notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceInProgress notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
-            notification.ServiceRequestId,
+            notification.ServiceId,
             notification.OrderId,
             notification.ServiceTypeCode,
             ServiceStatus.InProgress,
@@ -96,11 +96,11 @@ public sealed class ServiceChangeBroadcastHandler(
             notification.UpdatedAt), cancellationToken);
     }
 
-    public Task Handle(ServiceRequestRetried notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceRetried notification, CancellationToken cancellationToken)
     {
         return broadcaster.PublishAsync(new ServiceChange(
             UlidId.NewUlid(),
-            notification.ServiceRequestId,
+            notification.ServiceId,
             notification.OrderId,
             notification.ServiceTypeCode,
             ServiceStatus.Pending,

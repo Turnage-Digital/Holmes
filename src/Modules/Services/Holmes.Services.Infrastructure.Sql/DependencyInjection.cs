@@ -21,10 +21,10 @@ public static class DependencyInjection
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(ServicesDbContext).Assembly.FullName)));
 
-        services.AddScoped<ServiceRequestRepository>();
-        services.AddScoped<IServiceRequestRepository>(sp => sp.GetRequiredService<ServiceRequestRepository>());
+        services.AddScoped<ServiceRepository>();
+        services.AddScoped<IServiceRepository>(sp => sp.GetRequiredService<ServiceRepository>());
         services.AddScoped<IServicesUnitOfWork, ServicesUnitOfWork>();
-        services.AddScoped<IServiceRequestQueries, SqlServiceRequestQueries>();
+        services.AddScoped<IServiceQueries, SqlServiceQueries>();
         services.AddScoped<IServiceCatalogQueries, SqlServiceCatalogQueries>();
         services.AddScoped<IServiceCatalogRepository, ServiceCatalogRepository>();
 

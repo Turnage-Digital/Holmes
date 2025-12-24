@@ -285,11 +285,11 @@ public sealed class CustomersController(
     public sealed record ModifyCustomerAdminRequest(string UserId);
 
     public sealed record UpdateServiceCatalogRequest(
-        IReadOnlyCollection<ServiceCatalogServiceRequestItem>? Services,
+        IReadOnlyCollection<ServiceCatalogServiceItem>? Services,
         IReadOnlyCollection<ServiceCatalogTierRequestItem>? Tiers
     );
 
-    public sealed record ServiceCatalogServiceRequestItem(
+    public sealed record ServiceCatalogServiceItem(
         string ServiceTypeCode,
         bool IsEnabled,
         int Tier,

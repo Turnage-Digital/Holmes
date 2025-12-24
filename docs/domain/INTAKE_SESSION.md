@@ -76,7 +76,7 @@ Invariants:
 
 - Expose an abstraction `IConsentArtifactStore` (`SaveAsync`, `GetAsync`, `ExistsAsync`) so the aggregate/application
   layer only depends on metadata (`ConsentArtifactPointer`) rather than storage details.
-- Phase 2 ships with `DatabaseConsentArtifactStore` implemented inside `Holmes.Intake.Infrastructure.Sql`, persisting
+- Phase 2 ships with `DatabaseConsentArtifactStore` implemented inside `Holmes.IntakeSessions.Infrastructure.Sql`, persisting
   encrypted byte arrays plus metadata columns (`Hash`, `MimeType`, `Length`, `SchemaVersion`) in MySQL.
 - Application handlers call the store, receive a pointer (ULID/URI) that is persisted on the `IntakeSession`. Swapping
   to Azure Blob/File storage later only changes DI wiring and the concrete implementation.

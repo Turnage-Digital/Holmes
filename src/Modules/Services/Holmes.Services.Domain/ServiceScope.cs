@@ -1,7 +1,7 @@
 namespace Holmes.Services.Domain;
 
 /// <summary>
-///     Represents the geographic or jurisdictional scope of a service request.
+///     Represents the geographic or jurisdictional scope of a service.
 /// </summary>
 public sealed record ServiceScope
 {

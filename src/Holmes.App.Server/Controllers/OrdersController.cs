@@ -9,11 +9,11 @@ using Holmes.Services.Application.Abstractions.Dtos;
 using Holmes.Services.Application.Queries;
 using Holmes.Services.Domain;
 using Holmes.Subjects.Application.Queries;
-using Holmes.Workflow.Application.Abstractions.Dtos;
-using Holmes.Workflow.Application.Abstractions.Queries;
-using Holmes.Workflow.Application.Commands;
-using Holmes.Workflow.Application.Queries;
-using Holmes.Workflow.Domain;
+using Holmes.Orders.Application.Abstractions.Dtos;
+using Holmes.Orders.Application.Abstractions.Queries;
+using Holmes.Orders.Application.Commands;
+using Holmes.Orders.Application.Queries;
+using Holmes.Orders.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -312,9 +312,9 @@ public sealed class OrdersController(
             return Forbid();
         }
 
-        // Fetch all service requests for this order via MediatR query
+        // Fetch all services for this order via MediatR query
         var servicesResult = await mediator.Send(
-            new GetServiceRequestsByOrderQuery(UlidId.Parse(targetOrderId)), cancellationToken);
+            new GetServicesByOrderQuery(UlidId.Parse(targetOrderId)), cancellationToken);
 
         if (!servicesResult.IsSuccess)
         {

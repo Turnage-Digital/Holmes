@@ -24,7 +24,7 @@ public sealed class RecordDeliveryResultCommandHandler(
         CancellationToken cancellationToken
     )
     {
-        var notification = await unitOfWork.NotificationRequests.GetByIdAsync(
+        var notification = await unitOfWork.Notifications.GetByIdAsync(
             request.NotificationId,
             cancellationToken);
 

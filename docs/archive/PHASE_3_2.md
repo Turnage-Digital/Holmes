@@ -23,12 +23,12 @@ phase delivers the **usable product** — what ops teams and subjects actually i
 | **References**                | Not modeled                   | Not captured      | Not shown   | TOTAL GAP      |
 | **Customer Services**         | ServiceCatalog backend exists | N/A               | Not built   | TOTAL GAP      |
 | **Customer Tiers**            | Tiering backend exists        | N/A               | Not built   | TOTAL GAP      |
-| **Order Services**            | ServiceRequest backend exists | N/A               | Not built   | TOTAL GAP      |
+| **Order Services**            | Service backend exists | N/A               | Not built   | TOTAL GAP      |
 | **Fulfillment Dashboard**     | Events exist                  | N/A               | Not built   | TOTAL GAP      |
 
 ### Current State Summary
 
-**Holmes.Intake (React SPA):**
+**Holmes.IntakeSessions (React SPA):**
 
 - 5-step flow: Verify → OTP → Consent → Data → Review → Success
 - Captures: name, DOB, email, phone, SSN (last 4), single address, consent

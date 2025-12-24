@@ -149,7 +149,7 @@ Holmes records billable events in `ComplianceUsageRecord`.
 |--------------------------|---------------------------------|--------------------------------------------|
 | AdverseActionCaseCreated | Pre/final AA workflow initiated | $0.50–$2.00 per case                       |
 | EvidencePackGenerated    | Evidence bundle export          | $5–$20 per pack                            |
-| NotificationRequested    | Email/SMS/webhook fired         | $0.01–$0.05 per event                      |
+| NotificationCreated    | Email/SMS/webhook fired         | $0.01–$0.05 per event                      |
 | DisputeOpened            | Candidate dispute initiation    | Included or +$0.25/event depending on tier |
 | SimulationRun            | Policy what‑if request          | $0.10–$1.00 per run                        |
 

@@ -65,9 +65,9 @@ This is a fundamental DDD rule that preserves bounded context independence:
 ### ❌ FORBIDDEN References
 
 ```
-Holmes.SlaClocks.Application → Holmes.Workflow.Domain        # NO!
+Holmes.SlaClocks.Application → Holmes.Orders.Domain        # NO!
 Holmes.Services.Application  → Holmes.Subjects.Domain        # NO!
-Holmes.Intake.Infrastructure → Holmes.Workflow.Application   # NO!
+Holmes.IntakeSessions.Infrastructure → Holmes.Orders.Application   # NO!
 ```
 
 ### ✅ ALLOWED Cross-Module Communication
@@ -91,15 +91,15 @@ When Module A needs data or behavior from Module B:
 
 ```
 # WRONG - direct domain reference
-Holmes.SlaClocks.Application → Holmes.Workflow.Domain
+Holmes.SlaClocks.Application → Holmes.Orders.Domain
 
 # RIGHT - abstraction reference
-Holmes.Workflow.Application.Abstractions/
+Holmes.Orders.Application.Abstractions/
   └── IOrderStatusProvider.cs
   └── Dtos/OrderStatusDto.cs
 
-Holmes.SlaClocks.Application → Holmes.Workflow.Application.Abstractions
-Holmes.Workflow.Infrastructure.Sql implements IOrderStatusProvider
+Holmes.SlaClocks.Application → Holmes.Orders.Application.Abstractions
+Holmes.Orders.Infrastructure.Sql implements IOrderStatusProvider
 Host registers IOrderStatusProvider in DI
 ```
 
@@ -123,7 +123,7 @@ Holmes.App.Integration/
       └── OrderStatusChangedSlaHandler.cs  # Handles Workflow event, sends SlaClocks commands
 
 Holmes.App.Integration.csproj references:
-  - Holmes.Workflow.Application (for OrderStatusChanged event)
+  - Holmes.Orders.Application (for OrderStatusChanged event)
   - Holmes.SlaClocks.Application (for StartSlaClockCommand)
 ```
 

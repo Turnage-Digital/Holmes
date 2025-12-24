@@ -4,5 +4,5 @@ namespace Holmes.Notifications.Domain;
 
 public interface INotificationsUnitOfWork : IUnitOfWork
 {
-    INotificationRequestRepository NotificationRequests { get; }
+    INotificationRepository Notifications { get; }
 }

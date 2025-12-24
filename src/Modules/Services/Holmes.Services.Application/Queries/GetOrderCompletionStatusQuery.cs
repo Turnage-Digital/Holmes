@@ -20,7 +20,7 @@ public sealed record GetOrderCompletionStatusQuery(
 ) : RequestBase<Result<OrderCompletionStatus>>;
 
 public sealed class GetOrderCompletionStatusQueryHandler(
-    IServiceRequestQueries serviceRequestQueries
+    IServiceQueries serviceQueries
 ) : IRequestHandler<GetOrderCompletionStatusQuery, Result<OrderCompletionStatus>>
 {
     public async Task<Result<OrderCompletionStatus>> Handle(
@@ -28,7 +28,7 @@ public sealed class GetOrderCompletionStatusQueryHandler(
         CancellationToken cancellationToken
     )
     {
-        var status = await serviceRequestQueries.GetOrderCompletionStatusAsync(
+        var status = await serviceQueries.GetOrderCompletionStatusAsync(
             request.OrderId.ToString(), cancellationToken);
 
         return Result.Success(new OrderCompletionStatus(

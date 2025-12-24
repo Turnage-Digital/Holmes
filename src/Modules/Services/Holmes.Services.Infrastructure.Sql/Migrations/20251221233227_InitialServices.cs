@@ -79,7 +79,7 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "service_requests",
+                name: "services",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "char(26)", fixedLength: true, maxLength: 26, nullable: false)
@@ -115,7 +115,7 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_service_requests", x => x.Id);
+                    table.PrimaryKey("PK_services", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -125,7 +125,7 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 {
                     Id = table.Column<string>(type: "char(26)", fixedLength: true, maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ServiceRequestId = table.Column<string>(type: "char(26)", fixedLength: true, maxLength: 26, nullable: false)
+                    ServiceId = table.Column<string>(type: "char(26)", fixedLength: true, maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Status = table.Column<int>(type: "int", nullable: false),
                     RecordsJson = table.Column<string>(type: "json", nullable: true)
@@ -141,9 +141,9 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 {
                     table.PrimaryKey("PK_service_results", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_service_results_service_requests_ServiceRequestId",
-                        column: x => x.ServiceRequestId,
-                        principalTable: "service_requests",
+                        name: "FK_service_results_services_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "services",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -177,33 +177,33 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "idx_customer_status",
-                table: "service_requests",
+                table: "services",
                 columns: new[] { "CustomerId", "Status" });
 
             migrationBuilder.CreateIndex(
                 name: "idx_order",
-                table: "service_requests",
+                table: "services",
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "idx_order_tier",
-                table: "service_requests",
+                table: "services",
                 columns: new[] { "OrderId", "Tier" });
 
             migrationBuilder.CreateIndex(
                 name: "idx_status_created",
-                table: "service_requests",
+                table: "services",
                 columns: new[] { "Status", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "idx_vendor_ref",
-                table: "service_requests",
+                table: "services",
                 columns: new[] { "VendorCode", "VendorReferenceId" });
 
             migrationBuilder.CreateIndex(
-                name: "idx_service_request",
+                name: "idx_service",
                 table: "service_results",
-                column: "ServiceRequestId",
+                column: "ServiceId",
                 unique: true);
         }
 
@@ -220,7 +220,7 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 name: "service_results");
 
             migrationBuilder.DropTable(
-                name: "service_requests");
+                name: "services");
         }
     }
 }

@@ -17,7 +17,7 @@ import {
 
 import ServiceStatusCard from "./ServiceStatusCard";
 
-import type { ServiceRequestSummaryDto, ServiceStatus } from "@/types/api";
+import type { ServiceSummaryDto, ServiceStatus } from "@/types/api";
 
 // ============================================================================
 // Tier Summary Component
@@ -32,12 +32,12 @@ interface ServiceActionsProps {
 
 interface TierSummaryProps extends ServiceActionsProps {
   tier: number;
-  services: ServiceRequestSummaryDto[];
+  services: ServiceSummaryDto[];
   defaultExpanded?: boolean;
 }
 
 const getTierStatus = (
-  services: ServiceRequestSummaryDto[],
+  services: ServiceSummaryDto[],
 ): {
   label: string;
   color: "success" | "warning" | "error" | "default";
@@ -215,7 +215,7 @@ const TierAccordion = ({
 // ============================================================================
 
 interface TierProgressViewProps extends ServiceActionsProps {
-  services: ServiceRequestSummaryDto[];
+  services: ServiceSummaryDto[];
 }
 
 const TierProgressView = ({
@@ -227,7 +227,7 @@ const TierProgressView = ({
 }: TierProgressViewProps) => {
   // Group services by tier
   const tierGroups = useMemo(() => {
-    const groups = new Map<number, ServiceRequestSummaryDto[]>();
+    const groups = new Map<number, ServiceSummaryDto[]>();
 
     services.forEach((service) => {
       const existing = groups.get(service.tier) ?? [];

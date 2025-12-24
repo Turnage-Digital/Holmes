@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 
 import type {
-  CancelServiceRequest,
+  CancelService,
   CreateCustomerRequest,
   CreateOrderRequest,
   CreateOrderWithIntakeRequest,
@@ -31,7 +31,7 @@ import type {
   PaginatedResult,
   PauseClockRequest,
   RegisterSubjectRequest,
-  ServiceRequestSummaryDto,
+  ServiceSummaryDto,
   ServiceTypeDto,
   SlaClockDto,
   SubjectDetailDto,
@@ -400,7 +400,7 @@ export const useOrderServices = (orderId: Ulid) =>
 // ============================================================================
 
 const fetchFulfillmentQueue = (query: FulfillmentQueueQuery) =>
-  apiFetch<PaginatedResult<ServiceRequestSummaryDto>>(
+  apiFetch<PaginatedResult<ServiceSummaryDto>>(
     `/services/queue${toQueryString(query)}`,
   );
 
@@ -410,15 +410,15 @@ export const useFulfillmentQueue = (query: FulfillmentQueueQuery) =>
     queryFn: () => fetchFulfillmentQueue(query),
   });
 
-const retryServiceRequest = (serviceRequestId: Ulid) =>
-  apiFetch<void>(`/services/${serviceRequestId}/retry`, {
+const retryService = (serviceId: Ulid) =>
+  apiFetch<void>(`/services/${serviceId}/retry`, {
     method: "POST",
   });
 
-export const useRetryServiceRequest = () => {
+export const useRetryService = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: retryServiceRequest,
+    mutationFn: retryService,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
@@ -426,22 +426,22 @@ export const useRetryServiceRequest = () => {
   });
 };
 
-const cancelServiceRequest = ({
-  serviceRequestId,
+const cancelService = ({
+  serviceId,
   payload,
 }: {
-  serviceRequestId: Ulid;
-  payload: CancelServiceRequest;
+  serviceId: Ulid;
+  payload: CancelService;
 }) =>
-  apiFetch<void>(`/services/${serviceRequestId}/cancel`, {
+  apiFetch<void>(`/services/${serviceId}/cancel`, {
     method: "POST",
     body: payload,
   });
 
-export const useCancelServiceRequest = () => {
+export const useCancelService = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: cancelServiceRequest,
+    mutationFn: cancelService,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });

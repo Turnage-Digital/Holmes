@@ -15,7 +15,7 @@ public sealed class SqlNotificationQueries(NotificationsDbContext dbContext) : I
         CancellationToken cancellationToken
     )
     {
-        var notification = await dbContext.NotificationRequests
+        var notification = await dbContext.Notifications
             .AsNoTracking()
             .Where(n => n.Id == notificationId)
             .Select(n => new NotificationSummaryDto(
@@ -43,7 +43,7 @@ public sealed class SqlNotificationQueries(NotificationsDbContext dbContext) : I
     {
         var spec = new PendingNotificationsSpec(DateTime.UtcNow, limit);
 
-        return await dbContext.NotificationRequests
+        return await dbContext.Notifications
             .AsNoTracking()
             .ApplySpecification(spec)
             .Select(n => new NotificationPendingDto(
@@ -67,7 +67,7 @@ public sealed class SqlNotificationQueries(NotificationsDbContext dbContext) : I
     {
         var spec = new NotificationsByOrderIdSpec(orderId);
 
-        return await dbContext.NotificationRequests
+        return await dbContext.Notifications
             .AsNoTracking()
             .ApplySpecification(spec)
             .Select(n => new NotificationSummaryDto(
@@ -96,7 +96,7 @@ public sealed class SqlNotificationQueries(NotificationsDbContext dbContext) : I
         var cutoff = DateTime.UtcNow.Subtract(retryAfter);
         var spec = new FailedNotificationsForRetrySpec(maxAttempts, cutoff, limit);
 
-        return await dbContext.NotificationRequests
+        return await dbContext.Notifications
             .AsNoTracking()
             .ApplySpecification(spec)
             .Select(n => new NotificationPendingDto(

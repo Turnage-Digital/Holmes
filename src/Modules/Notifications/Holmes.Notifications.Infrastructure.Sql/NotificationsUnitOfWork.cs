@@ -9,7 +9,7 @@ namespace Holmes.Notifications.Infrastructure.Sql;
 public sealed class NotificationsUnitOfWork(
     NotificationsDbContext context,
     IMediator mediator,
-    INotificationRequestRepository notificationRequestRepository,
+    INotificationRepository notificationRepository,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
     ITenantContext? tenantContext = null
@@ -17,5 +17,5 @@ public sealed class NotificationsUnitOfWork(
     : UnitOfWork<NotificationsDbContext>(context, mediator, eventStore, serializer, tenantContext),
         INotificationsUnitOfWork
 {
-    public INotificationRequestRepository NotificationRequests => notificationRequestRepository;
+    public INotificationRepository Notifications => notificationRepository;
 }

@@ -6,42 +6,42 @@ using MediatR;
 namespace Holmes.Services.Application.EventHandlers;
 
 /// <summary>
-///     Handles service request domain events to maintain the service_projections table.
+///     Handles service domain events to maintain the service_projections table.
 /// </summary>
 public sealed class ServiceProjectionHandler(
     IServiceProjectionWriter writer
 )
-    : INotificationHandler<ServiceRequestCreated>,
-        INotificationHandler<ServiceRequestDispatched>,
-        INotificationHandler<ServiceRequestInProgress>,
-        INotificationHandler<ServiceRequestCompleted>,
-        INotificationHandler<ServiceRequestFailed>,
-        INotificationHandler<ServiceRequestCanceled>,
-        INotificationHandler<ServiceRequestRetried>
+    : INotificationHandler<ServiceCreated>,
+        INotificationHandler<ServiceDispatched>,
+        INotificationHandler<ServiceInProgress>,
+        INotificationHandler<ServiceCompleted>,
+        INotificationHandler<ServiceFailed>,
+        INotificationHandler<ServiceCanceled>,
+        INotificationHandler<ServiceRetried>
 {
-    public Task Handle(ServiceRequestCanceled notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceCanceled notification, CancellationToken cancellationToken)
     {
         return writer.UpdateCanceledAsync(
-            notification.ServiceRequestId.ToString(),
+            notification.ServiceId.ToString(),
             notification.Reason,
             notification.CanceledAt,
             cancellationToken);
     }
 
-    public Task Handle(ServiceRequestCompleted notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceCompleted notification, CancellationToken cancellationToken)
     {
         return writer.UpdateCompletedAsync(
-            notification.ServiceRequestId.ToString(),
+            notification.ServiceId.ToString(),
             notification.ResultStatus,
             notification.RecordCount,
             notification.CompletedAt,
             cancellationToken);
     }
 
-    public Task Handle(ServiceRequestCreated notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceCreated notification, CancellationToken cancellationToken)
     {
         var model = new ServiceProjectionModel(
-            notification.ServiceRequestId.ToString(),
+            notification.ServiceId.ToString(),
             notification.OrderId.ToString(),
             notification.CustomerId.ToString(),
             notification.ServiceTypeCode,
@@ -56,20 +56,20 @@ public sealed class ServiceProjectionHandler(
         return writer.UpsertAsync(model, cancellationToken);
     }
 
-    public Task Handle(ServiceRequestDispatched notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceDispatched notification, CancellationToken cancellationToken)
     {
         return writer.UpdateDispatchedAsync(
-            notification.ServiceRequestId.ToString(),
+            notification.ServiceId.ToString(),
             notification.VendorCode,
             notification.VendorReferenceId,
             notification.DispatchedAt,
             cancellationToken);
     }
 
-    public Task Handle(ServiceRequestFailed notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceFailed notification, CancellationToken cancellationToken)
     {
         return writer.UpdateFailedAsync(
-            notification.ServiceRequestId.ToString(),
+            notification.ServiceId.ToString(),
             notification.ErrorMessage,
             notification.AttemptCount,
             notification.WillRetry,
@@ -77,18 +77,18 @@ public sealed class ServiceProjectionHandler(
             cancellationToken);
     }
 
-    public Task Handle(ServiceRequestInProgress notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceInProgress notification, CancellationToken cancellationToken)
     {
         return writer.UpdateInProgressAsync(
-            notification.ServiceRequestId.ToString(),
+            notification.ServiceId.ToString(),
             notification.UpdatedAt,
             cancellationToken);
     }
 
-    public Task Handle(ServiceRequestRetried notification, CancellationToken cancellationToken)
+    public Task Handle(ServiceRetried notification, CancellationToken cancellationToken)
     {
         return writer.UpdateRetriedAsync(
-            notification.ServiceRequestId.ToString(),
+            notification.ServiceId.ToString(),
             notification.AttemptCount,
             notification.RetriedAt,
             cancellationToken);

@@ -1,16 +1,16 @@
 using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Application.Commands;
-using Holmes.Workflow.Application.Commands;
-using Holmes.Workflow.Domain;
-using Holmes.Workflow.Domain.Events;
+using Holmes.Orders.Application.Commands;
+using Holmes.Orders.Domain;
+using Holmes.Orders.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Holmes.App.Integration.EventHandlers;
 
 /// <summary>
-///     Handles OrderStatusChanged events to dispatch service requests when an order
-///     reaches ReadyForFulfillment. Creates ServiceRequest for each enabled service
+///     Handles OrderStatusChanged events to dispatch services when an order
+///     reaches ReadyForFulfillment. Creates Service for each enabled service
 ///     in the customer's catalog, then transitions the order to FulfillmentInProgress.
 /// </summary>
 public sealed class OrderFulfillmentHandler(
@@ -49,14 +49,14 @@ public sealed class OrderFulfillmentHandler(
         }
 
         logger.LogInformation(
-            "Creating {Count} service requests for Order {OrderId}",
+            "Creating {Count} services for Order {OrderId}",
             enabledServices.Count,
             notification.OrderId);
 
         var successCount = 0;
         foreach (var service in enabledServices)
         {
-            var command = new CreateServiceRequestCommand(
+            var command = new CreateServiceCommand(
                 notification.OrderId,
                 notification.CustomerId,
                 service.ServiceTypeCode,
@@ -71,7 +71,7 @@ public sealed class OrderFulfillmentHandler(
             {
                 successCount++;
                 logger.LogDebug(
-                    "Created ServiceRequest {ServiceRequestId} for {ServiceType} on Order {OrderId}",
+                    "Created Service {ServiceId} for {ServiceType} on Order {OrderId}",
                     result.Value,
                     service.ServiceTypeCode,
                     notification.OrderId);
@@ -79,7 +79,7 @@ public sealed class OrderFulfillmentHandler(
             else
             {
                 logger.LogWarning(
-                    "Failed to create ServiceRequest for {ServiceType} on Order {OrderId}: {Error}",
+                    "Failed to create Service for {ServiceType} on Order {OrderId}: {Error}",
                     service.ServiceTypeCode,
                     notification.OrderId,
                     result.Error);
@@ -92,7 +92,7 @@ public sealed class OrderFulfillmentHandler(
             var beginFulfillmentCommand = new BeginOrderFulfillmentCommand(
                 notification.OrderId,
                 notification.ChangedAt,
-                $"Fulfillment started with {successCount} service request(s)");
+                $"Fulfillment started with {successCount} service(s)");
 
             var beginResult = await sender.Send(beginFulfillmentCommand, cancellationToken);
 
@@ -114,7 +114,7 @@ public sealed class OrderFulfillmentHandler(
         else
         {
             logger.LogWarning(
-                "No service requests were successfully created for Order {OrderId}, order will not advance",
+                "No services were successfully created for Order {OrderId}, order will not advance",
                 notification.OrderId);
         }
     }

@@ -16,7 +16,7 @@ public sealed class StubVendorAdapter : IVendorAdapter
         Enum.GetValues<ServiceCategory>();
 
     public async Task<DispatchResult> DispatchAsync(
-        Service request,
+        Service service,
         CancellationToken cancellationToken = default
     )
     {

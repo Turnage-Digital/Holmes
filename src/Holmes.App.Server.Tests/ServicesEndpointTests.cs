@@ -13,9 +13,9 @@ using Holmes.Services.Infrastructure.Sql;
 using Holmes.Services.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
-using Holmes.Workflow.Domain;
-using Holmes.Workflow.Infrastructure.Sql;
-using Holmes.Workflow.Infrastructure.Sql.Entities;
+using Holmes.Orders.Domain;
+using Holmes.Orders.Infrastructure.Sql;
+using Holmes.Orders.Infrastructure.Sql.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,16 +43,16 @@ public class ServicesEndpointTests
         var orderId = Ulid.NewUlid().ToString();
         await SeedCustomerAsync(factory, customerId, "tenant-services-queue");
         await SeedOrderSummaryAsync(factory, orderId, customerId);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
             ServiceStatus.InProgress);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Completed);
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Completed);
 
         // Filter by customerId to isolate test data
         var response = await client.GetAsync($"/api/services/queue?customerId={customerId}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceRequestSummaryDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceSummaryDto>>(JsonOptions);
         Assert.That(result, Is.Not.Null);
         // Should only return pending and in-progress by default (not completed)
         Assert.That(result!.Items, Has.Count.EqualTo(2));
@@ -73,15 +73,15 @@ public class ServicesEndpointTests
         var orderId = Ulid.NewUlid().ToString();
         await SeedCustomerAsync(factory, customerId, "tenant-services-status");
         await SeedOrderSummaryAsync(factory, orderId, customerId);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
             ServiceStatus.InProgress);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Failed);
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Failed);
 
         var response = await client.GetAsync("/api/services/queue?status=Failed");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceRequestSummaryDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceSummaryDto>>(JsonOptions);
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Items, Has.Count.EqualTo(1));
         Assert.That(result.Items.First().Status, Is.EqualTo(ServiceStatus.Failed));
@@ -105,13 +105,13 @@ public class ServicesEndpointTests
         await SeedCustomerAsync(factory, customerId2, "tenant-services-cust-2");
         await SeedOrderSummaryAsync(factory, orderId1, customerId1);
         await SeedOrderSummaryAsync(factory, orderId2, customerId2);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId1, customerId1, ServiceStatus.Pending);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId2, customerId2, ServiceStatus.Pending);
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId1, customerId1, ServiceStatus.Pending);
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId2, customerId2, ServiceStatus.Pending);
 
         var response = await client.GetAsync($"/api/services/queue?customerId={customerId1}");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceRequestSummaryDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceSummaryDto>>(JsonOptions);
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Items, Has.Count.EqualTo(1));
         Assert.That(result.Items.First().CustomerId, Is.EqualTo(customerId1));
@@ -134,7 +134,7 @@ public class ServicesEndpointTests
         // Seed 5 pending services
         for (var i = 0; i < 5; i++)
         {
-            await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
+            await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
                 ServiceStatus.Pending);
         }
 
@@ -142,7 +142,7 @@ public class ServicesEndpointTests
         var response = await client.GetAsync($"/api/services/queue?customerId={customerId}&page=1&pageSize=2");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceRequestSummaryDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceSummaryDto>>(JsonOptions);
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Items, Has.Count.EqualTo(2));
         Assert.That(result.TotalItems, Is.EqualTo(5));
@@ -171,16 +171,16 @@ public class ServicesEndpointTests
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
         await SeedOrderSummaryAsync(factory, deniedOrder, deniedCustomer);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer,
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), allowedOrder, allowedCustomer,
             ServiceStatus.Pending);
-        await SeedServiceRequestAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer,
+        await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), deniedOrder, deniedCustomer,
             ServiceStatus.Pending);
 
         // Should only return services from allowed customer
         var response = await client.GetAsync("/api/services/queue");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceRequestSummaryDto>>(JsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<ServiceSummaryDto>>(JsonOptions);
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Items, Has.Count.EqualTo(1));
         Assert.That(result.Items.First().CustomerId, Is.EqualTo(allowedCustomer));
@@ -375,7 +375,7 @@ public class ServicesEndpointTests
         await workflowDb.SaveChangesAsync();
     }
 
-    private static async Task SeedServiceRequestAsync(
+    private static async Task SeedServiceAsync(
         HolmesWebApplicationFactory factory,
         string serviceId,
         string orderId,
@@ -387,7 +387,7 @@ public class ServicesEndpointTests
         var servicesDb = scope.ServiceProvider.GetRequiredService<ServicesDbContext>();
 
         var now = DateTime.UtcNow;
-        var service = new ServiceRequestDb
+        var service = new ServiceDb
         {
             Id = serviceId,
             OrderId = orderId,
@@ -406,7 +406,7 @@ public class ServicesEndpointTests
             FailedAt = status == ServiceStatus.Failed ? now : null
         };
 
-        servicesDb.ServiceRequests.Add(service);
+        servicesDb.Services.Add(service);
         await servicesDb.SaveChangesAsync();
     }
 }

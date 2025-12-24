@@ -47,7 +47,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                     b.Property<TimeSpan?>("NextRetryAfter")
                         .HasColumnType("time(6)");
 
-                    b.Property<string>("NotificationRequestId")
+                    b.Property<string>("NotificationId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .HasColumnType("varchar(26)");
@@ -63,7 +63,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
 
                     b.HasIndex("AttemptedAt");
 
-                    b.HasIndex("NotificationRequestId");
+                    b.HasIndex("NotificationId");
 
                     b.ToTable("delivery_attempts", (string)null);
                 });
@@ -146,7 +146,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                     b.ToTable("notification_projections", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationRequestDb", b =>
+            modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationDb", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(26)
@@ -244,21 +244,21 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
 
                     b.HasIndex("Status", "ScheduledFor");
 
-                    b.ToTable("notification_requests", (string)null);
+                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.DeliveryAttemptDb", b =>
                 {
-                    b.HasOne("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationRequestDb", "NotificationRequest")
+                    b.HasOne("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationDb", "Notification")
                         .WithMany("DeliveryAttempts")
-                        .HasForeignKey("NotificationRequestId")
+                        .HasForeignKey("NotificationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("NotificationRequest");
+                    b.Navigation("Notification");
                 });
 
-            modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationRequestDb", b =>
+            modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationDb", b =>
                 {
                     b.Navigation("DeliveryAttempts");
                 });

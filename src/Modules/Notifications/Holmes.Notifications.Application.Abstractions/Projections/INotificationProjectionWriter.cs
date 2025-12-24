@@ -10,7 +10,7 @@ public interface INotificationProjectionWriter
 {
     /// <summary>
     ///     Inserts or updates a full notification projection record.
-    ///     Called on NotificationRequestCreated events.
+    ///     Called on NotificationCreated events.
     /// </summary>
     Task UpsertAsync(NotificationProjectionModel model, CancellationToken cancellationToken);
 

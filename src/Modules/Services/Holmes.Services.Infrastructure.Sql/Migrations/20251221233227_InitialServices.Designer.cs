@@ -170,7 +170,7 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                     b.ToTable("service_projections", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceRequestDb", b =>
+            modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceDb", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(26)
@@ -274,7 +274,7 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                     b.HasIndex("VendorCode", "VendorReferenceId")
                         .HasDatabaseName("idx_vendor_ref");
 
-                    b.ToTable("service_requests", (string)null);
+                    b.ToTable("services", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceResultDb", b =>
@@ -299,7 +299,7 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                     b.Property<string>("RecordsJson")
                         .HasColumnType("json");
 
-                    b.Property<string>("ServiceRequestId")
+                    b.Property<string>("ServiceId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .HasColumnType("char(26)")
@@ -314,25 +314,25 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ServiceRequestId")
+                    b.HasIndex("ServiceId")
                         .IsUnique()
-                        .HasDatabaseName("idx_service_request");
+                        .HasDatabaseName("idx_service");
 
                     b.ToTable("service_results", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceResultDb", b =>
                 {
-                    b.HasOne("Holmes.Services.Infrastructure.Sql.Entities.ServiceRequestDb", "ServiceRequest")
+                    b.HasOne("Holmes.Services.Infrastructure.Sql.Entities.ServiceDb", "Service")
                         .WithOne("Result")
-                        .HasForeignKey("Holmes.Services.Infrastructure.Sql.Entities.ServiceResultDb", "ServiceRequestId")
+                        .HasForeignKey("Holmes.Services.Infrastructure.Sql.Entities.ServiceResultDb", "ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ServiceRequest");
+                    b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceRequestDb", b =>
+            modelBuilder.Entity("Holmes.Services.Infrastructure.Sql.Entities.ServiceDb", b =>
                 {
                     b.Navigation("Result");
                 });

@@ -1,5 +1,5 @@
 using Holmes.App.Integration.Gateways;
-using Holmes.Intake.Application.Gateways;
+using Holmes.IntakeSessions.Application.Gateways;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Holmes.App.Integration;

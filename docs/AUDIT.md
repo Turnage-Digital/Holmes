@@ -4,7 +4,7 @@ This document describes how Holmes captures and stores domain events for audit, 
 
 ## Overview
 
-Every mutation to domain aggregates (Order, Subject, User, Customer, IntakeSession, ServiceRequest, etc.) raises a
+Every mutation to domain aggregates (Order, Subject, User, Customer, IntakeSession, Service, etc.) raises a
 domain event. These events are persisted to the `event_records` table within the same database transaction as the
 aggregate state change, ensuring consistency.
 
@@ -121,19 +121,19 @@ Stream ID format: `IntakeSession:{sessionId}`
 | `IntakeSessionExpired`     | Session timed out         | `IntakeSessionId`, `ExpiredAt`, `Reason`               |
 | `IntakeSessionSuperseded`  | Replaced by new session   | `IntakeSessionId`, `SupersededByIntakeSessionId`       |
 
-### ServiceRequest
+### Service
 
-Stream ID format: `ServiceRequest:{requestId}`
+Stream ID format: `Service:{requestId}`
 
 | Event                      | Description             | Key Payload Fields                               |
 |----------------------------|-------------------------|--------------------------------------------------|
-| `ServiceRequestCreated`    | Service request created | `ServiceRequestId`, `OrderId`, `ServiceType`     |
-| `ServiceRequestDispatched` | Sent to vendor          | `ServiceRequestId`, `DispatchedAt`               |
-| `ServiceRequestInProgress` | Vendor processing       | `ServiceRequestId`, `StartedAt`                  |
-| `ServiceRequestCompleted`  | Service completed       | `ServiceRequestId`, `CompletedAt`, `Result`      |
-| `ServiceRequestFailed`     | Service failed          | `ServiceRequestId`, `FailedAt`, `Reason`         |
-| `ServiceRequestRetried`    | Retry attempted         | `ServiceRequestId`, `RetriedAt`, `AttemptNumber` |
-| `ServiceRequestCanceled`   | Service canceled        | `ServiceRequestId`, `CanceledAt`, `Reason`       |
+| `ServiceCreated`    | Service request created | `ServiceId`, `OrderId`, `ServiceType`     |
+| `ServiceDispatched` | Sent to vendor          | `ServiceId`, `DispatchedAt`               |
+| `ServiceInProgress` | Vendor processing       | `ServiceId`, `StartedAt`                  |
+| `ServiceCompleted`  | Service completed       | `ServiceId`, `CompletedAt`, `Result`      |
+| `ServiceFailed`     | Service failed          | `ServiceId`, `FailedAt`, `Reason`         |
+| `ServiceRetried`    | Retry attempted         | `ServiceId`, `RetriedAt`, `AttemptNumber` |
+| `ServiceCanceled`   | Service canceled        | `ServiceId`, `CanceledAt`, `Reason`       |
 
 ### SlaClock
 
@@ -150,16 +150,16 @@ Stream ID format: `SlaClock:{clockId}`
 
 ### Notification
 
-Stream ID format: `NotificationRequest:{requestId}`
+Stream ID format: `Notification:{requestId}`
 
 | Event                        | Description            | Key Payload Fields                              |
 |------------------------------|------------------------|-------------------------------------------------|
-| `NotificationRequestCreated` | Notification queued    | `NotificationRequestId`, `Channel`, `Recipient` |
-| `NotificationQueued`         | Sent to delivery queue | `NotificationRequestId`, `QueuedAt`             |
-| `NotificationDelivered`      | Successfully delivered | `NotificationRequestId`, `DeliveredAt`          |
-| `NotificationBounced`        | Delivery bounced       | `NotificationRequestId`, `BouncedAt`, `Reason`  |
-| `NotificationDeliveryFailed` | Delivery failed        | `NotificationRequestId`, `FailedAt`, `Reason`   |
-| `NotificationCancelled`      | Notification canceled  | `NotificationRequestId`, `CancelledAt`          |
+| `NotificationCreated` | Notification queued    | `NotificationId`, `Channel`, `Recipient` |
+| `NotificationQueued`         | Sent to delivery queue | `NotificationId`, `QueuedAt`             |
+| `NotificationDelivered`      | Successfully delivered | `NotificationId`, `DeliveredAt`          |
+| `NotificationBounced`        | Delivery bounced       | `NotificationId`, `BouncedAt`, `Reason`  |
+| `NotificationDeliveryFailed` | Delivery failed        | `NotificationId`, `FailedAt`, `Reason`   |
+| `NotificationCancelled`      | Notification canceled  | `NotificationId`, `CancelledAt`          |
 
 ## Common Audit Queries
 

@@ -1,29 +1,29 @@
 using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Domain.Events;
-using Holmes.Workflow.Application.Abstractions.Queries;
-using Holmes.Workflow.Application.Commands;
-using Holmes.Workflow.Domain;
+using Holmes.Orders.Application.Abstractions.Queries;
+using Holmes.Orders.Application.Commands;
+using Holmes.Orders.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Holmes.App.Integration.EventHandlers;
 
 /// <summary>
-///     Handles ServiceRequestCompleted events to check if all services for an order
+///     Handles ServiceCompleted events to check if all services for an order
 ///     are complete, and if so, transitions the order to ReadyForReport.
 /// </summary>
 public sealed class ServiceCompletionOrderHandler(
-    IServiceRequestQueries serviceRequestQueries,
+    IServiceQueries serviceQueries,
     IOrderQueries orderQueries,
     ISender sender,
     ILogger<ServiceCompletionOrderHandler> logger
-) : INotificationHandler<ServiceRequestCompleted>
+) : INotificationHandler<ServiceCompleted>
 {
-    public async Task Handle(ServiceRequestCompleted notification, CancellationToken cancellationToken)
+    public async Task Handle(ServiceCompleted notification, CancellationToken cancellationToken)
     {
         logger.LogDebug(
-            "Service {ServiceRequestId} completed for Order {OrderId} with status {ResultStatus}",
-            notification.ServiceRequestId,
+            "Service {ServiceId} completed for Order {OrderId} with status {ResultStatus}",
+            notification.ServiceId,
             notification.OrderId,
             notification.ResultStatus);
 
@@ -51,7 +51,7 @@ public sealed class ServiceCompletionOrderHandler(
         }
 
         // Check if all services for the order are completed
-        var completionStatus = await serviceRequestQueries.GetOrderCompletionStatusAsync(
+        var completionStatus = await serviceQueries.GetOrderCompletionStatusAsync(
             notification.OrderId.ToString(),
             cancellationToken);
 

@@ -13,7 +13,7 @@ public interface IVendorAdapter
     IEnumerable<ServiceCategory> SupportedCategories { get; }
 
     Task<DispatchResult> DispatchAsync(
-        Service request,
+        Service service,
         CancellationToken cancellationToken = default
     );
 

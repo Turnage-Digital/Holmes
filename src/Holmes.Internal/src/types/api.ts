@@ -413,7 +413,7 @@ export interface OrderChangeEvent {
 }
 
 export interface ServiceChangeEvent {
-  serviceRequestId: Ulid;
+  serviceId: Ulid;
   orderId: Ulid;
   serviceTypeCode: string;
   status: ServiceStatus;
@@ -463,7 +463,7 @@ export interface ServiceTypeDto {
   defaultTier: number;
 }
 
-export interface ServiceRequestSummaryDto {
+export interface ServiceSummaryDto {
   id: Ulid;
   orderId: Ulid;
   customerId: Ulid;
@@ -487,7 +487,7 @@ export interface ServiceRequestSummaryDto {
 
 export interface OrderServicesDto {
   orderId: Ulid;
-  services: ServiceRequestSummaryDto[];
+  services: ServiceSummaryDto[];
   totalServices: number;
   completedServices: number;
   pendingServices: number;
@@ -546,7 +546,7 @@ export interface UpdateServiceCatalogRequest {
   tiers?: ServiceCatalogTierInput[];
 }
 
-export interface CancelServiceRequest {
+export interface CancelService {
   reason: string;
 }
 

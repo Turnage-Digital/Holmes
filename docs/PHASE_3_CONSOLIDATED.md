@@ -1,10 +1,10 @@
 # Phase 3.x Consolidated Status — SLA, Notifications, Services, Frontend
 
-**Last Updated:** 2025-12-15 (Service Retry/Cancel endpoints and UI implemented)
+**Last Updated:** 2025-12-23 (code review pass)
 **Status:** In Progress
 
-This document consolidates Phase 3, 3.1, and 3.2 into a single tracking document. It replaces the individual
-phase documents and the monetize folder overlays for delivery tracking purposes.
+This document tracks Phase 3.0, 3.1, and 3.2 and is based on the current codebase. Frontend status reflects code
+presence, not a verified UI run in this pass.
 
 ---
 
@@ -12,136 +12,78 @@ phase documents and the monetize folder overlays for delivery tracking purposes.
 
 | Phase   | Focus                      | Backend Status | Frontend Status | Overall |
 |---------|----------------------------|----------------|-----------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ Complete     | ✅ Verified      | 95%     |
-| **3.1** | Services & Fulfillment     | ✅ Complete     | ✅ Verified      | 95%     |
-| **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded   | 40%     |
+| **3.0** | SLA Clocks & Notifications | ✅ Implemented | 🟡 Not re-verified | 85%   |
+| **3.1** | Services & Fulfillment     | ✅ Implemented | 🟡 Not re-verified | 85%   |
+| **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded      | 40%   |
 
-**Bottom line:** Backend aggregates, commands, read-only projections, and API endpoints exist for all modules.
-The order fulfillment handler is complete — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
-`ReadyForFulfillment` and transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler` advances
-Order to `ReadyForReport` when all services complete. All API endpoints for SLA Clocks, Notifications, Services
-queue, and Customer service catalog are now implemented. **Frontend verified working** — OrderDetailPage includes
-SLA Clocks tab (with pause/resume for Running clocks), Notifications tab, Services tab with tier progress, Audit
-Log tab, and Timeline tab. Customer Service Catalog editor works (partial: tier auto-creation needed when
-assigning services to new tiers). SeedData.cs creates demo orders with SLA clocks and service requests.
+**Bottom line:** The Phase 3 integration path is working in code: Intake -> Workflow -> Services -> ReadyForReport,
+with SLA clocks and notifications wired through background services and projections. Remaining work is primarily in
+Subject data expansion and Intake UI completion.
 
 ---
 
 ## Phase 3.0 — SLA Clocks & Notifications
 
-### Backend: ✅ COMPLETE
+### Backend: ✅ IMPLEMENTED
 
 **SlaClocks Module** (`src/Modules/SlaClocks/`)
 
-- [x] `SlaClock` aggregate with state machine (Running → AtRisk → Breached → Paused → Completed)
-- [x] `ClockKind` enum: Intake, Fulfillment, Overall, Service, Custom
+- [x] `SlaClock` aggregate with state machine (Running -> AtRisk -> Breached -> Paused -> Completed)
+- [x] `ClockKind` enum: Intake, Fulfillment, Overall, Custom
 - [x] Domain events: Started, AtRisk, Breached, Paused, Resumed, Completed
 - [x] Commands: Start, Pause, Resume, MarkAtRisk, MarkBreached, Complete
-- [x] `BusinessCalendarService` with US Federal holidays (2024-2026)
-- [x] `SlaClockWatchdogService` background service
+- [x] `BusinessCalendarService` with US Federal holidays (2024-2026) + customer overrides
+- [x] `SlaClockWatchdogService` background service in `src/Holmes.App.Server`
 - [x] `OrderStatusChangedSlaHandler` integration
 - [x] Unit tests: `SlaClockTests`, `BusinessCalendarServiceTests`, `SlaClockProjectionHandlerTests`
-- [x] **Read-only projections** (`sla_clock_projections` table, `SlaClockProjectionHandler`,
-  `SlaClockEventProjectionRunner`)
+- [x] Read-only projections: `sla_clock_projections` with `SlaClockProjectionHandler`
 
 **Notifications Module** (`src/Modules/Notifications/`)
 
-- [x] `NotificationRequest` aggregate with delivery lifecycle
-- [x] Channels: Email, SMS, Webhook
-- [x] Triggers: IntakeSessionInvited, SlaClockAtRisk, SlaClockBreached, etc.
+- [x] `Notification` aggregate with delivery lifecycle
+- [x] Channels: Email, SMS, Webhook (logging/stub providers)
 - [x] Commands: Create, Process, RecordDeliveryResult
-- [x] Stub providers: LoggingEmailProvider, LoggingSmsProvider, LoggingWebhookProvider
-- [x] `NotificationProcessingService` background service
-- [x] Unit tests: `NotificationRequestTests`, `NotificationProjectionHandlerTests`
-- [x] **Read-only projections** (`notification_projections` table, `NotificationProjectionHandler`,
-  `NotificationEventProjectionRunner`)
+- [x] `NotificationProcessingService` background service in `src/Holmes.App.Server`
+- [x] Unit tests: `NotificationTests`, `NotificationProjectionHandlerTests`
+- [x] Read-only projections: `notification_projections`
 
-### Frontend: 🟡 APIs READY
+**Integration notes**
 
-**API endpoints complete:**
+- Intake invite notifications are sent via `IntakeInviteNotificationHandler`.
+- SLA at-risk/breached handlers exist but currently log only; they do not create notifications yet.
 
-- [x] `GET /api/clocks/sla?orderId={id}` — returns clock data for order
-- [x] `POST /api/clocks/sla/{id}/pause` — pause a clock
-- [x] `POST /api/clocks/sla/{id}/resume` — resume a clock
-- [x] `GET /api/notifications?orderId={id}` — returns notifications for order
-- [x] `GET /api/notifications/{id}` — get single notification
-- [x] `POST /api/notifications/{id}/retry` — retry failed notification
+### Frontend: 🟡 NOT RE-VERIFIED
 
-**Holmes.Internal implemented (VERIFIED):**
-
-- [x] SLA Clocks tab on Order detail page (shows all clocks with status, pause/resume for Running clocks)
-- [x] Notifications tab on Order detail page (shows notification history with retry action)
-- [x] `SlaBadge` component wired to real API data via `clockStateToSlaStatus` helper
-- [x] React Query hooks: `useOrderSlaClocks`, `usePauseSlaClock`, `useResumeSlaClock`
-- [x] React Query hooks: `useOrderNotifications`, `useRetryNotification`
-- [x] TypeScript types for SLA clocks and notifications in `@/types/api`
-- [x] Audit Log tab with proper event name formatting (assembly-qualified names handled)
-- [x] Timeline tab showing order activity events
-
-**Holmes.Internal gaps (remaining):**
-
-- [ ] SLA clock dashboard (show at-risk/breached counts aggregated across orders)
-- [x] SSE for real-time clock updates (`clock.change` events) — `SlaClockChangeBroadcaster`,
-  `SlaClockChangeBroadcastHandler`, `SlaClockChangesController`, frontend wired in `OrderDetailPage`
+Known routes/components exist in Holmes.Internal, but UI behavior was not re-validated in this pass.
 
 ---
 
 ## Phase 3.1 — Services & Fulfillment
 
-### Backend: ✅ COMPLETE
+### Backend: ✅ IMPLEMENTED
 
 **Services Module** (`src/Modules/Services/`)
 
-- [x] `ServiceRequest` aggregate with state machine (Pending → Dispatched → InProgress → Completed/Failed/Canceled)
-- [x] Service type taxonomy (Criminal, Identity, Employment, Education, Driving, Credit, Drug, Civil, Reference,
-  Healthcare, Custom)
-- [x] `ServiceCatalog` for customer-specific service configuration
-- [x] Tier execution logic (customer-defined execution order)
+- [x] Aggregate named `Service` with state machine (Pending -> Dispatched -> InProgress -> Completed/Failed/Canceled)
+- [x] Service type taxonomy and customer `ServiceCatalog`
+- [x] Tier configuration (customer-defined execution order)
 - [x] Commands: Create, Dispatch, Cancel, Retry, RecordResult, ProcessVendorCallback
-- [x] Commands: UpdateCatalogService, UpdateTierConfiguration
-- [x] Queries: GetServiceRequestsByOrder, GetServiceRequest, GetCustomerServiceCatalog, ListServiceTypes,
+- [x] Queries: GetServicesByOrder, GetService, GetCustomerServiceCatalog, ListServiceTypes,
   GetOrderCompletionStatus
-- [x] `IVendorAdapter` interface with credential store abstraction
+- [x] `IVendorAdapter` + `StubVendorAdapter`
 - [x] `IServiceChangeBroadcaster` for SSE
-- [x] **Read-only projections** (`service_projections` table, `ServiceProjectionHandler`,
-  `ServiceEventProjectionRunner`)
-- [x] Unit tests: `ServiceRequestTests`, `ServiceProjectionHandlerTests`
-- [x] **Order fulfillment handler** — `OrderFulfillmentHandler` creates ServiceRequests when Order reaches
-  `ReadyForFulfillment`
-- [x] **Service completion handler** — `ServiceCompletionOrderHandler` advances Order to `ReadyForReport` when all
-  services complete
+- [x] Read-only projections: `service_projections` with `ServiceProjectionHandler`
 
-**Controllers:**
+**Integration handlers**
 
-- [x] `ServicesController` — CRUD for service requests
-- [x] `ServiceChangesController` — SSE for service status updates
+- `OrderFulfillmentHandler` creates service requests when Order reaches `ReadyForFulfillment` and then calls
+  `BeginOrderFulfillmentCommand` if any services were created.
+- `ServiceCompletionOrderHandler` advances Order to `ReadyForReport` once all services are complete.
 
-### Frontend: 🟡 APIs READY
+### Frontend: 🟡 NOT RE-VERIFIED
 
-**API endpoints complete:**
-
-- [x] `GET /api/services/queue` — fulfillment queue with customer access filtering
-- [x] `GET /api/services/{orderId}` — services for an order
-- [x] `GET /api/customers/{id}/service-catalog` — customer service catalog
-- [x] `PUT /api/customers/{id}/service-catalog` — update customer catalog
-
-**Holmes.Internal implemented:**
-
-- [x] `FulfillmentDashboardPage` — stats cards, filters, data grid (wired to real API)
-- [x] `ServiceStatusCard` component
-- [x] `TierProgressView` component
-- [x] `ServiceCatalogEditor` component (wired to customer catalog APIs)
-- [x] `TierConfigurationEditor` component (wired to customer catalog APIs)
-- [x] Types defined in `@/types/api` for ServiceCategory, ServiceStatus, etc.
-- [x] Services tab on `OrderDetailPage` with real data
-
-**Gaps (remaining):**
-
-- [x] SSE integration for real-time service updates — `ServiceChangeBroadcastHandler` publishes to existing
-  `IServiceChangeBroadcaster`, frontend wired in `OrderDetailPage`
-- [x] Retry/Cancel actions calling real endpoints — `POST /api/services/{id}/retry` and
-  `POST /api/services/{id}/cancel` wired to `ServicesController`, frontend hooks `useRetryServiceRequest`
-  and `useCancelServiceRequest` wired to `ServiceStatusCard` with action buttons
+Known components exist (FulfillmentDashboardPage, Services tab, ServiceCatalogEditor), but UI behavior was not
+re-validated in this pass.
 
 ---
 
@@ -168,15 +110,15 @@ assigning services to new tiers). SeedData.cs creates demo orders with SLA clock
 
 ### Frontend: 🟡 SCAFFOLDED
 
-**Holmes.Intake has scaffolds:**
+**Holmes.IntakeSessions scaffolds:**
 
-- [x] `AddressHistoryForm.tsx` — exists but needs completion
-- [x] `EmploymentHistoryForm.tsx` — exists but needs completion
-- [x] `EducationHistoryForm.tsx` — exists but needs completion
-- [x] `ReferenceForm.tsx` — exists but needs completion
-- [x] `IntakeFlow.tsx` — exists but incomplete
+- [x] `AddressHistoryForm.tsx`
+- [x] `EmploymentHistoryForm.tsx`
+- [x] `EducationHistoryForm.tsx`
+- [x] `ReferenceForm.tsx`
+- [x] `IntakeFlow.tsx`
 
-**Holmes.Intake gaps:**
+**Holmes.IntakeSessions gaps:**
 
 - [ ] Dynamic form sections based on policy
 - [ ] Wire forms to intake submission API
@@ -189,143 +131,49 @@ assigning services to new tiers). SeedData.cs creates demo orders with SLA clock
 
 - [ ] Customer detail page with Services/Tiers tabs (components exist, not wired)
 - [ ] Subject detail page showing address/employment/education history
-- [ ] Real API integration for customer service catalog
 
 ---
 
-## API Endpoint Status
-
-### Implemented (Controllers exist)
+## API Endpoint Status (from code)
 
 | Endpoint                                  | Controller                | Status    |
 |-------------------------------------------|---------------------------|-----------|
-| `GET/POST /api/customers`                 | CustomersController       | ✅ Working |
-| `GET/POST /api/subjects`                  | SubjectsController        | ✅ Working |
-| `GET/POST /api/orders`                    | OrdersController          | ✅ Working |
-| `GET/POST /api/users`                     | UsersController           | ✅ Working |
-| `GET /api/intake/sessions`                | IntakeSessionsController  | ✅ Working |
-| `GET /api/services/{orderId}`             | ServicesController        | ✅ Exists  |
-| `SSE /api/orders/changes`                 | OrderChangesController    | ✅ Working |
-| `SSE /api/services/changes`               | ServiceChangesController  | ✅ Working |
-| `SSE /api/clocks/sla/changes`             | SlaClockChangesController | ✅ Working |
-| `GET /api/clocks/sla?orderId={id}`        | SlaClocksController       | ✅ Working |
-| `POST /api/clocks/sla/{id}/pause`         | SlaClocksController       | ✅ Working |
-| `POST /api/clocks/sla/{id}/resume`        | SlaClocksController       | ✅ Working |
-| `GET /api/notifications`                  | NotificationsController   | ✅ Working |
-| `GET /api/notifications/{id}`             | NotificationsController   | ✅ Working |
-| `POST /api/notifications/{id}/retry`      | NotificationsController   | ✅ Working |
-| `GET /api/services/queue`                 | ServicesController        | ✅ Working |
-| `POST /api/services/{id}/retry`           | ServicesController        | ✅ Working |
-| `POST /api/services/{id}/cancel`          | ServicesController        | ✅ Working |
-| `GET /api/customers/{id}/service-catalog` | CustomersController       | ✅ Working |
-| `PUT /api/customers/{id}/service-catalog` | CustomersController       | ✅ Working |
-
-### Needed but Missing
-
-| Endpoint                             | Purpose            | Priority |
-|--------------------------------------|--------------------|----------|
-| `GET /api/subjects/{id}/addresses`   | Subject addresses  | Medium   |
-| `GET /api/subjects/{id}/employments` | Subject employment | Medium   |
+| `GET/POST /api/customers`                 | CustomersController       | ✅ Exists |
+| `GET/POST /api/subjects`                  | SubjectsController        | ✅ Exists |
+| `GET/POST /api/orders`                    | OrdersController          | ✅ Exists |
+| `GET/POST /api/users`                     | UsersController           | ✅ Exists |
+| `GET /api/intake/sessions`                | IntakeSessionsController  | ✅ Exists |
+| `GET /api/services/{orderId}`             | ServicesController        | ✅ Exists |
+| `SSE /api/orders/changes`                 | OrderChangesController    | ✅ Exists |
+| `SSE /api/services/changes`               | ServiceChangesController  | ✅ Exists |
+| `SSE /api/clocks/sla/changes`             | SlaClockChangesController | ✅ Exists |
+| `GET /api/clocks/sla?orderId={id}`        | SlaClocksController       | ✅ Exists |
+| `POST /api/clocks/sla/{id}/pause`         | SlaClocksController       | ✅ Exists |
+| `POST /api/clocks/sla/{id}/resume`        | SlaClocksController       | ✅ Exists |
+| `GET /api/notifications`                  | NotificationsController   | ✅ Exists |
+| `GET /api/notifications/{id}`             | NotificationsController   | ✅ Exists |
+| `POST /api/notifications/{id}/retry`      | NotificationsController   | ✅ Exists |
+| `GET /api/services/queue`                 | ServicesController        | ✅ Exists |
+| `POST /api/services/{id}/retry`           | ServicesController        | ✅ Exists |
+| `POST /api/services/{id}/cancel`          | ServicesController        | ✅ Exists |
+| `GET /api/customers/{id}/service-catalog` | CustomersController       | ✅ Exists |
+| `PUT /api/customers/{id}/service-catalog` | CustomersController       | ✅ Exists |
 
 ---
 
-## Documentation Cleanup
+## Immediate Priorities (Phase 3 Focus)
 
-### Files to keep (authoritative):
-
-- `docs/ARCHITECTURE.md` — main architecture reference
-- `docs/PLAN.md` — high-level phase roadmap
-- `docs/PHASE_3_CONSOLIDATED.md` — THIS FILE (replaces individual phase docs for tracking)
-- `docs/DEV_SETUP.md` — developer setup guide
-- `docs/RUNBOOKS.md` — operational runbooks
-- `docs/MODULE_TEMPLATE.md` — module scaffolding guide
-
-### Files to archive/merge:
-
-- `docs/PHASE_3.md` → content merged here
-- `docs/PHASE_3_1.md` → content merged here
-- `docs/PHASE_3_2.md` → content merged here
-- `docs/SLA_CLOCKS_PLAN.md` → implementation complete, archive
-- `docs/monetize/PLAN_PHASE_3_UPDATE.md` → merge into PLAN.md
-- `docs/monetize/ARCHITECTURE_COMPLIANCE_UPDATE.md` → merge into ARCHITECTURE.md
-
----
-
-## Immediate Priorities
-
-### Priority 1: Backend Projections & Routing ✅ COMPLETE
-
-Read-only projections are needed before frontend can wire to real APIs.
-
-1. ~~**Add SlaClocks read-only projections**~~ ✅ DONE (`sla_clock_projections` table, `SlaClockProjectionHandler`,
-   `SlaClockEventProjectionRunner`)
-2. ~~**Add Notifications read-only projections**~~ ✅ DONE (`notification_projections` table,
-   `NotificationProjectionHandler`, `NotificationEventProjectionRunner`)
-3. ~~**Add Services read-only projections**~~ ✅ DONE (`service_projections` table, `ServiceProjectionHandler`,
-   `ServiceEventProjectionRunner`)
-4. ~~**Create order fulfillment handler**~~ ✅ DONE — `OrderFulfillmentHandler` creates ServiceRequests when Order
-   reaches `ReadyForFulfillment`, then transitions to `FulfillmentInProgress`. `ServiceCompletionOrderHandler`
-   transitions Order to `ReadyForReport` when all services complete.
-
-### Priority 2: Wire Frontend to Real APIs
-
-Once projections exist, wire frontend components.
-
-1. ~~**Create SLA Clocks controller**~~ ✅ DONE — `SlaClocksController` with `GET /api/clocks/sla?orderId={id}`,
-   `POST /api/clocks/sla/{id}/pause`, `POST /api/clocks/sla/{id}/resume`
-2. ~~**Create Notifications controller**~~ ✅ DONE — `NotificationsController` with `GET /api/notifications`,
-   `GET /api/notifications/{id}`, `POST /api/notifications/{id}/retry`
-3. ~~**Create Services queue endpoint**~~ ✅ DONE — `GET /api/services/queue` for fulfillment queue
-4. ~~**Create Customer catalog endpoints**~~ ✅ DONE — `GET/PUT /api/customers/{id}/service-catalog`
-5. ~~**Wire FulfillmentDashboardPage**~~ ✅ DONE — `useFulfillmentQueue` hook with server-side pagination
-6. ~~**Add Services tab to OrderDetailPage**~~ ✅ DONE — `useOrderServices` hook with `TierProgressView`
-7. ~~**Wire ServiceCatalogEditor**~~ ✅ DONE — `useCustomerCatalog` and `useUpdateServiceCatalog` hooks
-
-### Priority 3: Complete Intake Flow
-
-1. **Finish AddressHistoryForm** with date range validation
-2. **Finish EmploymentHistoryForm** with all fields
-3. **Wire IntakeFlow** to submission API
-4. **Add policy-driven section visibility**
-
-### Priority 4: Subject Domain Expansion
-
-1. **Add address collection** to Subject aggregate
-2. **Create EF migrations** for subject_addresses, etc.
-3. **Update SubmitIntakeCommand** to persist collections
-4. **Add Subject API endpoints** for address/employment data
-
----
-
-## Acceptance Criteria (Phase 3.x Exit)
-
-### Must Have
-
-- [x] SLA clocks visible in UI with at-risk/breached indicators
-- [x] Notifications history viewable per order
-- [x] Fulfillment dashboard showing real service data
-- [x] Order detail shows service status with real data
-- [ ] Intake form captures address history (7 years)
-- [x] Customer service catalog configurable via UI (partial: tier auto-creation needed)
-
-### Should Have
-
-- [x] SSE real-time updates for service and clock status (backend + frontend complete)
-- [x] Retry/Cancel service actions work (via Services tab on Order detail page)
-- [ ] Employment/Education captured in intake
-- [x] Clock pause/resume from UI (works for Running clocks; hidden for terminal states)
-
-### Deferred (Post Phase 3.x)
-
-- [ ] Grafana dashboards
-- [ ] Alerting configuration
-- [ ] Full intake flow with all sections (education, references)
+1. Finish Intake UI and persist full Subject data collections.
+2. Implement Subject data expansion + migrations.
+3. Wire SLA at-risk/breached notifications to real Notifications.
+4. Validate Holmes.Internal UI integration (services, clocks, notifications) after recent changes.
 
 ---
 
 ## Related Documents
 
 - `docs/ARCHITECTURE.md` — system architecture
+- `docs/STATE_MACHINES.md` — lifecycle details
 - `docs/PLAN.md` — overall roadmap
 - `docs/domain/INTAKE_SESSION.md` — intake domain model
 - `docs/domain/INTAKE_UI.md` — intake UI specification

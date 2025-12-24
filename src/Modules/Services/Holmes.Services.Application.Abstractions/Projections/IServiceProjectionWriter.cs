@@ -3,22 +3,22 @@ using Holmes.Services.Domain;
 namespace Holmes.Services.Application.Abstractions.Projections;
 
 /// <summary>
-///     Writes service request projection data for read model queries.
+///     Writes service projection data for read model queries.
 ///     Called by event handlers to keep projections in sync.
 /// </summary>
 public interface IServiceProjectionWriter
 {
     /// <summary>
-    ///     Inserts or updates a full service request projection record.
-    ///     Called on ServiceRequestCreated events.
+    ///     Inserts or updates a full service projection record.
+    ///     Called on ServiceCreated events.
     /// </summary>
     Task UpsertAsync(ServiceProjectionModel model, CancellationToken cancellationToken);
 
     /// <summary>
-    ///     Updates the status to Dispatched. Called on ServiceRequestDispatched events.
+    ///     Updates the status to Dispatched. Called on ServiceDispatched events.
     /// </summary>
     Task UpdateDispatchedAsync(
-        string serviceRequestId,
+        string serviceId,
         string vendorCode,
         string? vendorReferenceId,
         DateTimeOffset dispatchedAt,
@@ -26,19 +26,19 @@ public interface IServiceProjectionWriter
     );
 
     /// <summary>
-    ///     Updates the status to InProgress. Called on ServiceRequestInProgress events.
+    ///     Updates the status to InProgress. Called on ServiceInProgress events.
     /// </summary>
     Task UpdateInProgressAsync(
-        string serviceRequestId,
+        string serviceId,
         DateTimeOffset updatedAt,
         CancellationToken cancellationToken
     );
 
     /// <summary>
-    ///     Updates the status to Completed. Called on ServiceRequestCompleted events.
+    ///     Updates the status to Completed. Called on ServiceCompleted events.
     /// </summary>
     Task UpdateCompletedAsync(
-        string serviceRequestId,
+        string serviceId,
         ServiceResultStatus resultStatus,
         int recordCount,
         DateTimeOffset completedAt,
@@ -46,10 +46,10 @@ public interface IServiceProjectionWriter
     );
 
     /// <summary>
-    ///     Updates the status to Failed. Called on ServiceRequestFailed events.
+    ///     Updates the status to Failed. Called on ServiceFailed events.
     /// </summary>
     Task UpdateFailedAsync(
-        string serviceRequestId,
+        string serviceId,
         string errorMessage,
         int attemptCount,
         bool willRetry,
@@ -58,20 +58,20 @@ public interface IServiceProjectionWriter
     );
 
     /// <summary>
-    ///     Updates the status to Canceled. Called on ServiceRequestCanceled events.
+    ///     Updates the status to Canceled. Called on ServiceCanceled events.
     /// </summary>
     Task UpdateCanceledAsync(
-        string serviceRequestId,
+        string serviceId,
         string reason,
         DateTimeOffset canceledAt,
         CancellationToken cancellationToken
     );
 
     /// <summary>
-    ///     Updates attempt info after retry. Called on ServiceRequestRetried events.
+    ///     Updates attempt info after retry. Called on ServiceRetried events.
     /// </summary>
     Task UpdateRetriedAsync(
-        string serviceRequestId,
+        string serviceId,
         int attemptCount,
         DateTimeOffset retriedAt,
         CancellationToken cancellationToken
@@ -79,10 +79,10 @@ public interface IServiceProjectionWriter
 }
 
 /// <summary>
-///     Model representing the full service request projection data.
+///     Model representing the full service projection data.
 /// </summary>
 public sealed record ServiceProjectionModel(
-    string ServiceRequestId,
+    string ServiceId,
     string OrderId,
     string CustomerId,
     string ServiceTypeCode,

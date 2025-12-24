@@ -74,14 +74,14 @@ $modules = @(
     },
     @{
         Name = "Intake"
-        Project = "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Holmes.Intake.Infrastructure.Sql.csproj"
-        Context = "Holmes.Intake.Infrastructure.Sql.IntakeDbContext"
+        Project = "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Holmes.IntakeSessions.Infrastructure.Sql.csproj"
+        Context = "Holmes.IntakeSessions.Infrastructure.Sql.IntakeDbContext"
         MigrationName = "InitialIntake"
     },
     @{
-        Name = "Workflow"
-        Project = "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Holmes.Workflow.Infrastructure.Sql.csproj"
-        Context = "Holmes.Workflow.Infrastructure.Sql.WorkflowDbContext"
+        Name = "Orders"
+        Project = "src/Modules/Orders/Holmes.Orders.Infrastructure.Sql/Holmes.Orders.Infrastructure.Sql.csproj"
+        Context = "Holmes.Orders.Infrastructure.Sql.WorkflowDbContext"
         MigrationName = "InitialWorkflow"
     },
     @{
