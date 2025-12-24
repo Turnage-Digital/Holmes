@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Orders.Infrastructure.Sql.Queries;
 
-public sealed class SqlOrderQueries(WorkflowDbContext dbContext) : IOrderQueries
+public sealed class SqlOrderQueries(OrdersDbContext dbContext) : IOrderQueries
 {
     public async Task<OrderSummaryDto?> GetSummaryByIdAsync(string orderId, CancellationToken cancellationToken)
     {

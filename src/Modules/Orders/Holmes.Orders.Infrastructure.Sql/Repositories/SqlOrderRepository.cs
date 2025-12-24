@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Orders.Infrastructure.Sql.Repositories;
 
-public sealed class SqlOrderRepository(WorkflowDbContext dbContext) : IOrderRepository
+public sealed class SqlOrderRepository(OrdersDbContext dbContext) : IOrderRepository
 {
     public Task AddAsync(Order order, CancellationToken cancellationToken)
     {

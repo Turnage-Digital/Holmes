@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Orders.Infrastructure.Sql.Projections;
 
-public sealed class SqlOrderSummaryWriter(WorkflowDbContext dbContext)
+public sealed class SqlOrderSummaryWriter(OrdersDbContext dbContext)
     : IOrderSummaryWriter
 {
     public async Task UpsertAsync(Order order, CancellationToken cancellationToken)

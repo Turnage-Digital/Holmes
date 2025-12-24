@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Orders.Infrastructure.Sql.Projections;
 
 public sealed class OrderSummaryProjectionRunner(
-    WorkflowDbContext workflowDbContext,
+    OrdersDbContext workflowDbContext,
     CoreDbContext coreDbContext,
     IOrderSummaryWriter orderSummaryWriter,
     ILogger<OrderSummaryProjectionRunner> logger

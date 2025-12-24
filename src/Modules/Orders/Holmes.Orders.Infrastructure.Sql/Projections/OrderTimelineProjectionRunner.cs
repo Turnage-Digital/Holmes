@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Orders.Infrastructure.Sql.Projections;
 
 public sealed class OrderTimelineProjectionRunner(
-    WorkflowDbContext workflowDbContext,
+    OrdersDbContext workflowDbContext,
     CoreDbContext coreDbContext,
     IIntakeSessionReplaySource intakeSessionReplaySource,
     IOrderTimelineWriter timelineWriter,

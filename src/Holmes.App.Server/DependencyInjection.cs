@@ -303,7 +303,7 @@ internal static class DependencyInjection
         services.AddDbContext<CustomersDbContext>(options => options.UseInMemoryDatabase("holmes-customers"));
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
         services.AddDbContext<IntakeDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
-        services.AddDbContext<WorkflowDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
+        services.AddDbContext<OrdersDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
         services.AddDbContext<SlaClockDbContext>(options => options.UseInMemoryDatabase("holmes-slaclocks"));
         services.AddDbContext<ServicesDbContext>(options => options.UseInMemoryDatabase("holmes-services"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
@@ -331,7 +331,7 @@ internal static class DependencyInjection
         services.AddSingleton<
             IIntakeSectionMappingService,
             IntakeSectionMappingService>();
-        services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
+        services.AddScoped<IWorkflowUnitOfWork, OrdersUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
         services.AddScoped<IOrderQueries, SqlOrderQueries>();

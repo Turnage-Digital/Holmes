@@ -420,7 +420,7 @@ public class SlaClocksEndpointTests
     )
     {
         using var scope = factory.Services.CreateScope();
-        var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
+        var workflowDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
         workflowDb.OrderSummaries.Add(new OrderSummaryProjectionDb
         {
             OrderId = orderId,

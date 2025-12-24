@@ -52,7 +52,7 @@ public sealed class SeedData(
             var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
             var subjectsDb = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
             var usersDb = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-            var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
+            var workflowDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
 
             if (await HasExistingSeedAsync(usersDb, cancellationToken))
             {
@@ -269,7 +269,7 @@ public sealed class SeedData(
 
     private static async Task EnsureDemoOrdersAsync(
         IServiceProvider services,
-        WorkflowDbContext workflowDb,
+        OrdersDbContext workflowDb,
         UlidId customerId,
         List<UlidId> subjectIds,
         UlidId adminUserId,

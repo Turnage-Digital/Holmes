@@ -13,10 +13,10 @@ namespace Holmes.Orders.Infrastructure.Sql.Projections;
 /// </summary>
 public sealed class OrderTimelineEventProjectionRunner : EventProjectionRunner
 {
-    private readonly WorkflowDbContext _workflowDbContext;
+    private readonly OrdersDbContext _workflowDbContext;
 
     public OrderTimelineEventProjectionRunner(
-        WorkflowDbContext workflowDbContext,
+        OrdersDbContext workflowDbContext,
         CoreDbContext coreDbContext,
         IEventStore eventStore,
         IDomainEventSerializer serializer,

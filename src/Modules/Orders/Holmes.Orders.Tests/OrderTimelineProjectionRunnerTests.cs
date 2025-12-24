@@ -18,12 +18,12 @@ public sealed class OrderTimelineProjectionRunnerTests
     private CoreDbContext _coreDbContext = null!;
     private IntakeDbContext _intakeDbContext = null!;
     private OrderTimelineProjectionRunner _runner = null!;
-    private WorkflowDbContext _workflowDbContext = null!;
+    private OrdersDbContext _workflowDbContext = null!;
 
     [SetUp]
     public void SetUp()
     {
-        var workflowOptions = new DbContextOptionsBuilder<WorkflowDbContext>()
+        var workflowOptions = new DbContextOptionsBuilder<OrdersDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
@@ -35,7 +35,7 @@ public sealed class OrderTimelineProjectionRunnerTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        _workflowDbContext = new WorkflowDbContext(workflowOptions);
+        _workflowDbContext = new OrdersDbContext(workflowOptions);
         _intakeDbContext = new IntakeDbContext(intakeOptions);
         _coreDbContext = new CoreDbContext(coreOptions);
 

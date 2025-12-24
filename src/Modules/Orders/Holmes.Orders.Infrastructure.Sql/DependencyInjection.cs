@@ -16,11 +16,11 @@ public static class DependencyInjection
         ServerVersion serverVersion
     )
     {
-        services.AddDbContext<WorkflowDbContext>(options =>
+        services.AddDbContext<OrdersDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>
-                builder.MigrationsAssembly(typeof(WorkflowDbContext).Assembly.FullName)));
+                builder.MigrationsAssembly(typeof(OrdersDbContext).Assembly.FullName)));
 
-        services.AddScoped<IWorkflowUnitOfWork, WorkflowUnitOfWork>();
+        services.AddScoped<IWorkflowUnitOfWork, OrdersUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
         services.AddScoped<IOrderQueries, SqlOrderQueries>();

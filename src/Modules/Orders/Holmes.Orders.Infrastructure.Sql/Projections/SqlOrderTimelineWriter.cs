@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.Orders.Infrastructure.Sql.Projections;
 
 public sealed class SqlOrderTimelineWriter(
-    WorkflowDbContext dbContext,
+    OrdersDbContext dbContext,
     ILogger<SqlOrderTimelineWriter> logger
 ) : IOrderTimelineWriter
 {

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Holmes.Orders.Infrastructure.Sql;
 
-public class WorkflowDbContext(DbContextOptions<WorkflowDbContext> options)
+public class OrdersDbContext(DbContextOptions<OrdersDbContext> options)
     : DbContext(options)
 {
     public DbSet<OrderDb> Orders => Set<OrderDb>();
