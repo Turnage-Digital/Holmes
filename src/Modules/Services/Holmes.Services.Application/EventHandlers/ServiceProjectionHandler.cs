@@ -1,4 +1,4 @@
-using Holmes.Services.Application.Abstractions.Projections;
+using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Domain;
 using Holmes.Services.Domain.Events;
 using MediatR;

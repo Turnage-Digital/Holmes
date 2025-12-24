@@ -1,5 +1,5 @@
 using Holmes.Core.Application;
-using Holmes.Customers.Application.Abstractions.Queries;
+using Holmes.Customers.Application.Abstractions;
 using MediatR;
 
 namespace Holmes.Customers.Application.Queries;

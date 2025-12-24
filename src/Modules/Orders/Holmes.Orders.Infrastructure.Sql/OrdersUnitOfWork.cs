@@ -2,7 +2,6 @@ using Holmes.Core.Application.Abstractions;
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Orders.Domain;
-using Holmes.Orders.Infrastructure.Sql.Repositories;
 using MediatR;
 
 namespace Holmes.Orders.Infrastructure.Sql;
@@ -16,7 +15,7 @@ public sealed class OrdersUnitOfWork(
 )
     : UnitOfWork<OrdersDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IWorkflowUnitOfWork
 {
-    private readonly Lazy<IOrderRepository> _orders = new(() => new SqlOrderRepository(dbContext));
+    private readonly Lazy<IOrderRepository> _orders = new(() => new OrderRepository(dbContext));
 
     public IOrderRepository Orders => _orders.Value;
 }

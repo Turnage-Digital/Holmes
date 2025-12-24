@@ -1,7 +1,7 @@
 using Holmes.App.Server.Services;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Notifications.Application.Abstractions.Queries;
+using Holmes.Notifications.Application.Abstractions;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using MediatR;

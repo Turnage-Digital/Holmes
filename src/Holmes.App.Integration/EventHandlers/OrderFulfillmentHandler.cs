@@ -3,6 +3,7 @@ using Holmes.Services.Application.Commands;
 using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Domain.Events;
+using Holmes.Services.Application.Abstractions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

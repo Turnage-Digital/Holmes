@@ -3,7 +3,6 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Orders.Infrastructure.Sql.Mappers;
-using Holmes.Orders.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -29,7 +28,7 @@ public sealed class OrderSummaryProjectionRunnerTests
         _workflowDbContext = new OrdersDbContext(workflowOptions);
         _coreDbContext = new CoreDbContext(coreOptions);
 
-        var writer = new SqlOrderSummaryWriter(_workflowDbContext);
+        var writer = new OrderSummaryWriter(_workflowDbContext);
         _runner = new OrderSummaryProjectionRunner(
             _workflowDbContext,
             _coreDbContext,

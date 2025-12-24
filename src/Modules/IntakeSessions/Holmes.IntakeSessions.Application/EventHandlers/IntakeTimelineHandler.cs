@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.IntakeSessions.Domain.Events;
-using Holmes.Orders.Application.Abstractions.Projections;
+using Holmes.Orders.Application.Abstractions;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.EventHandlers;

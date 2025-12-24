@@ -1,6 +1,6 @@
+using Holmes.Orders.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Domain.Events;
-using Holmes.Orders.Application.Abstractions.Queries;
 using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Domain;
 using MediatR;

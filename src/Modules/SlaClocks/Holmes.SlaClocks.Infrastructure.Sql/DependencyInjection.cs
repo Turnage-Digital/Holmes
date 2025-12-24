@@ -1,10 +1,6 @@
 using Holmes.SlaClocks.Application.Abstractions;
-using Holmes.SlaClocks.Application.Abstractions.Projections;
-using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.Abstractions.Services;
 using Holmes.SlaClocks.Domain;
-using Holmes.SlaClocks.Infrastructure.Sql.Projections;
-using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,10 +25,10 @@ public static class DependencyInjection
         services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
 
         // Read side (CQRS)
-        services.AddScoped<ISlaClockQueries, SqlSlaClockQueries>();
+        services.AddScoped<ISlaClockQueries, SlaClockQueries>();
 
         // Projections
-        services.AddScoped<ISlaClockProjectionWriter, SqlSlaClockProjectionWriter>();
+        services.AddScoped<ISlaClockProjectionWriter, SlaClockProjectionWriter>();
         services.AddScoped<SlaClockEventProjectionRunner>();
 
         // Services

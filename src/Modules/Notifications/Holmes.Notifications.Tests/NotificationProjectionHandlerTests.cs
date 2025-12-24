@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Notifications.Application.Abstractions.Projections;
+using Holmes.Notifications.Application.Abstractions;
 using Holmes.Notifications.Application.EventHandlers;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Domain.Events;

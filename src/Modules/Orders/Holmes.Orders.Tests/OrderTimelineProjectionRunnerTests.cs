@@ -3,11 +3,9 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Infrastructure.Sql;
 using Holmes.IntakeSessions.Infrastructure.Sql.Entities;
-using Holmes.IntakeSessions.Infrastructure.Sql.Projections;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Orders.Infrastructure.Sql.Entities;
-using Holmes.Orders.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -39,11 +37,11 @@ public sealed class OrderTimelineProjectionRunnerTests
         _intakeDbContext = new IntakeDbContext(intakeOptions);
         _coreDbContext = new CoreDbContext(coreOptions);
 
-        var timelineWriter = new SqlOrderTimelineWriter(
+        var timelineWriter = new OrderTimelineWriter(
             _workflowDbContext,
-            NullLogger<SqlOrderTimelineWriter>.Instance);
+            NullLogger<OrderTimelineWriter>.Instance);
 
-        var replaySource = new SqlIntakeSessionReplaySource(_intakeDbContext);
+        var replaySource = new IntakeSessionReplaySource(_intakeDbContext);
 
         _runner = new OrderTimelineProjectionRunner(
             _workflowDbContext,

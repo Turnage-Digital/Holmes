@@ -1,7 +1,7 @@
 using Holmes.Core.Application;
 using Holmes.Core.Domain;
+using Holmes.SlaClocks.Application.Abstractions;
 using Holmes.SlaClocks.Application.Abstractions.Dtos;
-using Holmes.SlaClocks.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.SlaClocks.Application.Queries;

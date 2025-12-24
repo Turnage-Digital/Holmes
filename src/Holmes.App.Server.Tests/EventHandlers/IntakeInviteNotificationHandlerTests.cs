@@ -1,15 +1,15 @@
 using Holmes.App.Integration.EventHandlers;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Application.Abstractions;
 using Holmes.Customers.Application.Abstractions.Dtos;
-using Holmes.Customers.Application.Abstractions.Queries;
 using Holmes.Customers.Domain;
 using Holmes.IntakeSessions.Domain.Events;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
+using Holmes.Subjects.Application.Abstractions;
 using Holmes.Subjects.Application.Abstractions.Dtos;
-using Holmes.Subjects.Application.Abstractions.Queries;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

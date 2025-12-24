@@ -1,6 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Orders.Application.Abstractions.Notifications;
-using Holmes.Orders.Application.Abstractions.Projections;
+using Holmes.Orders.Application.Abstractions;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Domain.Events;
 using MediatR;

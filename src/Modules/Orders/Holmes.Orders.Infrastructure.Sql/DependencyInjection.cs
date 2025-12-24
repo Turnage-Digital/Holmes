@@ -1,8 +1,5 @@
-using Holmes.Orders.Application.Abstractions.Projections;
-using Holmes.Orders.Application.Abstractions.Queries;
+using Holmes.Orders.Application.Abstractions;
 using Holmes.Orders.Domain;
-using Holmes.Orders.Infrastructure.Sql.Projections;
-using Holmes.Orders.Infrastructure.Sql.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,9 +18,9 @@ public static class DependencyInjection
                 builder.MigrationsAssembly(typeof(OrdersDbContext).Assembly.FullName)));
 
         services.AddScoped<IWorkflowUnitOfWork, OrdersUnitOfWork>();
-        services.AddScoped<IOrderTimelineWriter, SqlOrderTimelineWriter>();
-        services.AddScoped<IOrderSummaryWriter, SqlOrderSummaryWriter>();
-        services.AddScoped<IOrderQueries, SqlOrderQueries>();
+        services.AddScoped<IOrderTimelineWriter, OrderTimelineWriter>();
+        services.AddScoped<IOrderSummaryWriter, OrderSummaryWriter>();
+        services.AddScoped<IOrderQueries, OrderQueries>();
         services.AddScoped<OrderSummaryProjectionRunner>();
         services.AddScoped<OrderTimelineProjectionRunner>();
         return services;

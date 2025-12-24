@@ -3,7 +3,6 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Infrastructure.Sql;
 using Holmes.IntakeSessions.Infrastructure.Sql.Entities;
-using Holmes.IntakeSessions.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -29,9 +28,9 @@ public sealed class IntakeSessionProjectionRunnerTests
         _intakeDbContext = new IntakeDbContext(intakeOptions);
         _coreDbContext = new CoreDbContext(coreOptions);
 
-        var writer = new SqlIntakeSessionProjectionWriter(
+        var writer = new IntakeSessionProjectionWriter(
             _intakeDbContext,
-            NullLogger<SqlIntakeSessionProjectionWriter>.Instance);
+            NullLogger<IntakeSessionProjectionWriter>.Instance);
 
         _runner = new IntakeSessionProjectionRunner(
             _intakeDbContext,

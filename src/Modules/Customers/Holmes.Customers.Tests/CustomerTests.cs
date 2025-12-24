@@ -3,8 +3,6 @@ using Holmes.Customers.Application.EventHandlers;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Domain.Events;
 using Holmes.Customers.Infrastructure.Sql;
-using Holmes.Customers.Infrastructure.Sql.Projections;
-using Holmes.Customers.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -40,7 +38,7 @@ public class CustomerTests
     public async Task CustomerProjectionHandler_CustomerRegistered_WritesProjection()
     {
         await using var context = CreateCustomersDbContext();
-        var writer = new SqlCustomerProjectionWriter(context, NullLogger<SqlCustomerProjectionWriter>.Instance);
+        var writer = new CustomerProjectionWriter(context, NullLogger<CustomerProjectionWriter>.Instance);
         var handler = new CustomerProjectionHandler(writer);
         var customerId = UlidId.NewUlid();
 
@@ -61,7 +59,7 @@ public class CustomerTests
     public async Task CustomerProjectionHandler_CustomerRenamed_UpdatesProjection()
     {
         await using var context = CreateCustomersDbContext();
-        var writer = new SqlCustomerProjectionWriter(context, NullLogger<SqlCustomerProjectionWriter>.Instance);
+        var writer = new CustomerProjectionWriter(context, NullLogger<CustomerProjectionWriter>.Instance);
         var handler = new CustomerProjectionHandler(writer);
         var customerId = UlidId.NewUlid();
 
@@ -81,7 +79,7 @@ public class CustomerTests
     public async Task CustomerProjectionHandler_AdminAssigned_UpdatesAdminCount()
     {
         await using var context = CreateCustomersDbContext();
-        var writer = new SqlCustomerProjectionWriter(context, NullLogger<SqlCustomerProjectionWriter>.Instance);
+        var writer = new CustomerProjectionWriter(context, NullLogger<CustomerProjectionWriter>.Instance);
         var handler = new CustomerProjectionHandler(writer);
         var customerId = UlidId.NewUlid();
 
@@ -112,7 +110,7 @@ public class CustomerTests
     public async Task SqlRepository_GetByIdAsync_RehydratesAggregate()
     {
         await using var context = CreateCustomersDbContext();
-        var repository = new SqlCustomerRepository(context);
+        var repository = new CustomerRepository(context);
         var customer = Customer.Register(UlidId.NewUlid(), "Acme Corp", DateTimeOffset.UtcNow);
         var admin = UlidId.NewUlid();
         customer.AssignAdmin(admin, admin, DateTimeOffset.UtcNow);

@@ -13,19 +13,13 @@ public class ServiceRepository(ServicesDbContext context)
     public async Task<Service?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
     {
         var idStr = id.ToString();
-
         var spec = new ServiceByIdSpec(idStr);
 
         var db = await context.Services
             .ApplySpecification(spec)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (db is null)
-        {
-            return null;
-        }
-
-        return ServiceMapper.ToDomain(db);
+        return db is null ? null : ServiceMapper.ToDomain(db);
     }
 
     public async Task<Service?> GetByVendorReferenceAsync(
@@ -40,12 +34,7 @@ public class ServiceRepository(ServicesDbContext context)
             .ApplySpecification(spec)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (db is null)
-        {
-            return null;
-        }
-
-        return ServiceMapper.ToDomain(db);
+        return db is null ? null : ServiceMapper.ToDomain(db);
     }
 
     public void Add(Service service)

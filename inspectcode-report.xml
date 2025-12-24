@@ -279,7 +279,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Queries/SqlOrderQueries.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Queries/SqlOrderQueries.cs",
                   "uriBaseId": "solutionDir",
                   "index": 5
                 },
@@ -411,7 +411,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application/Commands/CancelOrderCommand.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application/Commands/CancelOrderCommand.cs",
                   "uriBaseId": "solutionDir",
                   "index": 9
                 },
@@ -906,7 +906,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application/Commands/ResumeOrderFromBlockCommand.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application/Commands/ResumeOrderFromBlockCommand.cs",
                   "uriBaseId": "solutionDir",
                   "index": 24
                 },
@@ -1104,7 +1104,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -1137,7 +1137,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -1170,7 +1170,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -1203,7 +1203,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -1236,7 +1236,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -1830,7 +1830,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderSummaryEventProjectionRunner.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderSummaryEventProjectionRunner.cs",
                   "uriBaseId": "solutionDir",
                   "index": 46
                 },
@@ -1863,7 +1863,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderTimelineEventProjectionRunner.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderTimelineEventProjectionRunner.cs",
                   "uriBaseId": "solutionDir",
                   "index": 47
                 },
@@ -4926,13 +4926,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Gateways.OrderIntakeSubmission.ConsentArtifact' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Gateways.OrderIntakeSubmission.ConsentArtifact' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Gateways/IOrderWorkflowGateway.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Gateways/IOrderWorkflowGateway.cs",
                   "uriBaseId": "solutionDir",
                   "index": 65
                 },
@@ -4959,13 +4959,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Gateways.OrderIntakeSubmission.PolicySnapshot' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Gateways.OrderIntakeSubmission.PolicySnapshot' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Gateways/IOrderWorkflowGateway.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Gateways/IOrderWorkflowGateway.cs",
                   "uriBaseId": "solutionDir",
                   "index": 65
                 },
@@ -4992,13 +4992,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Gateways.OrderIntakeSubmission.SubjectId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Gateways.OrderIntakeSubmission.SubjectId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Gateways/IOrderWorkflowGateway.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Gateways/IOrderWorkflowGateway.cs",
                   "uriBaseId": "solutionDir",
                   "index": 65
                 },
@@ -5025,13 +5025,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapAnswersSnapshot.PayloadCipherText' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapAnswersSnapshot.PayloadCipherText' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5058,13 +5058,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapAnswersSnapshot.PayloadHash' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapAnswersSnapshot.PayloadHash' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5091,13 +5091,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapAnswersSnapshot.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapAnswersSnapshot.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5124,13 +5124,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapAnswersSnapshot.UpdatedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapAnswersSnapshot.UpdatedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5157,13 +5157,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapConsentArtifact.ArtifactId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapConsentArtifact.ArtifactId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5190,13 +5190,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapConsentArtifact.CapturedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapConsentArtifact.CapturedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5223,13 +5223,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapConsentArtifact.Hash' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapConsentArtifact.Hash' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5256,13 +5256,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapConsentArtifact.HashAlgorithm' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapConsentArtifact.HashAlgorithm' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5289,13 +5289,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapConsentArtifact.Length' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapConsentArtifact.Length' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5322,13 +5322,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapConsentArtifact.MimeType' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapConsentArtifact.MimeType' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5355,13 +5355,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.BootstrapConsentArtifact.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.BootstrapConsentArtifact.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5388,13 +5388,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.AcceptedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.AcceptedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5421,13 +5421,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.Answers' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.Answers' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5454,13 +5454,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.CancellationReason' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.CancellationReason' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5487,13 +5487,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.Consent' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.Consent' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5520,13 +5520,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.CreatedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.CreatedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5553,13 +5553,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.CustomerId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.CustomerId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5586,13 +5586,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.ExpiresAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.ExpiresAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5619,13 +5619,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.LastTouchedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.LastTouchedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5652,13 +5652,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.OrderId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.OrderId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5685,13 +5685,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.PolicySnapshotId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.PolicySnapshotId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5718,13 +5718,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.PolicySnapshotSchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.PolicySnapshotSchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5751,13 +5751,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.SessionId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.SessionId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5784,13 +5784,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.Status' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.Status' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5817,13 +5817,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.SubjectId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.SubjectId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5850,13 +5850,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.SubmittedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.SubmittedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5883,13 +5883,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Application.Queries.IntakeSessionBootstrap.SupersededBySessionId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Application.Queries.IntakeSessionBootstrap.SupersededBySessionId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
                   "uriBaseId": "solutionDir",
                   "index": 66
                 },
@@ -5916,13 +5916,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Domain.Events.IntakeProgressSaved.OrderId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Domain.Events.IntakeProgressSaved.OrderId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/Events/IntakeProgressSaved.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Events/IntakeProgressSaved.cs",
                   "uriBaseId": "solutionDir",
                   "index": 67
                 },
@@ -5949,13 +5949,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Domain.Events.IntakeSessionInvited.ResumeToken' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Domain.Events.IntakeSessionInvited.ResumeToken' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/Events/IntakeSessionInvited.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Events/IntakeSessionInvited.cs",
                   "uriBaseId": "solutionDir",
                   "index": 68
                 },
@@ -5982,13 +5982,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Domain.Storage.ConsentArtifactDescriptor.StorageHint' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Domain.Storage.ConsentArtifactDescriptor.StorageHint' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/Storage/IConsentArtifactStore.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Storage/IConsentArtifactStore.cs",
                   "uriBaseId": "solutionDir",
                   "index": 69
                 },
@@ -6015,13 +6015,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Domain.Storage.ConsentArtifactStream.Content' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Domain.Storage.ConsentArtifactStream.Content' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/Storage/IConsentArtifactStore.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Storage/IConsentArtifactStore.cs",
                   "uriBaseId": "solutionDir",
                   "index": 69
                 },
@@ -6048,13 +6048,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Domain.Storage.ConsentArtifactStream.Descriptor' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Domain.Storage.ConsentArtifactStream.Descriptor' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/Storage/IConsentArtifactStore.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Storage/IConsentArtifactStore.cs",
                   "uriBaseId": "solutionDir",
                   "index": 69
                 },
@@ -17400,13 +17400,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.ActorId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.ActorId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17433,13 +17433,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.CorrelationId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.CorrelationId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17466,13 +17466,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.CreatedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.CreatedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17499,13 +17499,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.EventId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.EventId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17532,13 +17532,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.EventName' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.EventName' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17565,13 +17565,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.Payload' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.Payload' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17598,13 +17598,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.Position' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.Position' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17631,13 +17631,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderAuditEventDto.Version' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderAuditEventDto.Version' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17664,13 +17664,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.Description' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.Description' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17697,13 +17697,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.EventId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.EventId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17730,13 +17730,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.EventType' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.EventType' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17763,13 +17763,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.Metadata' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.Metadata' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17796,13 +17796,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.OccurredAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.OccurredAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17829,13 +17829,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.OrderId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.OrderId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17862,13 +17862,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.RecordedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.RecordedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17895,13 +17895,13 @@
           "ruleIndex": 12,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Application.Abstractions.Dtos.OrderTimelineEntryDto.Source' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Application.Abstractions.Dtos.OrderTimelineEntryDto.Source' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
                   "uriBaseId": "solutionDir",
                   "index": 111
                 },
@@ -17961,13 +17961,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Parameter 'OrderFilter' declares the implicit positional property 'Holmes.Workflow.Infrastructure.Sql.Notifications.OrderChangeBroadcaster.Subscription.OrderFilter' that is never accessed. This may result in unnecessary state being captured in 'Subscription' instances and participating in implicit Equals/ToString implementations."
+            "text": "Parameter 'OrderFilter' declares the implicit positional property 'Holmes.Orders.Infrastructure.Sql.Notifications.OrderChangeBroadcaster.Subscription.OrderFilter' that is never accessed. This may result in unnecessary state being captured in 'Subscription' instances and participating in implicit Equals/ToString implementations."
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Notifications/OrderChangeBroadcaster.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Notifications/OrderChangeBroadcaster.cs",
                   "uriBaseId": "solutionDir",
                   "index": 113
                 },
@@ -18522,13 +18522,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.CapturedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.CapturedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -18555,13 +18555,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.Metadata' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.Metadata' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -18588,13 +18588,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -18621,13 +18621,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Intake.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.SnapshotId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.IntakeSessions.Tests.IntakeSessionProjectionRunnerTests.PolicySnapshotRecord.SnapshotId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -18654,13 +18654,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.CapturedAt' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.CapturedAt' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderTimelineProjectionRunnerTests.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderTimelineProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 119
                 },
@@ -18687,13 +18687,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.Metadata' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.Metadata' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderTimelineProjectionRunnerTests.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderTimelineProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 119
                 },
@@ -18720,13 +18720,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.SchemaVersion' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderTimelineProjectionRunnerTests.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderTimelineProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 119
                 },
@@ -18753,13 +18753,13 @@
           "ruleIndex": 13,
           "level": "warning",
           "message": {
-            "text": "Positional property 'Holmes.Workflow.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.SnapshotId' is never accessed (except in implicit Equals/ToString implementations)"
+            "text": "Positional property 'Holmes.Orders.Tests.OrderTimelineProjectionRunnerTests.PolicySnapshotRecord.SnapshotId' is never accessed (except in implicit Equals/ToString implementations)"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderTimelineProjectionRunnerTests.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderTimelineProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 119
                 },
@@ -18825,7 +18825,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderTimelineProjectionRunner.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderTimelineProjectionRunner.cs",
                   "uriBaseId": "solutionDir",
                   "index": 120
                 },
@@ -21135,7 +21135,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21168,7 +21168,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21201,7 +21201,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21234,7 +21234,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21267,7 +21267,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21300,7 +21300,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21333,7 +21333,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21366,7 +21366,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21399,7 +21399,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21432,7 +21432,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21465,7 +21465,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 135
                 },
@@ -21498,7 +21498,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 136
                 },
@@ -21531,7 +21531,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 136
                 },
@@ -21564,7 +21564,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 136
                 },
@@ -21597,7 +21597,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 136
                 },
@@ -21630,7 +21630,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 136
                 },
@@ -21663,7 +21663,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 136
                 },
@@ -21696,7 +21696,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 136
                 },
@@ -27009,7 +27009,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderSummaryProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderSummaryProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 155
                 },
@@ -27042,7 +27042,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderSummaryProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderSummaryProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 155
                 },
@@ -27075,7 +27075,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27108,7 +27108,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27141,7 +27141,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27174,7 +27174,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27207,7 +27207,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27240,7 +27240,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27273,7 +27273,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27306,7 +27306,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
                   "uriBaseId": "solutionDir",
                   "index": 156
                 },
@@ -27339,7 +27339,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
                   "uriBaseId": "solutionDir",
                   "index": 157
                 },
@@ -27372,7 +27372,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
                   "uriBaseId": "solutionDir",
                   "index": 157
                 },
@@ -27405,7 +27405,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
                   "uriBaseId": "solutionDir",
                   "index": 157
                 },
@@ -27438,7 +27438,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
                   "uriBaseId": "solutionDir",
                   "index": 157
                 },
@@ -27471,7 +27471,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
                   "uriBaseId": "solutionDir",
                   "index": 157
                 },
@@ -27504,7 +27504,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
                   "uriBaseId": "solutionDir",
                   "index": 157
                 },
@@ -28164,7 +28164,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/Order.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Domain/Order.cs",
                   "uriBaseId": "solutionDir",
                   "index": 163
                 },
@@ -28197,7 +28197,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/Order.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Domain/Order.cs",
                   "uriBaseId": "solutionDir",
                   "index": 163
                 },
@@ -28494,7 +28494,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderSummaryEventProjectionRunner.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderSummaryEventProjectionRunner.cs",
                   "uriBaseId": "solutionDir",
                   "index": 46
                 },
@@ -28527,7 +28527,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderTimelineEventProjectionRunner.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderTimelineEventProjectionRunner.cs",
                   "uriBaseId": "solutionDir",
                   "index": 47
                 },
@@ -29451,7 +29451,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29484,7 +29484,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29517,7 +29517,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29550,7 +29550,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29583,7 +29583,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29616,7 +29616,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29649,7 +29649,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29682,7 +29682,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29715,7 +29715,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29748,7 +29748,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29781,7 +29781,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29814,7 +29814,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29847,7 +29847,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29880,7 +29880,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29913,7 +29913,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29946,7 +29946,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -29979,7 +29979,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30012,7 +30012,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30045,7 +30045,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30078,7 +30078,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30111,7 +30111,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30144,7 +30144,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30177,7 +30177,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30210,7 +30210,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30243,7 +30243,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30276,7 +30276,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30309,7 +30309,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30342,7 +30342,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30375,7 +30375,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30408,7 +30408,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30441,7 +30441,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30474,7 +30474,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30507,7 +30507,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30540,7 +30540,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30573,7 +30573,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30606,7 +30606,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -30639,7 +30639,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
                   "uriBaseId": "solutionDir",
                   "index": 30
                 },
@@ -31497,7 +31497,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/Order.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Domain/Order.cs",
                   "uriBaseId": "solutionDir",
                   "index": 163
                 },
@@ -31563,7 +31563,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/Order.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Domain/Order.cs",
                   "uriBaseId": "solutionDir",
                   "index": 163
                 },
@@ -31695,7 +31695,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/Storage/IConsentArtifactStore.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Storage/IConsentArtifactStore.cs",
                   "uriBaseId": "solutionDir",
                   "index": 69
                 },
@@ -31728,7 +31728,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
                   "uriBaseId": "solutionDir",
                   "index": 157
                 },
@@ -31893,7 +31893,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/Storage/IConsentArtifactStore.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Storage/IConsentArtifactStore.cs",
                   "uriBaseId": "solutionDir",
                   "index": 69
                 },
@@ -32586,7 +32586,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/Order.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Domain/Order.cs",
                   "uriBaseId": "solutionDir",
                   "index": 163
                 },
@@ -33642,7 +33642,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/DependencyInjection.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/DependencyInjection.cs",
                   "uriBaseId": "solutionDir",
                   "index": 198
                 },
@@ -33840,7 +33840,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/DependencyInjection.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/DependencyInjection.cs",
                   "uriBaseId": "solutionDir",
                   "index": 204
                 },
@@ -34236,7 +34236,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Application/Gateways/IOrderWorkflowGateway.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Gateways/IOrderWorkflowGateway.cs",
                   "uriBaseId": "solutionDir",
                   "index": 65
                 },
@@ -34269,7 +34269,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Domain/IIntakeSessionRepository.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IIntakeSessionRepository.cs",
                   "uriBaseId": "solutionDir",
                   "index": 208
                 },
@@ -34500,7 +34500,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/IOrderRepository.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Domain/IOrderRepository.cs",
                   "uriBaseId": "solutionDir",
                   "index": 211
                 },
@@ -34995,7 +34995,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Holmes.Intake.Server/Program.cs",
+                  "uri": "src/Holmes.IntakeSessions.Server/Program.cs",
                   "uriBaseId": "solutionDir",
                   "index": 217
                 },
@@ -36117,7 +36117,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -36150,7 +36150,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -36183,7 +36183,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -36216,7 +36216,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+                  "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 118
                 },
@@ -36249,7 +36249,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderTimelineProjectionRunnerTests.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderTimelineProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 119
                 },
@@ -36282,7 +36282,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderSummaryProjectionRunnerTests.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderSummaryProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 218
                 },
@@ -36348,7 +36348,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderTimelineProjectionRunner.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderTimelineProjectionRunner.cs",
                   "uriBaseId": "solutionDir",
                   "index": 120
                 },
@@ -36381,7 +36381,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderTimelineProjectionRunnerTests.cs",
+                  "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderTimelineProjectionRunnerTests.cs",
                   "uriBaseId": "solutionDir",
                   "index": 119
                 },
@@ -38114,7 +38114,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Queries/SqlOrderQueries.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Queries/SqlOrderQueries.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38158,7 +38158,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Application/Commands/CancelOrderCommand.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Application/Commands/CancelOrderCommand.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38323,7 +38323,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Application/Commands/ResumeOrderFromBlockCommand.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Application/Commands/ResumeOrderFromBlockCommand.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38389,7 +38389,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Services/IntakeAnswersDecryptor.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38565,7 +38565,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderSummaryEventProjectionRunner.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderSummaryEventProjectionRunner.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38576,7 +38576,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderTimelineEventProjectionRunner.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderTimelineEventProjectionRunner.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38774,7 +38774,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Application/Gateways/IOrderWorkflowGateway.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Gateways/IOrderWorkflowGateway.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38785,7 +38785,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/Queries/GetIntakeSessionBootstrapQuery.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38796,7 +38796,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Domain/Events/IntakeProgressSaved.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Events/IntakeProgressSaved.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38807,7 +38807,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Domain/Events/IntakeSessionInvited.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Events/IntakeSessionInvited.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -38818,7 +38818,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Domain/Storage/IConsentArtifactStore.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/Storage/IConsentArtifactStore.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39280,7 +39280,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Application.Abstractions/Dtos/OrderDtos.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Application.Abstractions/Dtos/OrderDtos.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39302,7 +39302,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Notifications/OrderChangeBroadcaster.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Notifications/OrderChangeBroadcaster.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39357,7 +39357,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Tests/IntakeSessionProjectionRunnerTests.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Tests/IntakeSessionProjectionRunnerTests.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39368,7 +39368,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderTimelineProjectionRunnerTests.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderTimelineProjectionRunnerTests.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39379,7 +39379,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Projections/OrderTimelineProjectionRunner.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Projections/OrderTimelineProjectionRunner.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39544,7 +39544,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/ConsentArtifactDb.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39555,7 +39555,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Entities/IntakeSessionProjectionDb.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39764,7 +39764,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderSummaryProjectionDb.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderSummaryProjectionDb.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39775,7 +39775,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/Entities/OrderTimelineEventProjectionDb.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39786,7 +39786,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Domain/IntakeSession.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IntakeSession.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -39852,7 +39852,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/Order.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Domain/Order.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -40237,7 +40237,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Infrastructure.Sql/DependencyInjection.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/DependencyInjection.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -40303,7 +40303,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Infrastructure.Sql/DependencyInjection.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Infrastructure.Sql/DependencyInjection.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -40347,7 +40347,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Intake/Holmes.Intake.Domain/IIntakeSessionRepository.cs",
+            "uri": "src/Modules/IntakeSessions/Holmes.IntakeSessions.Domain/IIntakeSessionRepository.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -40380,7 +40380,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Domain/IOrderRepository.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Domain/IOrderRepository.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -40446,7 +40446,7 @@
         },
         {
           "location": {
-            "uri": "src/Holmes.Intake.Server/Program.cs",
+            "uri": "src/Holmes.IntakeSessions.Server/Program.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {
@@ -40457,7 +40457,7 @@
         },
         {
           "location": {
-            "uri": "src/Modules/Workflow/Holmes.Workflow.Tests/OrderSummaryProjectionRunnerTests.cs",
+            "uri": "src/Modules/Workflow/Holmes.Orders.Tests/OrderSummaryProjectionRunnerTests.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {

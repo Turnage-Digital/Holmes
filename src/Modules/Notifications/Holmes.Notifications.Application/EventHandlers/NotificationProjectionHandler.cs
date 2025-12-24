@@ -1,4 +1,4 @@
-using Holmes.Notifications.Application.Abstractions.Projections;
+using Holmes.Notifications.Application.Abstractions;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Domain.Events;
 using MediatR;
