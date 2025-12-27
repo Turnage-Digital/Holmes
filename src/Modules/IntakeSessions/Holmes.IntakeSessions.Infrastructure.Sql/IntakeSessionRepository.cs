@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
-public class IntakeSessionRepository(IntakeDbContext dbContext)
+public class IntakeSessionRepository(IntakeSessionsDbContext dbContext)
     : IIntakeSessionRepository
 {
     public Task AddAsync(IntakeSession session, CancellationToken cancellationToken)

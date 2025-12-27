@@ -13,7 +13,7 @@ public sealed record RecordOrderInviteCommand(
     string? Reason
 ) : RequestBase<Result>, ISkipUserAssignment;
 
-public sealed class RecordOrderInviteCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class RecordOrderInviteCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<RecordOrderInviteCommand, Result>
 {
     public async Task<Result> Handle(RecordOrderInviteCommand request, CancellationToken cancellationToken)

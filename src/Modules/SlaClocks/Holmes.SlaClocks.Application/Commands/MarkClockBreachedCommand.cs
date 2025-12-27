@@ -12,7 +12,7 @@ public sealed record MarkClockBreachedCommand(
 ) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class MarkClockBreachedCommandHandler(
-    ISlaClockUnitOfWork unitOfWork
+    ISlaClocksUnitOfWork unitOfWork
 ) : IRequestHandler<MarkClockBreachedCommand, Result>
 {
     public async Task<Result> Handle(MarkClockBreachedCommand request, CancellationToken cancellationToken)

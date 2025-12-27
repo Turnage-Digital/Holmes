@@ -14,7 +14,7 @@ public sealed record AcceptIntakeSubmissionCommand(
 
 public sealed class AcceptIntakeSubmissionCommandHandler(
     IOrderWorkflowGateway orderWorkflowGateway,
-    IIntakeUnitOfWork unitOfWork
+    IIntakeSessionsUnitOfWork unitOfWork
 )
     : IRequestHandler<AcceptIntakeSubmissionCommand, Result>
 {

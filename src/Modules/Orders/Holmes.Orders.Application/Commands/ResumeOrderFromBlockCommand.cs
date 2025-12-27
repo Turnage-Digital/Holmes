@@ -12,7 +12,7 @@ public sealed record ResumeOrderFromBlockCommand(
     DateTimeOffset ResumedAt
 ) : RequestBase<Result>;
 
-public sealed class ResumeOrderFromBlockCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class ResumeOrderFromBlockCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<ResumeOrderFromBlockCommand, Result>
 {
     public async Task<Result> Handle(ResumeOrderFromBlockCommand request, CancellationToken cancellationToken)

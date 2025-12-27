@@ -156,7 +156,7 @@ public class SlaClocksEndpointTests
 
         // Verify clock is now paused
         using var scope = factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SlaClockDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<SlaClocksDbContext>();
         var clock = await db.SlaClocks.FirstOrDefaultAsync(c => c.Id == clockId);
         Assert.That(clock, Is.Not.Null);
         Assert.That(clock!.State, Is.EqualTo((int)ClockState.Paused));
@@ -247,7 +247,7 @@ public class SlaClocksEndpointTests
 
         // Verify clock is now running
         using var scope = factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SlaClockDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<SlaClocksDbContext>();
         var clock = await db.SlaClocks.FirstOrDefaultAsync(c => c.Id == clockId);
         Assert.That(clock, Is.Not.Null);
         Assert.That(clock!.State, Is.EqualTo((int)ClockState.Running));
@@ -450,7 +450,7 @@ public class SlaClocksEndpointTests
     )
     {
         using var scope = factory.Services.CreateScope();
-        var slaDb = scope.ServiceProvider.GetRequiredService<SlaClockDbContext>();
+        var slaDb = scope.ServiceProvider.GetRequiredService<SlaClocksDbContext>();
 
         var now = DateTime.UtcNow;
         var clock = new SlaClockDb

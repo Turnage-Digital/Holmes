@@ -13,7 +13,7 @@ public sealed class OrdersUnitOfWork(
     IDomainEventSerializer? serializer = null,
     ITenantContext? tenantContext = null
 )
-    : UnitOfWork<OrdersDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IWorkflowUnitOfWork
+    : UnitOfWork<OrdersDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IOrdersUnitOfWork
 {
     private readonly Lazy<IOrderRepository> _orders = new(() => new OrderRepository(dbContext));
 

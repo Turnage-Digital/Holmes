@@ -30,7 +30,7 @@ public sealed record IssueIntakeInviteResult(
 );
 
 public sealed class IssueIntakeInviteCommandHandler(
-    IIntakeUnitOfWork unitOfWork,
+    IIntakeSessionsUnitOfWork unitOfWork,
     IIntakeSectionMappingService sectionMappingService
 ) : IRequestHandler<IssueIntakeInviteCommand, Result<IssueIntakeInviteResult>>
 {

@@ -16,7 +16,7 @@ public sealed record BeginOrderFulfillmentCommand(
     string? Reason
 ) : RequestBase<Result>, ISkipUserAssignment;
 
-public sealed class BeginOrderFulfillmentCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class BeginOrderFulfillmentCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<BeginOrderFulfillmentCommand, Result>
 {
     public async Task<Result> Handle(BeginOrderFulfillmentCommand request, CancellationToken cancellationToken)

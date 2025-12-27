@@ -12,7 +12,7 @@ public sealed record VerifyIntakeSessionOtpCommand(
 ) : RequestBase<Result>;
 
 public sealed class VerifyIntakeSessionOtpCommandHandler(
-    IIntakeUnitOfWork unitOfWork
+    IIntakeSessionsUnitOfWork unitOfWork
 ) : IRequestHandler<VerifyIntakeSessionOtpCommand, Result>
 {
     public async Task<Result> Handle(VerifyIntakeSessionOtpCommand request, CancellationToken cancellationToken)

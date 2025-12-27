@@ -18,7 +18,7 @@ public sealed record CaptureConsentArtifactCommand(
 
 public sealed class CaptureConsentArtifactCommandHandler(
     IConsentArtifactStore artifactStore,
-    IIntakeUnitOfWork unitOfWork
+    IIntakeSessionsUnitOfWork unitOfWork
 )
     : IRequestHandler<CaptureConsentArtifactCommand, Result<ConsentArtifactDescriptor>>
 {

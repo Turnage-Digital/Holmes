@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
 public sealed class DatabaseConsentArtifactStore(
-    IntakeDbContext dbContext,
+    IntakeSessionsDbContext dbContext,
     IAeadEncryptor encryptor
 ) : IConsentArtifactStore
 {

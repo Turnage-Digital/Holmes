@@ -6,15 +6,15 @@ using MediatR;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql;
 
-public sealed class SlaClockUnitOfWork(
-    SlaClockDbContext context,
+public sealed class SlaClocksUnitOfWork(
+    SlaClocksDbContext context,
     IMediator mediator,
     ISlaClockRepository slaClockRepository,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
     ITenantContext? tenantContext = null
 )
-    : UnitOfWork<SlaClockDbContext>(context, mediator, eventStore, serializer, tenantContext), ISlaClockUnitOfWork
+    : UnitOfWork<SlaClocksDbContext>(context, mediator, eventStore, serializer, tenantContext), ISlaClocksUnitOfWork
 {
     public ISlaClockRepository SlaClocks => slaClockRepository;
 }

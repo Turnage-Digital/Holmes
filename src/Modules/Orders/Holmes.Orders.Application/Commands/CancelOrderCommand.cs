@@ -12,7 +12,7 @@ public sealed record CancelOrderCommand(
     DateTimeOffset CanceledAt
 ) : RequestBase<Result>;
 
-public sealed class CancelOrderCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class CancelOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<CancelOrderCommand, Result>
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)

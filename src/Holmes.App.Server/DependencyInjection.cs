@@ -127,15 +127,15 @@ internal static class DependencyInjection
 
         services.AddMediatR(config =>
         {
-            config.RegisterServicesFromAssemblyContaining<RequestBase>();
-            config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommand>();
-            config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommand>();
-            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommand>();
-            config.RegisterServicesFromAssemblyContaining<CreateOrderCommand>();
-            config.RegisterServicesFromAssemblyContaining<IssueIntakeInviteCommand>();
-            config.RegisterServicesFromAssemblyContaining<CreateNotificationCommand>();
-            config.RegisterServicesFromAssemblyContaining<StartSlaClockCommand>();
-            config.RegisterServicesFromAssemblyContaining<CreateServiceCommand>();
+            config.RegisterServicesFromAssemblyContaining<ICurrentUserInitializer>();
+            config.RegisterServicesFromAssemblyContaining<RegisterExternalUserCommandHandler>();
+            config.RegisterServicesFromAssemblyContaining<RegisterCustomerCommandHandler>();
+            config.RegisterServicesFromAssemblyContaining<RegisterSubjectCommandHandler>();
+            config.RegisterServicesFromAssemblyContaining<CreateOrderCommandHandler>();
+            config.RegisterServicesFromAssemblyContaining<IssueIntakeInviteCommandHandler>();
+            config.RegisterServicesFromAssemblyContaining<CreateNotificationCommandHandler>();
+            config.RegisterServicesFromAssemblyContaining<StartSlaClockCommandHandler>();
+            config.RegisterServicesFromAssemblyContaining<CreateServiceCommandHandler>();
             // Integration handlers (cross-module event handlers)
             config.RegisterServicesFromAssemblyContaining<IntakeToWorkflowHandler>();
         });
@@ -253,17 +253,14 @@ internal static class DependencyInjection
         services.AddUsersInfrastructureSql(connectionString, serverVersion);
         services.AddCustomersInfrastructureSql(connectionString, serverVersion);
         services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
-        services.AddIntakeInfrastructureSql(connectionString, serverVersion);
-        services.AddSingleton<
-            IIntakeSectionMappingService,
-            IntakeSectionMappingService>();
-        services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
+        services.AddIntakeSessionsInfrastructureSql(connectionString, serverVersion);
+        services.AddSingleton<IIntakeSectionMappingService, IntakeSectionMappingService>();
+        services.AddOrdersInfrastructureSql(connectionString, serverVersion);
         services.AddNotificationsInfrastructureSql(connectionString, serverVersion);
         services.AddSlaClockInfrastructureSql(connectionString, serverVersion);
         services.AddServicesInfrastructureSql(connectionString, serverVersion);
 
         services.AddAppIntegration();
-        services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
 
         return services;
     }
@@ -276,9 +273,9 @@ internal static class DependencyInjection
         services.AddDbContext<UsersDbContext>(options => options.UseInMemoryDatabase("holmes-users"));
         services.AddDbContext<CustomersDbContext>(options => options.UseInMemoryDatabase("holmes-customers"));
         services.AddDbContext<SubjectsDbContext>(options => options.UseInMemoryDatabase("holmes-subjects"));
-        services.AddDbContext<IntakeDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
+        services.AddDbContext<IntakeSessionsDbContext>(options => options.UseInMemoryDatabase("holmes-intake"));
         services.AddDbContext<OrdersDbContext>(options => options.UseInMemoryDatabase("holmes-workflow"));
-        services.AddDbContext<SlaClockDbContext>(options => options.UseInMemoryDatabase("holmes-slaclocks"));
+        services.AddDbContext<SlaClocksDbContext>(options => options.UseInMemoryDatabase("holmes-slaclocks"));
         services.AddDbContext<ServicesDbContext>(options => options.UseInMemoryDatabase("holmes-services"));
         services.AddSingleton<IAeadEncryptor, NoOpAeadEncryptor>();
 
@@ -299,13 +296,11 @@ internal static class DependencyInjection
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         services.AddScoped<ISubjectQueries, SubjectQueries>();
         services.AddScoped<ISubjectProjectionWriter, SubjectProjectionWriter>();
-        services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
+        services.AddScoped<IIntakeSessionsUnitOfWork, IntakeSessionsUnitOfWork>();
         services.AddScoped<IIntakeSessionProjectionWriter, IntakeSessionProjectionWriter>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
-        services.AddSingleton<
-            IIntakeSectionMappingService,
-            IntakeSectionMappingService>();
-        services.AddScoped<IWorkflowUnitOfWork, OrdersUnitOfWork>();
+        services.AddSingleton<IIntakeSectionMappingService, IntakeSectionMappingService>();
+        services.AddScoped<IOrdersUnitOfWork, OrdersUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, OrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, OrderSummaryWriter>();
         services.AddScoped<IOrderQueries, OrderQueries>();
@@ -325,7 +320,7 @@ internal static class DependencyInjection
         services.AddScoped<INotificationProvider, LoggingEmailProvider>();
         services.AddScoped<INotificationProvider, LoggingSmsProvider>();
         services.AddScoped<INotificationProvider, LoggingWebhookProvider>();
-        services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
+        services.AddScoped<ISlaClocksUnitOfWork, SlaClocksUnitOfWork>();
         services.AddScoped<ISlaClockRepository, SlaClockRepository>();
         services.AddScoped<ISlaClockQueries, SlaClockQueries>();
         services.AddScoped<ISlaClockProjectionWriter, SlaClockProjectionWriter>();

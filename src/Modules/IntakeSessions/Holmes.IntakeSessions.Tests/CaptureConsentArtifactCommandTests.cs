@@ -10,14 +10,14 @@ public class CaptureConsentArtifactCommandTests
 {
     private InMemoryIntakeSessionRepository _repository = null!;
     private Mock<IConsentArtifactStore> _storeMock = null!;
-    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
+    private Mock<IIntakeSessionsUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
     {
         _repository = new InMemoryIntakeSessionRepository();
         _storeMock = new Mock<IConsentArtifactStore>();
-        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock = new Mock<IIntakeSessionsUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
     }
 

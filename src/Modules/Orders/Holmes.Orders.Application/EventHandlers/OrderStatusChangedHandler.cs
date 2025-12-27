@@ -7,7 +7,7 @@ using MediatR;
 namespace Holmes.Orders.Application.EventHandlers;
 
 public sealed class OrderStatusChangedHandler(
-    IWorkflowUnitOfWork unitOfWork,
+    IOrdersUnitOfWork unitOfWork,
     IOrderSummaryWriter summaryWriter,
     IOrderChangeBroadcaster broadcaster,
     IOrderTimelineWriter timelineWriter

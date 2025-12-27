@@ -14,7 +14,7 @@ public sealed record StartIntakeSessionCommand(
 ) : RequestBase<Result>;
 
 public sealed class StartIntakeSessionCommandHandler(
-    IIntakeUnitOfWork unitOfWork
+    IIntakeSessionsUnitOfWork unitOfWork
 ) : IRequestHandler<StartIntakeSessionCommand, Result>
 {
     public async Task<Result> Handle(StartIntakeSessionCommand request, CancellationToken cancellationToken)

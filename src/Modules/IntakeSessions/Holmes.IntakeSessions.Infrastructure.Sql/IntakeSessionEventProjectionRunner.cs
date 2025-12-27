@@ -12,7 +12,7 @@ namespace Holmes.IntakeSessions.Infrastructure.Sql;
 ///     Replays IntakeSession domain events to rebuild the intake_session_projections table.
 /// </summary>
 public sealed class IntakeSessionEventProjectionRunner(
-    IntakeDbContext intakeDbContext,
+    IntakeSessionsDbContext intakeDbContext,
     CoreDbContext coreDbContext,
     IEventStore eventStore,
     IDomainEventSerializer serializer,

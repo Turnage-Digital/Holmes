@@ -13,10 +13,10 @@ namespace Holmes.SlaClocks.Infrastructure.Sql;
 /// </summary>
 public sealed class SlaClockEventProjectionRunner : EventProjectionRunner
 {
-    private readonly SlaClockDbContext _slaClockDbContext;
+    private readonly SlaClocksDbContext _slaClockDbContext;
 
     public SlaClockEventProjectionRunner(
-        SlaClockDbContext slaClockDbContext,
+        SlaClocksDbContext slaClockDbContext,
         CoreDbContext coreDbContext,
         IEventStore eventStore,
         IDomainEventSerializer serializer,

@@ -15,7 +15,7 @@ public sealed record CreateOrderCommand(
     string? PackageCode
 ) : RequestBase<Result>;
 
-public sealed class CreateOrderCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class CreateOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<CreateOrderCommand, Result>
 {
     public async Task<Result> Handle(CreateOrderCommand request, CancellationToken cancellationToken)

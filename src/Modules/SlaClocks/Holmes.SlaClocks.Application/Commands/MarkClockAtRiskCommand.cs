@@ -12,7 +12,7 @@ public sealed record MarkClockAtRiskCommand(
 ) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class MarkClockAtRiskCommandHandler(
-    ISlaClockUnitOfWork unitOfWork
+    ISlaClocksUnitOfWork unitOfWork
 ) : IRequestHandler<MarkClockAtRiskCommand, Result>
 {
     public async Task<Result> Handle(MarkClockAtRiskCommand request, CancellationToken cancellationToken)

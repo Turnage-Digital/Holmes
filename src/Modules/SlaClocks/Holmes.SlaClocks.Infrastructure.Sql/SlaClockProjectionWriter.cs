@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.SlaClocks.Infrastructure.Sql;
 
 public sealed class SlaClockProjectionWriter(
-    SlaClockDbContext dbContext,
+    SlaClocksDbContext dbContext,
     ILogger<SlaClockProjectionWriter> logger
 ) : ISlaClockProjectionWriter
 {

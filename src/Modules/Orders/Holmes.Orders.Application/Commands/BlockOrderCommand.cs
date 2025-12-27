@@ -12,7 +12,7 @@ public sealed record BlockOrderCommand(
     DateTimeOffset BlockedAt
 ) : RequestBase<Result>;
 
-public sealed class BlockOrderCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class BlockOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<BlockOrderCommand, Result>
 {
     public async Task<Result> Handle(BlockOrderCommand request, CancellationToken cancellationToken)

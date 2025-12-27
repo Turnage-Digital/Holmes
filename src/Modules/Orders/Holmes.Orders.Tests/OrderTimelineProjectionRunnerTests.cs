@@ -14,7 +14,7 @@ namespace Holmes.Orders.Tests;
 public sealed class OrderTimelineProjectionRunnerTests
 {
     private CoreDbContext _coreDbContext = null!;
-    private IntakeDbContext _intakeDbContext = null!;
+    private IntakeSessionsDbContext _intakeDbContext = null!;
     private OrderTimelineProjectionRunner _runner = null!;
     private OrdersDbContext _workflowDbContext = null!;
 
@@ -25,7 +25,7 @@ public sealed class OrderTimelineProjectionRunnerTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        var intakeOptions = new DbContextOptionsBuilder<IntakeDbContext>()
+        var intakeOptions = new DbContextOptionsBuilder<IntakeSessionsDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
@@ -34,7 +34,7 @@ public sealed class OrderTimelineProjectionRunnerTests
             .Options;
 
         _workflowDbContext = new OrdersDbContext(workflowOptions);
-        _intakeDbContext = new IntakeDbContext(intakeOptions);
+        _intakeDbContext = new IntakeSessionsDbContext(intakeOptions);
         _coreDbContext = new CoreDbContext(coreOptions);
 
         var timelineWriter = new OrderTimelineWriter(

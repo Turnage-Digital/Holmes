@@ -4,16 +4,19 @@ using Holmes.SlaClocks.Infrastructure.Sql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
 namespace Holmes.SlaClocks.Infrastructure.Sql.Migrations
 {
-    [DbContext(typeof(SlaClockDbContext))]
-    partial class SlaClockDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(SlaClocksDbContext))]
+    [Migration("20251224021125_InitialSlaClocks")]
+    partial class InitialSlaClocks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

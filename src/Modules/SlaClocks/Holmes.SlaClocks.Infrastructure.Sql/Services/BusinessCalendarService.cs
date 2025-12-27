@@ -3,7 +3,7 @@ using Holmes.SlaClocks.Application.Abstractions.Services;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql.Services;
 
-public sealed class BusinessCalendarService(SlaClockDbContext context) : IBusinessCalendarService
+public sealed class BusinessCalendarService(SlaClocksDbContext context) : IBusinessCalendarService
 {
     // US Federal Holidays (observed dates for 2024-2026)
     private static readonly HashSet<DateTime> FederalHolidays =

@@ -7,7 +7,7 @@ namespace Holmes.Orders.Infrastructure.Sql;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddWorkflowInfrastructureSql(
+    public static IServiceCollection AddOrdersInfrastructureSql(
         this IServiceCollection services,
         string connectionString,
         ServerVersion serverVersion
@@ -17,12 +17,15 @@ public static class DependencyInjection
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(OrdersDbContext).Assembly.FullName)));
 
-        services.AddScoped<IWorkflowUnitOfWork, OrdersUnitOfWork>();
+        services.AddScoped<IOrdersUnitOfWork, OrdersUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, OrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, OrderSummaryWriter>();
         services.AddScoped<IOrderQueries, OrderQueries>();
         services.AddScoped<OrderSummaryProjectionRunner>();
         services.AddScoped<OrderTimelineProjectionRunner>();
+        
+        services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
+        
         return services;
     }
 }

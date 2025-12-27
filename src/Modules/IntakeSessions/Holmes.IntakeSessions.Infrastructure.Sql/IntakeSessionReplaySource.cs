@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
-public sealed class IntakeSessionReplaySource(IntakeDbContext dbContext) : IIntakeSessionReplaySource
+public sealed class IntakeSessionReplaySource(IntakeSessionsDbContext dbContext) : IIntakeSessionReplaySource
 {
     public async Task<IReadOnlyCollection<IntakeSessionReplayRecord>> ListSessionsAsync(
         CancellationToken cancellationToken

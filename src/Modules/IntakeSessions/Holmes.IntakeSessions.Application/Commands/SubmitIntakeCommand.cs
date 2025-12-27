@@ -21,7 +21,7 @@ public sealed class SubmitIntakeCommandHandler(
     ISubjectDataGateway subjectDataGateway,
     IIntakeAnswersDecryptor answersDecryptor,
     IAeadEncryptor ssnEncryptor,
-    IIntakeUnitOfWork unitOfWork,
+    IIntakeSessionsUnitOfWork unitOfWork,
     ILogger<SubmitIntakeCommandHandler> logger
 )
     : IRequestHandler<SubmitIntakeCommand, Result>

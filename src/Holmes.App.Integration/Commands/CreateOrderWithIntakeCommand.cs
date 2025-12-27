@@ -12,7 +12,7 @@ namespace Holmes.App.Integration.Commands;
 
 /// <summary>
 ///     Creates an order with intake session in a single atomic operation.
-///     Orchestrates across Subjects, Workflow, and Intake modules using
+///     Orchestrates across Subjects, Orders, and Intake modules using
 ///     the outbox pattern for reliable event dispatch.
 /// </summary>
 public sealed record CreateOrderWithIntakeCommand(
@@ -33,8 +33,8 @@ public sealed record CreateOrderWithIntakeResult(
 
 public sealed class CreateOrderWithIntakeCommandHandler(
     ISubjectsUnitOfWork subjectsUnitOfWork,
-    IWorkflowUnitOfWork workflowUnitOfWork,
-    IIntakeUnitOfWork intakeUnitOfWork
+    IOrdersUnitOfWork ordersUnitOfWork,
+    IIntakeSessionsUnitOfWork intakeSessionsUnitOfWork
 ) : IRequestHandler<CreateOrderWithIntakeCommand, Result<CreateOrderWithIntakeResult>>
 {
     private const int DefaultTimeToLiveHours = 168; // 7 days
@@ -122,8 +122,8 @@ public sealed class CreateOrderWithIntakeCommandHandler(
                 now,
                 null);
 
-            await workflowUnitOfWork.Orders.AddAsync(order, cancellationToken);
-            await workflowUnitOfWork.SaveChangesAsync(true, cancellationToken);
+            await ordersUnitOfWork.Orders.AddAsync(order, cancellationToken);
+            await ordersUnitOfWork.SaveChangesAsync(true, cancellationToken);
 
             // 3. Create IntakeSession
             var resumeToken = GenerateResumeToken();
@@ -142,8 +142,8 @@ public sealed class CreateOrderWithIntakeCommandHandler(
                 now,
                 TimeSpan.FromHours(DefaultTimeToLiveHours));
 
-            await intakeUnitOfWork.IntakeSessions.AddAsync(session, cancellationToken);
-            await intakeUnitOfWork.SaveChangesAsync(true, cancellationToken);
+            await intakeSessionsUnitOfWork.IntakeSessions.AddAsync(session, cancellationToken);
+            await intakeSessionsUnitOfWork.SaveChangesAsync(true, cancellationToken);
 
             // Commit the transaction - all three modules' changes are now durable
             scope.Complete();

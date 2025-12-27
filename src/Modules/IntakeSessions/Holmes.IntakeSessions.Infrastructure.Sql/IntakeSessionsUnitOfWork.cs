@@ -6,14 +6,14 @@ using MediatR;
 
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
-public sealed class IntakeUnitOfWork(
-    IntakeDbContext dbContext,
+public sealed class IntakeSessionsUnitOfWork(
+    IntakeSessionsDbContext dbContext,
     IMediator mediator,
     IEventStore? eventStore = null,
     IDomainEventSerializer? serializer = null,
     ITenantContext? tenantContext = null
 )
-    : UnitOfWork<IntakeDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IIntakeUnitOfWork
+    : UnitOfWork<IntakeSessionsDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IIntakeSessionsUnitOfWork
 {
     private readonly Lazy<IIntakeSessionRepository> _sessions = new(() => new IntakeSessionRepository(dbContext));
 

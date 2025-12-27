@@ -73,15 +73,15 @@ $modules = @(
         MigrationName = "InitialSubjects"
     },
     @{
-        Name = "Intake"
+        Name = "IntakeSessions"
         Project = "src/Modules/IntakeSessions/Holmes.IntakeSessions.Infrastructure.Sql/Holmes.IntakeSessions.Infrastructure.Sql.csproj"
-        Context = "Holmes.IntakeSessions.Infrastructure.Sql.IntakeDbContext"
+        Context = "Holmes.IntakeSessions.Infrastructure.Sql.IntakeSessionsDbContext"
         MigrationName = "InitialIntake"
     },
     @{
         Name = "Orders"
         Project = "src/Modules/Orders/Holmes.Orders.Infrastructure.Sql/Holmes.Orders.Infrastructure.Sql.csproj"
-        Context = "Holmes.Orders.Infrastructure.Sql.WorkflowDbContext"
+        Context = "Holmes.Orders.Infrastructure.Sql.OrdersDbContext"
         MigrationName = "InitialWorkflow"
     },
     @{
@@ -99,7 +99,7 @@ $modules = @(
     @{
         Name = "SlaClocks"
         Project = "src/Modules/SlaClocks/Holmes.SlaClocks.Infrastructure.Sql/Holmes.SlaClocks.Infrastructure.Sql.csproj"
-        Context = "Holmes.SlaClocks.Infrastructure.Sql.SlaClockDbContext"
+        Context = "Holmes.SlaClocks.Infrastructure.Sql.SlaClocksDbContext"
         MigrationName = "InitialSlaClocks"
     }
 )

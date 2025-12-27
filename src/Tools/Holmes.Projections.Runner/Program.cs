@@ -50,11 +50,11 @@ catch (MySqlException)
 
 // Register all infrastructure modules
 builder.Services.AddCoreInfrastructureSql(connectionString, serverVersion);
-builder.Services.AddUsersInfrastructureSql(connectionString, serverVersion);
 builder.Services.AddCustomersInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddIntakeSessionsInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddOrdersInfrastructureSql(connectionString, serverVersion);
 builder.Services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
-builder.Services.AddIntakeInfrastructureSql(connectionString, serverVersion);
-builder.Services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddUsersInfrastructureSql(connectionString, serverVersion);
 
 // Register MediatR with all event handlers for event-based replay
 builder.Services.AddMediatR(config =>

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql;
 
-public class SlaClockDbContext(DbContextOptions<SlaClockDbContext> options)
+public class SlaClocksDbContext(DbContextOptions<SlaClocksDbContext> options)
     : DbContext(options)
 {
     public DbSet<SlaClockDb> SlaClocks => Set<SlaClockDb>();

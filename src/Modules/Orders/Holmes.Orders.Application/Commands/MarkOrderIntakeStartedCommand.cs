@@ -13,7 +13,7 @@ public sealed record MarkOrderIntakeStartedCommand(
     string? Reason
 ) : RequestBase<Result>, ISkipUserAssignment;
 
-public sealed class MarkOrderIntakeStartedCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class MarkOrderIntakeStartedCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<MarkOrderIntakeStartedCommand, Result>
 {
     public async Task<Result> Handle(MarkOrderIntakeStartedCommand request, CancellationToken cancellationToken)

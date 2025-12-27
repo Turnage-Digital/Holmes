@@ -1,6 +1,6 @@
 using System.Diagnostics.Metrics;
 
-namespace Holmes.IntakeSessions.Application.Projections;
+namespace Holmes.IntakeSessions.Application;
 
 internal static class IntakeProjectionMetrics
 {

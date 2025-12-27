@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
-public class IntakeDbContext(DbContextOptions<IntakeDbContext> options)
+public class IntakeSessionsDbContext(DbContextOptions<IntakeSessionsDbContext> options)
     : DbContext(options)
 {
     public DbSet<ConsentArtifactDb> ConsentArtifacts => Set<ConsentArtifactDb>();

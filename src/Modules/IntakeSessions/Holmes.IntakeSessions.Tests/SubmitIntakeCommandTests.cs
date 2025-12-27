@@ -18,7 +18,7 @@ public class SubmitIntakeCommandTests
     private Mock<IOrderWorkflowGateway> _orderGatewayMock = null!;
     private InMemoryIntakeSessionRepository _repository = null!;
     private Mock<ISubjectDataGateway> _subjectGatewayMock = null!;
-    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
+    private Mock<IIntakeSessionsUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
@@ -28,7 +28,7 @@ public class SubmitIntakeCommandTests
         _decryptorMock = new Mock<IIntakeAnswersDecryptor>();
         _encryptorMock = new Mock<IAeadEncryptor>();
         _repository = new InMemoryIntakeSessionRepository();
-        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock = new Mock<IIntakeSessionsUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
 
         // Default: decryptor returns null (no subject data to persist)

@@ -176,6 +176,12 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 columns: new[] { "Status", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
+                name: "idx_service",
+                table: "service_results",
+                column: "ServiceId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "idx_customer_status",
                 table: "services",
                 columns: new[] { "CustomerId", "Status" });
@@ -199,12 +205,6 @@ namespace Holmes.Services.Infrastructure.Sql.Migrations
                 name: "idx_vendor_ref",
                 table: "services",
                 columns: new[] { "VendorCode", "VendorReferenceId" });
-
-            migrationBuilder.CreateIndex(
-                name: "idx_service",
-                table: "service_results",
-                column: "ServiceId",
-                unique: true);
         }
 
         /// <inheritdoc />

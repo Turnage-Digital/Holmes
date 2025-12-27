@@ -16,7 +16,7 @@ public sealed record SaveIntakeProgressCommand(
     DateTimeOffset UpdatedAt
 ) : RequestBase<Result>;
 
-public sealed class SaveIntakeProgressCommandHandler(IIntakeUnitOfWork unitOfWork)
+public sealed class SaveIntakeProgressCommandHandler(IIntakeSessionsUnitOfWork unitOfWork)
     : IRequestHandler<SaveIntakeProgressCommand, Result>
 {
     public async Task<Result> Handle(SaveIntakeProgressCommand request, CancellationToken cancellationToken)

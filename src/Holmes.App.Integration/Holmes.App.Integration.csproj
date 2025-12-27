@@ -12,21 +12,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Modules\Core\Holmes.Core.Domain\Holmes.Core.Domain.csproj"/>
-        <ProjectReference Include="..\Modules\Customers\Holmes.Customers.Application.Abstractions\Holmes.Customers.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\Modules\Customers\Holmes.Customers.Application\Holmes.Customers.Application.csproj" />
         <ProjectReference Include="..\Modules\IntakeSessions\Holmes.IntakeSessions.Application\Holmes.IntakeSessions.Application.csproj"/>
-        <ProjectReference Include="..\Modules\IntakeSessions\Holmes.IntakeSessions.Domain\Holmes.IntakeSessions.Domain.csproj"/>
         <ProjectReference Include="..\Modules\Notifications\Holmes.Notifications.Application\Holmes.Notifications.Application.csproj"/>
-        <ProjectReference Include="..\Modules\Services\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Modules\Services\Holmes.Services.Application\Holmes.Services.Application.csproj"/>
-        <ProjectReference Include="..\Modules\Services\Holmes.Services.Domain\Holmes.Services.Domain.csproj"/>
-        <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application.Abstractions\Holmes.SlaClocks.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Application\Holmes.SlaClocks.Application.csproj"/>
         <ProjectReference Include="..\Modules\Subjects\Holmes.Subjects.Application\Holmes.Subjects.Application.csproj"/>
-        <ProjectReference Include="..\Modules\Subjects\Holmes.Subjects.Domain\Holmes.Subjects.Domain.csproj"/>
-        <ProjectReference Include="..\Modules\Orders\Holmes.Orders.Application.Abstractions\Holmes.Orders.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Modules\Orders\Holmes.Orders.Application\Holmes.Orders.Application.csproj"/>
-        <ProjectReference Include="..\Modules\Orders\Holmes.Orders.Domain\Holmes.Orders.Domain.csproj"/>
     </ItemGroup>
 
 </Project>

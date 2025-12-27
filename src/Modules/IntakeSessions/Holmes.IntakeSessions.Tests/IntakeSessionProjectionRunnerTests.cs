@@ -11,13 +11,13 @@ namespace Holmes.IntakeSessions.Tests;
 public sealed class IntakeSessionProjectionRunnerTests
 {
     private CoreDbContext _coreDbContext = null!;
-    private IntakeDbContext _intakeDbContext = null!;
+    private IntakeSessionsDbContext _intakeDbContext = null!;
     private IntakeSessionProjectionRunner _runner = null!;
 
     [SetUp]
     public void SetUp()
     {
-        var intakeOptions = new DbContextOptionsBuilder<IntakeDbContext>()
+        var intakeOptions = new DbContextOptionsBuilder<IntakeSessionsDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
@@ -25,7 +25,7 @@ public sealed class IntakeSessionProjectionRunnerTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        _intakeDbContext = new IntakeDbContext(intakeOptions);
+        _intakeDbContext = new IntakeSessionsDbContext(intakeOptions);
         _coreDbContext = new CoreDbContext(coreOptions);
 
         var writer = new IntakeSessionProjectionWriter(

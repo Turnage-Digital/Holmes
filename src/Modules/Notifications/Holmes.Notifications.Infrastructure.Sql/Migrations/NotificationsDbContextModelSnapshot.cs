@@ -68,84 +68,6 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                     b.ToTable("delivery_attempts", (string)null);
                 });
 
-            modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationProjectionDb", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
-                    b.Property<int>("AttemptCount")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("BouncedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
-                    b.Property<DateTime?>("DeliveredAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("FailedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsAdverseAction")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("LastFailureReason")
-                        .HasMaxLength(1024)
-                        .HasColumnType("varchar(1024)");
-
-                    b.Property<string>("OrderId")
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
-                    b.Property<string>("ProviderMessageId")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
-
-                    b.Property<DateTime?>("QueuedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ScheduledFor")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SubjectId")
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
-                    b.Property<int>("TriggerType")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("CustomerId", "Status");
-
-                    b.HasIndex("Status", "CreatedAt");
-
-                    b.ToTable("notification_projections", (string)null);
-                });
-
             modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationDb", b =>
                 {
                     b.Property<string>("Id")
@@ -245,6 +167,84 @@ namespace Holmes.Notifications.Infrastructure.Sql.Migrations
                     b.HasIndex("Status", "ScheduledFor");
 
                     b.ToTable("notifications", (string)null);
+                });
+
+            modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.NotificationProjectionDb", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("BouncedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("FailedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsAdverseAction")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LastFailureReason")
+                        .HasMaxLength(1024)
+                        .HasColumnType("varchar(1024)");
+
+                    b.Property<string>("OrderId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<string>("ProviderMessageId")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateTime?>("QueuedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ScheduledFor")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubjectId")
+                        .HasMaxLength(26)
+                        .HasColumnType("varchar(26)");
+
+                    b.Property<int>("TriggerType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("CustomerId", "Status");
+
+                    b.HasIndex("Status", "CreatedAt");
+
+                    b.ToTable("notification_projections", (string)null);
                 });
 
             modelBuilder.Entity("Holmes.Notifications.Infrastructure.Sql.Entities.DeliveryAttemptDb", b =>

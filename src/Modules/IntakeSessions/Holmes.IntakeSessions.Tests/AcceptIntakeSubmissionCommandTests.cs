@@ -12,14 +12,14 @@ public class AcceptIntakeSubmissionCommandTests
 {
     private Mock<IOrderWorkflowGateway> _gatewayMock = null!;
     private InMemoryIntakeSessionRepository _repository = null!;
-    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
+    private Mock<IIntakeSessionsUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
     {
         _gatewayMock = new Mock<IOrderWorkflowGateway>();
         _repository = new InMemoryIntakeSessionRepository();
-        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock = new Mock<IIntakeSessionsUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
     }
 

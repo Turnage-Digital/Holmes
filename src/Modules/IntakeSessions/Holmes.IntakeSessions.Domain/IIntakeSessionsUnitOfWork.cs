@@ -2,7 +2,7 @@ using Holmes.Core.Domain;
 
 namespace Holmes.IntakeSessions.Domain;
 
-public interface IIntakeUnitOfWork : IUnitOfWork
+public interface IIntakeSessionsUnitOfWork : IUnitOfWork
 {
     IIntakeSessionRepository IntakeSessions { get; }
 }

@@ -13,7 +13,7 @@ public sealed record CompleteSlaClockCommand(
 ) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class CompleteSlaClockCommandHandler(
-    ISlaClockUnitOfWork unitOfWork
+    ISlaClocksUnitOfWork unitOfWork
 ) : IRequestHandler<CompleteSlaClockCommand, Result>
 {
     public async Task<Result> Handle(CompleteSlaClockCommand request, CancellationToken cancellationToken)

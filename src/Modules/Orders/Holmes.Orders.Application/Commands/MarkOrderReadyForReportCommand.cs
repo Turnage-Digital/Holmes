@@ -16,7 +16,7 @@ public sealed record MarkOrderReadyForReportCommand(
     string? Reason
 ) : RequestBase<Result>, ISkipUserAssignment;
 
-public sealed class MarkOrderReadyForReportCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class MarkOrderReadyForReportCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<MarkOrderReadyForReportCommand, Result>
 {
     public async Task<Result> Handle(MarkOrderReadyForReportCommand request, CancellationToken cancellationToken)

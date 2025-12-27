@@ -9,18 +9,18 @@ namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddIntakeInfrastructureSql(
+    public static IServiceCollection AddIntakeSessionsInfrastructureSql(
         this IServiceCollection services,
         string connectionString,
         ServerVersion serverVersion
     )
     {
-        services.AddDbContext<IntakeDbContext>(options =>
+        services.AddDbContext<IntakeSessionsDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>
-                builder.MigrationsAssembly(typeof(IntakeDbContext).Assembly.FullName)));
+                builder.MigrationsAssembly(typeof(IntakeSessionsDbContext).Assembly.FullName)));
 
         // Write side
-        services.AddScoped<IIntakeUnitOfWork, IntakeUnitOfWork>();
+        services.AddScoped<IIntakeSessionsUnitOfWork, IntakeSessionsUnitOfWork>();
         services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
 
         // Read side (CQRS)

@@ -1,6 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.IntakeSessions.Application.Abstractions;
-using Holmes.IntakeSessions.Application.Projections;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.Events;
 using MediatR;

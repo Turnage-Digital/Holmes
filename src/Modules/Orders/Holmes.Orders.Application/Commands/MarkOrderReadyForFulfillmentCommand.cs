@@ -12,7 +12,7 @@ public sealed record MarkOrderReadyForFulfillmentCommand(
     string? Reason
 ) : RequestBase<Result>;
 
-public sealed class MarkOrderReadyForFulfillmentCommandHandler(IWorkflowUnitOfWork unitOfWork)
+public sealed class MarkOrderReadyForFulfillmentCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<MarkOrderReadyForFulfillmentCommand, Result>
 {
     public async Task<Result> Handle(MarkOrderReadyForFulfillmentCommand request, CancellationToken cancellationToken)

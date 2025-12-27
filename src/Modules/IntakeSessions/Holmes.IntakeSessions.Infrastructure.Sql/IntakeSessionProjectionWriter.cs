@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
 public sealed class IntakeSessionProjectionWriter(
-    IntakeDbContext dbContext,
+    IntakeSessionsDbContext dbContext,
     ILogger<IntakeSessionProjectionWriter> logger
 )
     : IIntakeSessionProjectionWriter

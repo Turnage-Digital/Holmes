@@ -17,7 +17,7 @@ public sealed record StartSlaClockCommand(
 ) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class StartSlaClockCommandHandler(
-    ISlaClockUnitOfWork unitOfWork,
+    ISlaClocksUnitOfWork unitOfWork,
     IBusinessCalendarService calendarService
 ) : IRequestHandler<StartSlaClockCommand, Result>
 {

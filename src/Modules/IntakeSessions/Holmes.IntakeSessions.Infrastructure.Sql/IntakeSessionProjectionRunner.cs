@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
 public sealed class IntakeSessionProjectionRunner(
-    IntakeDbContext intakeDbContext,
+    IntakeSessionsDbContext intakeDbContext,
     CoreDbContext coreDbContext,
     IIntakeSessionProjectionWriter projectionWriter,
     ILogger<IntakeSessionProjectionRunner> logger

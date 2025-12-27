@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
-public sealed class IntakeSessionQueries(IntakeDbContext dbContext) : IIntakeSessionQueries
+public sealed class IntakeSessionQueries(IntakeSessionsDbContext dbContext) : IIntakeSessionQueries
 {
     public async Task<IntakeSessionBootstrapDto?> GetBootstrapAsync(
         UlidId intakeSessionId,

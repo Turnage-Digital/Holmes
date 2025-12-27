@@ -10,13 +10,13 @@ public class IssueIntakeInviteCommandTests
 {
     private Mock<IIntakeSessionRepository> _repositoryMock = null!;
     private Mock<IIntakeSectionMappingService> _sectionMappingServiceMock = null!;
-    private Mock<IIntakeUnitOfWork> _unitOfWorkMock = null!;
+    private Mock<IIntakeSessionsUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
     {
         _repositoryMock = new Mock<IIntakeSessionRepository>();
-        _unitOfWorkMock = new Mock<IIntakeUnitOfWork>();
+        _unitOfWorkMock = new Mock<IIntakeSessionsUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repositoryMock.Object);
         _sectionMappingServiceMock = new Mock<IIntakeSectionMappingService>();
         _sectionMappingServiceMock

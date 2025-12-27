@@ -2,7 +2,7 @@ using Holmes.Core.Domain;
 
 namespace Holmes.Orders.Domain;
 
-public interface IWorkflowUnitOfWork : IUnitOfWork
+public interface IOrdersUnitOfWork : IUnitOfWork
 {
     IOrderRepository Orders { get; }
 }

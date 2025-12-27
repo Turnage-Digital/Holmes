@@ -15,14 +15,14 @@ public static class DependencyInjection
         ServerVersion serverVersion
     )
     {
-        services.AddDbContext<SlaClockDbContext>(options =>
+        services.AddDbContext<SlaClocksDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>
-                builder.MigrationsAssembly(typeof(SlaClockDbContext).Assembly.FullName)));
+                builder.MigrationsAssembly(typeof(SlaClocksDbContext).Assembly.FullName)));
 
         // Write side
         services.AddScoped<SlaClockRepository>();
         services.AddScoped<ISlaClockRepository>(sp => sp.GetRequiredService<SlaClockRepository>());
-        services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
+        services.AddScoped<ISlaClocksUnitOfWork, SlaClocksUnitOfWork>();
 
         // Read side (CQRS)
         services.AddScoped<ISlaClockQueries, SlaClockQueries>();
