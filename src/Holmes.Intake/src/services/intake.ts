@@ -8,30 +8,30 @@ import {
   StartIntakeSessionRequest,
   SubmitIntakeRequest,
   VerifyOtpRequest,
-  VerifyOtpResponse,
+  VerifyOtpResponse
 } from "@/types/api";
 
 export const startIntakeSession = (
   sessionId: string,
-  payload: StartIntakeSessionRequest,
+  payload: StartIntakeSessionRequest
 ) =>
   apiFetch<void>(`/intake/sessions/${sessionId}/start`, {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 export const verifyIntakeOtp = (
   sessionId: string,
-  payload: VerifyOtpRequest,
+  payload: VerifyOtpRequest
 ): Promise<VerifyOtpResponse> =>
   apiFetch<VerifyOtpResponse>(`/intake/sessions/${sessionId}/otp/verify`, {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 export const captureConsentArtifact = async (
   sessionId: string,
-  payload: CaptureConsentRequest,
+  payload: CaptureConsentRequest
 ): Promise<CaptureConsentResponse> => {
   const response = await apiFetch<{
     ArtifactId: string;
@@ -43,7 +43,7 @@ export const captureConsentArtifact = async (
     CreatedAt: string;
   }>(`/intake/sessions/${sessionId}/consent`, {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
   return {
@@ -53,29 +53,29 @@ export const captureConsentArtifact = async (
     hash: response.Hash,
     hashAlgorithm: response.HashAlgorithm,
     schemaVersion: response.SchemaVersion,
-    createdAt: response.CreatedAt,
+    createdAt: response.CreatedAt
   };
 };
 
 export const saveIntakeProgress = (
   sessionId: string,
-  payload: SaveIntakeProgressRequest,
+  payload: SaveIntakeProgressRequest
 ) =>
   apiFetch<void>(`/intake/sessions/${sessionId}/progress`, {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 export const submitIntake = (sessionId: string, payload: SubmitIntakeRequest) =>
   apiFetch<void>(`/intake/sessions/${sessionId}/submit`, {
     method: "POST",
-    body: payload,
+    body: payload
   });
 
 export const getIntakeBootstrap = (
   sessionId: string,
-  resumeToken: string,
+  resumeToken: string
 ): Promise<IntakeBootstrapResponse> =>
   apiFetch<IntakeBootstrapResponse>(
-    `/intake/sessions/${sessionId}/bootstrap?resumeToken=${encodeURIComponent(resumeToken)}`,
+    `/intake/sessions/${sessionId}/bootstrap?resumeToken=${encodeURIComponent(resumeToken)}`
   );

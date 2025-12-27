@@ -55,17 +55,17 @@ Standing ceremonies:
 
 ## 3. Scope Breakdown
 
-| Track                        | Deliverables                                                                            | Definition of Done                                                                                     |
-|------------------------------|-----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| **Service Aggregate** | `Service` with state machine, tier assignment, vendor assignment, result storage | State transitions fire domain events; results stored in normalized schema; aggregate replayable        |
-| **Service Tiering**          | Customer-defined execution tiers with stop conditions                                   | Tier 1 completes before Tier 2 dispatches; stop conditions halt downstream tiers; parallel mode option |
-| **Service Type Taxonomy**    | `ServiceType` enum/value object with categories and specific types                      | All common service types defined; extensible for custom types                                          |
-| **Service Catalog**          | `ServiceCatalog` aggregate for customer-specific service configurations                 | Customer can enable/disable service types; tier assignments; vendor mappings per customer              |
-| **Vendor Adapter Layer**     | `IVendorAdapter` interface, `IVendorCredentialStore`, `StubVendorAdapter`               | Adapters translate vendor protocols; credentials fetched from secure store; stub returns fixture data  |
-| **Order Routing**            | `OrderRoutingService` that determines services from package + policy                    | Package code maps to service list; services created with tier assignments when Order ready for routing |
-| **Service SLA Clocks**       | Optional service-level SLA tracking                                                     | Clock starts on dispatch; at-risk/breach detection; customer-configurable targets                      |
-| **Address History**          | Subject enhancement with address collection                                             | Addresses captured during intake; county FIPS derivation for criminal searches                         |
-| **Read Models**              | `service_requests`, `service_results`, `fulfillment_dashboard`                          | Projections replayable; dashboard shows in-flight services by tier                                     |
+| Track                     | Deliverables                                                                     | Definition of Done                                                                                     |
+|---------------------------|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| **Service Aggregate**     | `Service` with state machine, tier assignment, vendor assignment, result storage | State transitions fire domain events; results stored in normalized schema; aggregate replayable        |
+| **Service Tiering**       | Customer-defined execution tiers with stop conditions                            | Tier 1 completes before Tier 2 dispatches; stop conditions halt downstream tiers; parallel mode option |
+| **Service Type Taxonomy** | `ServiceType` enum/value object with categories and specific types               | All common service types defined; extensible for custom types                                          |
+| **Service Catalog**       | `ServiceCatalog` aggregate for customer-specific service configurations          | Customer can enable/disable service types; tier assignments; vendor mappings per customer              |
+| **Vendor Adapter Layer**  | `IVendorAdapter` interface, `IVendorCredentialStore`, `StubVendorAdapter`        | Adapters translate vendor protocols; credentials fetched from secure store; stub returns fixture data  |
+| **Order Routing**         | `OrderRoutingService` that determines services from package + policy             | Package code maps to service list; services created with tier assignments when Order ready for routing |
+| **Service SLA Clocks**    | Optional service-level SLA tracking                                              | Clock starts on dispatch; at-risk/breach detection; customer-configurable targets                      |
+| **Address History**       | Subject enhancement with address collection                                      | Addresses captured during intake; county FIPS derivation for criminal searches                         |
+| **Read Models**           | `service_requests`, `service_results`, `fulfillment_dashboard`                   | Projections replayable; dashboard shows in-flight services by tier                                     |
 
 ## 4. Domain Model
 
@@ -276,7 +276,7 @@ ALTER TABLE services.service_requests
 |------------------|-----------------------------------------------------|-----------------------------------------------------------|
 | What it captures | SLA rules, intake requirements, adjudication matrix | Tiers, stop conditions, vendor mappings, enabled services |
 | When snapshotted | Order creation                                      | Order routing                                             |
-| Stored on        | `Order.PolicySnapshotId`                            | `Service.CatalogSnapshotId`                        |
+| Stored on        | `Order.PolicySnapshotId`                            | `Service.CatalogSnapshotId`                               |
 | Ensures          | Policy changes don't affect in-flight orders        | Service config changes don't affect in-flight orders      |
 
 ### 4.3 Service Type Taxonomy

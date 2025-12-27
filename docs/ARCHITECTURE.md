@@ -2,7 +2,8 @@
 
 **Last Updated:** 2025-12-23
 
-This document reflects what is implemented today. It intentionally avoids future-phase promises; planned work is captured
+This document reflects what is implemented today. It intentionally avoids future-phase promises; planned work is
+captured
 in the backlog section at the end.
 
 ---
@@ -56,23 +57,23 @@ Primary UI surfaces:
 **API + background services**
 
 - `src/Holmes.App.Server`
-  - API controllers, SSE endpoints, and background services.
-  - Hosts `SlaClockWatchdogService`, `NotificationProcessingService`, and `DeferredDispatchProcessor`.
+    - API controllers, SSE endpoints, and background services.
+    - Hosts `SlaClockWatchdogService`, `NotificationProcessingService`, and `DeferredDispatchProcessor`.
 
 **Integration boundary**
 
 - `src/Holmes.App.Application`
-  - Cross-module event handlers and gateways (Intake -> Workflow, Workflow -> Services, etc.).
+    - Cross-module event handlers and gateways (Intake -> Workflow, Workflow -> Services, etc.).
 
 **Cross-cutting infrastructure**
 
 - `src/Holmes.App.Infrastructure`
-  - Security and infrastructure utilities, intentionally database-agnostic.
+    - Security and infrastructure utilities, intentionally database-agnostic.
 
 **Identity**
 
 - `src/Holmes.Identity.Server`
-  - Duende IdentityServer + ASP.NET Identity for auth.
+    - Duende IdentityServer + ASP.NET Identity for auth.
 
 **SPAs**
 
@@ -102,26 +103,26 @@ Primary UI surfaces:
 These handlers connect the modules into an end-to-end workflow:
 
 - `IntakeToWorkflowHandler` (`src/Holmes.App.Application/EventHandlers/IntakeToWorkflowHandler.cs`)
-  - `IntakeSessionInvited` -> `RecordOrderInviteCommand`
-  - `IntakeSessionStarted` -> `MarkOrderIntakeStartedCommand`
+    - `IntakeSessionInvited` -> `RecordOrderInviteCommand`
+    - `IntakeSessionStarted` -> `MarkOrderIntakeStartedCommand`
 
 - `OrderWorkflowGateway` (`src/Holmes.App.Application/Gateways/OrderWorkflowGateway.cs`)
-  - `SubmitIntakeCommand` -> `MarkOrderIntakeSubmittedCommand`
-  - `AcceptIntakeSubmissionCommand` -> `MarkOrderReadyForFulfillmentCommand`
-  - Policy validation is currently stubbed to allow all submissions.
+    - `SubmitIntakeCommand` -> `MarkOrderIntakeSubmittedCommand`
+    - `AcceptIntakeSubmissionCommand` -> `MarkOrderReadyForFulfillmentCommand`
+    - Policy validation is currently stubbed to allow all submissions.
 
 - `OrderStatusChangedSlaHandler` (`src/Holmes.App.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
-  - Starts/completes/pauses/resumes SLA clocks based on Order status changes.
+    - Starts/completes/pauses/resumes SLA clocks based on Order status changes.
 
 - `OrderFulfillmentHandler` (`src/Holmes.App.Application/EventHandlers/OrderFulfillmentHandler.cs`)
-  - On `ReadyForFulfillment`, creates Service requests from the customer catalog and then moves the Order to
-    `FulfillmentInProgress`.
+    - On `ReadyForFulfillment`, creates Service requests from the customer catalog and then moves the Order to
+      `FulfillmentInProgress`.
 
 - `ServiceCompletionOrderHandler` (`src/Holmes.App.Application/EventHandlers/ServiceCompletionOrderHandler.cs`)
-  - When all services complete for an Order, advances it to `ReadyForReport`.
+    - When all services complete for an Order, advances it to `ReadyForReport`.
 
 - Notification triggers (`src/Holmes.App.Application/EventHandlers/*.cs`)
-  - Intake invite notifications are live; SLA at-risk/breached handlers log and are ready to wire to notifications.
+    - Intake invite notifications are live; SLA at-risk/breached handlers log and are ready to wire to notifications.
 
 ---
 

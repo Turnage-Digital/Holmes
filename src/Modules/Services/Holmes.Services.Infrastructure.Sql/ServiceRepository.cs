@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Services.Infrastructure.Sql;
 
-public class ServiceRepository(ServicesDbContext context) 
+public class ServiceRepository(ServicesDbContext context)
     : IServiceRepository
 {
     public async Task<Service?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)

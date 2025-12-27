@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.Notifications.Infrastructure.Sql;
 
-public sealed class NotificationQueries(NotificationsDbContext dbContext) 
+public sealed class NotificationQueries(NotificationsDbContext dbContext)
     : INotificationQueries
 {
     public async Task<NotificationSummaryDto?> GetByIdAsync(

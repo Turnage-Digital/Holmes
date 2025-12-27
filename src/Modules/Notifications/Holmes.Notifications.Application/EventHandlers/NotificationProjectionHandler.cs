@@ -36,6 +36,24 @@ public sealed class NotificationProjectionHandler(
             cancellationToken);
     }
 
+    public Task Handle(NotificationCreated notification, CancellationToken cancellationToken)
+    {
+        var model = new NotificationProjectionModel(
+            notification.NotificationId.ToString(),
+            notification.CustomerId.ToString(),
+            notification.OrderId?.ToString(),
+            notification.SubjectId?.ToString(),
+            notification.TriggerType,
+            notification.Channel,
+            DeliveryStatus.Pending,
+            notification.IsAdverseAction,
+            notification.CreatedAt,
+            notification.ScheduledFor
+        );
+
+        return writer.UpsertAsync(model, cancellationToken);
+    }
+
     public Task Handle(NotificationDelivered notification, CancellationToken cancellationToken)
     {
         return writer.UpdateDeliveredAsync(
@@ -61,23 +79,5 @@ public sealed class NotificationProjectionHandler(
             notification.NotificationId.ToString(),
             notification.QueuedAt,
             cancellationToken);
-    }
-
-    public Task Handle(NotificationCreated notification, CancellationToken cancellationToken)
-    {
-        var model = new NotificationProjectionModel(
-            notification.NotificationId.ToString(),
-            notification.CustomerId.ToString(),
-            notification.OrderId?.ToString(),
-            notification.SubjectId?.ToString(),
-            notification.TriggerType,
-            notification.Channel,
-            DeliveryStatus.Pending,
-            notification.IsAdverseAction,
-            notification.CreatedAt,
-            notification.ScheduledFor
-        );
-
-        return writer.UpsertAsync(model, cancellationToken);
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql;
 
-public sealed class SlaClockQueries(SlaClocksDbContext dbContext) 
+public sealed class SlaClockQueries(SlaClocksDbContext dbContext)
     : ISlaClockQueries
 {
     public async Task<SlaClockDto?> GetByIdAsync(

@@ -15,7 +15,7 @@ import {
   Select,
   Stack,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
@@ -29,11 +29,11 @@ interface PhoneFormProps {
 }
 
 const PhoneForm: React.FC<PhoneFormProps> = ({
-  phones,
-  onChange,
-  minPhones = 1,
-  maxPhones = 5,
-}) => {
+                                               phones,
+                                               onChange,
+                                               minPhones = 1,
+                                               maxPhones = 5
+                                             }) => {
   const handleAddPhone = () => {
     if (phones.length >= maxPhones) return;
     const newPhone = createEmptyPhone();
@@ -65,7 +65,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
           return p;
         }
         return { ...p, ...updates };
-      }),
+      })
     );
   };
 
@@ -73,7 +73,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
     const typeLabels: Record<PhoneType, string> = {
       [PhoneType.Mobile]: "Mobile",
       [PhoneType.Home]: "Home",
-      [PhoneType.Work]: "Work",
+      [PhoneType.Work]: "Work"
     };
     const typeLabel = typeLabels[phone.type];
     const primarySuffix = phone.isPrimary ? " (Primary)" : "";
@@ -126,7 +126,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02)
           }}
         >
           <Typography color="text.secondary" gutterBottom>
@@ -153,7 +153,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
             backgroundColor: (theme) =>
               phone.isPrimary
                 ? alpha(theme.palette.primary.main, 0.02)
-                : alpha(theme.palette.action.hover, 0.02),
+                : alpha(theme.palette.action.hover, 0.02)
           }}
         >
           <Stack spacing={2}>
@@ -184,7 +184,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
                   handleUpdatePhone(phone.id, {
                     phoneNumber: e.target.value
                       .replace(/[^\d+()-\s]/g, "")
-                      .slice(0, 20),
+                      .slice(0, 20)
                   })
                 }
                 fullWidth
@@ -200,7 +200,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
                   label="Type"
                   onChange={(e) =>
                     handleUpdatePhone(phone.id, {
-                      type: e.target.value as PhoneType,
+                      type: e.target.value as PhoneType
                     })
                   }
                 >
@@ -217,7 +217,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
                   checked={phone.isPrimary}
                   onChange={(e) =>
                     handleUpdatePhone(phone.id, {
-                      isPrimary: e.target.checked,
+                      isPrimary: e.target.checked
                     })
                   }
                   disabled={phone.isPrimary && phones.length > 1}
@@ -236,7 +236,7 @@ const PhoneForm: React.FC<PhoneFormProps> = ({
           onClick={handleAddPhone}
           sx={{
             borderStyle: "dashed",
-            color: (theme) => theme.palette.text.secondary,
+            color: (theme) => theme.palette.text.secondary
           }}
         >
           Add another phone number

@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Modules\Customers\Holmes.Customers.Application\Holmes.Customers.Application.csproj" />
+        <ProjectReference Include="..\Modules\Customers\Holmes.Customers.Application\Holmes.Customers.Application.csproj"/>
         <ProjectReference Include="..\Modules\IntakeSessions\Holmes.IntakeSessions.Application\Holmes.IntakeSessions.Application.csproj"/>
         <ProjectReference Include="..\Modules\Notifications\Holmes.Notifications.Application\Holmes.Notifications.Application.csproj"/>
         <ProjectReference Include="..\Modules\Services\Holmes.Services.Application\Holmes.Services.Application.csproj"/>

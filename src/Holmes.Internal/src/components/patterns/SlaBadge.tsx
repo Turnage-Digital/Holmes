@@ -22,28 +22,28 @@ const statusConfig: Record<
   on_track: {
     label: "On Track",
     color: "success",
-    icon: <AccessTimeIcon fontSize="small" />,
+    icon: <AccessTimeIcon fontSize="small" />
   },
   at_risk: {
     label: "At Risk",
     color: "warning",
-    icon: <WarningAmberIcon fontSize="small" />,
+    icon: <WarningAmberIcon fontSize="small" />
   },
   breached: {
     label: "Breached",
     color: "error",
-    icon: <WarningAmberIcon fontSize="small" />,
+    icon: <WarningAmberIcon fontSize="small" />
   },
   paused: {
     label: "Paused",
     color: "default",
-    icon: <PauseCircleIcon fontSize="small" />,
+    icon: <PauseCircleIcon fontSize="small" />
   },
   completed: {
     label: "Completed",
     color: "success",
-    icon: <CheckCircleIcon fontSize="small" />,
-  },
+    icon: <CheckCircleIcon fontSize="small" />
+  }
 };
 
 /**

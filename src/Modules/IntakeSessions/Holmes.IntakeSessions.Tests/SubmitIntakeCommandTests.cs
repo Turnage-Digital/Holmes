@@ -1,7 +1,7 @@
 using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Application.Abstractions.Commands;
+using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Application.Commands;
 using Holmes.IntakeSessions.Application.Gateways;
 using Holmes.IntakeSessions.Domain;

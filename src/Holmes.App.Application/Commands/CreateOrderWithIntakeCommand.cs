@@ -4,8 +4,8 @@ using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.ValueObjects;
-using Holmes.Subjects.Domain;
 using Holmes.Orders.Domain;
+using Holmes.Subjects.Domain;
 using MediatR;
 
 namespace Holmes.App.Application.Commands;
@@ -119,8 +119,7 @@ public sealed class CreateOrderWithIntakeCommandHandler(
                 subject.Id,
                 request.CustomerId,
                 request.PolicySnapshotId,
-                now,
-                null);
+                now);
 
             await ordersUnitOfWork.Orders.AddAsync(order, cancellationToken);
             await ordersUnitOfWork.SaveChangesAsync(true, cancellationToken);

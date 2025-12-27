@@ -27,7 +27,7 @@ const SECTION_MAP: Partial<Record<string, IntakeSectionId>> = {
   Employment: "employment",
   Education: "education",
   References: "references",
-  Phone: "phone",
+  Phone: "phone"
   // Addresses is always visible so not included here
 };
 
@@ -45,7 +45,7 @@ const ALL_SECTIONS: IntakeSectionId[] = [
   "phone",
   "employment",
   "education",
-  "references",
+  "references"
 ];
 
 /**
@@ -56,14 +56,14 @@ const ALL_SECTIONS: IntakeSectionId[] = [
  * @returns Object with isVisible function and list of visible sections
  */
 export function useSectionVisibility(
-  config: IntakeSectionConfig | undefined,
+  config: IntakeSectionConfig | undefined
 ): SectionVisibility {
   return useMemo(() => {
     // If no config, show all sections (backwards compatibility)
     if (!config || config.requiredSections.length === 0) {
       return {
         isVisible: () => true,
-        visibleSections: ALL_SECTIONS,
+        visibleSections: ALL_SECTIONS
       };
     }
 
@@ -81,7 +81,7 @@ export function useSectionVisibility(
 
     return {
       isVisible: (section: IntakeSectionId) => requiredSet.has(section),
-      visibleSections,
+      visibleSections
     };
   }, [config]);
 }

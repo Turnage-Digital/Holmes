@@ -58,18 +58,18 @@ Canceled (terminal)
 
 ### Transitions
 
-| From                    | To                      | Trigger/Command                       | Notes |
-|-------------------------|-------------------------|---------------------------------------|-------|
+| From                    | To                      | Trigger/Command                       | Notes                                     |
+|-------------------------|-------------------------|---------------------------------------|-------------------------------------------|
 | `Created`               | `Invited`               | `RecordOrderInviteCommand`            | Issued by `IntakeSessionInvited` handler. |
 | `Invited`               | `IntakeInProgress`      | `MarkOrderIntakeStartedCommand`       | Issued by `IntakeSessionStarted` handler. |
-| `IntakeInProgress`      | `IntakeComplete`        | `MarkOrderIntakeSubmittedCommand`     | Issued by Intake submission gateway. |
-| `IntakeComplete`        | `ReadyForFulfillment`   | `MarkOrderReadyForFulfillmentCommand` | Issued by Intake acceptance gateway. |
-| `ReadyForFulfillment`   | `FulfillmentInProgress` | `BeginOrderFulfillmentCommand`        | Issued after creating service requests. |
-| `FulfillmentInProgress` | `ReadyForReport`        | `MarkOrderReadyForReportCommand`      | Issued after all services complete. |
-| `ReadyForReport`        | `Closed`                | `CloseOrderCommand`                   | Manual or system close. |
-| Any non-terminal        | `Blocked`               | `BlockOrderCommand`                   | Stores `BlockedFromStatus`. |
-| `Blocked`               | Previous status         | `ResumeOrderFromBlockCommand`         | Returns to `BlockedFromStatus`. |
-| Any non-terminal        | `Canceled`              | `CancelOrderCommand`                  | Terminal. |
+| `IntakeInProgress`      | `IntakeComplete`        | `MarkOrderIntakeSubmittedCommand`     | Issued by Intake submission gateway.      |
+| `IntakeComplete`        | `ReadyForFulfillment`   | `MarkOrderReadyForFulfillmentCommand` | Issued by Intake acceptance gateway.      |
+| `ReadyForFulfillment`   | `FulfillmentInProgress` | `BeginOrderFulfillmentCommand`        | Issued after creating service requests.   |
+| `FulfillmentInProgress` | `ReadyForReport`        | `MarkOrderReadyForReportCommand`      | Issued after all services complete.       |
+| `ReadyForReport`        | `Closed`                | `CloseOrderCommand`                   | Manual or system close.                   |
+| Any non-terminal        | `Blocked`               | `BlockOrderCommand`                   | Stores `BlockedFromStatus`.               |
+| `Blocked`               | Previous status         | `ResumeOrderFromBlockCommand`         | Returns to `BlockedFromStatus`.           |
+| Any non-terminal        | `Canceled`              | `CancelOrderCommand`                  | Terminal.                                 |
 
 **Guards**
 
@@ -91,12 +91,12 @@ Invited -> InProgress -> AwaitingReview -> Submitted
 
 ### Transitions
 
-| From               | To               | Trigger/Command                 | Notes |
-|--------------------|------------------|---------------------------------|-------|
-| (new)              | `Invited`        | `IssueIntakeInviteCommand`      | Creates resume token + TTL. |
-| `Invited`          | `InProgress`     | `StartIntakeSessionCommand`     | Must be unexpired. |
-| `InProgress`       | `AwaitingReview` | `SubmitIntakeCommand`           | Requires consent + answers. |
-| `AwaitingReview`   | `Submitted`      | `AcceptIntakeSubmissionCommand` | Moves Order to `ReadyForFulfillment`. |
+| From               | To               | Trigger/Command                 | Notes                                    |
+|--------------------|------------------|---------------------------------|------------------------------------------|
+| (new)              | `Invited`        | `IssueIntakeInviteCommand`      | Creates resume token + TTL.              |
+| `Invited`          | `InProgress`     | `StartIntakeSessionCommand`     | Must be unexpired.                       |
+| `InProgress`       | `AwaitingReview` | `SubmitIntakeCommand`           | Requires consent + answers.              |
+| `AwaitingReview`   | `Submitted`      | `AcceptIntakeSubmissionCommand` | Moves Order to `ReadyForFulfillment`.    |
 | Any (non-terminal) | `Abandoned`      | `Expire()` or `Supersede()`     | Expired TTL or superseded by new invite. |
 
 **Guards**
@@ -121,15 +121,15 @@ Pending -> Dispatched -> InProgress -> Completed
 
 ### Transitions
 
-| From               | To           | Trigger/Command                    | Notes |
-|--------------------|--------------|------------------------------------|-------|
-| (new)              | `Pending`    | `CreateServiceCommand`      | Created by `OrderFulfillmentHandler`. |
-| `Pending`          | `Dispatched` | `DispatchServiceCommand`    | Requires vendor assignment. |
-| `Dispatched`       | `InProgress` | `ProcessVendorCallbackCommand`     | Idempotent. |
-| `InProgress`       | `Completed`  | `RecordServiceResultCommand`       | Terminal. |
-| `InProgress`       | `Failed`     | `ProcessVendorCallbackCommand`     | Terminal unless retried. |
-| `Failed`           | `Pending`    | `RetryServiceCommand`       | Only if attempts < max. |
-| Any non-terminal   | `Canceled`   | `CancelServiceCommand`      | Terminal. |
+| From             | To           | Trigger/Command                | Notes                                 |
+|------------------|--------------|--------------------------------|---------------------------------------|
+| (new)            | `Pending`    | `CreateServiceCommand`         | Created by `OrderFulfillmentHandler`. |
+| `Pending`        | `Dispatched` | `DispatchServiceCommand`       | Requires vendor assignment.           |
+| `Dispatched`     | `InProgress` | `ProcessVendorCallbackCommand` | Idempotent.                           |
+| `InProgress`     | `Completed`  | `RecordServiceResultCommand`   | Terminal.                             |
+| `InProgress`     | `Failed`     | `ProcessVendorCallbackCommand` | Terminal unless retried.              |
+| `Failed`         | `Pending`    | `RetryServiceCommand`          | Only if attempts < max.               |
+| Any non-terminal | `Canceled`   | `CancelServiceCommand`         | Terminal.                             |
 
 ---
 
@@ -161,42 +161,42 @@ Running -> AtRisk -> Breached
 **Event handlers in `src/Holmes.App.Application`**
 
 - `IntakeToWorkflowHandler`
-  - `IntakeSessionInvited` -> `RecordOrderInviteCommand`
-  - `IntakeSessionStarted` -> `MarkOrderIntakeStartedCommand`
+    - `IntakeSessionInvited` -> `RecordOrderInviteCommand`
+    - `IntakeSessionStarted` -> `MarkOrderIntakeStartedCommand`
 
 - `OrderWorkflowGateway`
-  - `SubmitIntakeCommand` -> `MarkOrderIntakeSubmittedCommand`
-  - `AcceptIntakeSubmissionCommand` -> `MarkOrderReadyForFulfillmentCommand`
+    - `SubmitIntakeCommand` -> `MarkOrderIntakeSubmittedCommand`
+    - `AcceptIntakeSubmissionCommand` -> `MarkOrderReadyForFulfillmentCommand`
 
 - `OrderStatusChangedSlaHandler`
-  - Starts/completes/pauses/resumes SLA clocks.
+    - Starts/completes/pauses/resumes SLA clocks.
 
 - `OrderFulfillmentHandler`
-  - Creates service requests from the customer catalog.
-  - Calls `BeginOrderFulfillmentCommand` if any were created.
+    - Creates service requests from the customer catalog.
+    - Calls `BeginOrderFulfillmentCommand` if any were created.
 
 - `ServiceCompletionOrderHandler`
-  - When all services are completed, calls `MarkOrderReadyForReportCommand`.
+    - When all services are completed, calls `MarkOrderReadyForReportCommand`.
 
 - Notifications
-  - `IntakeInviteNotificationHandler` sends invite emails.
-  - `SlaClockAtRiskNotificationHandler` and `SlaClockBreachedNotificationHandler` log and are ready to wire to
-    notification requests.
+    - `IntakeInviteNotificationHandler` sends invite emails.
+    - `SlaClockAtRiskNotificationHandler` and `SlaClockBreachedNotificationHandler` log and are ready to wire to
+      notification requests.
 
 ---
 
 ## 6) Aggregate Existence Timeline
 
-| Order Status            | IntakeSession Exists?        | Service Requests Exist?            | SLA Clocks |
-|-------------------------|------------------------------|------------------------------------|------------|
-| `Created`               | No                           | No                                 | Overall (Running) |
-| `Invited`               | Yes (Invited)                | No                                 | Overall, Intake (Running) |
-| `IntakeInProgress`      | Yes (InProgress)             | No                                 | Overall, Intake (Running) |
-| `IntakeComplete`        | Yes (AwaitingReview)         | No                                 | Overall (Running), Intake (Completed) |
-| `ReadyForFulfillment`   | Yes (Submitted)              | Created if catalog has services    | Overall, Fulfillment (Running) |
-| `FulfillmentInProgress` | Yes (Submitted)              | Yes (Pending/InProgress)           | Overall, Fulfillment (Running) |
-| `ReadyForReport`        | Yes (Submitted)              | Yes (Completed)                    | Overall (Running), Fulfillment (Completed) |
-| `Closed`                | Yes (Submitted)              | Yes (Completed)                    | All (Completed) |
+| Order Status            | IntakeSession Exists? | Service Requests Exist?         | SLA Clocks                                 |
+|-------------------------|-----------------------|---------------------------------|--------------------------------------------|
+| `Created`               | No                    | No                              | Overall (Running)                          |
+| `Invited`               | Yes (Invited)         | No                              | Overall, Intake (Running)                  |
+| `IntakeInProgress`      | Yes (InProgress)      | No                              | Overall, Intake (Running)                  |
+| `IntakeComplete`        | Yes (AwaitingReview)  | No                              | Overall (Running), Intake (Completed)      |
+| `ReadyForFulfillment`   | Yes (Submitted)       | Created if catalog has services | Overall, Fulfillment (Running)             |
+| `FulfillmentInProgress` | Yes (Submitted)       | Yes (Pending/InProgress)        | Overall, Fulfillment (Running)             |
+| `ReadyForReport`        | Yes (Submitted)       | Yes (Completed)                 | Overall (Running), Fulfillment (Completed) |
+| `Closed`                | Yes (Submitted)       | Yes (Completed)                 | All (Completed)                            |
 
 ---
 

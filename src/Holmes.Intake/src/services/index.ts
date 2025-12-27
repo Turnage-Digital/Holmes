@@ -4,5 +4,5 @@ export {
   captureConsentArtifact,
   saveIntakeProgress,
   submitIntake,
-  getIntakeBootstrap,
+  getIntakeBootstrap
 } from "./intake";

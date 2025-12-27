@@ -57,7 +57,7 @@ public abstract class UnitOfWork<TContext>(
                     // 2. Persist events to EventRecord (within transaction)
                     // When deferDispatch is false, mark events as already dispatched since
                     // they will be published immediately after commit
-                    await PersistEventsAsync(aggregates, markAsDispatched: !deferDispatch, cancellationToken);
+                    await PersistEventsAsync(aggregates, !deferDispatch, cancellationToken);
 
                     await transaction.CommitAsync(cancellationToken);
                 }
@@ -73,7 +73,7 @@ public abstract class UnitOfWork<TContext>(
                 retval = await dbContext.SaveChangesAsync(cancellationToken);
 
                 // Still persist events for non-relational (testing) scenarios
-                await PersistEventsAsync(aggregates, markAsDispatched: !deferDispatch, cancellationToken);
+                await PersistEventsAsync(aggregates, !deferDispatch, cancellationToken);
             }
 
             // 3. Dispatch events via MediatR (after commit)

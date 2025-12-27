@@ -125,8 +125,8 @@ Stream ID format: `IntakeSession:{sessionId}`
 
 Stream ID format: `Service:{requestId}`
 
-| Event                      | Description             | Key Payload Fields                               |
-|----------------------------|-------------------------|--------------------------------------------------|
+| Event               | Description             | Key Payload Fields                        |
+|---------------------|-------------------------|-------------------------------------------|
 | `ServiceCreated`    | Service request created | `ServiceId`, `OrderId`, `ServiceType`     |
 | `ServiceDispatched` | Sent to vendor          | `ServiceId`, `DispatchedAt`               |
 | `ServiceInProgress` | Vendor processing       | `ServiceId`, `StartedAt`                  |
@@ -152,9 +152,9 @@ Stream ID format: `SlaClock:{clockId}`
 
 Stream ID format: `Notification:{requestId}`
 
-| Event                        | Description            | Key Payload Fields                              |
-|------------------------------|------------------------|-------------------------------------------------|
-| `NotificationCreated` | Notification queued    | `NotificationId`, `Channel`, `Recipient` |
+| Event                        | Description            | Key Payload Fields                       |
+|------------------------------|------------------------|------------------------------------------|
+| `NotificationCreated`        | Notification queued    | `NotificationId`, `Channel`, `Recipient` |
 | `NotificationQueued`         | Sent to delivery queue | `NotificationId`, `QueuedAt`             |
 | `NotificationDelivered`      | Successfully delivered | `NotificationId`, `DeliveredAt`          |
 | `NotificationBounced`        | Delivery bounced       | `NotificationId`, `BouncedAt`, `Reason`  |

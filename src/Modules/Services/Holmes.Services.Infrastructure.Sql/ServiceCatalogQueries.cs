@@ -141,7 +141,8 @@ public sealed class ServiceCatalogQueries(ServicesDbContext dbContext) : IServic
                 ["FED_CRIM", "STATE_CRIM", "WATCHLIST", "SEX_OFF"], ["COUNTY_CRIM", "MUNI_CRIM"],
                 true, true),
             new(3, "Employment & Education", "Employment and education verifications",
-                [], ["TWN_EMP", "DIRECT_EMP", "EDU_VERIFY", "PROF_LICENSE", "CIVIL", "PROF_REF", "INCOME_VERIFY"], false, true),
+                [], ["TWN_EMP", "DIRECT_EMP", "EDU_VERIFY", "PROF_LICENSE", "CIVIL", "PROF_REF", "INCOME_VERIFY"],
+                false, true),
             new(4, "Additional Checks", "Driving, credit, and drug screening",
                 [], ["MVR", "CDL_VERIFY", "CREDIT", "DRUG_TEST"], false, true)
         };

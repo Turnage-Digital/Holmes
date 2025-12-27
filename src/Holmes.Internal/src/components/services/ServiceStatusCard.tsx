@@ -18,15 +18,11 @@ import {
   LinearProgress,
   Stack,
   Tooltip,
-  Typography,
+  Typography
 } from "@mui/material";
 import { formatDistanceToNow } from "date-fns";
 
-import type {
-  ServiceCategory,
-  ServiceSummaryDto,
-  ServiceStatus,
-} from "@/types/api";
+import type { ServiceCategory, ServiceStatus, ServiceSummaryDto } from "@/types/api";
 
 import { StatusBadge } from "@/components/patterns";
 
@@ -40,7 +36,7 @@ const statusIcons: Record<ServiceStatus, React.ReactElement> = {
   InProgress: <AutorenewIcon fontSize="small" />,
   Completed: <CheckCircleIcon fontSize="small" />,
   Failed: <ErrorIcon fontSize="small" />,
-  Canceled: <CancelIcon fontSize="small" />,
+  Canceled: <CancelIcon fontSize="small" />
 };
 
 const statusColors: Record<ServiceStatus, string> = {
@@ -49,7 +45,7 @@ const statusColors: Record<ServiceStatus, string> = {
   InProgress: "warning.main",
   Completed: "success.main",
   Failed: "error.main",
-  Canceled: "grey.500",
+  Canceled: "grey.500"
 };
 
 // ============================================================================
@@ -70,7 +66,7 @@ const categoryColors: Record<
   Civil: "default",
   Reference: "info",
   Healthcare: "success",
-  Custom: "default",
+  Custom: "default"
 };
 
 // ============================================================================
@@ -87,13 +83,13 @@ interface ServiceStatusCardProps {
 }
 
 const ServiceStatusCard = ({
-  service,
-  showCategory = true,
-  onRetry,
-  onCancel,
-  isRetrying = false,
-  isCanceling = false,
-}: ServiceStatusCardProps) => {
+                             service,
+                             showCategory = true,
+                             onRetry,
+                             onCancel,
+                             isRetrying = false,
+                             isCanceling = false
+                           }: ServiceStatusCardProps) => {
   const isInProgress =
     service.status === "InProgress" || service.status === "Dispatched";
   const hasError = service.status === "Failed";
@@ -159,7 +155,7 @@ const ServiceStatusCard = ({
           bgcolor: "error.50",
           borderRadius: 1,
           border: "1px solid",
-          borderColor: "error.200",
+          borderColor: "error.200"
         }}
       >
         {service.lastError}
@@ -171,7 +167,7 @@ const ServiceStatusCard = ({
       variant="outlined"
       sx={{
         borderColor: hasError ? "error.light" : undefined,
-        bgcolor: hasError ? "error.50" : undefined,
+        bgcolor: hasError ? "error.50" : undefined
       }}
     >
       <CardContent sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}>
@@ -181,7 +177,7 @@ const ServiceStatusCard = ({
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "flex-start",
+              alignItems: "flex-start"
             }}
           >
             <Stack spacing={0.5}>
@@ -261,7 +257,7 @@ const ServiceStatusCard = ({
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: "center"
             }}
           >
             <Stack direction="row" spacing={2}>
@@ -276,7 +272,7 @@ const ServiceStatusCard = ({
               <Typography variant="caption" color="text.secondary">
                 {timestampInfo.label}{" "}
                 {formatDistanceToNow(new Date(timestampInfo.time), {
-                  addSuffix: true,
+                  addSuffix: true
                 })}
               </Typography>
             </Stack>

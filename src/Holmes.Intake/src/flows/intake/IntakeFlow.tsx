@@ -1,10 +1,4 @@
-import React, {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 import { ApiError } from "@holmes/ui-core";
 import {
@@ -17,7 +11,7 @@ import {
   Paper,
   Stack,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -29,12 +23,9 @@ import {
   EducationHistoryForm,
   EmploymentHistoryForm,
   PhoneForm,
-  ReferenceForm,
+  ReferenceForm
 } from "@/components/forms";
-import {
-  IntakeSectionId,
-  useSectionVisibility,
-} from "@/hooks/useSectionVisibility";
+import { IntakeSectionId, useSectionVisibility } from "@/hooks/useSectionVisibility";
 import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
 import {
   captureConsentArtifact,
@@ -42,13 +33,13 @@ import {
   saveIntakeProgress,
   startIntakeSession,
   submitIntake,
-  verifyIntakeOtp,
+  verifyIntakeOtp
 } from "@/services/intake";
 import {
   CaptureConsentResponse,
   IntakeBootstrapResponse,
   IntakeSectionConfig,
-  SaveIntakeProgressRequest,
+  SaveIntakeProgressRequest
 } from "@/types/api";
 import {
   createEmptyAddress,
@@ -56,7 +47,7 @@ import {
   IntakeEducation,
   IntakeEmployment,
   IntakePhone,
-  IntakeReference,
+  IntakeReference
 } from "@/types/intake";
 
 type IntakeStepId =
@@ -117,7 +108,7 @@ const initialFormState: IntakeFormState = {
   employments: [],
   educations: [],
   references: [],
-  phones: [],
+  phones: []
 };
 
 const CONSENT_TEXT = `I authorize Holmes to obtain and share consumer reports for employment purposes.
@@ -125,10 +116,10 @@ I acknowledge I have received and reviewed the disclosure describing this proces
 This authorization remains valid for this background check request and may be revoked in writing.`;
 
 const StepCopy = ({
-  heading,
-  body,
-  helper,
-}: {
+                    heading,
+                    body,
+                    helper
+                  }: {
   heading: string;
   body: string;
   helper?: string;
@@ -170,7 +161,7 @@ const parseInviteParams = () => {
 
   return {
     sessionId: sessionParam.trim(),
-    resumeToken: resumeParam.trim(),
+    resumeToken: resumeParam.trim()
   };
 };
 
@@ -220,9 +211,9 @@ const IntakeFlow = () => {
       email: import.meta.env.VITE_INTAKE_SUBJECT_EMAIL ?? "",
       phone: import.meta.env.VITE_INTAKE_SUBJECT_PHONE ?? "",
       city: import.meta.env.VITE_INTAKE_SUBJECT_CITY ?? "",
-      region: import.meta.env.VITE_INTAKE_SUBJECT_STATE ?? "",
+      region: import.meta.env.VITE_INTAKE_SUBJECT_STATE ?? ""
     }),
-    [],
+    []
   );
 
   const requireSessionId = () => {
@@ -260,7 +251,7 @@ const IntakeFlow = () => {
   const { mutateAsync: verifyOtpMutateAsync, isPending: isVerifyingOtp } =
     useMutation({
       mutationFn: (code: string) =>
-        verifyIntakeOtp(requireSessionId(), { code }),
+        verifyIntakeOtp(requireSessionId(), { code })
     });
 
   const { mutateAsync: startSessionMutateAsync, isPending: isStartingSession } =
@@ -271,14 +262,14 @@ const IntakeFlow = () => {
         return startIntakeSession(safeSessionId, {
           resumeToken: safeToken,
           deviceInfo,
-          startedAt: new Date().toISOString(),
+          startedAt: new Date().toISOString()
         });
-      },
+      }
     });
 
   const {
     mutateAsync: captureConsentMutateAsync,
-    isPending: isCapturingConsent,
+    isPending: isCapturingConsent
   } = useMutation({
     mutationFn: () =>
       captureConsentArtifact(requireSessionId(), {
@@ -288,25 +279,25 @@ const IntakeFlow = () => {
         capturedAt: new Date().toISOString(),
         metadata: {
           source: "intake-ui",
-          variant: "phase-2",
-        },
-      }),
+          variant: "phase-2"
+        }
+      })
   });
 
   const { mutateAsync: saveProgressMutateAsync, isPending: isSavingProgress } =
     useMutation({
       mutationFn: (payload: SaveIntakeProgressRequest) =>
-        saveIntakeProgress(requireSessionId(), payload),
+        saveIntakeProgress(requireSessionId(), payload)
     });
 
   const {
     mutateAsync: submitIntakeMutateAsync,
-    isPending: isSubmittingIntake,
+    isPending: isSubmittingIntake
   } = useMutation({
     mutationFn: () =>
       submitIntake(requireSessionId(), {
-        submittedAt: new Date().toISOString(),
-      }),
+        submittedAt: new Date().toISOString()
+      })
   });
 
   const { mutateAsync: bootstrapMutateAsync, isPending: isBootstrapping } =
@@ -318,13 +309,13 @@ const IntakeFlow = () => {
       },
       onError: (error: unknown) => {
         setBootstrapError(extractErrorMessage(error));
-      },
+      }
     });
 
   const updateField = useCallback(
     <K extends keyof IntakeFormState>(key: K, value: IntakeFormState[K]) =>
       setFormState((prev) => ({ ...prev, [key]: value })),
-    [],
+    []
   );
 
   const validatePersonalInfo = useCallback(() => {
@@ -372,7 +363,7 @@ const IntakeFlow = () => {
         countyFips: a.countyFips.trim() || null,
         fromDate: a.fromDate || null,
         toDate: a.isCurrent ? null : a.toDate || null,
-        type: a.type,
+        type: a.type
       })),
       employments: formState.employments.map((e) => ({
         employerName: e.employerName.trim(),
@@ -384,7 +375,7 @@ const IntakeFlow = () => {
         startDate: e.startDate || null,
         endDate: e.isCurrent ? null : e.endDate || null,
         reasonForLeaving: e.reasonForLeaving.trim() || null,
-        canContact: e.canContact,
+        canContact: e.canContact
       })),
       educations: formState.educations.map((e) => ({
         institutionName: e.institutionName.trim(),
@@ -394,15 +385,15 @@ const IntakeFlow = () => {
         attendedFrom: e.attendedFrom || null,
         attendedTo: e.attendedTo || null,
         graduationDate: e.graduationDate || null,
-        graduated: e.graduated,
+        graduated: e.graduated
       })),
       phones:
         formState.phones.length > 0
           ? formState.phones.map((p) => ({
-              phoneNumber: p.phoneNumber.trim(),
-              type: p.type,
-              isPrimary: p.isPrimary,
-            }))
+            phoneNumber: p.phoneNumber.trim(),
+            type: p.type,
+            isPrimary: p.isPrimary
+          }))
           : [{ phoneNumber: formState.phone.trim(), type: 0, isPrimary: true }],
       references: formState.references.map((r) => ({
         name: r.name.trim(),
@@ -410,14 +401,14 @@ const IntakeFlow = () => {
         email: r.email.trim() || null,
         relationship: r.relationship.trim() || null,
         yearsKnown: r.yearsKnown,
-        type: r.type,
+        type: r.type
       })),
       consent: {
         artifactId: consentReceipt?.artifactId ?? null,
-        acceptedAt: consentReceipt?.createdAt ?? null,
-      },
+        acceptedAt: consentReceipt?.createdAt ?? null
+      }
     }),
-    [consentReceipt, formState],
+    [consentReceipt, formState]
   );
 
   const persistProgressSnapshot = useCallback(async () => {
@@ -431,7 +422,7 @@ const IntakeFlow = () => {
       schemaVersion: formSchemaVersion,
       payloadHash,
       payloadCipherText,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
   }, [buildAnswersPayload, resumeToken, saveProgressMutateAsync]);
 
@@ -451,7 +442,7 @@ const IntakeFlow = () => {
         hash: bootstrap.consent.hash,
         hashAlgorithm: bootstrap.consent.hashAlgorithm,
         schemaVersion: bootstrap.consent.schemaVersion,
-        createdAt: bootstrap.consent.capturedAt,
+        createdAt: bootstrap.consent.capturedAt
       });
     }
 
@@ -474,7 +465,7 @@ const IntakeFlow = () => {
         return JSON.parse(json) as DecodedAnswers;
       } catch {
         setBootstrapError(
-          "We could not load your saved answers. You can re-enter them.",
+          "We could not load your saved answers. You can re-enter them."
         );
         return null;
       }
@@ -484,7 +475,7 @@ const IntakeFlow = () => {
     if (!decoded) {
       setFormState((prev) => ({
         ...prev,
-        consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
+        consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent)
       }));
       return;
     }
@@ -499,7 +490,7 @@ const IntakeFlow = () => {
       educations: decoded.educations ?? prev.educations,
       references: decoded.references ?? prev.references,
       phones: decoded.phones?.length ? decoded.phones : prev.phones,
-      consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
+      consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent)
     }));
   }, []);
 
@@ -537,7 +528,7 @@ const IntakeFlow = () => {
     inviteParamsMissing,
     otpCode,
     startSessionMutateAsync,
-    verifyOtpMutateAsync,
+    verifyOtpMutateAsync
   ]);
 
   const verifyingOtp = isVerifyingOtp || isStartingSession || isBootstrapping;
@@ -600,7 +591,7 @@ const IntakeFlow = () => {
     persistProgressSnapshot,
     submitIntakeMutateAsync,
     validateForm,
-    otpVerified,
+    otpVerified
   ]);
 
   const allSteps: StepDefinition[] = useMemo(
@@ -630,7 +621,7 @@ const IntakeFlow = () => {
                 sx={{
                   p: 2,
                   backgroundColor: (theme) =>
-                    alpha(theme.palette.primary.main, 0.04),
+                    alpha(theme.palette.primary.main, 0.04)
                 }}
               >
                 <Typography variant="body2" color="text.secondary">
@@ -664,7 +655,7 @@ const IntakeFlow = () => {
           setInviteError(null);
           return true;
         },
-        primaryButtonDisabled: inviteParamsMissing,
+        primaryButtonDisabled: inviteParamsMissing
       },
       {
         id: "otp",
@@ -703,7 +694,7 @@ const IntakeFlow = () => {
                 inputProps={{
                   inputMode: "numeric",
                   pattern: "[0-9]*",
-                  maxLength: 6,
+                  maxLength: 6
                 }}
               />
             </Stack>
@@ -711,7 +702,7 @@ const IntakeFlow = () => {
         },
         primaryCtaLabel: verifyingOtp ? "Verifying..." : "Verify",
         onPrimary: handleOtpVerification,
-        primaryButtonDisabled: verifyingOtp,
+        primaryButtonDisabled: verifyingOtp
       },
       {
         id: "consent",
@@ -770,7 +761,7 @@ const IntakeFlow = () => {
         },
         primaryCtaLabel: isCapturingConsent ? "Saving..." : "Agree & continue",
         onPrimary: handleConsentCapture,
-        primaryButtonDisabled: isCapturingConsent,
+        primaryButtonDisabled: isCapturingConsent
       },
       {
         id: "personal",
@@ -843,7 +834,7 @@ const IntakeFlow = () => {
                     onChange={(event) =>
                       updateField(
                         "ssn",
-                        event.target.value.replace(/\D/g, "").slice(0, 9),
+                        event.target.value.replace(/\D/g, "").slice(0, 9)
                       )
                     }
                     inputProps={{ inputMode: "numeric", maxLength: 9 }}
@@ -873,7 +864,7 @@ const IntakeFlow = () => {
                     onChange={(event) =>
                       updateField(
                         "phone",
-                        event.target.value.replace(/[^\d+]/g, "").slice(0, 20),
+                        event.target.value.replace(/[^\d+]/g, "").slice(0, 20)
                       )
                     }
                     inputProps={{ inputMode: "tel" }}
@@ -894,7 +885,7 @@ const IntakeFlow = () => {
           }
           setProgressError(null);
           return true;
-        },
+        }
       },
       {
         id: "phone",
@@ -937,7 +928,7 @@ const IntakeFlow = () => {
           }
           setProgressError(null);
           return true;
-        },
+        }
       },
       {
         id: "addresses",
@@ -968,13 +959,13 @@ const IntakeFlow = () => {
           const issues = validateAddresses();
           if (issues.length > 0) {
             setProgressError(
-              `Please complete: ${issues.slice(0, 3).join(", ")}${issues.length > 3 ? "..." : ""}`,
+              `Please complete: ${issues.slice(0, 3).join(", ")}${issues.length > 3 ? "..." : ""}`
             );
             return false;
           }
           setProgressError(null);
           return true;
-        },
+        }
       },
       {
         id: "employment",
@@ -1009,7 +1000,7 @@ const IntakeFlow = () => {
         onPrimary: () => {
           setProgressError(null);
           return true;
-        },
+        }
       },
       {
         id: "education",
@@ -1043,7 +1034,7 @@ const IntakeFlow = () => {
         onPrimary: () => {
           setProgressError(null);
           return true;
-        },
+        }
       },
       {
         id: "references",
@@ -1079,7 +1070,7 @@ const IntakeFlow = () => {
         onPrimary: () => {
           setProgressError(null);
           return true;
-        },
+        }
       },
       {
         id: "review",
@@ -1105,7 +1096,7 @@ const IntakeFlow = () => {
           const fullName = [
             formState.firstName,
             formState.middleName,
-            formState.lastName,
+            formState.lastName
           ]
             .filter(Boolean)
             .join(" ");
@@ -1140,7 +1131,7 @@ const IntakeFlow = () => {
                     "SSN",
                     formState.ssn
                       ? `***-**-${formState.ssn.slice(-4)}`
-                      : "Not provided",
+                      : "Not provided"
                   )}
                   {summaryRow("Email", formState.email)}
                   {summaryRow("Phone", formState.phone)}
@@ -1151,7 +1142,7 @@ const IntakeFlow = () => {
                   {summaryRow("Current/Primary", addressDisplay)}
                   {summaryRow(
                     "Total addresses",
-                    `${formState.addresses.length}`,
+                    `${formState.addresses.length}`
                   )}
                   <Divider sx={{ my: 1 }} />
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom>
@@ -1159,15 +1150,15 @@ const IntakeFlow = () => {
                   </Typography>
                   {summaryRow(
                     "Current employer",
-                    currentEmployer?.employerName || "Not provided",
+                    currentEmployer?.employerName || "Not provided"
                   )}
                   {summaryRow(
                     "Total employers",
-                    `${formState.employments.length}`,
+                    `${formState.employments.length}`
                   )}
                   {summaryRow(
                     "Education entries",
-                    `${formState.educations.length}`,
+                    `${formState.educations.length}`
                   )}
                   <Divider sx={{ my: 1 }} />
                   {summaryRow("Consent", consentReceipt ? "Saved" : "Pending")}
@@ -1182,7 +1173,7 @@ const IntakeFlow = () => {
         primaryCtaLabel:
           isSubmittingIntake || isSavingProgress ? "Submitting..." : "Submit",
         onPrimary: handleSubmit,
-        primaryButtonDisabled: isSubmittingIntake || isSavingProgress,
+        primaryButtonDisabled: isSubmittingIntake || isSavingProgress
       },
       {
         id: "success",
@@ -1196,8 +1187,8 @@ const IntakeFlow = () => {
           />
         ),
         primaryCtaLabel: "Done",
-        isTerminal: true,
-      },
+        isTerminal: true
+      }
     ],
     [
       consentError,
@@ -1222,8 +1213,8 @@ const IntakeFlow = () => {
       updateField,
       validateAddresses,
       validatePersonalInfo,
-      verifyingOtp,
-    ],
+      verifyingOtp
+    ]
   );
 
   // Filter steps based on section visibility from ordered services
@@ -1315,7 +1306,7 @@ const IntakeFlow = () => {
         variant="outlined"
         sx={{
           color: (theme) => theme.palette.text.secondary,
-          borderColor: (theme) => theme.palette.divider,
+          borderColor: (theme) => theme.palette.divider
         }}
       >
         Back
@@ -1329,8 +1320,8 @@ const IntakeFlow = () => {
         sx={{
           backgroundColor: (theme) => theme.palette.primary.main,
           "&:hover": {
-            backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.9),
-          },
+            backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.9)
+          }
         }}
       >
         {activeStep.primaryCtaLabel ?? "Next"}
@@ -1349,7 +1340,7 @@ const IntakeFlow = () => {
                 letterSpacing: 1.5,
                 fontWeight: 600,
                 fontSize: "0.75rem",
-                color: (theme) => theme.palette.text.secondary,
+                color: (theme) => theme.palette.text.secondary
               }}
             >
               Intake progress

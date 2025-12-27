@@ -10,11 +10,11 @@ presence, not a verified UI run in this pass.
 
 ## Executive Summary
 
-| Phase   | Focus                      | Backend Status | Frontend Status | Overall |
-|---------|----------------------------|----------------|-----------------|---------|
-| **3.0** | SLA Clocks & Notifications | ✅ Implemented | 🟡 Not re-verified | 85%   |
-| **3.1** | Services & Fulfillment     | ✅ Implemented | 🟡 Not re-verified | 85%   |
-| **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded      | 40%   |
+| Phase   | Focus                      | Backend Status | Frontend Status    | Overall |
+|---------|----------------------------|----------------|--------------------|---------|
+| **3.0** | SLA Clocks & Notifications | ✅ Implemented  | 🟡 Not re-verified | 85%     |
+| **3.1** | Services & Fulfillment     | ✅ Implemented  | 🟡 Not re-verified | 85%     |
+| **3.2** | Subject Data & Frontend    | 🟡 Partial     | 🟡 Scaffolded      | 40%     |
 
 **Bottom line:** The Phase 3 integration path is working in code: Intake -> Workflow -> Services -> ReadyForReport,
 with SLA clocks and notifications wired through background services and projections. Remaining work is primarily in
@@ -136,8 +136,8 @@ re-validated in this pass.
 
 ## API Endpoint Status (from code)
 
-| Endpoint                                  | Controller                | Status    |
-|-------------------------------------------|---------------------------|-----------|
+| Endpoint                                  | Controller                | Status   |
+|-------------------------------------------|---------------------------|----------|
 | `GET/POST /api/customers`                 | CustomersController       | ✅ Exists |
 | `GET/POST /api/subjects`                  | SubjectsController        | ✅ Exists |
 | `GET/POST /api/orders`                    | OrdersController          | ✅ Exists |

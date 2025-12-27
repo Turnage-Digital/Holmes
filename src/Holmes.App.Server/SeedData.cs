@@ -2,6 +2,8 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Orders.Application.Abstractions.Commands;
+using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Domain;
 using Holmes.SlaClocks.Application.Abstractions.Commands;
@@ -11,8 +13,6 @@ using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
-using Holmes.Orders.Application.Abstractions.Commands;
-using Holmes.Orders.Infrastructure.Sql;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 

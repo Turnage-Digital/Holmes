@@ -1,7 +1,6 @@
 using Holmes.Core.Domain;
 using Holmes.Notifications.Application.Abstractions.Commands;
 using Holmes.Notifications.Domain;
-using Holmes.Notifications.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Notifications.Application.Commands;

@@ -18,7 +18,7 @@ const DataGridNoRowsOverlay = (props: DataGridNoRowsOverlayProps) => {
           py: 4,
           textAlign: "center",
           color: "text.secondary",
-          fontSize: 14,
+          fontSize: 14
         }}
       >
         <Typography variant="body2">{message}</Typography>

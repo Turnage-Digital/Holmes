@@ -13,7 +13,8 @@ public sealed class IntakeSessionsUnitOfWork(
     IDomainEventSerializer? serializer = null,
     ITenantContext? tenantContext = null
 )
-    : UnitOfWork<IntakeSessionsDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IIntakeSessionsUnitOfWork
+    : UnitOfWork<IntakeSessionsDbContext>(dbContext, mediator, eventStore, serializer, tenantContext),
+        IIntakeSessionsUnitOfWork
 {
     private readonly Lazy<IIntakeSessionRepository> _sessions = new(() => new IntakeSessionRepository(dbContext));
 

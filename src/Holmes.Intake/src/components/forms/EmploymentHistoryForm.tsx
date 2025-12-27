@@ -12,7 +12,7 @@ import {
   Paper,
   Stack,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
@@ -27,12 +27,12 @@ interface EmploymentHistoryFormProps {
 }
 
 const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
-  employments,
-  onChange,
-  minEmployments = 0,
-  maxEmployments = 10,
-  yearsRequired = 7,
-}) => {
+                                                                       employments,
+                                                                       onChange,
+                                                                       minEmployments = 0,
+                                                                       maxEmployments = 10,
+                                                                       yearsRequired = 7
+                                                                     }) => {
   const handleAddEmployment = () => {
     if (employments.length >= maxEmployments) return;
     onChange([...employments, createEmptyEmployment()]);
@@ -45,7 +45,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
 
   const handleUpdateEmployment = (
     id: string,
-    updates: Partial<IntakeEmployment>,
+    updates: Partial<IntakeEmployment>
   ) => {
     onChange(
       employments.map((e) => {
@@ -57,13 +57,13 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
           updated.reasonForLeaving = "";
         }
         return updated;
-      }),
+      })
     );
   };
 
   const formatEmploymentLabel = (
     index: number,
-    employment: IntakeEmployment,
+    employment: IntakeEmployment
   ) => {
     if (employment.isCurrent) return "Current Employer";
     if (employment.employerName) return employment.employerName;
@@ -85,7 +85,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02)
           }}
         >
           <Typography color="text.secondary" gutterBottom>
@@ -111,7 +111,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
             backgroundColor: (theme) =>
               employment.isCurrent
                 ? alpha(theme.palette.primary.main, 0.02)
-                : "transparent",
+                : "transparent"
           }}
         >
           <Stack spacing={2}>
@@ -140,7 +140,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                   checked={employment.isCurrent}
                   onChange={(e) =>
                     handleUpdateEmployment(employment.id, {
-                      isCurrent: e.target.checked,
+                      isCurrent: e.target.checked
                     })
                   }
                 />
@@ -153,7 +153,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
               value={employment.employerName}
               onChange={(e) =>
                 handleUpdateEmployment(employment.id, {
-                  employerName: e.target.value,
+                  employerName: e.target.value
                 })
               }
               fullWidth
@@ -166,7 +166,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                 value={employment.jobTitle}
                 onChange={(e) =>
                   handleUpdateEmployment(employment.id, {
-                    jobTitle: e.target.value,
+                    jobTitle: e.target.value
                   })
                 }
                 fullWidth
@@ -178,7 +178,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                   handleUpdateEmployment(employment.id, {
                     employerPhone: e.target.value
                       .replace(/[^\d+()-\s]/g, "")
-                      .slice(0, 20),
+                      .slice(0, 20)
                   })
                 }
                 fullWidth
@@ -191,7 +191,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
               value={employment.employerAddress}
               onChange={(e) =>
                 handleUpdateEmployment(employment.id, {
-                  employerAddress: e.target.value,
+                  employerAddress: e.target.value
                 })
               }
               fullWidth
@@ -210,7 +210,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                 value={employment.supervisorName}
                 onChange={(e) =>
                   handleUpdateEmployment(employment.id, {
-                    supervisorName: e.target.value,
+                    supervisorName: e.target.value
                   })
                 }
                 fullWidth
@@ -222,7 +222,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                   handleUpdateEmployment(employment.id, {
                     supervisorPhone: e.target.value
                       .replace(/[^\d+()-\s]/g, "")
-                      .slice(0, 20),
+                      .slice(0, 20)
                   })
                 }
                 fullWidth
@@ -236,7 +236,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                   checked={employment.canContact}
                   onChange={(e) =>
                     handleUpdateEmployment(employment.id, {
-                      canContact: e.target.checked,
+                      canContact: e.target.checked
                     })
                   }
                 />
@@ -257,7 +257,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                 value={employment.startDate}
                 onChange={(e) =>
                   handleUpdateEmployment(employment.id, {
-                    startDate: e.target.value,
+                    startDate: e.target.value
                   })
                 }
                 fullWidth
@@ -271,7 +271,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                   value={employment.endDate}
                   onChange={(e) =>
                     handleUpdateEmployment(employment.id, {
-                      endDate: e.target.value,
+                      endDate: e.target.value
                     })
                   }
                   fullWidth
@@ -287,7 +287,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
                 value={employment.reasonForLeaving}
                 onChange={(e) =>
                   handleUpdateEmployment(employment.id, {
-                    reasonForLeaving: e.target.value,
+                    reasonForLeaving: e.target.value
                   })
                 }
                 fullWidth
@@ -306,7 +306,7 @@ const EmploymentHistoryForm: React.FC<EmploymentHistoryFormProps> = ({
           onClick={handleAddEmployment}
           sx={{
             borderStyle: "dashed",
-            color: (theme) => theme.palette.text.secondary,
+            color: (theme) => theme.palette.text.secondary
           }}
         >
           Add another employer

@@ -1,8 +1,8 @@
-using Holmes.SlaClocks.Application.Abstractions.Commands;
-using Holmes.SlaClocks.Domain;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Domain.Events;
 using Holmes.SlaClocks.Application.Abstractions;
+using Holmes.SlaClocks.Application.Abstractions.Commands;
+using Holmes.SlaClocks.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

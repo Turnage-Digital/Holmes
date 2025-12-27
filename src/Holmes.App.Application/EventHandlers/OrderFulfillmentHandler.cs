@@ -1,9 +1,8 @@
-using Holmes.Services.Application.Abstractions.Queries;
-using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Orders.Application.Abstractions.Commands;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Domain.Events;
 using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Application.Abstractions.Commands;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
