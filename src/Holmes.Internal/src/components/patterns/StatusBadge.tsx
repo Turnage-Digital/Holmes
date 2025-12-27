@@ -20,11 +20,11 @@ interface StatusBadgeProps {
  * Consolidates status rendering across orders, users, and subjects.
  */
 const StatusBadge = ({
-                       type,
-                       status,
-                       variant = "outlined",
-                       size = "small"
-                     }: StatusBadgeProps) => (
+  type,
+  status,
+  variant = "outlined",
+  size = "small",
+}: StatusBadgeProps) => (
   <Chip
     label={getStatusLabel(type, status)}
     size={size}

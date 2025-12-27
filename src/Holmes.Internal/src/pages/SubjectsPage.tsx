@@ -11,20 +11,20 @@ import {
   EmptyableCell,
   MonospaceIdCell,
   RelativeTimeCell,
-  StatusBadge
+  StatusBadge,
 } from "@/components/patterns";
 import { useSubjects } from "@/hooks/api";
 
 const SubjectsPage = () => {
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25
+    pageSize: 25,
   });
 
   const {
     data: subjectsData,
     isLoading,
-    error
+    error,
   } = useSubjects(paginationModel.page + 1, paginationModel.pageSize);
 
   const columns: GridColDef<SubjectListItemDto>[] = [
@@ -32,7 +32,7 @@ const SubjectsPage = () => {
       field: "id",
       headerName: "ID",
       width: 140,
-      renderCell: (params) => <MonospaceIdCell id={params.value} />
+      renderCell: (params) => <MonospaceIdCell id={params.value} />,
     },
     {
       field: "status",
@@ -40,44 +40,44 @@ const SubjectsPage = () => {
       width: 120,
       renderCell: (params) => (
         <StatusBadge type="subject" status={params.value} />
-      )
+      ),
     },
     {
       field: "firstName",
       headerName: "First Name",
       width: 150,
-      renderCell: (params) => <EmptyableCell value={params.value} />
+      renderCell: (params) => <EmptyableCell value={params.value} />,
     },
     {
       field: "lastName",
       headerName: "Last Name",
       width: 150,
-      renderCell: (params) => <EmptyableCell value={params.value} />
+      renderCell: (params) => <EmptyableCell value={params.value} />,
     },
     {
       field: "email",
       headerName: "Email",
       width: 220,
-      renderCell: (params) => <EmptyableCell value={params.value} />
+      renderCell: (params) => <EmptyableCell value={params.value} />,
     },
     {
       field: "birthDate",
       headerName: "DOB",
       width: 120,
-      renderCell: (params) => <EmptyableCell value={params.value} />
+      renderCell: (params) => <EmptyableCell value={params.value} />,
     },
     {
       field: "aliases",
       headerName: "Aliases",
       width: 80,
-      renderCell: (params) => params.value?.length ?? 0
+      renderCell: (params) => params.value?.length ?? 0,
     },
     {
       field: "createdAt",
       headerName: "Created",
       width: 160,
-      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />
-    }
+      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
+    },
   ];
 
   return (
@@ -106,7 +106,7 @@ const SubjectsPage = () => {
         slots={{
           noRowsOverlay: () => (
             <DataGridNoRowsOverlay message="No subjects yet. Subjects are created when orders are placed." />
-          )
+          ),
         }}
         sx={{ minHeight: 400 }}
         disableRowSelectionOnClick

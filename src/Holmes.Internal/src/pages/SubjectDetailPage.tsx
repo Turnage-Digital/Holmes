@@ -23,7 +23,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
-  Typography
+  Typography,
 } from "@mui/material";
 import { format } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
@@ -34,7 +34,7 @@ import type {
   SubjectEducationDto,
   SubjectEmploymentDto,
   SubjectPhoneDto,
-  SubjectReferenceDto
+  SubjectReferenceDto,
 } from "@/types/api";
 
 import { useSubject } from "@/hooks/api";
@@ -85,7 +85,7 @@ const OverviewTab = ({ subject }: OverviewTabProps) => {
             sx={{
               display: "grid",
               gridTemplateColumns: "160px 1fr",
-              gap: 1.5
+              gap: 1.5,
             }}
           >
             <Typography variant="body2" color="text.secondary">
@@ -157,7 +157,7 @@ const OverviewTab = ({ subject }: OverviewTabProps) => {
                     sx={{
                       p: 1.5,
                       borderRadius: 1,
-                      bgcolor: "grey.50"
+                      bgcolor: "grey.50",
                     }}
                   >
                     <Typography variant="body2">
@@ -177,7 +177,7 @@ const OverviewTab = ({ subject }: OverviewTabProps) => {
         sx={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-          gap: 2
+          gap: 2,
         }}
       >
         <Card variant="outlined">
@@ -295,8 +295,8 @@ const AddressesTab = ({ addresses }: { addresses: SubjectAddressDto[] }) => {
 // ============================================================================
 
 const EmploymentTab = ({
-                         employments
-                       }: {
+  employments,
+}: {
   employments: SubjectEmploymentDto[];
 }) => {
   if (employments.length === 0) {
@@ -362,7 +362,7 @@ const EmploymentTab = ({
                         mt: 1.5,
                         p: 1.5,
                         bgcolor: "grey.50",
-                        borderRadius: 1
+                        borderRadius: 1,
                       }}
                     >
                       <Typography variant="caption" color="text.secondary">
@@ -407,8 +407,8 @@ const EmploymentTab = ({
 // ============================================================================
 
 const EducationTab = ({
-                        educations
-                      }: {
+  educations,
+}: {
   educations: SubjectEducationDto[];
 }) => {
   if (educations.length === 0) {
@@ -493,8 +493,8 @@ const EducationTab = ({
 // ============================================================================
 
 const ReferencesTab = ({
-                         references
-                       }: {
+  references,
+}: {
   references: SubjectReferenceDto[];
 }) => {
   if (references.length === 0) {
@@ -619,7 +619,7 @@ const SubjectDetailPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: 400
+          minHeight: 400,
         }}
       >
         <CircularProgress />

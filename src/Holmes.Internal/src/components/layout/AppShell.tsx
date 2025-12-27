@@ -24,7 +24,7 @@ import {
   ListItemText,
   Tooltip,
   Typography,
-  useMediaQuery
+  useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Link, Outlet, useLocation } from "react-router-dom";
@@ -53,21 +53,21 @@ const navSections: NavSection[] = [
     items: [
       { label: "Dashboard", path: "/", icon: <DashboardIcon /> },
       { label: "Orders", path: "/orders", icon: <AssignmentIcon /> },
-      { label: "Fulfillment", path: "/fulfillment", icon: <BuildIcon /> }
-    ]
+      { label: "Fulfillment", path: "/fulfillment", icon: <BuildIcon /> },
+    ],
   },
   {
     title: "Reference",
-    items: [{ label: "Subjects", path: "/subjects", icon: <PeopleIcon /> }]
+    items: [{ label: "Subjects", path: "/subjects", icon: <PeopleIcon /> }],
   },
   {
     title: "Admin",
     adminOnly: true,
     items: [
       { label: "Customers", path: "/customers", icon: <BusinessIcon /> },
-      { label: "Users", path: "/users", icon: <GroupIcon /> }
-    ]
-  }
+      { label: "Users", path: "/users", icon: <GroupIcon /> },
+    ],
+  },
 ];
 
 const AppShell = () => {
@@ -107,7 +107,7 @@ const AppShell = () => {
 
   // Filter sections based on admin status
   const visibleSections = navSections.filter(
-    (section) => !section.adminOnly || isAdmin
+    (section) => !section.adminOnly || isAdmin,
   );
 
   const getUserInitials = () => {
@@ -138,7 +138,7 @@ const AppShell = () => {
         flexDirection: "column",
         height: "100%",
         bgcolor: "primary.main",
-        color: "primary.contrastText"
+        color: "primary.contrastText",
       }}
     >
       {/* Logo/Brand */}
@@ -149,7 +149,7 @@ const AppShell = () => {
           justifyContent: collapsed ? "center" : "space-between",
           px: collapsed ? 1 : 2,
           py: 2,
-          minHeight: 64
+          minHeight: 64,
         }}
       >
         {!collapsed && (
@@ -187,7 +187,7 @@ const AppShell = () => {
                   display: "block",
                   color: "rgba(255,255,255,0.6)",
                   fontSize: "0.65rem",
-                  letterSpacing: "0.1em"
+                  letterSpacing: "0.1em",
                 }}
               >
                 {section.title}
@@ -211,19 +211,19 @@ const AppShell = () => {
                         "&.Mui-selected": {
                           bgcolor: "rgba(255,255,255,0.16)",
                           "&:hover": {
-                            bgcolor: "rgba(255,255,255,0.2)"
-                          }
+                            bgcolor: "rgba(255,255,255,0.2)",
+                          },
                         },
                         "&:hover": {
-                          bgcolor: "rgba(255,255,255,0.08)"
-                        }
+                          bgcolor: "rgba(255,255,255,0.08)",
+                        },
                       }}
                     >
                       <ListItemIcon
                         sx={{
                           color: "primary.contrastText",
                           minWidth: collapsed ? 0 : 40,
-                          opacity: isActive ? 1 : 0.7
+                          opacity: isActive ? 1 : 0.7,
                         }}
                       >
                         {item.icon}
@@ -233,7 +233,7 @@ const AppShell = () => {
                           primary={item.label}
                           primaryTypographyProps={{
                             fontSize: "0.875rem",
-                            fontWeight: isActive ? 600 : 400
+                            fontWeight: isActive ? 600 : 400,
                           }}
                         />
                       )}
@@ -271,7 +271,7 @@ const AppShell = () => {
                 height: 40,
                 bgcolor: "primary.light",
                 mx: "auto",
-                fontSize: "0.875rem"
+                fontSize: "0.875rem",
               }}
             >
               {userInitials}
@@ -285,7 +285,7 @@ const AppShell = () => {
                 width: 36,
                 height: 36,
                 bgcolor: "primary.light",
-                fontSize: "0.75rem"
+                fontSize: "0.75rem",
               }}
             >
               {userInitials}
@@ -297,7 +297,7 @@ const AppShell = () => {
                   fontWeight: 500,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  whiteSpace: "nowrap"
+                  whiteSpace: "nowrap",
                 }}
               >
                 {currentUser?.displayName ?? "User"}
@@ -309,7 +309,7 @@ const AppShell = () => {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  display: "block"
+                  display: "block",
                 }}
               >
                 {currentUser?.email}
@@ -339,7 +339,7 @@ const AppShell = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          bgcolor: "background.default"
+          bgcolor: "background.default",
         }}
       >
         <CircularProgress />
@@ -362,7 +362,7 @@ const AppShell = () => {
             display: "flex",
             alignItems: "center",
             px: 2,
-            zIndex: theme.zIndex.appBar
+            zIndex: theme.zIndex.appBar,
           }}
         >
           <IconButton
@@ -394,9 +394,9 @@ const AppShell = () => {
             borderRight: "none",
             transition: theme.transitions.create("width", {
               easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen
-            })
-          }
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+          },
         }}
       >
         {drawerContent}
@@ -409,7 +409,7 @@ const AppShell = () => {
           flexGrow: 1,
           bgcolor: "background.default",
           minHeight: "100vh",
-          pt: isMobile ? "56px" : 0
+          pt: isMobile ? "56px" : 0,
         }}
       >
         <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: 1600, mx: "auto" }}>

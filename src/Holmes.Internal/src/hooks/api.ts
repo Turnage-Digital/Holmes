@@ -1,5 +1,10 @@
 import { apiFetch, createEventSource, toQueryString } from "@holmes/ui-core";
-import { useMutation, useQuery, useQueryClient, UseQueryOptions } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 
 import type {
   CancelService,
@@ -34,7 +39,7 @@ import type {
   SubjectSummaryDto,
   Ulid,
   UpdateServiceCatalogRequest,
-  UserDto
+  UserDto,
 } from "@/types/api";
 
 // ============================================================================
@@ -61,7 +66,7 @@ export const queryKeys = {
   orderStats: ["orders", "stats"] as const,
   serviceTypes: ["services", "types"] as const,
   fulfillmentQueue: (query: FulfillmentQueueQuery) =>
-    ["services", "queue", query] as const
+    ["services", "queue", query] as const,
 };
 
 // ============================================================================
@@ -72,13 +77,13 @@ const fetchCurrentUser = () => apiFetch<CurrentUserDto>("/users/me");
 
 // Cache for 5 minutes
 export const useCurrentUser = (
-  options?: Omit<UseQueryOptions<CurrentUserDto>, "queryKey" | "queryFn">
+  options?: Omit<UseQueryOptions<CurrentUserDto>, "queryKey" | "queryFn">,
 ) =>
   useQuery({
     queryKey: queryKeys.currentUser,
     queryFn: fetchCurrentUser,
     staleTime: 5 * 60 * 1000,
-    ...options
+    ...options,
   });
 
 export const useIsAdmin = () => {
@@ -93,19 +98,19 @@ export const useIsAdmin = () => {
 
 const fetchUsers = ({ page, pageSize }: { page: number; pageSize: number }) =>
   apiFetch<PaginatedResult<UserDto>>(
-    `/users${toQueryString({ page, pageSize })}`
+    `/users${toQueryString({ page, pageSize })}`,
   );
 
 export const useUsers = (page: number, pageSize: number) =>
   useQuery({
     queryKey: queryKeys.users(page, pageSize),
-    queryFn: () => fetchUsers({ page, pageSize })
+    queryFn: () => fetchUsers({ page, pageSize }),
   });
 
 const inviteUser = (payload: InviteUserRequest) =>
   apiFetch<InviteUserResponse>("/users/invitations", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useInviteUser = () => {
@@ -114,20 +119,20 @@ export const useInviteUser = () => {
     mutationFn: inviteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-    }
+    },
   });
 };
 
 const grantRole = ({
-                     userId,
-                     payload
-                   }: {
+  userId,
+  payload,
+}: {
   userId: Ulid;
   payload: GrantUserRoleRequest;
 }) =>
   apiFetch<void>(`/users/${userId}/roles`, {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useGrantRole = () => {
@@ -136,20 +141,20 @@ export const useGrantRole = () => {
     mutationFn: grantRole,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-    }
+    },
   });
 };
 
 const revokeRole = ({
-                      userId,
-                      payload
-                    }: {
+  userId,
+  payload,
+}: {
   userId: Ulid;
   payload: GrantUserRoleRequest;
 }) =>
   apiFetch<void>(`/users/${userId}/roles`, {
     method: "DELETE",
-    body: payload
+    body: payload,
   });
 
 export const useRevokeRole = () => {
@@ -158,7 +163,7 @@ export const useRevokeRole = () => {
     mutationFn: revokeRole,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-    }
+    },
   });
 };
 
@@ -167,20 +172,20 @@ export const useRevokeRole = () => {
 // ============================================================================
 
 const fetchCustomers = ({
-                          page,
-                          pageSize
-                        }: {
+  page,
+  pageSize,
+}: {
   page: number;
   pageSize: number;
 }) =>
   apiFetch<PaginatedResult<CustomerListItemDto>>(
-    `/customers${toQueryString({ page, pageSize })}`
+    `/customers${toQueryString({ page, pageSize })}`,
   );
 
 export const useCustomers = (page: number, pageSize: number) =>
   useQuery({
     queryKey: queryKeys.customers(page, pageSize),
-    queryFn: () => fetchCustomers({ page, pageSize })
+    queryFn: () => fetchCustomers({ page, pageSize }),
   });
 
 const fetchCustomer = (customerId: Ulid) =>
@@ -190,13 +195,13 @@ export const useCustomer = (customerId: Ulid) =>
   useQuery({
     queryKey: queryKeys.customer(customerId),
     queryFn: () => fetchCustomer(customerId),
-    enabled: !!customerId
+    enabled: !!customerId,
   });
 
 const createCustomer = (payload: CreateCustomerRequest) =>
   apiFetch<CustomerListItemDto>("/customers", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useCreateCustomer = () => {
@@ -205,7 +210,7 @@ export const useCreateCustomer = () => {
     mutationFn: createCustomer,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-    }
+    },
   });
 };
 
@@ -214,20 +219,20 @@ export const useCreateCustomer = () => {
 // ============================================================================
 
 const fetchSubjects = ({
-                         page,
-                         pageSize
-                       }: {
+  page,
+  pageSize,
+}: {
   page: number;
   pageSize: number;
 }) =>
   apiFetch<PaginatedResult<SubjectListItemDto>>(
-    `/subjects${toQueryString({ page, pageSize })}`
+    `/subjects${toQueryString({ page, pageSize })}`,
   );
 
 export const useSubjects = (page: number, pageSize: number) =>
   useQuery({
     queryKey: queryKeys.subjects(page, pageSize),
-    queryFn: () => fetchSubjects({ page, pageSize })
+    queryFn: () => fetchSubjects({ page, pageSize }),
   });
 
 const fetchSubject = (subjectId: Ulid) =>
@@ -237,13 +242,13 @@ export const useSubject = (subjectId: Ulid) =>
   useQuery({
     queryKey: queryKeys.subject(subjectId),
     queryFn: () => fetchSubject(subjectId),
-    enabled: !!subjectId
+    enabled: !!subjectId,
   });
 
 const registerSubject = (payload: RegisterSubjectRequest) =>
   apiFetch<SubjectSummaryDto>("/subjects", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useRegisterSubject = () => {
@@ -252,7 +257,7 @@ export const useRegisterSubject = () => {
     mutationFn: registerSubject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subjects"] });
-    }
+    },
   });
 };
 
@@ -262,25 +267,25 @@ export const useRegisterSubject = () => {
 
 const fetchOrders = (query: OrderSummaryQuery) =>
   apiFetch<PaginatedResult<OrderSummaryDto>>(
-    `/orders/summary${toQueryString(query)}`
+    `/orders/summary${toQueryString(query)}`,
   );
 
 export const useOrders = (query: OrderSummaryQuery) =>
   useQuery({
     queryKey: queryKeys.orders(query),
-    queryFn: () => fetchOrders(query)
+    queryFn: () => fetchOrders(query),
   });
 
 const fetchOrder = (orderId: Ulid) =>
   apiFetch<PaginatedResult<OrderSummaryDto>>(
-    `/orders/summary${toQueryString({ orderId })}`
+    `/orders/summary${toQueryString({ orderId })}`,
   ).then((result) => result.items[0] ?? null);
 
 export const useOrder = (orderId: Ulid) =>
   useQuery({
     queryKey: queryKeys.order(orderId),
     queryFn: () => fetchOrder(orderId),
-    enabled: !!orderId
+    enabled: !!orderId,
   });
 
 const fetchOrderTimeline = (orderId: Ulid) =>
@@ -290,7 +295,7 @@ export const useOrderTimeline = (orderId: Ulid) =>
   useQuery({
     queryKey: queryKeys.orderTimeline(orderId),
     queryFn: () => fetchOrderTimeline(orderId),
-    enabled: !!orderId
+    enabled: !!orderId,
   });
 
 const fetchOrderEvents = (orderId: Ulid) =>
@@ -300,7 +305,7 @@ export const useOrderEvents = (orderId: Ulid) =>
   useQuery({
     queryKey: queryKeys.orderEvents(orderId),
     queryFn: () => fetchOrderEvents(orderId),
-    enabled: !!orderId
+    enabled: !!orderId,
   });
 
 const fetchOrderStats = () => apiFetch<OrderStatsDto>("/orders/stats");
@@ -308,13 +313,13 @@ const fetchOrderStats = () => apiFetch<OrderStatsDto>("/orders/stats");
 export const useOrderStats = () =>
   useQuery({
     queryKey: queryKeys.orderStats,
-    queryFn: fetchOrderStats
+    queryFn: fetchOrderStats,
   });
 
 const createOrder = (payload: CreateOrderRequest) =>
   apiFetch<OrderSummaryDto>("/orders", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useCreateOrder = () => {
@@ -323,16 +328,16 @@ export const useCreateOrder = () => {
     mutationFn: createOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-    }
+    },
   });
 };
 
 const createOrderWithIntake = (
-  payload: CreateOrderWithIntakeRequest
+  payload: CreateOrderWithIntakeRequest,
 ): Promise<CreateOrderWithIntakeResponse> =>
   apiFetch<CreateOrderWithIntakeResponse>("/orders/with-intake", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useCreateOrderWithIntake = () => {
@@ -342,7 +347,7 @@ export const useCreateOrderWithIntake = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["subjects"] });
-    }
+    },
   });
 };
 
@@ -353,7 +358,7 @@ export const useCreateOrderWithIntake = () => {
 const issueIntakeInvite = (payload: IssueIntakeInviteRequest) =>
   apiFetch<void>("/intake/sessions", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useIssueIntakeInvite = () => {
@@ -362,7 +367,7 @@ export const useIssueIntakeInvite = () => {
     mutationFn: issueIntakeInvite,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-    }
+    },
   });
 };
 
@@ -377,7 +382,7 @@ export const useServiceTypes = () =>
   useQuery({
     queryKey: queryKeys.serviceTypes,
     queryFn: fetchServiceTypes,
-    staleTime: 10 * 60 * 1000
+    staleTime: 10 * 60 * 1000,
   });
 
 const fetchOrderServices = (orderId: Ulid) =>
@@ -387,7 +392,7 @@ export const useOrderServices = (orderId: Ulid) =>
   useQuery({
     queryKey: queryKeys.orderServices(orderId),
     queryFn: () => fetchOrderServices(orderId),
-    enabled: !!orderId
+    enabled: !!orderId,
   });
 
 // ============================================================================
@@ -396,18 +401,18 @@ export const useOrderServices = (orderId: Ulid) =>
 
 const fetchFulfillmentQueue = (query: FulfillmentQueueQuery) =>
   apiFetch<PaginatedResult<ServiceSummaryDto>>(
-    `/services/queue${toQueryString(query)}`
+    `/services/queue${toQueryString(query)}`,
   );
 
 export const useFulfillmentQueue = (query: FulfillmentQueueQuery) =>
   useQuery({
     queryKey: queryKeys.fulfillmentQueue(query),
-    queryFn: () => fetchFulfillmentQueue(query)
+    queryFn: () => fetchFulfillmentQueue(query),
   });
 
 const retryService = (serviceId: Ulid) =>
   apiFetch<void>(`/services/${serviceId}/retry`, {
-    method: "POST"
+    method: "POST",
   });
 
 export const useRetryService = () => {
@@ -417,20 +422,20 @@ export const useRetryService = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
-    }
+    },
   });
 };
 
 const cancelService = ({
-                         serviceId,
-                         payload
-                       }: {
+  serviceId,
+  payload,
+}: {
   serviceId: Ulid;
   payload: CancelService;
 }) =>
   apiFetch<void>(`/services/${serviceId}/cancel`, {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const useCancelService = () => {
@@ -440,7 +445,7 @@ export const useCancelService = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
-    }
+    },
   });
 };
 
@@ -450,26 +455,26 @@ export const useCancelService = () => {
 
 const fetchCustomerCatalog = (customerId: Ulid) =>
   apiFetch<CustomerServiceCatalogDto>(
-    `/customers/${customerId}/service-catalog`
+    `/customers/${customerId}/service-catalog`,
   );
 
 export const useCustomerCatalog = (customerId: Ulid) =>
   useQuery({
     queryKey: queryKeys.customerCatalog(customerId),
     queryFn: () => fetchCustomerCatalog(customerId),
-    enabled: !!customerId
+    enabled: !!customerId,
   });
 
 const updateServiceCatalog = ({
-                                customerId,
-                                payload
-                              }: {
+  customerId,
+  payload,
+}: {
   customerId: Ulid;
   payload: UpdateServiceCatalogRequest;
 }) =>
   apiFetch<void>(`/customers/${customerId}/service-catalog`, {
     method: "PUT",
-    body: payload
+    body: payload,
   });
 
 export const useUpdateServiceCatalog = () => {
@@ -478,9 +483,9 @@ export const useUpdateServiceCatalog = () => {
     mutationFn: updateServiceCatalog,
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.customerCatalog(variables.customerId)
+        queryKey: queryKeys.customerCatalog(variables.customerId),
       });
-    }
+    },
   });
 };
 
@@ -495,19 +500,19 @@ export const useOrderSlaClocks = (orderId: Ulid) =>
   useQuery({
     queryKey: queryKeys.orderSlaClocks(orderId),
     queryFn: () => fetchOrderSlaClocks(orderId),
-    enabled: !!orderId
+    enabled: !!orderId,
   });
 
 const pauseSlaClock = ({
-                         clockId,
-                         payload
-                       }: {
+  clockId,
+  payload,
+}: {
   clockId: Ulid;
   payload: PauseClockRequest;
 }) =>
   apiFetch<void>(`/clocks/sla/${clockId}/pause`, {
     method: "POST",
-    body: payload
+    body: payload,
   });
 
 export const usePauseSlaClock = () => {
@@ -516,13 +521,13 @@ export const usePauseSlaClock = () => {
     mutationFn: pauseSlaClock,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-    }
+    },
   });
 };
 
 const resumeSlaClock = (clockId: Ulid) =>
   apiFetch<void>(`/clocks/sla/${clockId}/resume`, {
-    method: "POST"
+    method: "POST",
   });
 
 export const useResumeSlaClock = () => {
@@ -531,7 +536,7 @@ export const useResumeSlaClock = () => {
     mutationFn: resumeSlaClock,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-    }
+    },
   });
 };
 
@@ -546,12 +551,12 @@ export const useOrderNotifications = (orderId: Ulid) =>
   useQuery({
     queryKey: queryKeys.orderNotifications(orderId),
     queryFn: () => fetchOrderNotifications(orderId),
-    enabled: !!orderId
+    enabled: !!orderId,
   });
 
 const retryNotification = (notificationId: Ulid) =>
   apiFetch<void>(`/notifications/${notificationId}/retry`, {
-    method: "POST"
+    method: "POST",
   });
 
 export const useRetryNotification = () => {
@@ -560,7 +565,7 @@ export const useRetryNotification = () => {
     mutationFn: retryNotification,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-    }
+    },
   });
 };
 
@@ -573,10 +578,10 @@ export const createOrderChangesStream = () =>
 
 export const createServiceChangesStream = (orderId?: Ulid) =>
   createEventSource(
-    orderId ? `/services/changes?orderId=${orderId}` : "/services/changes"
+    orderId ? `/services/changes?orderId=${orderId}` : "/services/changes",
   );
 
 export const createSlaClockChangesStream = (orderId?: Ulid) =>
   createEventSource(
-    orderId ? `/clocks/sla/changes?orderId=${orderId}` : "/clocks/sla/changes"
+    orderId ? `/clocks/sla/changes?orderId=${orderId}` : "/clocks/sla/changes",
   );

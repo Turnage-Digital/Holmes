@@ -8,7 +8,7 @@ export type {
   SaveIntakeProgressRequest,
   SubmitIntakeRequest,
   IntakeSectionConfig,
-  IntakeBootstrapResponse
+  IntakeBootstrapResponse,
 } from "./api";
 
 // Intake domain types
@@ -18,7 +18,7 @@ export type {
   IntakeEducation,
   IntakeReference,
   IntakePhone,
-  ExtendedIntakeFormState
+  ExtendedIntakeFormState,
 } from "./intake";
 
 export {
@@ -30,5 +30,5 @@ export {
   createEmptyEducation,
   createEmptyReference,
   createEmptyPhone,
-  US_STATES
+  US_STATES,
 } from "./intake";

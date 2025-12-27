@@ -22,8 +22,8 @@ export const RelativeTimeCell = ({ timestamp }: { timestamp: string }) =>
  * Displays a relative time, or "Never" if timestamp is null/undefined.
  */
 export const OptionalRelativeTimeCell = ({
-                                           timestamp
-                                         }: {
+  timestamp,
+}: {
   timestamp: string | null | undefined;
 }) =>
   timestamp
@@ -58,7 +58,7 @@ export const CustomerNameCell = ({ customerId }: { customerId: string }) => {
  * Displays a value or a dash if empty/null.
  */
 export const EmptyableCell = ({
-                                value
-                              }: {
+  value,
+}: {
   value: string | null | undefined;
 }) => <>{value || "—"}</>;

@@ -14,14 +14,19 @@ import {
   type SelectChangeEvent,
   Skeleton,
   Stack,
-  useMediaQuery
+  useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import type { OrderChangeEvent, OrderStatus, OrderSummaryDto, PaginatedResult } from "@/types/api";
+import type {
+  OrderChangeEvent,
+  OrderStatus,
+  OrderSummaryDto,
+  PaginatedResult,
+} from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
 import { NewOrderDialog, OrderCard } from "@/components/orders";
@@ -30,7 +35,7 @@ import {
   DataGridNoRowsOverlay,
   MonospaceIdCell,
   RelativeTimeCell,
-  SubjectNameCell
+  SubjectNameCell,
 } from "@/components/patterns";
 import { createOrderChangesStream, queryKeys, useOrders } from "@/hooks/api";
 import {
@@ -39,7 +44,7 @@ import {
   getOrderStatusLabel,
   isOrderStatus,
   openStatuses,
-  orderStatuses
+  orderStatuses,
 } from "@/lib/status";
 
 // ============================================================================
@@ -52,7 +57,7 @@ const statusFilterMap: Record<StatusFilter, OrderStatus[] | undefined> = {
   open: openStatuses,
   closed: closedStatuses,
   all: undefined,
-  ...Object.fromEntries(orderStatuses.map((s) => [s, [s]]))
+  ...Object.fromEntries(orderStatuses.map((s) => [s, [s]])),
 } as Record<StatusFilter, OrderStatus[] | undefined>;
 
 const isStatusFilter = (value: string | null): value is StatusFilter =>
@@ -91,7 +96,7 @@ const OrdersPage = () => {
   // Pagination state
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25
+    pageSize: 25,
   });
 
   // Status filter from URL or default
@@ -119,17 +124,17 @@ const OrdersPage = () => {
   // Build query based on filter
   const statusArray = useMemo(
     () => statusFilterMap[statusFilter],
-    [statusFilter]
+    [statusFilter],
   );
 
   const {
     data: ordersData,
     isLoading,
-    error
+    error,
   } = useOrders({
     page: paginationModel.page + 1,
     pageSize: paginationModel.pageSize,
-    status: statusArray
+    status: statusArray,
   });
 
   // SSE for real-time updates
@@ -151,13 +156,13 @@ const OrdersPage = () => {
           queryKeys.orders({
             page: paginationModel.page + 1,
             pageSize: paginationModel.pageSize,
-            status: statusArray
+            status: statusArray,
           }),
           (current) => {
             if (!current) return current;
 
             const existingIndex = current.items.findIndex(
-              (o) => o.orderId === payload.orderId
+              (o) => o.orderId === payload.orderId,
             );
 
             if (existingIndex === -1) {
@@ -172,11 +177,11 @@ const OrdersPage = () => {
               ...updated[existingIndex],
               status: payload.status,
               lastStatusReason: payload.reason ?? null,
-              lastUpdatedAt: payload.changedAt
+              lastUpdatedAt: payload.changedAt,
             };
 
             return { ...current, items: updated };
-          }
+          },
         );
       } catch {
         // Ignore parse errors
@@ -209,28 +214,28 @@ const OrdersPage = () => {
       }
       setPaginationModel((prev) => ({ ...prev, page: 0 }));
     },
-    [setSearchParams]
+    [setSearchParams],
   );
 
   const handleRowClick = useCallback(
     (params: GridRowParams<OrderSummaryDto>) => {
       navigate(`/orders/${params.row.orderId}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const handleOrderClick = useCallback(
     (orderId: string) => {
       navigate(`/orders/${orderId}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const handleMobilePageChange = useCallback(
     (_event: React.ChangeEvent<unknown>, page: number) => {
       setPaginationModel((prev) => ({ ...prev, page: page - 1 }));
     },
-    []
+    [],
   );
 
   // Columns
@@ -240,40 +245,40 @@ const OrdersPage = () => {
         field: "orderId",
         headerName: "Order",
         width: 140,
-        renderCell: (params) => <MonospaceIdCell id={params.value} />
+        renderCell: (params) => <MonospaceIdCell id={params.value} />,
       },
       {
         field: "status",
         headerName: "Status",
         width: 160,
-        renderCell: (params) => <OrderStatusBadge status={params.value} />
+        renderCell: (params) => <OrderStatusBadge status={params.value} />,
       },
       {
         field: "subjectId",
         headerName: "Subject",
         width: 200,
-        renderCell: (params) => <SubjectNameCell subjectId={params.value} />
+        renderCell: (params) => <SubjectNameCell subjectId={params.value} />,
       },
       {
         field: "customerId",
         headerName: "Customer",
         width: 200,
-        renderCell: (params) => <CustomerNameCell customerId={params.value} />
+        renderCell: (params) => <CustomerNameCell customerId={params.value} />,
       },
       {
         field: "lastUpdatedAt",
         headerName: "Last Updated",
         width: 180,
-        renderCell: (params) => <RelativeTimeCell timestamp={params.value} />
+        renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
       },
       {
         field: "lastStatusReason",
         headerName: "Reason",
         flex: 1,
-        minWidth: 200
-      }
+        minWidth: 200,
+      },
     ],
-    []
+    [],
   );
 
   // Mobile card list view
@@ -328,13 +333,13 @@ const OrdersPage = () => {
       slots={{
         noRowsOverlay: () => (
           <DataGridNoRowsOverlay message="No orders found" />
-        )
+        ),
       }}
       sx={{
         minHeight: 400,
         "& .MuiDataGrid-row": {
-          cursor: "pointer"
-        }
+          cursor: "pointer",
+        },
       }}
       disableRowSelectionOnClick
     />

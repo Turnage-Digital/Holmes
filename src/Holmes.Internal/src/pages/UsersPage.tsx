@@ -14,14 +14,24 @@ import {
   MenuItem,
   Select,
   Stack,
-  TextField
+  TextField,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 
-import type { InviteUserRequest, RoleAssignmentDto, UserDto, UserRole } from "@/types/api";
+import type {
+  InviteUserRequest,
+  RoleAssignmentDto,
+  UserDto,
+  UserRole,
+} from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay, OptionalRelativeTimeCell, RelativeTimeCell, StatusBadge } from "@/components/patterns";
+import {
+  DataGridNoRowsOverlay,
+  OptionalRelativeTimeCell,
+  RelativeTimeCell,
+  StatusBadge,
+} from "@/components/patterns";
 import { useInviteUser, useUsers } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
@@ -31,7 +41,7 @@ const initialFormState: InviteUserRequest = {
   email: "",
   displayName: "",
   sendInviteEmail: true,
-  roles: [{ role: "Operations" }]
+  roles: [{ role: "Operations" }],
 };
 
 const formatRoleLabel = (assignment: RoleAssignmentDto) =>
@@ -42,7 +52,7 @@ const formatRoleLabel = (assignment: RoleAssignmentDto) =>
 const UsersPage = () => {
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25
+    pageSize: 25,
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formState, setFormState] =
@@ -53,7 +63,7 @@ const UsersPage = () => {
   const {
     data: usersData,
     isLoading,
-    error
+    error,
   } = useUsers(paginationModel.page + 1, paginationModel.pageSize);
 
   const inviteUserMutation = useInviteUser();
@@ -102,18 +112,18 @@ const UsersPage = () => {
     {
       field: "email",
       headerName: "Email",
-      width: 250
+      width: 250,
     },
     {
       field: "status",
       headerName: "Status",
       width: 120,
-      renderCell: (params) => <StatusBadge type="user" status={params.value} />
+      renderCell: (params) => <StatusBadge type="user" status={params.value} />,
     },
     {
       field: "displayName",
       headerName: "Name",
-      width: 180
+      width: 180,
     },
     {
       field: "roleAssignments",
@@ -142,7 +152,7 @@ const UsersPage = () => {
             )}
           </Stack>
         );
-      }
+      },
     },
     {
       field: "lastSeenAt",
@@ -150,14 +160,14 @@ const UsersPage = () => {
       width: 160,
       renderCell: (params) => (
         <OptionalRelativeTimeCell timestamp={params.value} />
-      )
+      ),
     },
     {
       field: "createdAt",
       headerName: "Created",
       width: 160,
-      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />
-    }
+      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
+    },
   ];
 
   return (
@@ -205,7 +215,7 @@ const UsersPage = () => {
         slots={{
           noRowsOverlay: () => (
             <DataGridNoRowsOverlay message="No users yet." />
-          )
+          ),
         }}
         sx={{ minHeight: 400 }}
         disableRowSelectionOnClick
@@ -241,7 +251,7 @@ const UsersPage = () => {
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    displayName: e.target.value
+                    displayName: e.target.value,
                   }))
                 }
                 fullWidth
@@ -257,7 +267,7 @@ const UsersPage = () => {
                   onChange={(e) =>
                     setFormState((prev) => ({
                       ...prev,
-                      roles: [{ role: e.target.value as UserRole }]
+                      roles: [{ role: e.target.value as UserRole }],
                     }))
                   }
                 >

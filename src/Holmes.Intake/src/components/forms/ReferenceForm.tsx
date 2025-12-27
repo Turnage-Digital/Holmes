@@ -13,11 +13,15 @@ import {
   Select,
   Stack,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
-import { createEmptyReference, IntakeReference, ReferenceType } from "@/types/intake";
+import {
+  createEmptyReference,
+  IntakeReference,
+  ReferenceType,
+} from "@/types/intake";
 
 interface ReferenceFormProps {
   references: IntakeReference[];
@@ -28,12 +32,12 @@ interface ReferenceFormProps {
 }
 
 const ReferenceForm: React.FC<ReferenceFormProps> = ({
-                                                       references,
-                                                       onChange,
-                                                       minReferences = 0,
-                                                       maxReferences = 5,
-                                                       requiredTypes = []
-                                                     }) => {
+  references,
+  onChange,
+  minReferences = 0,
+  maxReferences = 5,
+  requiredTypes = [],
+}) => {
   const handleAddReference = (type?: ReferenceType) => {
     if (references.length >= maxReferences) return;
     const newRef = createEmptyReference();
@@ -50,7 +54,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
 
   const handleUpdateReference = (
     id: string,
-    updates: Partial<IntakeReference>
+    updates: Partial<IntakeReference>,
   ) => {
     onChange(references.map((r) => (r.id === id ? { ...r, ...updates } : r)));
   };
@@ -65,10 +69,10 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
   };
 
   const personalCount = references.filter(
-    (r) => r.type === ReferenceType.Personal
+    (r) => r.type === ReferenceType.Personal,
   ).length;
   const professionalCount = references.filter(
-    (r) => r.type === ReferenceType.Professional
+    (r) => r.type === ReferenceType.Professional,
   ).length;
 
   const needsPersonal = requiredTypes.includes(ReferenceType.Personal);
@@ -96,7 +100,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
           sx={{
             p: 3,
             textAlign: "center",
-            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02)
+            backgroundColor: (theme) => alpha(theme.palette.action.hover, 0.02),
           }}
         >
           <Typography color="text.secondary" gutterBottom>
@@ -143,7 +147,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
               backgroundColor: (theme) =>
                 reference.type === ReferenceType.Professional
                   ? alpha(theme.palette.info.main, 0.02)
-                  : alpha(theme.palette.success.main, 0.02)
+                  : alpha(theme.palette.success.main, 0.02),
             }}
           >
             <Stack spacing={2}>
@@ -173,7 +177,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
                   label="Reference type"
                   onChange={(e) =>
                     handleUpdateReference(reference.id, {
-                      type: e.target.value as ReferenceType
+                      type: e.target.value as ReferenceType,
                     })
                   }
                 >
@@ -191,7 +195,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
                 value={reference.name}
                 onChange={(e) =>
                   handleUpdateReference(reference.id, {
-                    name: e.target.value
+                    name: e.target.value,
                   })
                 }
                 fullWidth
@@ -203,7 +207,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
                 value={reference.relationship}
                 onChange={(e) =>
                   handleUpdateReference(reference.id, {
-                    relationship: e.target.value
+                    relationship: e.target.value,
                   })
                 }
                 fullWidth
@@ -218,7 +222,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
                     handleUpdateReference(reference.id, {
                       phone: e.target.value
                         .replace(/[^\d+()-\s]/g, "")
-                        .slice(0, 20)
+                        .slice(0, 20),
                     })
                   }
                   fullWidth
@@ -231,7 +235,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
                   value={reference.email}
                   onChange={(e) =>
                     handleUpdateReference(reference.id, {
-                      email: e.target.value
+                      email: e.target.value,
                     })
                   }
                   fullWidth
@@ -246,7 +250,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
                   handleUpdateReference(reference.id, {
                     yearsKnown: e.target.value
                       ? parseInt(e.target.value, 10)
-                      : null
+                      : null,
                   })
                 }
                 inputProps={{ min: 0, max: 100 }}
@@ -266,7 +270,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
             sx={{
               borderStyle: "dashed",
               color: (theme) => theme.palette.text.secondary,
-              flex: 1
+              flex: 1,
             }}
           >
             Add personal reference
@@ -278,7 +282,7 @@ const ReferenceForm: React.FC<ReferenceFormProps> = ({
             sx={{
               borderStyle: "dashed",
               color: (theme) => theme.palette.text.secondary,
-              flex: 1
+              flex: 1,
             }}
           >
             Add professional reference

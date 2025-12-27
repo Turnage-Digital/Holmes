@@ -1,6 +1,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { Alert, Box, Button, Card, CardContent, Chip, Divider, Skeleton, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  Skeleton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +25,7 @@ import {
   useCustomers,
   useIsAdmin,
   useOrderStats,
-  useUsers
+  useUsers,
 } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
@@ -35,10 +46,10 @@ interface OrderPipelineProps {
 }
 
 const OrderPipeline = ({
-                         stages,
-                         isLoading,
-                         onStageClick
-                       }: OrderPipelineProps) => {
+  stages,
+  isLoading,
+  onStageClick,
+}: OrderPipelineProps) => {
   if (isLoading) {
     return (
       <Stack direction="row" spacing={1} alignItems="center">
@@ -67,8 +78,8 @@ const OrderPipeline = ({
               transition: "all 0.2s",
               "&:hover": {
                 borderColor: "primary.main",
-                bgcolor: "action.hover"
-              }
+                bgcolor: "action.hover",
+              },
             }}
             onClick={() => onStageClick(stage.status)}
           >
@@ -119,11 +130,11 @@ interface RecentActivityProps {
 }
 
 const RecentActivity = ({
-                          items,
-                          isLoading,
-                          onViewAll,
-                          onOrderClick
-                        }: RecentActivityProps) => {
+  items,
+  isLoading,
+  onViewAll,
+  onOrderClick,
+}: RecentActivityProps) => {
   if (isLoading) {
     return (
       <Stack spacing={2}>
@@ -155,7 +166,7 @@ const RecentActivity = ({
             px: 1.5,
             borderRadius: 1,
             cursor: "pointer",
-            "&:hover": { bgcolor: "action.hover" }
+            "&:hover": { bgcolor: "action.hover" },
           }}
           onClick={() => onOrderClick(item.orderId)}
         >
@@ -197,12 +208,12 @@ interface AdminCardsProps {
 }
 
 const AdminCards = ({
-                      customerCount,
-                      userCount,
-                      isLoading,
-                      onCustomersClick,
-                      onUsersClick
-                    }: AdminCardsProps) => {
+  customerCount,
+  userCount,
+  isLoading,
+  onCustomersClick,
+  onUsersClick,
+}: AdminCardsProps) => {
   if (isLoading) {
     return (
       <Stack direction="row" spacing={2}>
@@ -219,7 +230,7 @@ const AdminCards = ({
         sx={{
           minWidth: 180,
           cursor: "pointer",
-          "&:hover": { borderColor: "primary.main" }
+          "&:hover": { borderColor: "primary.main" },
         }}
         onClick={onCustomersClick}
       >
@@ -243,7 +254,7 @@ const AdminCards = ({
         sx={{
           minWidth: 180,
           cursor: "pointer",
-          "&:hover": { borderColor: "primary.main" }
+          "&:hover": { borderColor: "primary.main" },
         }}
         onClick={onUsersClick}
       >
@@ -275,12 +286,12 @@ const DashboardPage = () => {
   const {
     data: orderStats,
     isLoading: statsLoading,
-    error: statsError
+    error: statsError,
   } = useOrderStats();
 
   const { data: customersData, isLoading: customersLoading } = useCustomers(
     1,
-    1
+    1,
   );
   const { data: usersData, isLoading: usersLoading } = useUsers(1, 1);
 
@@ -303,9 +314,9 @@ const DashboardPage = () => {
               orderId: payload.orderId,
               status: payload.status,
               reason: payload.reason,
-              changedAt: payload.changedAt
+              changedAt: payload.changedAt,
             },
-            ...prev
+            ...prev,
           ].slice(0, 10);
           return updated;
         });
@@ -334,7 +345,7 @@ const DashboardPage = () => {
     (status: OrderStatus) => {
       navigate(`/orders?status=${status}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const handleViewAllOrders = useCallback(() => {
@@ -345,7 +356,7 @@ const DashboardPage = () => {
     (orderId: string) => {
       navigate(`/orders/${orderId}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const handleCustomersClick = useCallback(() => {
@@ -361,23 +372,23 @@ const DashboardPage = () => {
     {
       status: "Invited",
       label: getOrderStatusLabel("Invited"),
-      count: orderStats?.invited ?? 0
+      count: orderStats?.invited ?? 0,
     },
     {
       status: "IntakeInProgress",
       label: getOrderStatusLabel("IntakeInProgress"),
-      count: orderStats?.intakeInProgress ?? 0
+      count: orderStats?.intakeInProgress ?? 0,
     },
     {
       status: "IntakeComplete",
       label: getOrderStatusLabel("IntakeComplete"),
-      count: orderStats?.intakeComplete ?? 0
+      count: orderStats?.intakeComplete ?? 0,
     },
     {
       status: "ReadyForFulfillment",
       label: getOrderStatusLabel("ReadyForFulfillment"),
-      count: orderStats?.readyForFulfillment ?? 0
-    }
+      count: orderStats?.readyForFulfillment ?? 0,
+    },
   ];
 
   // Check if system needs setup (no customers)
@@ -445,7 +456,7 @@ const DashboardPage = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  mb: 2
+                  mb: 2,
                 }}
               >
                 <Typography variant="h6">Order Pipeline</Typography>

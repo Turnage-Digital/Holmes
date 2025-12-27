@@ -36,7 +36,7 @@ import {
   Tabs,
   TextField,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
@@ -48,10 +48,12 @@ import type {
   OrderTimelineEntryDto,
   ServiceChangeEvent,
   SlaClockChangeEvent,
-  SlaClockDto
+  SlaClockDto,
 } from "@/types/api";
 
-import SlaBadge, { clockStateToSlaStatus } from "@/components/patterns/SlaBadge";
+import SlaBadge, {
+  clockStateToSlaStatus,
+} from "@/components/patterns/SlaBadge";
 import { TierProgressView } from "@/components/services";
 import {
   createServiceChangesStream,
@@ -70,7 +72,7 @@ import {
   useResumeSlaClock,
   useRetryNotification,
   useRetryService,
-  useSubject
+  useSubject,
 } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
 
@@ -128,7 +130,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
             gap: 2,
             py: 2,
             borderBottom: index < events.length - 1 ? "1px solid" : "none",
-            borderColor: "divider"
+            borderColor: "divider",
           }}
         >
           {/* Timeline dot and line */}
@@ -137,7 +139,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              pt: 0.5
+              pt: 0.5,
             }}
           >
             <Box
@@ -145,7 +147,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
                 width: 10,
                 height: 10,
                 borderRadius: "50%",
-                bgcolor: index === 0 ? "primary.main" : "grey.400"
+                bgcolor: index === 0 ? "primary.main" : "grey.400",
               }}
             />
             {index < events.length - 1 && (
@@ -154,7 +156,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
                   width: 2,
                   flexGrow: 1,
                   bgcolor: "grey.200",
-                  mt: 0.5
+                  mt: 0.5,
                 }}
               />
             )}
@@ -181,7 +183,7 @@ const Timeline = ({ events, isLoading }: TimelineProps) => {
               {format(new Date(event.occurredAt), "MMM d, yyyy 'at' h:mm a")}
               {" · "}
               {formatDistanceToNow(new Date(event.occurredAt), {
-                addSuffix: true
+                addSuffix: true,
               })}
             </Typography>
           </Box>
@@ -210,7 +212,7 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
           sx={{
             display: "grid",
             gridTemplateColumns: "140px 1fr",
-            gap: 1
+            gap: 1,
           }}
         >
           <Typography variant="body2" color="text.secondary">
@@ -269,7 +271,7 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
                 <Typography variant="body2">
                   {format(
                     new Date(order.readyForFulfillmentAt),
-                    "MMM d, yyyy 'at' h:mm a"
+                    "MMM d, yyyy 'at' h:mm a",
                   )}
                 </Typography>
               </>
@@ -286,7 +288,7 @@ const DetailsTab = ({ order }: DetailsTabProps) => (
                 <Typography variant="body2">
                   {format(
                     new Date(order.canceledAt),
-                    "MMM d, yyyy 'at' h:mm a"
+                    "MMM d, yyyy 'at' h:mm a",
                   )}
                 </Typography>
               </>
@@ -336,7 +338,7 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
   const handleRetry = (serviceId: string) => {
     setRetryingId(serviceId);
     retryMutation.mutate(serviceId, {
-      onSettled: () => setRetryingId(null)
+      onSettled: () => setRetryingId(null),
     });
   };
 
@@ -352,7 +354,7 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
       cancelMutation.mutate(
         {
           serviceId: cancelServiceId,
-          payload: { reason: cancelReason.trim() }
+          payload: { reason: cancelReason.trim() },
         },
         {
           onSuccess: () => {
@@ -360,8 +362,8 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
             setCancelServiceId(null);
             setCancelReason("");
           },
-          onSettled: () => setCancelingId(null)
-        }
+          onSettled: () => setCancelingId(null),
+        },
       );
     }
   };
@@ -407,8 +409,8 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
         <DialogTitle>Cancel Service Request</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            Please provide a reason for canceling this service. This
-            action cannot be undone.
+            Please provide a reason for canceling this service. This action
+            cannot be undone.
           </Typography>
           <TextField
             fullWidth
@@ -486,7 +488,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
         "&:before": { display: "none" },
         boxShadow: "none",
         borderBottom: "1px solid",
-        borderColor: "divider"
+        borderColor: "divider",
       }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 0 }}>
@@ -503,7 +505,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
                 py: 0.5,
                 borderRadius: 1,
                 minWidth: 40,
-                textAlign: "center"
+                textAlign: "center",
               }}
             >
               v{event.version}
@@ -517,7 +519,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
               {format(new Date(event.createdAt), "MMM d, yyyy 'at' h:mm:ss a")}
               {" · "}
               {formatDistanceToNow(new Date(event.createdAt), {
-                addSuffix: true
+                addSuffix: true,
               })}
             </Typography>
           </Box>
@@ -542,7 +544,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
             bgcolor: "grey.50",
             p: 2,
             borderRadius: 1,
-            overflow: "auto"
+            overflow: "auto",
           }}
         >
           <Typography
@@ -552,7 +554,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
               fontSize: "0.75rem",
               m: 0,
               whiteSpace: "pre-wrap",
-              wordBreak: "break-word"
+              wordBreak: "break-word",
             }}
           >
             {JSON.stringify(event.payload, null, 2)}
@@ -668,13 +670,13 @@ interface SlaClockCardProps {
 }
 
 const SlaClockCard = ({
-                        clock,
-                        canPauseResume,
-                        onPause,
-                        onResume,
-                        isPausing,
-                        isResuming
-                      }: SlaClockCardProps) => {
+  clock,
+  canPauseResume,
+  onPause,
+  onResume,
+  isPausing,
+  isResuming,
+}: SlaClockCardProps) => {
   const status = clockStateToSlaStatus(clock.state);
   const isPaused = clock.state === "Paused";
   const isTerminal = clock.state === "Completed" || clock.state === "Breached";
@@ -705,7 +707,7 @@ const SlaClockCard = ({
                 display: "grid",
                 gridTemplateColumns: "100px 1fr",
                 gap: 0.5,
-                fontSize: "0.875rem"
+                fontSize: "0.875rem",
               }}
             >
               <Typography variant="body2" color="text.secondary">
@@ -722,7 +724,7 @@ const SlaClockCard = ({
                 {format(new Date(clock.deadlineAt), "MMM d, yyyy h:mm a")}
                 {" · "}
                 {formatDistanceToNow(new Date(clock.deadlineAt), {
-                  addSuffix: true
+                  addSuffix: true,
                 })}
               </Typography>
 
@@ -760,7 +762,7 @@ const SlaClockCard = ({
                     <Typography variant="body2">
                       {format(
                         new Date(clock.completedAt),
-                        "MMM d, yyyy h:mm a"
+                        "MMM d, yyyy h:mm a",
                       )}
                     </Typography>
                   </>
@@ -844,8 +846,8 @@ const SlaClocksTab = ({ orderId }: SlaClocksTabProps) => {
             setPauseDialogOpen(false);
             setPauseClockId(null);
             setPauseReason("");
-          }
-        }
+          },
+        },
       );
     }
   };
@@ -972,7 +974,7 @@ const getChannelIcon = (channel: NotificationSummaryDto["channel"]) => {
 };
 
 const getDeliveryStatusColor = (
-  status: NotificationSummaryDto["status"]
+  status: NotificationSummaryDto["status"],
 ): "success" | "warning" | "error" | "default" | "info" => {
   switch (status) {
     case "Delivered":
@@ -992,7 +994,7 @@ const getDeliveryStatusColor = (
 };
 
 const getTriggerTypeLabel = (
-  triggerType: NotificationSummaryDto["triggerType"]
+  triggerType: NotificationSummaryDto["triggerType"],
 ) => {
   switch (triggerType) {
     case "IntakeSessionInvited":
@@ -1022,11 +1024,11 @@ interface NotificationCardProps {
 }
 
 const NotificationCard = ({
-                            notification,
-                            canRetry,
-                            onRetry,
-                            isRetrying
-                          }: NotificationCardProps) => {
+  notification,
+  canRetry,
+  onRetry,
+  isRetrying,
+}: NotificationCardProps) => {
   const canRetryThis =
     canRetry &&
     (notification.status === "Failed" || notification.status === "Bounced");
@@ -1039,7 +1041,7 @@ const NotificationCard = ({
         py: 2,
         borderBottom: "1px solid",
         borderColor: "divider",
-        "&:last-child": { borderBottom: "none" }
+        "&:last-child": { borderBottom: "none" },
       }}
     >
       <Box
@@ -1051,7 +1053,7 @@ const NotificationCard = ({
           height: 40,
           borderRadius: 1,
           bgcolor: "grey.100",
-          color: "grey.600"
+          color: "grey.600",
         }}
       >
         {getChannelIcon(notification.channel)}
@@ -1127,7 +1129,7 @@ const NotificationsTab = ({ orderId }: NotificationsTabProps) => {
   const {
     data: notifications,
     isLoading,
-    error
+    error,
   } = useOrderNotifications(orderId);
   const retryMutation = useRetryNotification();
   const [retryingId, setRetryingId] = useState<string | null>(null);
@@ -1135,7 +1137,7 @@ const NotificationsTab = ({ orderId }: NotificationsTabProps) => {
   const handleRetry = (notificationId: string) => {
     setRetryingId(notificationId);
     retryMutation.mutate(notificationId, {
-      onSettled: () => setRetryingId(null)
+      onSettled: () => setRetryingId(null),
     });
   };
 
@@ -1171,10 +1173,10 @@ const NotificationsTab = ({ orderId }: NotificationsTabProps) => {
   }
 
   const deliveredCount = notifications.filter(
-    (n) => n.status === "Delivered"
+    (n) => n.status === "Delivered",
   ).length;
   const failedCount = notifications.filter(
-    (n) => n.status === "Failed" || n.status === "Bounced"
+    (n) => n.status === "Failed" || n.status === "Bounced",
   ).length;
 
   return (
@@ -1243,7 +1245,7 @@ const OrderDetailPage = () => {
   const {
     data: order,
     isLoading: orderLoading,
-    error: orderError
+    error: orderError,
   } = useOrder(orderId!);
 
   // Fetch related entities
@@ -1267,7 +1269,7 @@ const OrderDetailPage = () => {
         if (payload.orderId === orderId) {
           // Invalidate services query to refetch
           queryClient.invalidateQueries({
-            queryKey: queryKeys.orderServices(orderId)
+            queryKey: queryKeys.orderServices(orderId),
           });
         }
       } catch {
@@ -1297,7 +1299,7 @@ const OrderDetailPage = () => {
         if (payload.orderId === orderId) {
           // Invalidate SLA clocks query to refetch
           queryClient.invalidateQueries({
-            queryKey: queryKeys.orderSlaClocks(orderId)
+            queryKey: queryKeys.orderSlaClocks(orderId),
           });
         }
       } catch {
@@ -1321,7 +1323,7 @@ const OrderDetailPage = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: 400
+          minHeight: 400,
         }}
       >
         <CircularProgress />
@@ -1351,7 +1353,7 @@ const OrderDetailPage = () => {
   // Build subject display name
   const subjectName = subject
     ? [subject.firstName, subject.lastName].filter(Boolean).join(" ") ||
-    subject.email
+      subject.email
     : null;
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
