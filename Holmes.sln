@@ -135,7 +135,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Internal.Server", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Infrastructure", "src\Holmes.App.Infrastructure\Holmes.App.Infrastructure.csproj", "{F9389329-8111-4054-9AB0-CB0001B83D27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Integration", "src\Holmes.App.Integration\Holmes.App.Integration.csproj", "{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Application", "src\Holmes.App.Application\Holmes.App.Application.csproj", "{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server.Tests", "src\Holmes.Identity.Server.Tests\Holmes.Identity.Server.Tests.csproj", "{6372809D-FE47-4F11-A5E4-BE0634ABD025}"
 EndProject

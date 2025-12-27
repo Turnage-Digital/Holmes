@@ -1,14 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.IntakeSessions.Application.Abstractions;
 using Holmes.IntakeSessions.Application.Abstractions.Dtos;
+using Holmes.IntakeSessions.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Queries;
-
-public sealed record GetIntakeSessionByIdQuery(
-    string IntakeSessionId
-) : RequestBase<Result<IntakeSessionSummaryDto>>;
 
 public sealed class GetIntakeSessionByIdQueryHandler(
     IIntakeSessionQueries intakeSessionQueries

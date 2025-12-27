@@ -1,4 +1,4 @@
-using Holmes.App.Integration.EventHandlers;
+using Holmes.App.Application.EventHandlers;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions;
@@ -6,7 +6,7 @@ using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Domain;
 using Holmes.IntakeSessions.Domain.Events;
 using Holmes.IntakeSessions.Domain.ValueObjects;
-using Holmes.Notifications.Application.Commands;
+using Holmes.Notifications.Application.Abstractions.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Subjects.Application.Abstractions;
 using Holmes.Subjects.Application.Abstractions.Dtos;

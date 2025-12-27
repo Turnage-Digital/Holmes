@@ -1,10 +1,10 @@
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Customers.Application.Commands;
+using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
-using Holmes.Subjects.Application.Commands;
+using Holmes.Subjects.Application.Abstractions.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;

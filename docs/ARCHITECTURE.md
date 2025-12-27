@@ -61,7 +61,7 @@ Primary UI surfaces:
 
 **Integration boundary**
 
-- `src/Holmes.App.Integration`
+- `src/Holmes.App.Application`
   - Cross-module event handlers and gateways (Intake -> Workflow, Workflow -> Services, etc.).
 
 **Cross-cutting infrastructure**
@@ -101,26 +101,26 @@ Primary UI surfaces:
 
 These handlers connect the modules into an end-to-end workflow:
 
-- `IntakeToWorkflowHandler` (`src/Holmes.App.Integration/EventHandlers/IntakeToWorkflowHandler.cs`)
+- `IntakeToWorkflowHandler` (`src/Holmes.App.Application/EventHandlers/IntakeToWorkflowHandler.cs`)
   - `IntakeSessionInvited` -> `RecordOrderInviteCommand`
   - `IntakeSessionStarted` -> `MarkOrderIntakeStartedCommand`
 
-- `OrderWorkflowGateway` (`src/Holmes.App.Integration/Gateways/OrderWorkflowGateway.cs`)
+- `OrderWorkflowGateway` (`src/Holmes.App.Application/Gateways/OrderWorkflowGateway.cs`)
   - `SubmitIntakeCommand` -> `MarkOrderIntakeSubmittedCommand`
   - `AcceptIntakeSubmissionCommand` -> `MarkOrderReadyForFulfillmentCommand`
   - Policy validation is currently stubbed to allow all submissions.
 
-- `OrderStatusChangedSlaHandler` (`src/Holmes.App.Integration/EventHandlers/OrderStatusChangedSlaHandler.cs`)
+- `OrderStatusChangedSlaHandler` (`src/Holmes.App.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
   - Starts/completes/pauses/resumes SLA clocks based on Order status changes.
 
-- `OrderFulfillmentHandler` (`src/Holmes.App.Integration/EventHandlers/OrderFulfillmentHandler.cs`)
+- `OrderFulfillmentHandler` (`src/Holmes.App.Application/EventHandlers/OrderFulfillmentHandler.cs`)
   - On `ReadyForFulfillment`, creates Service requests from the customer catalog and then moves the Order to
     `FulfillmentInProgress`.
 
-- `ServiceCompletionOrderHandler` (`src/Holmes.App.Integration/EventHandlers/ServiceCompletionOrderHandler.cs`)
+- `ServiceCompletionOrderHandler` (`src/Holmes.App.Application/EventHandlers/ServiceCompletionOrderHandler.cs`)
   - When all services complete for an Order, advances it to `ReadyForReport`.
 
-- Notification triggers (`src/Holmes.App.Integration/EventHandlers/*.cs`)
+- Notification triggers (`src/Holmes.App.Application/EventHandlers/*.cs`)
   - Intake invite notifications are live; SLA at-risk/breached handlers log and are ready to wire to notifications.
 
 ---

@@ -1,17 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Orders.Application.Abstractions.Commands;
 using Holmes.Orders.Domain;
 using MediatR;
 
 namespace Holmes.Orders.Application.Commands;
-
-public sealed record RecordOrderInviteCommand(
-    UlidId OrderId,
-    UlidId IntakeSessionId,
-    DateTimeOffset InvitedAt,
-    string? Reason
-) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class RecordOrderInviteCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<RecordOrderInviteCommand, Result>

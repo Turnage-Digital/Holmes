@@ -1,27 +1,12 @@
 using System.Text.Json;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
 using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Domain;
 using MediatR;
 
 namespace Holmes.Services.Application.Commands;
-
-/// <summary>
-///     Updates a tier configuration in a customer's catalog.
-/// </summary>
-public sealed record UpdateTierConfigurationCommand(
-    string CustomerId,
-    int Tier,
-    string? Name,
-    string? Description,
-    IReadOnlyCollection<string>? RequiredServices,
-    IReadOnlyCollection<string>? OptionalServices,
-    bool? AutoDispatch,
-    bool? WaitForPreviousTier,
-    UlidId UpdatedBy
-) : IRequest<Result>;
 
 public sealed class UpdateTierConfigurationCommandHandler(
     IServiceCatalogQueries catalogQueries,

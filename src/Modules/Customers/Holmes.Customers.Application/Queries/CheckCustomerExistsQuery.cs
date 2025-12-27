@@ -1,12 +1,8 @@
-using Holmes.Core.Application;
 using Holmes.Customers.Application.Abstractions;
+using Holmes.Customers.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Customers.Application.Queries;
-
-public sealed record CheckCustomerExistsQuery(
-    string CustomerId
-) : RequestBase<bool>;
 
 public sealed class CheckCustomerExistsQueryHandler(
     ICustomerQueries customerQueries

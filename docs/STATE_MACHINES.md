@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-23
 
-This document matches the current code under `src/Modules` and `src/Holmes.App.Integration`.
+This document matches the current code under `src/Modules` and `src/Holmes.App.Application`.
 
 ---
 
@@ -158,7 +158,7 @@ Running -> AtRisk -> Breached
 
 ## 5) Cross-Aggregate Choreography
 
-**Event handlers in `src/Holmes.App.Integration`**
+**Event handlers in `src/Holmes.App.Application`**
 
 - `IntakeToWorkflowHandler`
   - `IntakeSessionInvited` -> `RecordOrderInviteCommand`

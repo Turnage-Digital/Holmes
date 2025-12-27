@@ -1,12 +1,8 @@
-using Holmes.Core.Application;
 using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Orders.Application.Queries;
-
-public sealed record GetOrderCustomerIdQuery(
-    string OrderId
-) : RequestBase<string?>;
 
 public sealed class GetOrderCustomerIdQueryHandler(
     IOrderQueries orderQueries

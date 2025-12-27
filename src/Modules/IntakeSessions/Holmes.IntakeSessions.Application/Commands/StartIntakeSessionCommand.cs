@@ -1,17 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Domain;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Commands;
-
-public sealed record StartIntakeSessionCommand(
-    UlidId IntakeSessionId,
-    string ResumeToken,
-    DateTimeOffset StartedAt,
-    string? DeviceInfo
-) : RequestBase<Result>;
 
 public sealed class StartIntakeSessionCommandHandler(
     IIntakeSessionsUnitOfWork unitOfWork

@@ -113,16 +113,16 @@ Host registers IOrderStatusProvider in DI
 ### Cross-Module Event Handlers
 
 When a domain event from Module A needs to trigger behavior in Module B, the handler belongs in
-`Holmes.App.Integration`, NOT in either module's Application project.
+`Holmes.App.Application`, NOT in either module's Application project.
 
 ```
 # Example: OrderStatusChanged (Workflow) → Start SLA clocks (SlaClocks)
 
-Holmes.App.Integration/
+Holmes.App.Application/
   └── NotificationHandlers/
       └── OrderStatusChangedSlaHandler.cs  # Handles Workflow event, sends SlaClocks commands
 
-Holmes.App.Integration.csproj references:
+Holmes.App.Application.csproj references:
   - Holmes.Orders.Application (for OrderStatusChanged event)
   - Holmes.SlaClocks.Application (for StartSlaClockCommand)
 ```

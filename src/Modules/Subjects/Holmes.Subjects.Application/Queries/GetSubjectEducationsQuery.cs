@@ -1,14 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Subjects.Application.Abstractions;
 using Holmes.Subjects.Application.Abstractions.Dtos;
+using Holmes.Subjects.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Subjects.Application.Queries;
-
-public sealed record GetSubjectEducationsQuery(
-    string SubjectId
-) : RequestBase<Result<IReadOnlyList<SubjectEducationDto>>>;
 
 public sealed class GetSubjectEducationsQueryHandler(
     ISubjectQueries subjectQueries

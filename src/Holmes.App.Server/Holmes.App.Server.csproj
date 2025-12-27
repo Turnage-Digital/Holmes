@@ -38,7 +38,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Holmes.App.Infrastructure\Holmes.App.Infrastructure.csproj"/>
-        <ProjectReference Include="..\Holmes.App.Integration\Holmes.App.Integration.csproj"/>
+        <ProjectReference Include="..\Holmes.App.Application\Holmes.App.Application.csproj"/>
         <ProjectReference Include="..\Modules\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
         <ProjectReference Include="..\Modules\Core\Holmes.Core.Domain\Holmes.Core.Domain.csproj"/>
         <ProjectReference Include="..\Modules\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj"/>

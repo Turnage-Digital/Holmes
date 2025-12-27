@@ -1,20 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Orders.Application.Abstractions.Commands;
 using Holmes.Orders.Domain;
 using MediatR;
 
 namespace Holmes.Orders.Application.Commands;
-
-/// <summary>
-///     Transitions an order from ReadyForFulfillment to FulfillmentInProgress.
-///     Called after Services have been created for the order.
-/// </summary>
-public sealed record BeginOrderFulfillmentCommand(
-    UlidId OrderId,
-    DateTimeOffset StartedAt,
-    string? Reason
-) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class BeginOrderFulfillmentCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<BeginOrderFulfillmentCommand, Result>

@@ -1,19 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Subjects.Application.Abstractions.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Subjects.Application.Commands;
-
-public sealed record AddSubjectAliasCommand(
-    UlidId TargetSubjectId,
-    string GivenName,
-    string FamilyName,
-    DateOnly? DateOfBirth,
-    DateTimeOffset AddedAt
-) : RequestBase<Result>;
 
 public sealed class AddSubjectAliasCommandHandler(ISubjectsUnitOfWork unitOfWork)
     : IRequestHandler<AddSubjectAliasCommand, Result>

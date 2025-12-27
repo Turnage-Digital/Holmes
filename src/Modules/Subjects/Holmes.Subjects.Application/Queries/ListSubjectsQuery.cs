@@ -1,14 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Subjects.Application.Abstractions;
+using Holmes.Subjects.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Subjects.Application.Queries;
-
-public sealed record ListSubjectsQuery(
-    int Page,
-    int PageSize
-) : RequestBase<Result<SubjectPagedResult>>;
 
 public sealed class ListSubjectsQueryHandler(
     ISubjectQueries subjectQueries

@@ -1,16 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Orders.Application.Abstractions.Commands;
 using Holmes.Orders.Domain;
 using MediatR;
 
 namespace Holmes.Orders.Application.Commands;
-
-public sealed record ResumeOrderFromBlockCommand(
-    UlidId OrderId,
-    string Reason,
-    DateTimeOffset ResumedAt
-) : RequestBase<Result>;
 
 public sealed class ResumeOrderFromBlockCommandHandler(IOrdersUnitOfWork unitOfWork)
     : IRequestHandler<ResumeOrderFromBlockCommand, Result>

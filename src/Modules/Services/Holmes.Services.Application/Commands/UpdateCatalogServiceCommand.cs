@@ -1,24 +1,12 @@
 using System.Text.Json;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
 using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Domain;
 using MediatR;
 
 namespace Holmes.Services.Application.Commands;
-
-/// <summary>
-///     Updates a specific service configuration in a customer's catalog.
-/// </summary>
-public sealed record UpdateCatalogServiceCommand(
-    string CustomerId,
-    string ServiceTypeCode,
-    bool IsEnabled,
-    int? Tier,
-    string? VendorCode,
-    UlidId UpdatedBy
-) : IRequest<Result>;
 
 public sealed class UpdateCatalogServiceCommandHandler(
     IServiceCatalogQueries catalogQueries,

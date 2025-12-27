@@ -25,7 +25,7 @@ This roadmap focuses on what is implemented today and what remains in near-term 
 /src
   Holmes.App.Server/                 # API host (controllers, SSE, background services)
   Holmes.App.Server.Tests/           # Host-level tests
-  Holmes.App.Integration/            # Cross-module handlers and gateways
+  Holmes.App.Application/            # Cross-module handlers and gateways
   Holmes.App.Infrastructure/         # Infrastructure utilities (db-agnostic)
   Holmes.Identity.Server/            # Duende IdentityServer + ASP.NET Identity
   Holmes.Internal/                   # Internal SPA (admin/ops)

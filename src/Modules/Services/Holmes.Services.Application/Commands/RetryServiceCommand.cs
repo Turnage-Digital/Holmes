@@ -1,15 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Domain;
 using MediatR;
 
 namespace Holmes.Services.Application.Commands;
-
-public sealed record RetryServiceCommand(
-    UlidId ServiceId,
-    DateTimeOffset RetriedAt
-) : RequestBase<Result>;
 
 public sealed class RetryServiceCommandHandler(
     IServicesUnitOfWork unitOfWork

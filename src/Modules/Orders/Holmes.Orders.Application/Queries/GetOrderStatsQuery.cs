@@ -1,14 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Orders.Application.Abstractions;
 using Holmes.Orders.Application.Abstractions.Dtos;
+using Holmes.Orders.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Orders.Application.Queries;
-
-public sealed record GetOrderStatsQuery(
-    IReadOnlyCollection<string>? AllowedCustomerIds
-) : RequestBase<Result<OrderStatsDto>>;
 
 public sealed class GetOrderStatsQueryHandler(
     IOrderQueries orderQueries

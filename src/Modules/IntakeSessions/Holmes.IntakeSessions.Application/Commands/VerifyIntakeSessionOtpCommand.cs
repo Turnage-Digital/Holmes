@@ -1,15 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Domain;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Commands;
-
-public sealed record VerifyIntakeSessionOtpCommand(
-    UlidId IntakeSessionId,
-    string Code
-) : RequestBase<Result>;
 
 public sealed class VerifyIntakeSessionOtpCommandHandler(
     IIntakeSessionsUnitOfWork unitOfWork

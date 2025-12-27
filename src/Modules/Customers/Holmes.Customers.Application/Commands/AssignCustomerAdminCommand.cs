@@ -1,17 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Users.Application.Abstractions;
 using MediatR;
 
 namespace Holmes.Customers.Application.Commands;
-
-public sealed record AssignCustomerAdminCommand(
-    UlidId TargetCustomerId,
-    UlidId TargetUserId,
-    DateTimeOffset AssignedAt
-) : RequestBase<Result>;
 
 public sealed class AssignCustomerAdminCommandHandler(
     ICustomersUnitOfWork unitOfWork,

@@ -1,4 +1,3 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Dtos;
@@ -6,10 +5,6 @@ using Holmes.Services.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Services.Application.Queries;
-
-public sealed record GetCustomerServiceCatalogQuery(
-    string CustomerId
-) : RequestBase<Result<CustomerServiceCatalogDto>>;
 
 public sealed class GetCustomerServiceCatalogQueryHandler(
     IServiceCatalogQueries serviceCatalogQueries

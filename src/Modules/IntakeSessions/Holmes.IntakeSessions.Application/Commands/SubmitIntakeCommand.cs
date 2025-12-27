@@ -1,8 +1,8 @@
 using System.Text;
-using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Application.Gateways;
 using Holmes.IntakeSessions.Domain;
@@ -10,11 +10,6 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Holmes.IntakeSessions.Application.Commands;
-
-public sealed record SubmitIntakeCommand(
-    UlidId IntakeSessionId,
-    DateTimeOffset SubmittedAt
-) : RequestBase<Result>;
 
 public sealed class SubmitIntakeCommandHandler(
     IOrderWorkflowGateway orderWorkflowGateway,

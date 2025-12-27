@@ -1,20 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Commands;
-
-public sealed record SaveIntakeProgressCommand(
-    UlidId IntakeSessionId,
-    string ResumeToken,
-    string SchemaVersion,
-    string PayloadHash,
-    string PayloadCipherText,
-    DateTimeOffset UpdatedAt
-) : RequestBase<Result>;
 
 public sealed class SaveIntakeProgressCommandHandler(IIntakeSessionsUnitOfWork unitOfWork)
     : IRequestHandler<SaveIntakeProgressCommand, Result>

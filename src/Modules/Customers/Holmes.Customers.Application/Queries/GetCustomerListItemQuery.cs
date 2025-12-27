@@ -1,14 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Customers.Application.Abstractions;
 using Holmes.Customers.Application.Abstractions.Dtos;
+using Holmes.Customers.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Customers.Application.Queries;
-
-public sealed record GetCustomerListItemQuery(
-    string CustomerId
-) : RequestBase<Result<CustomerListItemDto>>;
 
 public sealed class GetCustomerListItemQueryHandler(
     ICustomerQueries customerQueries

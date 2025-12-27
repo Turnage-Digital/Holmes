@@ -1,7 +1,7 @@
-using Holmes.App.Integration.Commands;
+using Holmes.App.Application.Commands;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Customers.Application.Commands;
+using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;

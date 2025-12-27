@@ -1,16 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Application.Gateways;
 using Holmes.IntakeSessions.Domain;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Commands;
-
-public sealed record AcceptIntakeSubmissionCommand(
-    UlidId IntakeSessionId,
-    DateTimeOffset AcceptedAt
-) : RequestBase<Result>;
 
 public sealed class AcceptIntakeSubmissionCommandHandler(
     IOrderWorkflowGateway orderWorkflowGateway,

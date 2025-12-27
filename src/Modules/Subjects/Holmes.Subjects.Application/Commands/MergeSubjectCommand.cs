@@ -1,16 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Subjects.Application.Abstractions.Commands;
 using Holmes.Subjects.Domain;
 using MediatR;
 
 namespace Holmes.Subjects.Application.Commands;
-
-public sealed record MergeSubjectCommand(
-    UlidId SourceSubjectId,
-    UlidId TargetSubjectId,
-    DateTimeOffset MergedAt
-) : RequestBase<Result>;
 
 public sealed class MergeSubjectCommandHandler(ISubjectsUnitOfWork unitOfWork)
     : IRequestHandler<MergeSubjectCommand, Result>

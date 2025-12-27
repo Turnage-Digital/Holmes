@@ -1,12 +1,8 @@
-using Holmes.Core.Application;
 using Holmes.Subjects.Application.Abstractions;
+using Holmes.Subjects.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Subjects.Application.Queries;
-
-public sealed record CheckSubjectExistsQuery(
-    string SubjectId
-) : RequestBase<bool>;
 
 public sealed class CheckSubjectExistsQueryHandler(
     ISubjectQueries subjectQueries

@@ -1,14 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.SlaClocks.Application.Abstractions;
 using Holmes.SlaClocks.Application.Abstractions.Dtos;
+using Holmes.SlaClocks.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.SlaClocks.Application.Queries;
-
-public sealed record GetSlaClocksByOrderIdQuery(
-    string OrderId
-) : RequestBase<Result<IReadOnlyList<SlaClockDto>>>;
 
 public sealed class GetSlaClocksByOrderIdQueryHandler(
     ISlaClockQueries slaClockQueries

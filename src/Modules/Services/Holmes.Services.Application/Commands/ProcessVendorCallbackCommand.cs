@@ -1,17 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Domain;
 using MediatR;
 
 namespace Holmes.Services.Application.Commands;
-
-public sealed record ProcessVendorCallbackCommand(
-    string VendorCode,
-    string VendorReferenceId,
-    string CallbackPayload,
-    DateTimeOffset ReceivedAt
-) : RequestBase<Result>;
 
 public sealed class ProcessVendorCallbackCommandHandler(
     IServicesUnitOfWork unitOfWork,

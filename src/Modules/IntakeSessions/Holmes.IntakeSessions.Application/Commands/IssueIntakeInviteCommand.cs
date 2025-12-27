@@ -1,33 +1,13 @@
 using System.Security.Cryptography;
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Commands;
-
-public sealed record IssueIntakeInviteCommand(
-    UlidId OrderId,
-    UlidId SubjectId,
-    UlidId CustomerId,
-    string PolicySnapshotId,
-    string PolicySnapshotSchemaVersion,
-    IReadOnlyDictionary<string, string> PolicyMetadata,
-    IReadOnlyList<string>? OrderedServiceCodes,
-    DateTimeOffset PolicyCapturedAt,
-    DateTimeOffset InvitedAt,
-    TimeSpan TimeToLive,
-    string? ResumeToken
-) : RequestBase<Result<IssueIntakeInviteResult>>;
-
-public sealed record IssueIntakeInviteResult(
-    UlidId IntakeSessionId,
-    string ResumeToken,
-    DateTimeOffset ExpiresAt
-);
 
 public sealed class IssueIntakeInviteCommandHandler(
     IIntakeSessionsUnitOfWork unitOfWork,

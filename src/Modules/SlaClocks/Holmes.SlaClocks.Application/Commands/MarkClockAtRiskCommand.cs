@@ -1,15 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.SlaClocks.Application.Abstractions.Commands;
 using Holmes.SlaClocks.Domain;
 using MediatR;
 
 namespace Holmes.SlaClocks.Application.Commands;
-
-public sealed record MarkClockAtRiskCommand(
-    UlidId ClockId,
-    DateTimeOffset AtRiskAt
-) : RequestBase<Result>, ISkipUserAssignment;
 
 public sealed class MarkClockAtRiskCommandHandler(
     ISlaClocksUnitOfWork unitOfWork

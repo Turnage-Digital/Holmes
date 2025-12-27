@@ -1,14 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Orders.Application.Abstractions;
 using Holmes.Orders.Application.Abstractions.Dtos;
+using Holmes.Orders.Application.Abstractions.Queries;
 using MediatR;
 
 namespace Holmes.Orders.Application.Queries;
-
-public sealed record GetOrderSummaryQuery(
-    string OrderId
-) : RequestBase<Result<OrderSummaryDto>>;
 
 public sealed class GetOrderSummaryQueryHandler(
     IOrderQueries orderQueries

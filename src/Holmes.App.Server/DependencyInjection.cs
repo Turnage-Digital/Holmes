@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.App.Integration;
-using Holmes.App.Integration.EventHandlers;
+using Holmes.App.Application;
+using Holmes.App.Application.EventHandlers;
 using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions;
@@ -13,31 +13,38 @@ using Holmes.Core.Infrastructure.Security;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Events;
 using Holmes.Customers.Application.Abstractions;
+using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.IntakeSessions.Application.Abstractions;
 using Holmes.IntakeSessions.Application.Abstractions.Services;
+using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Application.Commands;
 using Holmes.IntakeSessions.Application.Services;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Infrastructure.Sql;
 using Holmes.Notifications.Application.Abstractions;
+using Holmes.Notifications.Application.Abstractions.Commands;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql;
 using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Application.Commands;
 using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
 using Holmes.SlaClocks.Application.Abstractions;
 using Holmes.SlaClocks.Application.Abstractions.Services;
+using Holmes.SlaClocks.Application.Abstractions.Commands;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
+using Holmes.Subjects.Application.Abstractions.Commands;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using Holmes.Subjects.Infrastructure.Sql;
@@ -45,7 +52,7 @@ using Holmes.Users.Application.Abstractions;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
-using Holmes.Orders.Application.Commands;
+using Holmes.Orders.Application.Abstractions.Commands;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Subjects.Application.Abstractions;
@@ -260,7 +267,7 @@ internal static class DependencyInjection
         services.AddSlaClockInfrastructureSql(connectionString, serverVersion);
         services.AddServicesInfrastructureSql(connectionString, serverVersion);
 
-        services.AddAppIntegration();
+        services.AddAppApplication();
 
         return services;
     }
@@ -326,7 +333,7 @@ internal static class DependencyInjection
         services.AddScoped<ISlaClockProjectionWriter, SlaClockProjectionWriter>();
         services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
         services.AddSingleton<ISlaClockChangeBroadcaster, SlaClockChangeBroadcaster>();
-        services.AddAppIntegration();
+        services.AddAppApplication();
         return services;
     }
 }

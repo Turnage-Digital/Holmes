@@ -1,16 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Customers.Domain;
 using MediatR;
 
 namespace Holmes.Customers.Application.Commands;
-
-public sealed record SuspendCustomerCommand(
-    UlidId TargetCustomerId,
-    string Reason,
-    DateTimeOffset SuspendedAt
-) : RequestBase<Result>;
 
 public sealed class SuspendCustomerCommandHandler(ICustomersUnitOfWork unitOfWork)
     : IRequestHandler<SuspendCustomerCommand, Result>

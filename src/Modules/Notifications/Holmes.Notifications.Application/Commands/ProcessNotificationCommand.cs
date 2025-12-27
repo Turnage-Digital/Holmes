@@ -1,15 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Notifications.Application.Abstractions.Commands;
 using Holmes.Notifications.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Holmes.Notifications.Application.Commands;
-
-public sealed record ProcessNotificationCommand(
-    UlidId NotificationId
-) : RequestBase<Result>;
 
 public sealed class ProcessNotificationCommandHandler(
     INotificationsUnitOfWork unitOfWork,
