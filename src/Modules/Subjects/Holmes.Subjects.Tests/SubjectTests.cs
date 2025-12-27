@@ -4,8 +4,6 @@ using Holmes.Subjects.Domain;
 using Holmes.Subjects.Domain.Events;
 using Holmes.Subjects.Domain.ValueObjects;
 using Holmes.Subjects.Infrastructure.Sql;
-using Holmes.Subjects.Infrastructure.Sql.Projections;
-using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -119,7 +117,7 @@ public class SubjectTests
     public async Task SubjectProjectionHandler_SubjectRegistered_WritesProjection()
     {
         await using var context = CreateSubjectsDbContext();
-        var writer = new SqlSubjectProjectionWriter(context, NullLogger<SqlSubjectProjectionWriter>.Instance);
+        var writer = new SubjectProjectionWriter(context, NullLogger<SubjectProjectionWriter>.Instance);
         var handler = new SubjectProjectionHandler(writer);
         var subjectId = UlidId.NewUlid();
 
@@ -142,7 +140,7 @@ public class SubjectTests
     public async Task SubjectProjectionHandler_AliasAndMerge_UpdatesProjection()
     {
         await using var context = CreateSubjectsDbContext();
-        var writer = new SqlSubjectProjectionWriter(context, NullLogger<SqlSubjectProjectionWriter>.Instance);
+        var writer = new SubjectProjectionWriter(context, NullLogger<SubjectProjectionWriter>.Instance);
         var handler = new SubjectProjectionHandler(writer);
         var subjectId = UlidId.NewUlid();
 
@@ -172,7 +170,7 @@ public class SubjectTests
     public async Task SqlRepository_GetByIdAsync_RehydratesAliasesAndMergeState()
     {
         await using var context = CreateSubjectsDbContext();
-        var repository = new SqlSubjectRepository(context);
+        var repository = new SubjectRepository(context);
         var subject = Subject.Register(UlidId.NewUlid(), "Avery", "Nguyen", null, null, DateTimeOffset.UtcNow);
         subject.AddAlias(new SubjectAlias("Ava", "Nguyen", null), DateTimeOffset.UtcNow, UlidId.NewUlid());
         await repository.AddAsync(subject, CancellationToken.None);

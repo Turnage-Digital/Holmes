@@ -1,17 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Domain;
 using MediatR;
 
 namespace Holmes.Services.Application.Commands;
-
-public sealed record ProcessVendorCallbackCommand(
-    string VendorCode,
-    string VendorReferenceId,
-    string CallbackPayload,
-    DateTimeOffset ReceivedAt
-) : RequestBase<Result>;
 
 public sealed class ProcessVendorCallbackCommandHandler(
     IServicesUnitOfWork unitOfWork,
@@ -29,16 +22,16 @@ public sealed class ProcessVendorCallbackCommandHandler(
             return Result.Fail($"Vendor adapter '{request.VendorCode}' not found");
         }
 
-        // Find the service request by vendor reference
-        var serviceRequest = await unitOfWork.ServiceRequests.GetByVendorReferenceAsync(
+        // Find the service by vendor reference
+        var service = await unitOfWork.Services.GetByVendorReferenceAsync(
             request.VendorCode, request.VendorReferenceId, cancellationToken);
 
-        if (serviceRequest is null)
+        if (service is null)
         {
-            return Result.Fail($"Service request not found for vendor reference {request.VendorReferenceId}");
+            return Result.Fail($"Service not found for vendor reference {request.VendorReferenceId}");
         }
 
-        if (serviceRequest.IsTerminal)
+        if (service.IsTerminal)
         {
             // Already completed, idempotent
             return Result.Success();
@@ -48,8 +41,8 @@ public sealed class ProcessVendorCallbackCommandHandler(
         var result = await vendorAdapter.ParseCallbackAsync(request.CallbackPayload, cancellationToken);
 
         // Record the result
-        serviceRequest.RecordResult(result, request.ReceivedAt);
-        unitOfWork.ServiceRequests.Update(serviceRequest);
+        service.RecordResult(result, request.ReceivedAt);
+        unitOfWork.Services.Update(service);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

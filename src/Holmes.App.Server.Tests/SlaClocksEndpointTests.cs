@@ -7,15 +7,15 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Orders.Domain;
+using Holmes.Orders.Infrastructure.Sql;
+using Holmes.Orders.Infrastructure.Sql.Entities;
 using Holmes.SlaClocks.Application.Abstractions.Dtos;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
 using Holmes.SlaClocks.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
-using Holmes.Workflow.Domain;
-using Holmes.Workflow.Infrastructure.Sql;
-using Holmes.Workflow.Infrastructure.Sql.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -156,7 +156,7 @@ public class SlaClocksEndpointTests
 
         // Verify clock is now paused
         using var scope = factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SlaClockDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<SlaClocksDbContext>();
         var clock = await db.SlaClocks.FirstOrDefaultAsync(c => c.Id == clockId);
         Assert.That(clock, Is.Not.Null);
         Assert.That(clock!.State, Is.EqualTo((int)ClockState.Paused));
@@ -247,7 +247,7 @@ public class SlaClocksEndpointTests
 
         // Verify clock is now running
         using var scope = factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SlaClockDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<SlaClocksDbContext>();
         var clock = await db.SlaClocks.FirstOrDefaultAsync(c => c.Id == clockId);
         Assert.That(clock, Is.Not.Null);
         Assert.That(clock!.State, Is.EqualTo((int)ClockState.Running));
@@ -420,7 +420,7 @@ public class SlaClocksEndpointTests
     )
     {
         using var scope = factory.Services.CreateScope();
-        var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
+        var workflowDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
         workflowDb.OrderSummaries.Add(new OrderSummaryProjectionDb
         {
             OrderId = orderId,
@@ -450,7 +450,7 @@ public class SlaClocksEndpointTests
     )
     {
         using var scope = factory.Services.CreateScope();
-        var slaDb = scope.ServiceProvider.GetRequiredService<SlaClockDbContext>();
+        var slaDb = scope.ServiceProvider.GetRequiredService<SlaClocksDbContext>();
 
         var now = DateTime.UtcNow;
         var clock = new SlaClockDb

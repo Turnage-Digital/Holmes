@@ -85,6 +85,13 @@ public class CoreDbContext(DbContextOptions<CoreDbContext> options)
 
             builder.HasIndex(e => new { e.TenantId, e.StreamType, e.Position })
                 .HasDatabaseName("IX_events_streamtype_position");
+
+            builder.Property(e => e.DispatchedAt)
+                .HasColumnType("datetime(6)");
+
+            // Index for outbox processor to find undispatched events efficiently
+            builder.HasIndex(e => new { e.DispatchedAt, e.Position })
+                .HasDatabaseName("IX_events_outbox");
         });
 
         modelBuilder.Entity<SnapshotRecord>(builder =>

@@ -8,14 +8,14 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Orders.Application.Abstractions.Dtos;
+using Holmes.Orders.Domain;
+using Holmes.Orders.Infrastructure.Sql;
+using Holmes.Orders.Infrastructure.Sql.Entities;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
-using Holmes.Workflow.Application.Abstractions.Dtos;
-using Holmes.Workflow.Domain;
-using Holmes.Workflow.Infrastructure.Sql;
-using Holmes.Workflow.Infrastructure.Sql.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -134,8 +134,10 @@ public class OrdersEndpointTests
 
         var request = new OrdersController.CreateOrderRequest(
             customerId,
-            subjectId,
             "policy-snapshot-v1",
+            subjectId,
+            null,
+            null,
             "PKG-A");
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
@@ -167,8 +169,8 @@ public class OrdersEndpointTests
 
         var request = new OrdersController.CreateOrderRequest(
             customerId,
-            subjectId,
-            "policy-snapshot-v1");
+            "policy-snapshot-v1",
+            subjectId);
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
 
@@ -272,7 +274,7 @@ public class OrdersEndpointTests
     )
     {
         using var scope = factory.Services.CreateScope();
-        var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
+        var workflowDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
         workflowDb.OrderSummaries.Add(new OrderSummaryProjectionDb
         {
             OrderId = orderId,
@@ -298,7 +300,7 @@ public class OrdersEndpointTests
     )
     {
         using var scope = factory.Services.CreateScope();
-        var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
+        var workflowDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
         workflowDb.OrderTimelineEvents.Add(new OrderTimelineEventProjectionDb
         {
             EventId = Ulid.NewUlid().ToString(),

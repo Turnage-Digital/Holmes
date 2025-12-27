@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql;
 
-public sealed class SlaClockRepository(SlaClockDbContext context) : ISlaClockRepository
+public sealed class SlaClockRepository(SlaClocksDbContext context) : ISlaClockRepository
 {
     public async Task<SlaClock?> GetByIdAsync(UlidId id, CancellationToken cancellationToken = default)
     {

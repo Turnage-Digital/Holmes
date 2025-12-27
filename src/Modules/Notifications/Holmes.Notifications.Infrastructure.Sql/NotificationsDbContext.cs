@@ -6,7 +6,7 @@ namespace Holmes.Notifications.Infrastructure.Sql;
 public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> options)
     : DbContext(options)
 {
-    public DbSet<NotificationRequestDb> NotificationRequests => Set<NotificationRequestDb>();
+    public DbSet<NotificationDb> Notifications => Set<NotificationDb>();
     public DbSet<DeliveryAttemptDb> DeliveryAttempts => Set<DeliveryAttemptDb>();
     public DbSet<NotificationProjectionDb> NotificationProjections => Set<NotificationProjectionDb>();
 
@@ -16,9 +16,9 @@ public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> opt
 
         modelBuilder.HasCharSet("utf8mb4");
 
-        modelBuilder.Entity<NotificationRequestDb>(entity =>
+        modelBuilder.Entity<NotificationDb>(entity =>
         {
-            entity.ToTable("notification_requests");
+            entity.ToTable("notifications");
 
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasMaxLength(26).IsRequired();
@@ -53,17 +53,17 @@ public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> opt
 
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.NotificationRequestId).HasMaxLength(26).IsRequired();
+            entity.Property(e => e.NotificationId).HasMaxLength(26).IsRequired();
             entity.Property(e => e.ProviderMessageId).HasMaxLength(256);
             entity.Property(e => e.FailureReason).HasMaxLength(1024);
             entity.Property(e => e.AttemptedAt).HasColumnType("datetime(6)");
 
-            entity.HasOne(e => e.NotificationRequest)
+            entity.HasOne(e => e.Notification)
                 .WithMany(n => n.DeliveryAttempts)
-                .HasForeignKey(e => e.NotificationRequestId)
+                .HasForeignKey(e => e.NotificationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasIndex(e => e.NotificationRequestId);
+            entity.HasIndex(e => e.NotificationId);
             entity.HasIndex(e => e.AttemptedAt);
         });
 

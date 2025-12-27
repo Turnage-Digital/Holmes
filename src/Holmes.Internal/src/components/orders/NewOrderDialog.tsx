@@ -15,16 +15,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useQueryClient } from "@tanstack/react-query";
 
 import type { CustomerListItemDto } from "@/types/api";
 
-import {
-  useCreateOrder,
-  useCustomers,
-  useIssueIntakeInvite,
-  useRegisterSubject,
-} from "@/hooks/api";
+import { useCreateOrderWithIntake, useCustomers } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
 interface NewOrderDialogProps {
@@ -45,11 +39,8 @@ const initialFormState: FormState = {
 };
 
 const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
-  const queryClient = useQueryClient();
-
   const [formState, setFormState] = useState<FormState>(initialFormState);
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch customers for dropdown
   const { data: customersData, isLoading: customersLoading } = useCustomers(
@@ -58,10 +49,9 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
   );
   const customers = customersData?.items ?? [];
 
-  // Mutations
-  const registerSubjectMutation = useRegisterSubject();
-  const createOrderMutation = useCreateOrder();
-  const issueInviteMutation = useIssueIntakeInvite();
+  // Single mutation for creating order with intake
+  const createOrderWithIntakeMutation = useCreateOrderWithIntake();
+  const isSubmitting = createOrderWithIntakeMutation.isPending;
 
   const handleChange =
     (field: keyof FormState) =>
@@ -100,7 +90,6 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
     try {
@@ -112,39 +101,19 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
         throw new Error("Selected customer not found.");
       }
 
-      // Step 1: Register the subject (minimal info - intake will collect the rest)
-      // givenName and familyName will be populated during intake
-      const subject = await registerSubjectMutation.mutateAsync({
-        givenName: "",
-        familyName: "",
-        email: formState.subjectEmail.trim(),
-      });
-
-      // Step 2: Create the order
-      const order = await createOrderMutation.mutateAsync({
-        customerId: formState.customerId,
-        subjectId: subject.subjectId,
-        policySnapshotId: selectedCustomer.policySnapshotId,
-      });
-
-      // Step 3: Issue the intake invite
-      await issueInviteMutation.mutateAsync({
-        orderId: order.orderId,
-        subjectId: subject.subjectId,
+      // Single API call creates subject (or reuses existing), order, and intake session
+      await createOrderWithIntakeMutation.mutateAsync({
+        subjectEmail: formState.subjectEmail.trim(),
+        subjectPhone: formState.subjectPhone.trim() || undefined,
         customerId: formState.customerId,
         policySnapshotId: selectedCustomer.policySnapshotId,
       });
-
-      // Invalidate queries to refresh data
-      await queryClient.invalidateQueries({ queryKey: ["orders"] });
 
       // Reset and close
       setFormState(initialFormState);
       onClose();
     } catch (err) {
       setError(getErrorMessage(err));
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

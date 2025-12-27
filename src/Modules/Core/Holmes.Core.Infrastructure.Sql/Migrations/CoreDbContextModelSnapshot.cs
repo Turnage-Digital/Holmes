@@ -48,6 +48,9 @@ namespace Holmes.Core.Infrastructure.Sql.Migrations
                         .HasColumnType("datetime(6)")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
+                    b.Property<DateTime?>("DispatchedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("EventId")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -89,6 +92,9 @@ namespace Holmes.Core.Infrastructure.Sql.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Position");
+
+                    b.HasIndex("DispatchedAt", "Position")
+                        .HasDatabaseName("IX_events_outbox");
 
                     b.HasIndex("TenantId", "IdempotencyKey")
                         .IsUnique()

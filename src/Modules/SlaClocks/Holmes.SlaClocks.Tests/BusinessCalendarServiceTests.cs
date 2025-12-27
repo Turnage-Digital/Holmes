@@ -7,18 +7,18 @@ namespace Holmes.SlaClocks.Tests;
 
 public sealed class BusinessCalendarServiceTests
 {
-    private SlaClockDbContext _context = null!;
+    private SlaClocksDbContext _context = null!;
     private UlidId _customerId;
     private BusinessCalendarService _service = null!;
 
     [SetUp]
     public void SetUp()
     {
-        var options = new DbContextOptionsBuilder<SlaClockDbContext>()
+        var options = new DbContextOptionsBuilder<SlaClocksDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        _context = new SlaClockDbContext(options);
+        _context = new SlaClocksDbContext(options);
         _service = new BusinessCalendarService(_context);
         _customerId = UlidId.NewUlid();
     }

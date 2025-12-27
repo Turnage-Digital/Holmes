@@ -1,15 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Customers.Domain;
 using MediatR;
 
 namespace Holmes.Customers.Application.Commands;
-
-public sealed record ReactivateCustomerCommand(
-    UlidId TargetCustomerId,
-    DateTimeOffset ReactivatedAt
-) : RequestBase<Result>;
 
 public sealed class ReactivateCustomerCommandHandler(ICustomersUnitOfWork unitOfWork)
     : IRequestHandler<ReactivateCustomerCommand, Result>

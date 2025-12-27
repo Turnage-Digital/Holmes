@@ -247,8 +247,8 @@ public class CustomersEndpointTests
 
         var updateRequest = new UpdateServiceCatalogRequest(
             [
-                new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null),
-                new ServiceCatalogServiceRequestItem("NATL_CRIM", true, 2, "VENDOR_A")
+                new ServiceCatalogServiceItem("SSN_TRACE", false, 1, null),
+                new ServiceCatalogServiceItem("NATL_CRIM", true, 2, "VENDOR_A")
             ],
             [
                 new ServiceCatalogTierRequestItem(1, "Custom Tier 1", "My custom tier", ["SSN_TRACE"], [], true, false)
@@ -293,7 +293,7 @@ public class CustomersEndpointTests
         await SeedCustomerAsync(factory, customerId, "tenant-catalog-no-ops");
 
         var updateRequest = new UpdateServiceCatalogRequest(
-            [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
+            [new ServiceCatalogServiceItem("SSN_TRACE", false, 1, null)],
             null);
 
         var response = await client.PutAsJsonAsync($"/api/customers/{customerId}/service-catalog", updateRequest);
@@ -319,7 +319,7 @@ public class CustomersEndpointTests
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         var updateRequest = new UpdateServiceCatalogRequest(
-            [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
+            [new ServiceCatalogServiceItem("SSN_TRACE", false, 1, null)],
             null);
 
         var allowedResponse =
@@ -342,7 +342,7 @@ public class CustomersEndpointTests
 
         var nonExistentCustomerId = Ulid.NewUlid().ToString();
         var updateRequest = new UpdateServiceCatalogRequest(
-            [new ServiceCatalogServiceRequestItem("SSN_TRACE", false, 1, null)],
+            [new ServiceCatalogServiceItem("SSN_TRACE", false, 1, null)],
             null);
 
         var response =
@@ -489,11 +489,11 @@ public class CustomersEndpointTests
     }
 
     private sealed record UpdateServiceCatalogRequest(
-        IReadOnlyCollection<ServiceCatalogServiceRequestItem>? Services,
+        IReadOnlyCollection<ServiceCatalogServiceItem>? Services,
         IReadOnlyCollection<ServiceCatalogTierRequestItem>? Tiers
     );
 
-    private sealed record ServiceCatalogServiceRequestItem(
+    private sealed record ServiceCatalogServiceItem(
         string ServiceTypeCode,
         bool IsEnabled,
         int Tier,

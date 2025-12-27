@@ -1,15 +1,10 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Notifications.Application.Abstractions.Commands;
 using Holmes.Notifications.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Holmes.Notifications.Application.Commands;
-
-public sealed record ProcessNotificationCommand(
-    UlidId NotificationId
-) : RequestBase<Result>;
 
 public sealed class ProcessNotificationCommandHandler(
     INotificationsUnitOfWork unitOfWork,
@@ -23,7 +18,7 @@ public sealed class ProcessNotificationCommandHandler(
         CancellationToken cancellationToken
     )
     {
-        var notification = await unitOfWork.NotificationRequests.GetByIdAsync(
+        var notification = await unitOfWork.Notifications.GetByIdAsync(
             request.NotificationId,
             cancellationToken);
 
@@ -51,7 +46,7 @@ public sealed class ProcessNotificationCommandHandler(
                 notification.Id);
 
             notification.MarkQueued(timeProvider.GetUtcNow());
-            await unitOfWork.NotificationRequests.UpdateAsync(notification, cancellationToken);
+            await unitOfWork.Notifications.UpdateAsync(notification, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Success();
         }
@@ -68,7 +63,7 @@ public sealed class ProcessNotificationCommandHandler(
                 timeProvider.GetUtcNow(),
                 $"No provider configured for channel {notification.Recipient.Channel}");
 
-            await unitOfWork.NotificationRequests.UpdateAsync(notification, cancellationToken);
+            await unitOfWork.Notifications.UpdateAsync(notification, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return Result.Fail($"No provider for channel {notification.Recipient.Channel}");
         }
@@ -108,7 +103,7 @@ public sealed class ProcessNotificationCommandHandler(
                 result.ErrorMessage);
         }
 
-        await unitOfWork.NotificationRequests.UpdateAsync(notification, cancellationToken);
+        await unitOfWork.Notifications.UpdateAsync(notification, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return result.Success

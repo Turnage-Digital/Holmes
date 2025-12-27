@@ -28,6 +28,7 @@ import {
   AddressHistoryForm,
   EducationHistoryForm,
   EmploymentHistoryForm,
+  PhoneForm,
   ReferenceForm,
 } from "@/components/forms";
 import {
@@ -54,6 +55,7 @@ import {
   IntakeAddress,
   IntakeEducation,
   IntakeEmployment,
+  IntakePhone,
   IntakeReference,
 } from "@/types/intake";
 
@@ -62,6 +64,7 @@ type IntakeStepId =
   | "otp"
   | "consent"
   | "personal"
+  | "phone"
   | "addresses"
   | "employment"
   | "education"
@@ -95,6 +98,7 @@ interface IntakeFormState {
   employments: IntakeEmployment[];
   educations: IntakeEducation[];
   references: IntakeReference[];
+  phones: IntakePhone[];
 }
 
 const formSchemaVersion = "intake-extended-v2";
@@ -113,6 +117,7 @@ const initialFormState: IntakeFormState = {
   employments: [],
   educations: [],
   references: [],
+  phones: [],
 };
 
 const CONSENT_TEXT = `I authorize Holmes to obtain and share consumer reports for employment purposes.
@@ -391,9 +396,14 @@ const IntakeFlow = () => {
         graduationDate: e.graduationDate || null,
         graduated: e.graduated,
       })),
-      phones: [
-        { phoneNumber: formState.phone.trim(), type: 0, isPrimary: true },
-      ],
+      phones:
+        formState.phones.length > 0
+          ? formState.phones.map((p) => ({
+              phoneNumber: p.phoneNumber.trim(),
+              type: p.type,
+              isPrimary: p.isPrimary,
+            }))
+          : [{ phoneNumber: formState.phone.trim(), type: 0, isPrimary: true }],
       references: formState.references.map((r) => ({
         name: r.name.trim(),
         phone: r.phone.trim() || null,
@@ -452,7 +462,7 @@ const IntakeFlow = () => {
       employments?: IntakeEmployment[];
       educations?: IntakeEducation[];
       references?: IntakeReference[];
-      phones?: { phoneNumber: string }[];
+      phones?: IntakePhone[];
     }
 
     const decodeAnswers = (): DecodedAnswers | null => {
@@ -488,6 +498,7 @@ const IntakeFlow = () => {
       employments: decoded.employments ?? prev.employments,
       educations: decoded.educations ?? prev.educations,
       references: decoded.references ?? prev.references,
+      phones: decoded.phones?.length ? decoded.phones : prev.phones,
       consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
     }));
   }, []);
@@ -879,6 +890,49 @@ const IntakeFlow = () => {
           const missingFields = validatePersonalInfo();
           if (missingFields.length > 0) {
             setProgressError(`Please add: ${missingFields.join(", ")}`);
+            return false;
+          }
+          setProgressError(null);
+          return true;
+        },
+      },
+      {
+        id: "phone",
+        sectionId: "phone",
+        title: "Phone Numbers",
+        subtitle: "Provide your contact phone numbers.",
+        render: () => {
+          const progressErrorAlert = progressError ? (
+            <Alert severity="error">{progressError}</Alert>
+          ) : null;
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="Your phone numbers"
+                body="Add phone numbers where you can be reached."
+                helper="Mark one as your primary contact number."
+              />
+              {progressErrorAlert}
+              <PhoneForm
+                phones={formState.phones}
+                onChange={(phones) => {
+                  updateField("phones", phones);
+                  setProgressError(null);
+                }}
+                minPhones={1}
+                maxPhones={5}
+              />
+            </Stack>
+          );
+        },
+        primaryCtaLabel: "Continue",
+        onPrimary: () => {
+          if (
+            formState.phones.length === 0 ||
+            !formState.phones.some((p) => p.phoneNumber.trim())
+          ) {
+            setProgressError("Please add at least one phone number");
             return false;
           }
           setProgressError(null);

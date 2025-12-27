@@ -1,4 +1,4 @@
-using Holmes.Notifications.Application.Commands;
+using Holmes.Notifications.Application.Abstractions.Commands;
 using Holmes.Notifications.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -8,9 +8,9 @@ namespace Holmes.Notifications.Application.EventHandlers;
 public sealed class ProcessImmediateNotificationHandler(
     ISender sender,
     ILogger<ProcessImmediateNotificationHandler> logger
-) : INotificationHandler<NotificationRequestCreated>
+) : INotificationHandler<NotificationCreated>
 {
-    public async Task Handle(NotificationRequestCreated notification, CancellationToken cancellationToken)
+    public async Task Handle(NotificationCreated notification, CancellationToken cancellationToken)
     {
         // Only process immediately if not scheduled for later
         if (notification.ScheduledFor.HasValue)

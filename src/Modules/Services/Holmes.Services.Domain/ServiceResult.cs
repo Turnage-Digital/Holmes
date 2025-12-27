@@ -3,7 +3,7 @@ using Holmes.Core.Domain.ValueObjects;
 namespace Holmes.Services.Domain;
 
 /// <summary>
-///     Represents the normalized result of a service request.
+///     Represents the normalized result of a service.
 /// </summary>
 public sealed class ServiceResult
 {

@@ -1,6 +1,6 @@
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Application.Abstractions.Queries;
+using Holmes.Users.Application.Abstractions;
 using Holmes.Users.Application.Exceptions;
 using Holmes.Users.Domain;
 using Holmes.Users.Domain.Events;

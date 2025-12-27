@@ -16,4 +16,10 @@ public class EventRecord
     public string? CausationId { get; set; }
     public string? ActorId { get; set; }
     public string IdempotencyKey { get; set; } = null!;
+
+    /// <summary>
+    ///     When the event was dispatched via MediatR. Null means pending dispatch.
+    ///     Used by the outbox pattern to ensure events are only dispatched after commit.
+    /// </summary>
+    public DateTime? DispatchedAt { get; set; }
 }

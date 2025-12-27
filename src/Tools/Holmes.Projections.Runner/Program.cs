@@ -2,19 +2,14 @@ using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Projections;
 using Holmes.Customers.Application.EventHandlers;
 using Holmes.Customers.Infrastructure.Sql;
-using Holmes.Customers.Infrastructure.Sql.Projections;
-using Holmes.Intake.Application.EventHandlers;
-using Holmes.Intake.Infrastructure.Sql;
-using Holmes.Intake.Infrastructure.Sql.Projections;
+using Holmes.IntakeSessions.Application.EventHandlers;
+using Holmes.IntakeSessions.Infrastructure.Sql;
+using Holmes.Orders.Application.EventHandlers;
+using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Subjects.Application.EventHandlers;
 using Holmes.Subjects.Infrastructure.Sql;
-using Holmes.Subjects.Infrastructure.Sql.Projections;
 using Holmes.Users.Application.EventHandlers;
 using Holmes.Users.Infrastructure.Sql;
-using Holmes.Users.Infrastructure.Sql.Projections;
-using Holmes.Workflow.Application.EventHandlers;
-using Holmes.Workflow.Infrastructure.Sql;
-using Holmes.Workflow.Infrastructure.Sql.Projections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,11 +50,11 @@ catch (MySqlException)
 
 // Register all infrastructure modules
 builder.Services.AddCoreInfrastructureSql(connectionString, serverVersion);
-builder.Services.AddUsersInfrastructureSql(connectionString, serverVersion);
 builder.Services.AddCustomersInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddIntakeSessionsInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddOrdersInfrastructureSql(connectionString, serverVersion);
 builder.Services.AddSubjectsInfrastructureSql(connectionString, serverVersion);
-builder.Services.AddIntakeInfrastructureSql(connectionString, serverVersion);
-builder.Services.AddWorkflowInfrastructureSql(connectionString, serverVersion);
+builder.Services.AddUsersInfrastructureSql(connectionString, serverVersion);
 
 // Register MediatR with all event handlers for event-based replay
 builder.Services.AddMediatR(config =>

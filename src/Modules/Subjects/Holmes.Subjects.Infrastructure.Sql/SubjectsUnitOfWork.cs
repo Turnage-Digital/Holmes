@@ -2,7 +2,6 @@ using Holmes.Core.Application.Abstractions;
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Subjects.Domain;
-using Holmes.Subjects.Infrastructure.Sql.Repositories;
 using MediatR;
 
 namespace Holmes.Subjects.Infrastructure.Sql;
@@ -16,7 +15,7 @@ public sealed class SubjectsUnitOfWork(
 )
     : UnitOfWork<SubjectsDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), ISubjectsUnitOfWork
 {
-    private readonly Lazy<ISubjectRepository> _subjects = new(() => new SqlSubjectRepository(dbContext));
+    private readonly Lazy<ISubjectRepository> _subjects = new(() => new SubjectRepository(dbContext));
 
     public ISubjectRepository Subjects => _subjects.Value;
 }

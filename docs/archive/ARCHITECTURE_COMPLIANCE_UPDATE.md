@@ -79,7 +79,7 @@ Holmes does not directly send messages; it **requests** them.
 Notifications layer:
 
 - Tenant provides provider keys (SendGrid, Twilio, webhook targets)
-- Holmes emits `NotificationRequested` events
+- Holmes emits `NotificationCreated` events
 - Provider adapters handle actual delivery
 
 This avoids FCRA liability while enabling automation.

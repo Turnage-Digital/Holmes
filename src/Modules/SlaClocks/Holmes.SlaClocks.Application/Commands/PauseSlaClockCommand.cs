@@ -1,19 +1,12 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.SlaClocks.Application.Abstractions.Commands;
 using Holmes.SlaClocks.Domain;
 using MediatR;
 
 namespace Holmes.SlaClocks.Application.Commands;
 
-public sealed record PauseSlaClockCommand(
-    UlidId ClockId,
-    string Reason,
-    DateTimeOffset PausedAt
-) : RequestBase<Result>;
-
 public sealed class PauseSlaClockCommandHandler(
-    ISlaClockUnitOfWork unitOfWork
+    ISlaClocksUnitOfWork unitOfWork
 ) : IRequestHandler<PauseSlaClockCommand, Result>
 {
     public async Task<Result> Handle(PauseSlaClockCommand request, CancellationToken cancellationToken)

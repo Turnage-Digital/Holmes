@@ -1,16 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Services.Application.Abstractions.Commands;
 using Holmes.Services.Domain;
 using MediatR;
 
 namespace Holmes.Services.Application.Commands;
-
-public sealed record RecordServiceResultCommand(
-    UlidId ServiceRequestId,
-    ServiceResult Result,
-    DateTimeOffset CompletedAt
-) : RequestBase<Result>;
 
 public sealed class RecordServiceResultCommandHandler(
     IServicesUnitOfWork unitOfWork
@@ -21,21 +14,21 @@ public sealed class RecordServiceResultCommandHandler(
         CancellationToken cancellationToken
     )
     {
-        var serviceRequest = await unitOfWork.ServiceRequests.GetByIdAsync(
-            request.ServiceRequestId, cancellationToken);
+        var service = await unitOfWork.Services.GetByIdAsync(
+            request.ServiceId, cancellationToken);
 
-        if (serviceRequest is null)
+        if (service is null)
         {
-            return Result.Fail($"Service request {request.ServiceRequestId} not found");
+            return Result.Fail($"Service {request.ServiceId} not found");
         }
 
-        if (serviceRequest.IsTerminal)
+        if (service.IsTerminal)
         {
-            return Result.Fail("Service request is already in a terminal state");
+            return Result.Fail("Service is already in a terminal state");
         }
 
-        serviceRequest.RecordResult(request.Result, request.CompletedAt);
-        unitOfWork.ServiceRequests.Update(serviceRequest);
+        service.RecordResult(request.Result, request.CompletedAt);
+        unitOfWork.Services.Update(service);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

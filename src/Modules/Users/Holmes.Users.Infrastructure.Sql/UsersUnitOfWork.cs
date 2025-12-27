@@ -2,7 +2,6 @@ using Holmes.Core.Application.Abstractions;
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Users.Domain;
-using Holmes.Users.Infrastructure.Sql.Repositories;
 using MediatR;
 
 namespace Holmes.Users.Infrastructure.Sql;
@@ -16,7 +15,7 @@ public sealed class UsersUnitOfWork(
 )
     : UnitOfWork<UsersDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IUsersUnitOfWork
 {
-    private readonly Lazy<IUserRepository> _users = new(() => new SqlUserRepository(dbContext));
+    private readonly Lazy<IUserRepository> _users = new(() => new UserRepository(dbContext));
 
     public IUserRepository Users => _users.Value;
 }

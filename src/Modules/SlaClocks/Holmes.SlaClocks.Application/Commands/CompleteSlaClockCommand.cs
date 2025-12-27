@@ -1,19 +1,12 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.SlaClocks.Application.Abstractions.Commands;
 using Holmes.SlaClocks.Domain;
 using MediatR;
 
 namespace Holmes.SlaClocks.Application.Commands;
 
-public sealed record CompleteSlaClockCommand(
-    UlidId OrderId,
-    ClockKind Kind,
-    DateTimeOffset CompletedAt
-) : RequestBase<Result>;
-
 public sealed class CompleteSlaClockCommandHandler(
-    ISlaClockUnitOfWork unitOfWork
+    ISlaClocksUnitOfWork unitOfWork
 ) : IRequestHandler<CompleteSlaClockCommand, Result>
 {
     public async Task<Result> Handle(CompleteSlaClockCommand request, CancellationToken cancellationToken)

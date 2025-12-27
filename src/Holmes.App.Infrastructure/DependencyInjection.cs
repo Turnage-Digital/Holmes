@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using Holmes.App.Infrastructure.Identity;
-using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Application;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Holmes.App.Infrastructure;
+namespace Holmes.App.Infrastructure.Security;
 
 public static class DependencyInjection
 {

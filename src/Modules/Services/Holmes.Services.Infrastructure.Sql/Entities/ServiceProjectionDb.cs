@@ -1,7 +1,7 @@
 namespace Holmes.Services.Infrastructure.Sql.Entities;
 
 /// <summary>
-///     Database entity for the service request read-model projection.
+///     Database entity for the service read-model projection.
 ///     Populated by event handlers for fast query access.
 /// </summary>
 public class ServiceProjectionDb

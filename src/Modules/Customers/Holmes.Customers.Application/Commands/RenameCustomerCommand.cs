@@ -1,16 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Customers.Domain;
 using MediatR;
 
 namespace Holmes.Customers.Application.Commands;
-
-public sealed record RenameCustomerCommand(
-    UlidId TargetCustomerId,
-    string Name,
-    DateTimeOffset RenamedAt
-) : RequestBase<Result>;
 
 public sealed class RenameCustomerCommandHandler(ICustomersUnitOfWork unitOfWork)
     : IRequestHandler<RenameCustomerCommand, Result>

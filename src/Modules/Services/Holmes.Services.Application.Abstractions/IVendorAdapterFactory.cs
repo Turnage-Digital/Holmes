@@ -10,6 +10,4 @@ public interface IVendorAdapterFactory
     IVendorAdapter? GetAdapter(string vendorCode);
 
     IVendorAdapter? GetAdapterForCategory(ServiceCategory category);
-
-    IEnumerable<IVendorAdapter> GetAll();
 }

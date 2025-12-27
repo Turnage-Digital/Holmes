@@ -9,11 +9,21 @@ public interface IEventStore
     /// <summary>
     ///     Appends events to a stream. Events are persisted atomically.
     /// </summary>
+    /// <param name="tenantId">The tenant identifier.</param>
+    /// <param name="streamId">The stream identifier (aggregate ID).</param>
+    /// <param name="streamType">The stream type (aggregate type).</param>
+    /// <param name="events">The events to append.</param>
+    /// <param name="markAsDispatched">
+    ///     If true, events are marked as already dispatched (DispatchedAt set to now).
+    ///     Use this when events will be dispatched immediately after persistence.
+    /// </param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task AppendEventsAsync(
         string tenantId,
         string streamId,
         string streamType,
         IReadOnlyCollection<EventEnvelope> events,
+        bool markAsDispatched,
         CancellationToken cancellationToken
     );
 
@@ -50,6 +60,32 @@ public interface IEventStore
         long fromPosition,
         int batchSize,
         DateTime? asOfTimestamp,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    ///     Reads events that have not been dispatched yet (outbox pattern).
+    ///     Returns events ordered by position for consistent processing.
+    /// </summary>
+    Task<IReadOnlyList<StoredEvent>> ReadUndispatchedAsync(
+        int batchSize,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    ///     Marks an event as dispatched. Used by outbox processor after
+    ///     successfully publishing the event via MediatR.
+    /// </summary>
+    Task MarkDispatchedAsync(
+        long position,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    ///     Marks multiple events as dispatched in a single operation.
+    /// </summary>
+    Task MarkDispatchedBatchAsync(
+        IEnumerable<long> positions,
         CancellationToken cancellationToken
     );
 }

@@ -10,11 +10,11 @@ using Holmes.Notifications.Application.Abstractions.Dtos;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql;
 using Holmes.Notifications.Infrastructure.Sql.Entities;
+using Holmes.Orders.Domain;
+using Holmes.Orders.Infrastructure.Sql;
+using Holmes.Orders.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
-using Holmes.Workflow.Domain;
-using Holmes.Workflow.Infrastructure.Sql;
-using Holmes.Workflow.Infrastructure.Sql.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -160,7 +160,7 @@ public class NotificationsEndpointTests
         // Verify notification was processed (status should change from Failed)
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<NotificationsDbContext>();
-        var notification = await db.NotificationRequests.FirstOrDefaultAsync(n => n.Id == notificationId);
+        var notification = await db.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId);
         Assert.That(notification, Is.Not.Null);
         // After retry with the LoggingEmailProvider, it should be Delivered
         Assert.That(notification!.Status, Is.EqualTo((int)DeliveryStatus.Delivered));
@@ -346,7 +346,7 @@ public class NotificationsEndpointTests
     )
     {
         using var scope = factory.Services.CreateScope();
-        var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
+        var workflowDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
         workflowDb.OrderSummaries.Add(new OrderSummaryProjectionDb
         {
             OrderId = orderId,
@@ -377,7 +377,7 @@ public class NotificationsEndpointTests
         var notificationsDb = scope.ServiceProvider.GetRequiredService<NotificationsDbContext>();
 
         var now = DateTime.UtcNow;
-        var notification = new NotificationRequestDb
+        var notification = new NotificationDb
         {
             Id = notificationId,
             CustomerId = customerId,
@@ -403,7 +403,7 @@ public class NotificationsEndpointTests
             CorrelationId = null
         };
 
-        notificationsDb.NotificationRequests.Add(notification);
+        notificationsDb.Notifications.Add(notification);
         await notificationsDb.SaveChangesAsync();
     }
 }

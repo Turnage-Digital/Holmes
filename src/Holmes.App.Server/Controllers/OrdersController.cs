@@ -1,18 +1,19 @@
 using System.Text.Json;
+using Holmes.App.Application.Commands;
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Queries;
+using Holmes.Customers.Application.Abstractions.Queries;
+using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Application.Abstractions.Commands;
+using Holmes.Orders.Application.Abstractions.Dtos;
+using Holmes.Orders.Application.Abstractions.Queries;
+using Holmes.Orders.Domain;
 using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Queries;
+using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Domain;
-using Holmes.Subjects.Application.Queries;
-using Holmes.Workflow.Application.Abstractions.Dtos;
-using Holmes.Workflow.Application.Abstractions.Queries;
-using Holmes.Workflow.Application.Commands;
-using Holmes.Workflow.Application.Queries;
-using Holmes.Workflow.Domain;
+using Holmes.Subjects.Application.Abstractions.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ public sealed class OrdersController(
 {
     [HttpPost]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]
-    public async Task<ActionResult<OrderSummaryDto>> CreateOrderAsync(
+    public async Task<ActionResult> CreateOrderAsync(
         [FromBody] CreateOrderRequest request,
         CancellationToken cancellationToken
     )
@@ -38,11 +39,6 @@ public sealed class OrdersController(
         if (!Ulid.TryParse(request.CustomerId, out var parsedCustomer))
         {
             return BadRequest("Invalid customer id format.");
-        }
-
-        if (!Ulid.TryParse(request.SubjectId, out var parsedSubject))
-        {
-            return BadRequest("Invalid subject id format.");
         }
 
         var customerId = parsedCustomer.ToString();
@@ -56,36 +52,73 @@ public sealed class OrdersController(
             return NotFound($"Customer '{customerId}' not found.");
         }
 
-        var subjectId = parsedSubject.ToString();
-        if (!await mediator.Send(new CheckSubjectExistsQuery(subjectId), cancellationToken))
+        if (!string.IsNullOrWhiteSpace(request.SubjectId))
         {
-            return NotFound($"Subject '{subjectId}' not found.");
+            if (!Ulid.TryParse(request.SubjectId, out var parsedSubject))
+            {
+                return BadRequest("Invalid subject id format.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.SubjectEmail))
+            {
+                return BadRequest("Provide either subjectId or subjectEmail, not both.");
+            }
+
+            var subjectId = parsedSubject.ToString();
+            if (!await mediator.Send(new CheckSubjectExistsQuery(subjectId), cancellationToken))
+            {
+                return NotFound($"Subject '{subjectId}' not found.");
+            }
+
+            var orderId = UlidId.NewUlid();
+            var timestamp = DateTimeOffset.UtcNow;
+            var command = new CreateOrderCommand(
+                orderId,
+                UlidId.FromUlid(parsedSubject),
+                UlidId.FromUlid(parsedCustomer),
+                request.PolicySnapshotId,
+                timestamp,
+                request.PackageCode);
+
+            var result = await mediator.Send(command, cancellationToken);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            var summaryResult = await mediator.Send(new GetOrderSummaryQuery(orderId.ToString()), cancellationToken);
+
+            if (!summaryResult.IsSuccess)
+            {
+                return Problem("Failed to load created order.");
+            }
+
+            return Created($"/api/orders/{orderId}/timeline", summaryResult.Value);
         }
 
-        var orderId = UlidId.NewUlid();
-        var timestamp = DateTimeOffset.UtcNow;
-        var command = new CreateOrderCommand(
-            orderId,
-            UlidId.FromUlid(parsedSubject),
+        if (string.IsNullOrWhiteSpace(request.SubjectEmail))
+        {
+            return BadRequest("Subject email or subject id is required.");
+        }
+
+        var intakeCommand = new CreateOrderWithIntakeCommand(
+            request.SubjectEmail.Trim(),
+            request.SubjectPhone?.Trim(),
             UlidId.FromUlid(parsedCustomer),
-            request.PolicySnapshotId,
-            timestamp,
-            request.PackageCode);
+            request.PolicySnapshotId);
 
-        var result = await mediator.Send(command, cancellationToken);
-        if (!result.IsSuccess)
+        var intakeResult = await mediator.Send(intakeCommand, cancellationToken);
+        if (!intakeResult.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return BadRequest(intakeResult.Error);
         }
 
-        var summaryResult = await mediator.Send(new GetOrderSummaryQuery(orderId.ToString()), cancellationToken);
+        var response = new CreateOrderWithIntakeResponse(
+            intakeResult.Value.SubjectId.ToString(),
+            intakeResult.Value.SubjectWasExisting,
+            intakeResult.Value.OrderId.ToString());
 
-        if (!summaryResult.IsSuccess)
-        {
-            return Problem("Failed to load created order.");
-        }
-
-        return Created($"/api/orders/{orderId}/timeline", summaryResult.Value);
+        return Created($"/api/orders/{intakeResult.Value.OrderId}/timeline", response);
     }
 
     [HttpGet("summary")]
@@ -253,9 +286,9 @@ public sealed class OrdersController(
             return Forbid();
         }
 
-        // Fetch all service requests for this order via MediatR query
+        // Fetch all services for this order via MediatR query
         var servicesResult = await mediator.Send(
-            new GetServiceRequestsByOrderQuery(UlidId.Parse(targetOrderId)), cancellationToken);
+            new GetServicesByOrderQuery(UlidId.Parse(targetOrderId)), cancellationToken);
 
         if (!servicesResult.IsSuccess)
         {
@@ -381,8 +414,16 @@ public sealed class OrdersController(
 
     public sealed record CreateOrderRequest(
         string CustomerId,
-        string SubjectId,
         string PolicySnapshotId,
+        string? SubjectId = null,
+        string? SubjectEmail = null,
+        string? SubjectPhone = null,
         string? PackageCode = null
+    );
+
+    public sealed record CreateOrderWithIntakeResponse(
+        string SubjectId,
+        bool SubjectWasExisting,
+        string OrderId
     );
 }

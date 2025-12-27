@@ -1,17 +1,9 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Subjects.Application.Abstractions.Commands;
 using Holmes.Subjects.Domain;
 using MediatR;
 
 namespace Holmes.Subjects.Application.Commands;
-
-public sealed record RegisterSubjectCommand(
-    string GivenName,
-    string FamilyName,
-    DateOnly? DateOfBirth,
-    string? Email,
-    DateTimeOffset RegisteredAt
-) : RequestBase<UlidId>;
 
 public sealed class RegisterSubjectCommandHandler(ISubjectsUnitOfWork unitOfWork)
     : IRequestHandler<RegisterSubjectCommand, UlidId>

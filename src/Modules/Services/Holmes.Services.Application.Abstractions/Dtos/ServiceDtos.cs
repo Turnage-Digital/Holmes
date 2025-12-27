@@ -3,9 +3,9 @@ using Holmes.Services.Domain;
 namespace Holmes.Services.Application.Abstractions.Dtos;
 
 /// <summary>
-///     Summary DTO for a service request, used in list views and order services.
+///     Summary DTO for a service, used in list views and order services.
 /// </summary>
-public sealed record ServiceRequestSummaryDto(
+public sealed record ServiceSummaryDto(
     string Id,
     string OrderId,
     string CustomerId,
@@ -32,7 +32,7 @@ public sealed record ServiceRequestSummaryDto(
 /// </summary>
 public sealed record OrderServicesDto(
     string OrderId,
-    IReadOnlyCollection<ServiceRequestSummaryDto> Services,
+    IReadOnlyCollection<ServiceSummaryDto> Services,
     int TotalServices,
     int CompletedServices,
     int PendingServices,

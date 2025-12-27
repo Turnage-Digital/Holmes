@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Core.Infrastructure.Sql.Events;
@@ -17,7 +18,11 @@ public sealed class DomainEventSerializer : IDomainEventSerializer
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+            new UlidIdJsonConverter()
+        }
     };
 
     // Cache resolved types for performance

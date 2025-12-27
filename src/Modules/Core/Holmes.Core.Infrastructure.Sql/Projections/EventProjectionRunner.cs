@@ -10,29 +10,14 @@ namespace Holmes.Core.Infrastructure.Sql.Projections;
 ///     Base class for event-based projection runners. Reads events from the event store
 ///     and dispatches them through MediatR handlers to rebuild projections.
 /// </summary>
-public abstract class EventProjectionRunner
+public abstract class EventProjectionRunner(
+    CoreDbContext coreDbContext,
+    IEventStore eventStore,
+    IDomainEventSerializer serializer,
+    IPublisher publisher,
+    ILogger logger
+)
 {
-    private readonly CoreDbContext _coreDbContext;
-    private readonly IEventStore _eventStore;
-    private readonly ILogger _logger;
-    private readonly IPublisher _publisher;
-    private readonly IDomainEventSerializer _serializer;
-
-    protected EventProjectionRunner(
-        CoreDbContext coreDbContext,
-        IEventStore eventStore,
-        IDomainEventSerializer serializer,
-        IPublisher publisher,
-        ILogger logger
-    )
-    {
-        _coreDbContext = coreDbContext;
-        _eventStore = eventStore;
-        _serializer = serializer;
-        _publisher = publisher;
-        _logger = logger;
-    }
-
     /// <summary>
     ///     Unique name for this projection, used for checkpoint storage.
     /// </summary>
@@ -56,7 +41,7 @@ public abstract class EventProjectionRunner
     {
         if (reset)
         {
-            _logger.LogInformation("Resetting projection {ProjectionName}...", ProjectionName);
+            logger.LogInformation("Resetting projection {ProjectionName}...", ProjectionName);
             await ResetProjectionAsync(cancellationToken);
             await DeleteCheckpointAsync(cancellationToken);
         }
@@ -66,7 +51,7 @@ public abstract class EventProjectionRunner
         var currentPosition = lastPosition;
         DateTime? lastEventTime = null;
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Starting event replay for {ProjectionName} from position {Position}",
             ProjectionName,
             lastPosition);
@@ -87,15 +72,15 @@ public abstract class EventProjectionRunner
 
                 try
                 {
-                    var notification = _serializer.Deserialize(storedEvent.Payload, storedEvent.EventName);
-                    await _publisher.Publish(notification, cancellationToken);
+                    var notification = serializer.Deserialize(storedEvent.Payload, storedEvent.EventName);
+                    await publisher.Publish(notification, cancellationToken);
                     processed++;
                     currentPosition = storedEvent.Position;
                     lastEventTime = storedEvent.CreatedAt;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(
+                    logger.LogError(
                         ex,
                         "Failed to process event {EventId} at position {Position} for projection {ProjectionName}",
                         storedEvent.EventId,
@@ -107,13 +92,13 @@ public abstract class EventProjectionRunner
 
             await SaveCheckpointAsync(currentPosition, cancellationToken);
 
-            _logger.LogDebug(
+            logger.LogDebug(
                 "Processed batch of {Count} events, position now at {Position}",
                 events.Count,
                 currentPosition);
         }
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Event replay complete for {ProjectionName}. Processed {Count} events, final position {Position}",
             ProjectionName,
             processed,
@@ -136,7 +121,7 @@ public abstract class EventProjectionRunner
 
         if (StreamTypes is null || StreamTypes.Length == 0)
         {
-            return await _eventStore.ReadAllAsync(tenantId, fromPosition, batchSize, null, cancellationToken);
+            return await eventStore.ReadAllAsync(tenantId, fromPosition, batchSize, null, cancellationToken);
         }
 
         // If filtering by stream types, we need to merge results from each type
@@ -145,7 +130,7 @@ public abstract class EventProjectionRunner
 
         foreach (var streamType in StreamTypes)
         {
-            var events = await _eventStore.ReadByStreamTypeAsync(
+            var events = await eventStore.ReadByStreamTypeAsync(
                 tenantId,
                 streamType,
                 fromPosition,
@@ -164,7 +149,7 @@ public abstract class EventProjectionRunner
 
     private async Task<long> LoadCheckpointAsync(CancellationToken cancellationToken)
     {
-        var checkpoint = await _coreDbContext.ProjectionCheckpoints
+        var checkpoint = await coreDbContext.ProjectionCheckpoints
             .AsNoTracking()
             .FirstOrDefaultAsync(
                 x => x.ProjectionName == ProjectionName && x.TenantId == "*",
@@ -175,7 +160,7 @@ public abstract class EventProjectionRunner
 
     private async Task SaveCheckpointAsync(long position, CancellationToken cancellationToken)
     {
-        var checkpoint = await _coreDbContext.ProjectionCheckpoints
+        var checkpoint = await coreDbContext.ProjectionCheckpoints
             .FirstOrDefaultAsync(
                 x => x.ProjectionName == ProjectionName && x.TenantId == "*",
                 cancellationToken);
@@ -187,26 +172,26 @@ public abstract class EventProjectionRunner
                 ProjectionName = ProjectionName,
                 TenantId = "*"
             };
-            _coreDbContext.ProjectionCheckpoints.Add(checkpoint);
+            coreDbContext.ProjectionCheckpoints.Add(checkpoint);
         }
 
         checkpoint.Position = position;
         checkpoint.UpdatedAt = DateTime.UtcNow;
 
-        await _coreDbContext.SaveChangesAsync(cancellationToken);
+        await coreDbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task DeleteCheckpointAsync(CancellationToken cancellationToken)
     {
-        var checkpoint = await _coreDbContext.ProjectionCheckpoints
+        var checkpoint = await coreDbContext.ProjectionCheckpoints
             .FirstOrDefaultAsync(
                 x => x.ProjectionName == ProjectionName && x.TenantId == "*",
                 cancellationToken);
 
         if (checkpoint is not null)
         {
-            _coreDbContext.ProjectionCheckpoints.Remove(checkpoint);
-            await _coreDbContext.SaveChangesAsync(cancellationToken);
+            coreDbContext.ProjectionCheckpoints.Remove(checkpoint);
+            await coreDbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

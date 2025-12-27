@@ -6,7 +6,7 @@ namespace Holmes.Notifications.Infrastructure.Sql.Specifications;
 /// <summary>
 ///     Finds all notifications for a specific order, ordered by creation date descending.
 /// </summary>
-public sealed class NotificationsByOrderIdSpec : Specification<NotificationRequestDb>
+public sealed class NotificationsByOrderIdSpec : Specification<NotificationDb>
 {
     public NotificationsByOrderIdSpec(string orderId)
     {

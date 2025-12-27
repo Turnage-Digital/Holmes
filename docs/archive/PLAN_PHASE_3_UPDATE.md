@@ -25,7 +25,7 @@ readiness.
 - Initial Compliance bounded context foundations (Phase 3 of Compliance Suite)
 - Baseline Notifications:
     - Tenant-configured provider abstractions (email/SMS/webhook)
-    - Holmes emits `NotificationRequested` events; providers deliver
+    - Holmes emits `NotificationCreated` events; providers deliver
 - Identity Broker readiness:
     - Holmes.Identity can federate with tenant IdPs via OIDC
     - Tenant-scoped identity mapping and role assignment

@@ -4,5 +4,5 @@ namespace Holmes.Services.Domain;
 
 public interface IServicesUnitOfWork : IUnitOfWork
 {
-    IServiceRequestRepository ServiceRequests { get; }
+    IServiceRepository Services { get; }
 }
