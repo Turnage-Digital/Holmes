@@ -1,4 +1,3 @@
-using Holmes.App.Infrastructure;
 using Holmes.App.Infrastructure.Security;
 using Holmes.Hosting;
 using Microsoft.AspNetCore.Diagnostics;

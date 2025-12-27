@@ -314,6 +314,25 @@ public sealed class Subject : AggregateRoot
         }
     }
 
+    public void RequestIntake(
+        UlidId orderId,
+        UlidId customerId,
+        string policySnapshotId,
+        DateTimeOffset requestedAt,
+        UlidId requestedBy
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(policySnapshotId);
+
+        Emit(new SubjectIntakeRequested(
+            orderId,
+            Id,
+            customerId,
+            policySnapshotId,
+            requestedAt,
+            requestedBy));
+    }
+
     private void Apply(SubjectRegistered @event)
     {
         Id = @event.SubjectId;

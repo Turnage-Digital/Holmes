@@ -111,6 +111,12 @@ These handlers connect the modules into an end-to-end workflow:
     - `AcceptIntakeSubmissionCommand` -> `MarkOrderReadyForFulfillmentCommand`
     - Policy validation is currently stubbed to allow all submissions.
 
+- `SubjectIntakeRequestedOrderHandler` (`src/Holmes.App.Application/EventHandlers/SubjectIntakeRequestedOrderHandler.cs`)
+    - `SubjectIntakeRequested` -> creates Order asynchronously.
+
+- `OrderCreatedFromIntakeInviteHandler` (`src/Holmes.App.Application/EventHandlers/OrderCreatedFromIntakeInviteHandler.cs`)
+    - `OrderCreatedFromIntake` -> issues intake invite asynchronously (no cross-module transaction).
+
 - `OrderStatusChangedSlaHandler` (`src/Holmes.App.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
     - Starts/completes/pauses/resumes SLA clocks based on Order status changes.
 
@@ -191,4 +197,3 @@ The following areas are planned but not present in this repository today:
 - Adjudication engine + charge taxonomy
 - Provider adapters beyond basic stubs
 - Monetization and entitlements
-

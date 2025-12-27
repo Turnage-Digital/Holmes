@@ -336,25 +336,17 @@ export interface OrderStatsDto {
 
 export interface CreateOrderRequest {
   customerId: Ulid;
-  subjectId: Ulid;
   policySnapshotId: string;
-  packageCode?: string;
-}
-
-export interface CreateOrderWithIntakeRequest {
-  subjectEmail: string;
+  subjectId?: Ulid;
+  subjectEmail?: string;
   subjectPhone?: string;
-  customerId: Ulid;
-  policySnapshotId: string;
+  packageCode?: string;
 }
 
 export interface CreateOrderWithIntakeResponse {
   subjectId: Ulid;
   subjectWasExisting: boolean;
   orderId: Ulid;
-  intakeSessionId: Ulid;
-  resumeToken: string;
-  expiresAt: string;
 }
 
 export interface OrderSummaryQuery {

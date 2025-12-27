@@ -134,8 +134,10 @@ public class OrdersEndpointTests
 
         var request = new OrdersController.CreateOrderRequest(
             customerId,
-            subjectId,
             "policy-snapshot-v1",
+            subjectId,
+            null,
+            null,
             "PKG-A");
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
@@ -167,8 +169,8 @@ public class OrdersEndpointTests
 
         var request = new OrdersController.CreateOrderRequest(
             customerId,
-            subjectId,
-            "policy-snapshot-v1");
+            "policy-snapshot-v1",
+            subjectId);
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
 

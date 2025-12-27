@@ -31,7 +31,7 @@ public sealed class OrdersController(
 {
     [HttpPost]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]
-    public async Task<ActionResult<OrderSummaryDto>> CreateOrderAsync(
+    public async Task<ActionResult> CreateOrderAsync(
         [FromBody] CreateOrderRequest request,
         CancellationToken cancellationToken
     )
@@ -41,11 +41,6 @@ public sealed class OrdersController(
             return BadRequest("Invalid customer id format.");
         }
 
-        if (!Ulid.TryParse(request.SubjectId, out var parsedSubject))
-        {
-            return BadRequest("Invalid subject id format.");
-        }
-
         var customerId = parsedCustomer.ToString();
         if (!await currentUserAccess.HasCustomerAccessAsync(customerId, cancellationToken))
         {
@@ -57,94 +52,73 @@ public sealed class OrdersController(
             return NotFound($"Customer '{customerId}' not found.");
         }
 
-        var subjectId = parsedSubject.ToString();
-        if (!await mediator.Send(new CheckSubjectExistsQuery(subjectId), cancellationToken))
+        if (!string.IsNullOrWhiteSpace(request.SubjectId))
         {
-            return NotFound($"Subject '{subjectId}' not found.");
+            if (!Ulid.TryParse(request.SubjectId, out var parsedSubject))
+            {
+                return BadRequest("Invalid subject id format.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.SubjectEmail))
+            {
+                return BadRequest("Provide either subjectId or subjectEmail, not both.");
+            }
+
+            var subjectId = parsedSubject.ToString();
+            if (!await mediator.Send(new CheckSubjectExistsQuery(subjectId), cancellationToken))
+            {
+                return NotFound($"Subject '{subjectId}' not found.");
+            }
+
+            var orderId = UlidId.NewUlid();
+            var timestamp = DateTimeOffset.UtcNow;
+            var command = new CreateOrderCommand(
+                orderId,
+                UlidId.FromUlid(parsedSubject),
+                UlidId.FromUlid(parsedCustomer),
+                request.PolicySnapshotId,
+                timestamp,
+                request.PackageCode);
+
+            var result = await mediator.Send(command, cancellationToken);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            var summaryResult = await mediator.Send(new GetOrderSummaryQuery(orderId.ToString()), cancellationToken);
+
+            if (!summaryResult.IsSuccess)
+            {
+                return Problem("Failed to load created order.");
+            }
+
+            return Created($"/api/orders/{orderId}/timeline", summaryResult.Value);
         }
 
-        var orderId = UlidId.NewUlid();
-        var timestamp = DateTimeOffset.UtcNow;
-        var command = new CreateOrderCommand(
-            orderId,
-            UlidId.FromUlid(parsedSubject),
-            UlidId.FromUlid(parsedCustomer),
-            request.PolicySnapshotId,
-            timestamp,
-            request.PackageCode);
-
-        var result = await mediator.Send(command, cancellationToken);
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result.Error);
-        }
-
-        var summaryResult = await mediator.Send(new GetOrderSummaryQuery(orderId.ToString()), cancellationToken);
-
-        if (!summaryResult.IsSuccess)
-        {
-            return Problem("Failed to load created order.");
-        }
-
-        return Created($"/api/orders/{orderId}/timeline", summaryResult.Value);
-    }
-
-    /// <summary>
-    ///     Creates an order with intake session in a single atomic operation.
-    ///     This is the preferred method for creating orders as it:
-    ///     - Reuses existing subjects by email
-    ///     - Creates order and intake session atomically
-    ///     - Uses the outbox pattern for reliable event dispatch
-    /// </summary>
-    [HttpPost("with-intake")]
-    [Authorize(Policy = AuthorizationPolicies.RequireOps)]
-    public async Task<ActionResult<CreateOrderWithIntakeResponse>> CreateWithIntakeAsync(
-        [FromBody] CreateOrderWithIntakeRequest request,
-        CancellationToken cancellationToken
-    )
-    {
         if (string.IsNullOrWhiteSpace(request.SubjectEmail))
         {
-            return BadRequest("Subject email is required.");
+            return BadRequest("Subject email or subject id is required.");
         }
 
-        if (!Ulid.TryParse(request.CustomerId, out var parsedCustomer))
-        {
-            return BadRequest("Invalid customer id format.");
-        }
-
-        var customerId = parsedCustomer.ToString();
-        if (!await currentUserAccess.HasCustomerAccessAsync(customerId, cancellationToken))
-        {
-            return Forbid();
-        }
-
-        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
-        {
-            return NotFound($"Customer '{customerId}' not found.");
-        }
-
-        var command = new CreateOrderWithIntakeCommand(
+        var intakeCommand = new CreateOrderWithIntakeCommand(
             request.SubjectEmail.Trim(),
             request.SubjectPhone?.Trim(),
             UlidId.FromUlid(parsedCustomer),
             request.PolicySnapshotId);
 
-        var result = await mediator.Send(command, cancellationToken);
-        if (!result.IsSuccess)
+        var intakeResult = await mediator.Send(intakeCommand, cancellationToken);
+        if (!intakeResult.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return BadRequest(intakeResult.Error);
         }
 
         var response = new CreateOrderWithIntakeResponse(
-            result.Value.SubjectId.ToString(),
-            result.Value.SubjectWasExisting,
-            result.Value.OrderId.ToString(),
-            result.Value.IntakeSessionId.ToString(),
-            result.Value.ResumeToken,
-            result.Value.ExpiresAt);
+            intakeResult.Value.SubjectId.ToString(),
+            intakeResult.Value.SubjectWasExisting,
+            intakeResult.Value.OrderId.ToString());
 
-        return Created($"/api/orders/{result.Value.OrderId}/timeline", response);
+        return Created($"/api/orders/{intakeResult.Value.OrderId}/timeline", response);
     }
 
     [HttpGet("summary")]
@@ -440,24 +414,16 @@ public sealed class OrdersController(
 
     public sealed record CreateOrderRequest(
         string CustomerId,
-        string SubjectId,
         string PolicySnapshotId,
+        string? SubjectId = null,
+        string? SubjectEmail = null,
+        string? SubjectPhone = null,
         string? PackageCode = null
-    );
-
-    public sealed record CreateOrderWithIntakeRequest(
-        string SubjectEmail,
-        string? SubjectPhone,
-        string CustomerId,
-        string PolicySnapshotId
     );
 
     public sealed record CreateOrderWithIntakeResponse(
         string SubjectId,
         bool SubjectWasExisting,
-        string OrderId,
-        string IntakeSessionId,
-        string ResumeToken,
-        DateTimeOffset ExpiresAt
+        string OrderId
     );
 }

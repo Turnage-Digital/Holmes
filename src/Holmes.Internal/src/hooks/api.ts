@@ -10,7 +10,6 @@ import type {
   CancelService,
   CreateCustomerRequest,
   CreateOrderRequest,
-  CreateOrderWithIntakeRequest,
   CreateOrderWithIntakeResponse,
   CurrentUserDto,
   CustomerDetailDto,
@@ -333,9 +332,9 @@ export const useCreateOrder = () => {
 };
 
 const createOrderWithIntake = (
-  payload: CreateOrderWithIntakeRequest,
+  payload: CreateOrderRequest,
 ): Promise<CreateOrderWithIntakeResponse> =>
-  apiFetch<CreateOrderWithIntakeResponse>("/orders/with-intake", {
+  apiFetch<CreateOrderWithIntakeResponse>("/orders", {
     method: "POST",
     body: payload,
   });

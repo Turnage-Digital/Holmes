@@ -55,7 +55,64 @@ public sealed class Order : AggregateRoot
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(policySnapshotId);
 
-        var order = new Order
+        var order = CreateCore(orderId, subjectId, customerId, policySnapshotId, createdAt, packageCode);
+
+        order.AddDomainEvent(new OrderCreated(
+            order.Id,
+            order.SubjectId,
+            order.CustomerId,
+            order.PolicySnapshotId,
+            createdAt));
+
+        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created",
+            createdAt));
+        return order;
+    }
+
+    public static Order CreateFromIntake(
+        UlidId orderId,
+        UlidId subjectId,
+        UlidId customerId,
+        string policySnapshotId,
+        DateTimeOffset createdAt,
+        UlidId requestedBy
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(policySnapshotId);
+
+        var order = CreateCore(orderId, subjectId, customerId, policySnapshotId, createdAt, null);
+
+        order.AddDomainEvent(new OrderCreated(
+            order.Id,
+            order.SubjectId,
+            order.CustomerId,
+            order.PolicySnapshotId,
+            createdAt));
+
+        order.AddDomainEvent(new OrderCreatedFromIntake(
+            order.Id,
+            order.SubjectId,
+            order.CustomerId,
+            order.PolicySnapshotId,
+            createdAt,
+            requestedBy));
+
+        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created",
+            createdAt));
+
+        return order;
+    }
+
+    private static Order CreateCore(
+        UlidId orderId,
+        UlidId subjectId,
+        UlidId customerId,
+        string policySnapshotId,
+        DateTimeOffset createdAt,
+        string? packageCode
+    )
+    {
+        return new Order
         {
             Id = orderId,
             SubjectId = subjectId,
@@ -66,10 +123,6 @@ public sealed class Order : AggregateRoot
             CreatedAt = createdAt,
             LastUpdatedAt = createdAt
         };
-
-        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created",
-            createdAt));
-        return order;
     }
 
     public static Order Rehydrate(

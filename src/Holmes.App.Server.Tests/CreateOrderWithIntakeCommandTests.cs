@@ -1,6 +1,7 @@
 using Holmes.App.Application.Commands;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
+using Holmes.Core.Infrastructure.Sql.Entities;
 using Holmes.Customers.Application.Abstractions.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
@@ -13,8 +14,8 @@ namespace Holmes.App.Server.Tests;
 
 /// <summary>
 ///     Integration tests for <see cref="CreateOrderWithIntakeCommand" />.
-///     Verifies the command correctly orchestrates subject creation/reuse,
-///     order creation, and intake session creation in a single transaction.
+///     Verifies the command correctly orchestrates subject creation/reuse
+///     and order creation. Intake invites are issued asynchronously.
 /// </summary>
 [TestFixture]
 public class CreateOrderWithIntakeCommandTests
@@ -61,7 +62,10 @@ public class CreateOrderWithIntakeCommandTests
                 "new-subject@example.com",
                 "+15551234567",
                 customerId,
-                "policy-v1"));
+                "policy-v1")
+            {
+                UserId = adminId.ToString()
+            });
 
             Assert.That(commandResult.IsSuccess, Is.True, commandResult.Error);
             result = commandResult.Value;
@@ -74,10 +78,7 @@ public class CreateOrderWithIntakeCommandTests
         {
             Assert.That(result!.SubjectId, Is.Not.Null.And.Not.EqualTo(default(UlidId)));
             Assert.That(result.OrderId, Is.Not.Null.And.Not.EqualTo(default(UlidId)));
-            Assert.That(result.IntakeSessionId, Is.Not.Null.And.Not.EqualTo(default(UlidId)));
             Assert.That(result.SubjectWasExisting, Is.False, "Subject should be new");
-            Assert.That(result.ResumeToken, Is.Not.Empty);
-            Assert.That(result.ExpiresAt, Is.GreaterThan(DateTimeOffset.UtcNow));
         });
 
         // Verify events were persisted (proving the transaction committed)
@@ -91,17 +92,14 @@ public class CreateOrderWithIntakeCommandTests
                 .ToListAsync();
             Assert.That(subjectEvents, Has.Count.GreaterThanOrEqualTo(1), "Subject events should be persisted");
 
-            // Order event should exist
-            var orderEvents = await coreDb.Events
-                .Where(e => e.StreamId == $"Order:{result!.OrderId}")
-                .ToListAsync();
+            // Order event should exist (issued asynchronously)
+            var orderEvents = await WaitForOrderEventsAsync(
+                coreDb,
+                result!.OrderId,
+                CancellationToken.None);
             Assert.That(orderEvents, Has.Count.GreaterThanOrEqualTo(1), "Order events should be persisted");
 
-            // IntakeSession event should exist
-            var intakeEvents = await coreDb.Events
-                .Where(e => e.StreamId == $"IntakeSession:{result!.IntakeSessionId}")
-                .ToListAsync();
-            Assert.That(intakeEvents, Has.Count.GreaterThanOrEqualTo(1), "IntakeSession events should be persisted");
+            // IntakeSession invite is issued asynchronously by integration handlers.
         }
     }
 
@@ -142,7 +140,10 @@ public class CreateOrderWithIntakeCommandTests
                 "existing@example.com",
                 "+15551111111",
                 customerId,
-                "policy-v1"));
+                "policy-v1")
+            {
+                UserId = adminId.ToString()
+            });
 
             Assert.That(firstResult.IsSuccess, Is.True);
             existingSubjectId = firstResult.Value.SubjectId;
@@ -158,7 +159,10 @@ public class CreateOrderWithIntakeCommandTests
                 "existing@example.com",
                 "+15552222222", // Different phone
                 customerId,
-                "policy-v2"));
+                "policy-v2")
+            {
+                UserId = adminId.ToString()
+            });
 
             Assert.That(commandResult.IsSuccess, Is.True, commandResult.Error);
             result = commandResult.Value;
@@ -222,7 +226,10 @@ public class CreateOrderWithIntakeCommandTests
                 "same-phone@example.com",
                 "+15559999999",
                 customerId,
-                "policy-v1"));
+                "policy-v1")
+            {
+                UserId = adminId.ToString()
+            });
 
             Assert.That(firstResult.IsSuccess, Is.True);
             subjectId = firstResult.Value.SubjectId;
@@ -237,7 +244,10 @@ public class CreateOrderWithIntakeCommandTests
                 "same-phone@example.com",
                 "+15559999999", // Same phone
                 customerId,
-                "policy-v2"));
+                "policy-v2")
+            {
+                UserId = adminId.ToString()
+            });
 
             Assert.That(secondResult.IsSuccess, Is.True);
         }
@@ -260,12 +270,13 @@ public class CreateOrderWithIntakeCommandTests
         await using var factory = new HolmesWebApplicationFactory();
 
         // Arrange
+        UlidId adminId;
         UlidId customerId;
         using (var scope = factory.Services.CreateScope())
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-            var adminId = await mediator.Send(new RegisterExternalUserCommand(
+            adminId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test",
                 "empty-email-admin",
                 "empty-email-admin@test.com",
@@ -294,7 +305,10 @@ public class CreateOrderWithIntakeCommandTests
                 "",
                 "+15551234567",
                 customerId,
-                "policy-v1"));
+                "policy-v1")
+            {
+                UserId = adminId.ToString()
+            });
 
             // Assert
             Assert.That(result.IsSuccess, Is.False);
@@ -344,13 +358,16 @@ public class CreateOrderWithIntakeCommandTests
                 "deferred-events@example.com",
                 "+15551234567",
                 customerId,
-                "policy-v1"));
+                "policy-v1")
+            {
+                UserId = adminId.ToString()
+            });
 
             Assert.That(commandResult.IsSuccess, Is.True, commandResult.Error);
             result = commandResult.Value;
         }
 
-        // Assert: Events from Subject, Order, and IntakeSession should exist
+        // Assert: Events from Subject and Order should exist
         // Note: The DeferredDispatchProcessor may have already dispatched them,
         // so we just verify events were created for the right streams
         using (var scope = factory.Services.CreateScope())
@@ -363,17 +380,36 @@ public class CreateOrderWithIntakeCommandTests
                 .ToListAsync();
             Assert.That(subjectEvents, Has.Count.GreaterThanOrEqualTo(1), "Subject events should exist");
 
-            // Order creation event
-            var orderEvents = await coreDb.Events
-                .Where(e => e.StreamId == $"Order:{result!.OrderId}")
-                .ToListAsync();
+            // Order creation event (issued asynchronously)
+            var orderEvents = await WaitForOrderEventsAsync(
+                coreDb,
+                result!.OrderId,
+                CancellationToken.None);
             Assert.That(orderEvents, Has.Count.GreaterThanOrEqualTo(1), "Order events should exist");
 
-            // IntakeSession invited event
-            var intakeEvents = await coreDb.Events
-                .Where(e => e.StreamId == $"IntakeSession:{result!.IntakeSessionId}")
-                .ToListAsync();
-            Assert.That(intakeEvents, Has.Count.GreaterThanOrEqualTo(1), "IntakeSession events should exist");
+            // IntakeSession invite is issued asynchronously by integration handlers.
         }
+    }
+
+    private static async Task<List<EventRecord>> WaitForOrderEventsAsync(
+        CoreDbContext coreDb,
+        UlidId orderId,
+        CancellationToken cancellationToken)
+    {
+        List<EventRecord> events = [];
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            events = await coreDb.Events
+                .Where(e => e.StreamId == $"Order:{orderId}")
+                .ToListAsync(cancellationToken);
+            if (events.Count > 0)
+            {
+                return events;
+            }
+
+            await Task.Delay(100, cancellationToken);
+        }
+
+        return events;
     }
 }

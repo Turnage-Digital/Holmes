@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7
 		global.json = global.json
 		ef-reset.ps1 = ef-reset.ps1
 		docker-compose.yml = docker-compose.yml
+		AGENTS.md = AGENTS.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}"
@@ -133,8 +134,6 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Core", "src\Holmes.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Internal.Server", "src\Holmes.Internal.Server\Holmes.Internal.Server.csproj", "{DB426D99-306F-4639-A7DB-7F95A6939F4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Infrastructure", "src\Holmes.App.Infrastructure\Holmes.App.Infrastructure.csproj", "{F9389329-8111-4054-9AB0-CB0001B83D27}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Application", "src\Holmes.App.Application\Holmes.App.Application.csproj", "{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server.Tests", "src\Holmes.Identity.Server.Tests\Holmes.Identity.Server.Tests.csproj", "{6372809D-FE47-4F11-A5E4-BE0634ABD025}"
@@ -186,6 +185,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Infrastructure.Sql", "src\Modules\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj", "{17A29F71-898C-414E-896C-2A5A2E963D10}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.IntakeSessions.Application.Abstractions", "src\Modules\IntakeSessions\Holmes.IntakeSessions.Application.Abstractions\Holmes.IntakeSessions.Application.Abstractions.csproj", "{109BAB85-687A-4924-9B23-5C5BFEE61797}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Infrastructure.Security", "src\Holmes.App.Infrastructure\Holmes.App.Infrastructure.Security.csproj", "{36FFF85C-C6EC-449B-B712-027154C07DA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -357,10 +358,6 @@ Global
 		{2A0DBAC0-4A18-4B3A-9F36-CEB9D6D125AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A0DBAC0-4A18-4B3A-9F36-CEB9D6D125AC}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{2A0DBAC0-4A18-4B3A-9F36-CEB9D6D125AC}.Release|Any CPU.Build.0 = Debug|Any CPU
-		{F9389329-8111-4054-9AB0-CB0001B83D27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F9389329-8111-4054-9AB0-CB0001B83D27}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F9389329-8111-4054-9AB0-CB0001B83D27}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F9389329-8111-4054-9AB0-CB0001B83D27}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -437,6 +434,10 @@ Global
 		{109BAB85-687A-4924-9B23-5C5BFEE61797}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{109BAB85-687A-4924-9B23-5C5BFEE61797}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{109BAB85-687A-4924-9B23-5C5BFEE61797}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36FFF85C-C6EC-449B-B712-027154C07DA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36FFF85C-C6EC-449B-B712-027154C07DA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36FFF85C-C6EC-449B-B712-027154C07DA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36FFF85C-C6EC-449B-B712-027154C07DA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -487,7 +488,6 @@ Global
 		{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7} = {DA18B859-CC68-40AB-9ED2-D7DFBA34D19A}
 		{537C4436-7D89-44AD-A053-D97A013F5882} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 		{DB426D99-306F-4639-A7DB-7F95A6939F4E} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
-		{F9389329-8111-4054-9AB0-CB0001B83D27} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 		{9F3A7EF2-9A43-4361-9397-B7E4ECDA9F49} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 		{6372809D-FE47-4F11-A5E4-BE0634ABD025} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890} = {3CC47ED9-D161-43E7-B4CB-3E5891AFCCAE}
@@ -512,5 +512,6 @@ Global
 		{B49B9B8C-CD2E-4098-A0D3-917A759F93D6} = {3D4A0FC5-51B7-40D5-88F6-F7CEE0325D38}
 		{17A29F71-898C-414E-896C-2A5A2E963D10} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{109BAB85-687A-4924-9B23-5C5BFEE61797} = {52F9E2C8-BBE8-4190-B5BC-70FFA64D4798}
+		{36FFF85C-C6EC-449B-B712-027154C07DA7} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 	EndGlobalSection
 EndGlobal

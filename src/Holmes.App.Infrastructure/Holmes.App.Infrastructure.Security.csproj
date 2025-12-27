@@ -5,6 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
+        <RootNamespace>Holmes.App.Infrastructure.Security</RootNamespace>
+        <AssemblyName>Holmes.App.Infrastructure.Security</AssemblyName>
     </PropertyGroup>
 
     <ItemGroup>

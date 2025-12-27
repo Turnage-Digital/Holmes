@@ -48,23 +48,32 @@ public abstract class UnitOfWork<TContext>(
             // Only wrap in a transaction for relational providers
             if (dbContext.Database.IsRelational())
             {
-                await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-                try
+                var hasExternalTransaction = dbContext.Database.CurrentTransaction is not null;
+                if (hasExternalTransaction)
                 {
-                    // 1. Save aggregate state changes
                     retval = await dbContext.SaveChangesAsync(cancellationToken);
-
-                    // 2. Persist events to EventRecord (within transaction)
-                    // When deferDispatch is false, mark events as already dispatched since
-                    // they will be published immediately after commit
                     await PersistEventsAsync(aggregates, !deferDispatch, cancellationToken);
-
-                    await transaction.CommitAsync(cancellationToken);
                 }
-                catch
+                else
                 {
-                    await transaction.RollbackAsync(cancellationToken)!;
-                    throw;
+                    await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+                    try
+                    {
+                        // 1. Save aggregate state changes
+                        retval = await dbContext.SaveChangesAsync(cancellationToken);
+
+                        // 2. Persist events to EventRecord (within transaction)
+                        // When deferDispatch is false, mark events as already dispatched since
+                        // they will be published immediately after commit
+                        await PersistEventsAsync(aggregates, !deferDispatch, cancellationToken);
+
+                        await transaction.CommitAsync(cancellationToken);
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync(cancellationToken)!;
+                        throw;
+                    }
                 }
             }
             else
