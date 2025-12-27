@@ -24,8 +24,8 @@ public class OrderTests
             Assert.That(order.PolicySnapshotId, Is.EqualTo("policy-v1"));
             Assert.That(order.Status, Is.EqualTo(OrderStatus.Created));
         });
-        var createdEvent = order.DomainEvents.Single();
-        Assert.That(createdEvent, Is.TypeOf<OrderStatusChanged>());
+        Assert.That(order.DomainEvents, Has.Exactly(1).TypeOf<OrderCreated>());
+        Assert.That(order.DomainEvents, Has.Exactly(1).TypeOf<OrderStatusChanged>());
     }
 
     [Test]
