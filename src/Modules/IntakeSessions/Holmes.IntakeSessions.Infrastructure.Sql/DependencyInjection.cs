@@ -28,8 +28,6 @@ public static class DependencyInjection
 
         // Projections
         services.AddScoped<IIntakeSessionProjectionWriter, IntakeSessionProjectionWriter>();
-        services.AddScoped<IIntakeSessionReplaySource, IntakeSessionReplaySource>();
-        services.AddScoped<IntakeSessionProjectionRunner>();
 
         // Services
         services.AddScoped<IIntakeAnswersDecryptor, IntakeAnswersDecryptor>();

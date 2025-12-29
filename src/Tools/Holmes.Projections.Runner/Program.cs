@@ -66,12 +66,7 @@ builder.Services.AddMediatR(config =>
     config.RegisterServicesFromAssemblyContaining<OrderStatusChangedHandler>();
 });
 
-// Register aggregate-based projection runners (existing)
-builder.Services.AddScoped<OrderSummaryProjectionRunner>();
-builder.Services.AddScoped<IntakeSessionProjectionRunner>();
-builder.Services.AddScoped<OrderTimelineProjectionRunner>();
-
-// Register event-based projection runners (new)
+// Register event-based projection runners
 builder.Services.AddScoped<UserEventProjectionRunner>();
 builder.Services.AddScoped<CustomerEventProjectionRunner>();
 builder.Services.AddScoped<SubjectEventProjectionRunner>();
@@ -86,7 +81,6 @@ var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
 
 var projection = builder.Configuration["projection"] ?? "order-summary";
 var reset = builder.Configuration.GetValue("reset", false);
-var fromEvents = builder.Configuration.GetValue("from-events", false);
 var batchSize = builder.Configuration.GetValue("batch-size", 200);
 var cancellationToken = CreateCancellationToken();
 
@@ -94,15 +88,12 @@ try
 {
     ProjectionReplayResult result;
 
-    if (fromEvents)
-    {
-        result = await RunEventBasedProjectionAsync(projection, reset, batchSize, scope.ServiceProvider,
-            cancellationToken);
-    }
-    else
-    {
-        result = await RunAggregateBasedProjectionAsync(projection, reset, scope.ServiceProvider, cancellationToken);
-    }
+    result = await RunEventBasedProjectionAsync(
+        projection,
+        reset,
+        batchSize,
+        scope.ServiceProvider,
+        cancellationToken);
 
     logger.LogInformation(
         "Projection replay complete. Processed {Count} items. Last: {EntityId} at {Timestamp}.",
@@ -160,34 +151,6 @@ static async Task<ProjectionReplayResult> RunEventBasedProjectionAsync(
         _ => throw new InvalidOperationException(
             $"Unknown projection '{projection}' for event-based replay. " +
             "Expected one of: user, customer, subject, intake-sessions, order-summary, order-timeline.")
-    };
-}
-
-static async Task<ProjectionReplayResult> RunAggregateBasedProjectionAsync(
-    string projection,
-    bool reset,
-    IServiceProvider services,
-    CancellationToken cancellationToken
-)
-{
-    return projection.ToLowerInvariant() switch
-    {
-        "order-summary" =>
-            await services.GetRequiredService<OrderSummaryProjectionRunner>()
-                .RunAsync(reset, cancellationToken),
-
-        "intake-sessions" =>
-            await services.GetRequiredService<IntakeSessionProjectionRunner>()
-                .RunAsync(reset, cancellationToken),
-
-        "order-timeline" =>
-            await services.GetRequiredService<OrderTimelineProjectionRunner>()
-                .RunAsync(reset, cancellationToken),
-
-        _ => throw new InvalidOperationException(
-            $"Unknown projection '{projection}' for aggregate-based replay. " +
-            "Expected one of: order-summary, intake-sessions, order-timeline. " +
-            "For user, customer, subject projections, use --from-events true.")
     };
 }
 

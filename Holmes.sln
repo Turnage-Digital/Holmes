@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# 
+#
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution", "solution", "{F7B4C548-64D4-4CA9-891D-D799ABE0B4AA}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
@@ -89,14 +89,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{9721B5CA-8C26-4FC5-8448-F3247DFEDD62}"
 	ProjectSection(SolutionItems) = preProject
 		docs\ARCHITECTURE.md = docs\ARCHITECTURE.md
+		docs\INTEGRATION_INDEX.md = docs\INTEGRATION_INDEX.md
 		docs\PLAN.md = docs\PLAN.md
 		docs\MODULE_TEMPLATE.md = docs\MODULE_TEMPLATE.md
 		docs\DEV_SETUP.md = docs\DEV_SETUP.md
 		docs\RUNBOOKS.md = docs\RUNBOOKS.md
-		docs\Holmes.App.UI.md = docs\Holmes.App.UI.md
 		docs\AUDIT.md = docs\AUDIT.md
-		docs\PHASE_2.md = docs\PHASE_2.md
-		docs\PHASE_3_CONSOLIDATED.md = docs\PHASE_3_CONSOLIDATED.md
+		docs\PHASE_3.md = docs\PHASE_3.md
 		docs\STATE_MACHINES.md = docs\STATE_MACHINES.md
 	EndProjectSection
 EndProject
@@ -161,6 +160,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "archive", "archive", "{A1B2C3D4-0000-0000-0000-000000000001}"
 	ProjectSection(SolutionItems) = preProject
 		docs\archive\PHASE_3.md = docs\archive\PHASE_3.md
+		docs\archive\PHASE_2.md = docs\archive\PHASE_2.md
 		docs\archive\PHASE_3_1.md = docs\archive\PHASE_3_1.md
 		docs\archive\PHASE_3_2.md = docs\archive\PHASE_3_2.md
 		docs\archive\SLA_CLOCKS_PLAN.md = docs\archive\SLA_CLOCKS_PLAN.md

@@ -79,8 +79,12 @@ Application ──────► Application.Abstractions ◄──────
 - Allowed references: `ModuleA.Application` → `ModuleB.Application.Abstractions` and
   `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions`.
 - Forbidden references: direct dependencies on another module's Domain, Application, or Infrastructure.Sql.
-- Cross-module integration handlers live in `Holmes.App.Application`, not inside individual modules.
+- Cross-module integration handlers live in the consuming module's Application and only reference the
+  producer's Application.Abstractions.
+- Integration event contracts live in the producer's `Application.Abstractions/IntegrationEvents/`.
+- Integration event publishers and consumers live in each module's `Application/EventHandlers/`.
 - No cross-module transactions; use the outbox + integration events between modules.
+- See `docs/INTEGRATION_INDEX.md` for the current producer/consumer map.
 
 ---
 
@@ -88,10 +92,10 @@ Application ──────► Application.Abstractions ◄──────
 
 - `Holmes.App.Server`
     - API surface, background services, and integration wiring.
-- `Holmes.App.Application`
-    - Cross-module integration handlers and gateways only.
 - `Holmes.App.Infrastructure.Security`
     - Host security/identity wiring and policies.
+
+There is no central app application layer; integration handlers live in modules.
 
 ---
 

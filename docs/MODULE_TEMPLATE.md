@@ -129,6 +129,14 @@ Holmes.SlaClocks.Application.csproj references:
 This keeps module boundaries clean while allowing event-driven integration without direct cross-module Application
 references.
 
+### Integration Event Flow (Standard)
+
+- Contracts live in `...Application.Abstractions/IntegrationEvents/`.
+- Producers publish integration events from domain events via `...Application/EventHandlers/*IntegrationEventPublisher.cs`.
+- Consumers handle integration events in `...Application/EventHandlers/` and translate to local commands.
+- Use `SaveChangesAsync(true)` when you need outbox delivery; the `DeferredDispatchProcessor` publishes after commit.
+- Keep integration handlers thin; push composition into commands or services to avoid "gore" handlers.
+
 ## CQRS Pattern
 
 Holmes uses Command Query Responsibility Segregation (CQRS) to separate read and write concerns:

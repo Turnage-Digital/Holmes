@@ -6,10 +6,7 @@ export const queryClient = new QueryClient({
       staleTime: 30_000,
       refetchOnWindowFocus: false,
       retry: (failureCount, _error) => {
-        if (failureCount >= 2) {
-          return false;
-        }
-        return true;
+        return failureCount < 2;
       },
     },
     mutations: {

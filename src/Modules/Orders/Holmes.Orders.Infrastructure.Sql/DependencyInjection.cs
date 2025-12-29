@@ -21,8 +21,6 @@ public static class DependencyInjection
         services.AddScoped<IOrderTimelineWriter, OrderTimelineWriter>();
         services.AddScoped<IOrderSummaryWriter, OrderSummaryWriter>();
         services.AddScoped<IOrderQueries, OrderQueries>();
-        services.AddScoped<OrderSummaryProjectionRunner>();
-        services.AddScoped<OrderTimelineProjectionRunner>();
 
         services.AddSingleton<IOrderChangeBroadcaster, OrderChangeBroadcaster>();
 
