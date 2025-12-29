@@ -1,4 +1,3 @@
-using Holmes.Notifications.Application.EventHandlers;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions;
@@ -7,6 +6,7 @@ using Holmes.Customers.Domain;
 using Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using Holmes.Notifications.Application.Commands;
+using Holmes.Notifications.Application.EventHandlers;
 using Holmes.Notifications.Domain;
 using Holmes.Subjects.Application.Abstractions;
 using Holmes.Subjects.Application.Abstractions.Dtos;

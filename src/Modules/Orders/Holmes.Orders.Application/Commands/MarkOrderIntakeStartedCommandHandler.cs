@@ -1,5 +1,4 @@
 using Holmes.Core.Domain;
-using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Domain;
 using MediatR;
 

@@ -1,5 +1,4 @@
 using Holmes.Orders.Application.Abstractions;
-using Holmes.Orders.Application.Queries;
 using MediatR;
 
 namespace Holmes.Orders.Application.Queries;

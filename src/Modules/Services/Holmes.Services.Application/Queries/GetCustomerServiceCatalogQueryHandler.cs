@@ -1,7 +1,6 @@
 using Holmes.Core.Domain;
 using Holmes.Services.Application.Abstractions;
 using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Queries;
 using MediatR;
 
 namespace Holmes.Services.Application.Queries;

@@ -1,5 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
-using Holmes.App.Infrastructure.Identity;
+using Holmes.App.Infrastructure.Security.Identity;
 using Holmes.Core.Application;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

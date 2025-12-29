@@ -7,6 +7,7 @@ captured
 in the backlog section at the end.
 
 ---
+
 ## Context Instructions
 
 Do not include "Generated with Claude Code" or Co-Authored-By lines in commits or PRs.
@@ -17,36 +18,36 @@ This is a .NET 9 modular monolith following Clean Architecture and Domain-Driven
 context is a self-contained module under `src/Modules/{ModuleName}/` with these projects:
 
 1. `Holmes.{Module}.Domain` - The core domain layer:
-   - Aggregate roots (e.g., `Customer.cs`, `SlaClock.cs`)
-   - Value objects under `ValueObjects/`
-   - Domain events under `Events/` (e.g., `CustomerRegistered.cs`)
-   - Repository interfaces (`I{Entity}Repository.cs`)
-   - Unit of Work interface (`I{Module}UnitOfWork.cs`)
-   - Enums for entity states
+    - Aggregate roots (e.g., `Customer.cs`, `SlaClock.cs`)
+    - Value objects under `ValueObjects/`
+    - Domain events under `Events/` (e.g., `CustomerRegistered.cs`)
+    - Repository interfaces (`I{Entity}Repository.cs`)
+    - Unit of Work interface (`I{Module}UnitOfWork.cs`)
+    - Enums for entity states
 
 2. `Holmes.{Module}.Application` - Application/use case layer:
-   - Commands under `Commands/` (CQRS command handlers)
-   - Queries under `Queries/` (CQRS query handlers)
-   - Event handlers under `EventHandlers/` for domain event projections and side effects
+    - Commands under `Commands/` (CQRS command handlers)
+    - Queries under `Queries/` (CQRS query handlers)
+    - Event handlers under `EventHandlers/` for domain event projections and side effects
 
 3. `Holmes.{Module}.Application.Abstractions` - Contracts for the application layer:
-   - DTOs under `Dtos/`
-   - Query interfaces under `Queries/` (e.g., `I{Entity}Queries.cs`)
-   - Projection writer interfaces under `Projections/`
-   - Service interfaces under `Services/`
-   - Notification/broadcaster interfaces under `Notifications/`
+    - DTOs under `Dtos/`
+    - Query interfaces under `Queries/` (e.g., `I{Entity}Queries.cs`)
+    - Projection writer interfaces under `Projections/`
+    - Service interfaces under `Services/`
+    - Notification/broadcaster interfaces under `Notifications/`
 
 4. `Holmes.{Module}.Infrastructure.Sql` - EF Core persistence:
-   - `{Module}DbContext.cs`
-   - `{Module}UnitOfWork.cs`
-   - Database entities under `Entities/` (e.g., `CustomerDb.cs`)
-   - Repositories under `Repositories/` implementing domain interfaces
-   - Query implementations under `Queries/` (implementing interfaces from Application.Abstractions)
-   - Projections under `Projections/`
-   - Mappers under `Mappers/`
-   - Specifications under `Specifications/`
-   - EF Migrations under `Migrations/`
-   - `DependencyInjection.cs` for service registration
+    - `{Module}DbContext.cs`
+    - `{Module}UnitOfWork.cs`
+    - Database entities under `Entities/` (e.g., `CustomerDb.cs`)
+    - Repositories under `Repositories/` implementing domain interfaces
+    - Query implementations under `Queries/` (implementing interfaces from Application.Abstractions)
+    - Projections under `Projections/`
+    - Mappers under `Mappers/`
+    - Specifications under `Specifications/`
+    - EF Migrations under `Migrations/`
+    - `DependencyInjection.cs` for service registration
 
 5. `Holmes.{Module}.Tests` - Unit tests for the module
 
@@ -66,6 +67,7 @@ Application ──────► Application.Abstractions ◄──────
 ### Cross-module references:
 
 When ModuleA needs types from ModuleB:
+
 - Allowed: `ModuleA.Application` → `ModuleB.Application.Abstractions`
 - Allowed: `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions`
 - Forbidden: Direct references to another module's Domain, Application, or Infrastructure.Sql
@@ -80,6 +82,7 @@ Abstractions (integration events only).
 - `Holmes.App.Infrastructure.Security` - Host security/identity wiring and policies.
 
 ### Key patterns:
+
 - CQRS (Command Query Responsibility Segregation)
 - Domain Events for cross-module communication
 - Event-driven projections for read models
@@ -187,24 +190,30 @@ These handlers connect the modules into an end-to-end workflow:
     - `IntakeSessionInvitedIntegrationEvent` -> `RecordOrderInviteCommand`
     - `IntakeSessionStartedIntegrationEvent` -> `MarkOrderIntakeStartedCommand`
 
-- `IntakeSubmissionWorkflowHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/IntakeSubmissionWorkflowHandler.cs`)
+- `IntakeSubmissionWorkflowHandler` (
+  `src/Modules/Orders/Holmes.Orders.Application/EventHandlers/IntakeSubmissionWorkflowHandler.cs`)
     - `IntakeSubmissionReceivedIntegrationEvent` -> `MarkOrderIntakeSubmittedCommand`
     - `IntakeSubmissionAcceptedIntegrationEvent` -> `MarkOrderReadyForFulfillmentCommand`
 
-- `SubjectIntakeRequestedOrderHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/SubjectIntakeRequestedOrderHandler.cs`)
+- `SubjectIntakeRequestedOrderHandler` (
+  `src/Modules/Orders/Holmes.Orders.Application/EventHandlers/SubjectIntakeRequestedOrderHandler.cs`)
     - `SubjectIntakeRequestedIntegrationEvent` -> creates Order asynchronously.
 
-- `OrderCreatedFromIntakeInviteHandler` (`src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/EventHandlers/OrderCreatedFromIntakeInviteHandler.cs`)
+- `OrderCreatedFromIntakeInviteHandler` (
+  `src/Modules/IntakeSessions/Holmes.IntakeSessions.Application/EventHandlers/OrderCreatedFromIntakeInviteHandler.cs`)
     - `OrderCreatedFromIntakeIntegrationEvent` -> issues intake invite asynchronously (no cross-module transaction).
 
-- `OrderStatusChangedSlaHandler` (`src/Modules/SlaClocks/Holmes.SlaClocks.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
+- `OrderStatusChangedSlaHandler` (
+  `src/Modules/SlaClocks/Holmes.SlaClocks.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
     - `OrderStatusChangedIntegrationEvent` -> starts/completes/pauses/resumes SLA clocks.
 
-- `OrderFulfillmentHandler` (`src/Modules/Services/Holmes.Services.Application/EventHandlers/OrderFulfillmentHandler.cs`)
+- `OrderFulfillmentHandler` (
+  `src/Modules/Services/Holmes.Services.Application/EventHandlers/OrderFulfillmentHandler.cs`)
     - `OrderStatusChangedIntegrationEvent` on `ReadyForFulfillment` -> creates Service requests from the customer
       catalog and then moves the Order to `FulfillmentInProgress`.
 
-- `ServiceCompletionOrderHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/ServiceCompletionOrderHandler.cs`)
+- `ServiceCompletionOrderHandler` (
+  `src/Modules/Orders/Holmes.Orders.Application/EventHandlers/ServiceCompletionOrderHandler.cs`)
     - `ServiceCompletedIntegrationEvent` -> when all services complete for an Order, advances it to `ReadyForReport`.
 
 - Notification triggers (`src/Modules/Notifications/Holmes.Notifications.Application/EventHandlers/*.cs`)

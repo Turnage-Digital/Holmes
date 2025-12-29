@@ -1,3 +1,3 @@
-namespace Holmes.Core.Application;
+namespace Holmes.Core.Application.Abstractions;
 
 public interface ISkipUserAssignment;

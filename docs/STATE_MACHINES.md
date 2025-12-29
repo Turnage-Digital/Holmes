@@ -58,18 +58,18 @@ Canceled (terminal)
 
 ### Transitions
 
-| From                    | To                      | Trigger/Command                       | Notes                                     |
-|-------------------------|-------------------------|---------------------------------------|-------------------------------------------|
+| From                    | To                      | Trigger/Command                       | Notes                                                     |
+|-------------------------|-------------------------|---------------------------------------|-----------------------------------------------------------|
 | `Created`               | `Invited`               | `RecordOrderInviteCommand`            | Issued by `IntakeSessionInvitedIntegrationEvent` handler. |
 | `Invited`               | `IntakeInProgress`      | `MarkOrderIntakeStartedCommand`       | Issued by `IntakeSessionStartedIntegrationEvent` handler. |
-| `IntakeInProgress`      | `IntakeComplete`        | `MarkOrderIntakeSubmittedCommand`     | Issued by `IntakeSubmissionWorkflowHandler`. |
-| `IntakeComplete`        | `ReadyForFulfillment`   | `MarkOrderReadyForFulfillmentCommand` | Issued by `IntakeSubmissionWorkflowHandler`. |
-| `ReadyForFulfillment`   | `FulfillmentInProgress` | `BeginOrderFulfillmentCommand`        | Issued after creating service requests.   |
-| `FulfillmentInProgress` | `ReadyForReport`        | `MarkOrderReadyForReportCommand`      | Issued after all services complete.       |
-| `ReadyForReport`        | `Closed`                | `CloseOrderCommand`                   | Manual or system close.                   |
-| Any non-terminal        | `Blocked`               | `BlockOrderCommand`                   | Stores `BlockedFromStatus`.               |
-| `Blocked`               | Previous status         | `ResumeOrderFromBlockCommand`         | Returns to `BlockedFromStatus`.           |
-| Any non-terminal        | `Canceled`              | `CancelOrderCommand`                  | Terminal.                                 |
+| `IntakeInProgress`      | `IntakeComplete`        | `MarkOrderIntakeSubmittedCommand`     | Issued by `IntakeSubmissionWorkflowHandler`.              |
+| `IntakeComplete`        | `ReadyForFulfillment`   | `MarkOrderReadyForFulfillmentCommand` | Issued by `IntakeSubmissionWorkflowHandler`.              |
+| `ReadyForFulfillment`   | `FulfillmentInProgress` | `BeginOrderFulfillmentCommand`        | Issued after creating service requests.                   |
+| `FulfillmentInProgress` | `ReadyForReport`        | `MarkOrderReadyForReportCommand`      | Issued after all services complete.                       |
+| `ReadyForReport`        | `Closed`                | `CloseOrderCommand`                   | Manual or system close.                                   |
+| Any non-terminal        | `Blocked`               | `BlockOrderCommand`                   | Stores `BlockedFromStatus`.                               |
+| `Blocked`               | Previous status         | `ResumeOrderFromBlockCommand`         | Returns to `BlockedFromStatus`.                           |
+| Any non-terminal        | `Canceled`              | `CancelOrderCommand`                  | Terminal.                                                 |
 
 **Guards**
 
@@ -164,18 +164,22 @@ Running -> AtRisk -> Breached
     - `IntakeSessionInvitedIntegrationEvent` -> `RecordOrderInviteCommand`
     - `IntakeSessionStartedIntegrationEvent` -> `MarkOrderIntakeStartedCommand`
 
-- `IntakeSubmissionWorkflowHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/IntakeSubmissionWorkflowHandler.cs`)
+- `IntakeSubmissionWorkflowHandler` (
+  `src/Modules/Orders/Holmes.Orders.Application/EventHandlers/IntakeSubmissionWorkflowHandler.cs`)
     - `IntakeSubmissionReceivedIntegrationEvent` -> `MarkOrderIntakeSubmittedCommand`
     - `IntakeSubmissionAcceptedIntegrationEvent` -> `MarkOrderReadyForFulfillmentCommand`
 
-- `OrderStatusChangedSlaHandler` (`src/Modules/SlaClocks/Holmes.SlaClocks.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
+- `OrderStatusChangedSlaHandler` (
+  `src/Modules/SlaClocks/Holmes.SlaClocks.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
     - `OrderStatusChangedIntegrationEvent` starts/completes/pauses/resumes SLA clocks.
 
-- `OrderFulfillmentHandler` (`src/Modules/Services/Holmes.Services.Application/EventHandlers/OrderFulfillmentHandler.cs`)
+- `OrderFulfillmentHandler` (
+  `src/Modules/Services/Holmes.Services.Application/EventHandlers/OrderFulfillmentHandler.cs`)
     - `OrderStatusChangedIntegrationEvent` creates service requests from the customer catalog.
     - Calls `BeginOrderFulfillmentCommand` if any were created.
 
-- `ServiceCompletionOrderHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/ServiceCompletionOrderHandler.cs`)
+- `ServiceCompletionOrderHandler` (
+  `src/Modules/Orders/Holmes.Orders.Application/EventHandlers/ServiceCompletionOrderHandler.cs`)
     - `ServiceCompletedIntegrationEvent` -> when all services are completed, calls `MarkOrderReadyForReportCommand`.
 
 - Notifications (`src/Modules/Notifications/Holmes.Notifications.Application/EventHandlers/*.cs`)

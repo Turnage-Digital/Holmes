@@ -1,4 +1,4 @@
-namespace Holmes.App.Infrastructure.Identity;
+namespace Holmes.App.Infrastructure.Security.Identity;
 
 public sealed class IdentityProvisioningOptions
 {

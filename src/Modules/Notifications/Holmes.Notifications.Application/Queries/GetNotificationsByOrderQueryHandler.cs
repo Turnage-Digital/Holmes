@@ -1,6 +1,5 @@
 using Holmes.Notifications.Application.Abstractions;
 using Holmes.Notifications.Application.Abstractions.Dtos;
-using Holmes.Notifications.Application.Queries;
 using MediatR;
 
 namespace Holmes.Notifications.Application.Queries;

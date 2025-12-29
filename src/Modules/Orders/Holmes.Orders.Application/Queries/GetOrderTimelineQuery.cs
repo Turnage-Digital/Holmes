@@ -1,4 +1,4 @@
-using Holmes.Core.Application;
+using Holmes.Core.Application.Abstractions;
 using Holmes.Core.Domain;
 using Holmes.Orders.Application.Abstractions.Dtos;
 

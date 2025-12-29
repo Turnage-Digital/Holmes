@@ -1,4 +1,4 @@
-using Holmes.Core.Application;
+using Holmes.Core.Application.Abstractions;
 
 namespace Holmes.Customers.Application.Queries;
 

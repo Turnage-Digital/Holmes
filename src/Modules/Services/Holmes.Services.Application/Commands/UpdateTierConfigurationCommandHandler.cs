@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Holmes.Core.Domain;
 using Holmes.Services.Application.Abstractions;
-using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using MediatR;
 

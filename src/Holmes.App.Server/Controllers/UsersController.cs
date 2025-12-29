@@ -1,6 +1,6 @@
-using Holmes.App.Infrastructure.Identity;
-using Holmes.App.Infrastructure.Identity.Models;
 using Holmes.App.Infrastructure.Security;
+using Holmes.App.Infrastructure.Security.Identity;
+using Holmes.App.Infrastructure.Security.Identity.Models;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Abstractions.Dtos;

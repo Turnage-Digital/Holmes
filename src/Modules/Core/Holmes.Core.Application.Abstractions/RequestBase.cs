@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using Holmes.Core.Domain.ValueObjects;
 using MediatR;
 
-namespace Holmes.Core.Application;
+namespace Holmes.Core.Application.Abstractions;
 
 public interface IUserContextRequest
 {

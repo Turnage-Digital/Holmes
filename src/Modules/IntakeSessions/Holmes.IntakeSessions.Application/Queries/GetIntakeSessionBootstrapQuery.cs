@@ -1,4 +1,4 @@
-using Holmes.Core.Application;
+using Holmes.Core.Application.Abstractions;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.IntakeSessions.Application.Abstractions.Dtos;
 

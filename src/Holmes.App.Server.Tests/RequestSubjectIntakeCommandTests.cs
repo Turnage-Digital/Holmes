@@ -401,7 +401,8 @@ public class RequestSubjectIntakeCommandTests
     private static async Task<List<EventRecord>> WaitForOrderEventsAsync(
         CoreDbContext coreDb,
         UlidId orderId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         List<EventRecord> events = [];
         for (var attempt = 0; attempt < 20; attempt++)

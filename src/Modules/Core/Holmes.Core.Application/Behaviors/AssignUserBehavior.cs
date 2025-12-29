@@ -1,3 +1,4 @@
+using Holmes.Core.Application.Abstractions;
 using MediatR;
 
 namespace Holmes.Core.Application.Behaviors;

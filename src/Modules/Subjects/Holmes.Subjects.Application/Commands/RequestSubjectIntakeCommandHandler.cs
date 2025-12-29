@@ -1,8 +1,6 @@
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
-using Holmes.Subjects.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.Subjects.Application.Commands;

@@ -1,5 +1,4 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Domain;
 using MediatR;
 

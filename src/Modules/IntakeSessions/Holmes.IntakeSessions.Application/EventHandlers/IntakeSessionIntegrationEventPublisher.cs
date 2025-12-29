@@ -1,6 +1,15 @@
 using Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents;
 using Holmes.IntakeSessions.Domain.Events;
 using MediatR;
+using SubjectIntakeAddressData =
+    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeAddressData;
+using SubjectIntakeEducationData =
+    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeEducationData;
+using SubjectIntakeEmploymentData =
+    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeEmploymentData;
+using SubjectIntakePhoneData = Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakePhoneData;
+using SubjectIntakeReferenceData =
+    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeReferenceData;
 
 namespace Holmes.IntakeSessions.Application.EventHandlers;
 
@@ -34,20 +43,20 @@ public sealed class IntakeSessionIntegrationEventPublisher(
             notification.DeviceInfo), cancellationToken);
     }
 
-    public Task Handle(IntakeSubmissionReceived notification, CancellationToken cancellationToken)
-    {
-        return mediator.Publish(new IntakeSubmissionReceivedIntegrationEvent(
-            notification.IntakeSessionId,
-            notification.OrderId,
-            notification.SubmittedAt), cancellationToken);
-    }
-
     public Task Handle(IntakeSubmissionAccepted notification, CancellationToken cancellationToken)
     {
         return mediator.Publish(new IntakeSubmissionAcceptedIntegrationEvent(
             notification.IntakeSessionId,
             notification.OrderId,
             notification.AcceptedAt), cancellationToken);
+    }
+
+    public Task Handle(IntakeSubmissionReceived notification, CancellationToken cancellationToken)
+    {
+        return mediator.Publish(new IntakeSubmissionReceivedIntegrationEvent(
+            notification.IntakeSessionId,
+            notification.OrderId,
+            notification.SubmittedAt), cancellationToken);
     }
 
     public Task Handle(SubjectIntakeDataCaptured notification, CancellationToken cancellationToken)
@@ -59,7 +68,7 @@ public sealed class IntakeSessionIntegrationEventPublisher(
             notification.MiddleName,
             notification.EncryptedSsn,
             notification.SsnLast4,
-            notification.Addresses.Select(a => new Application.Abstractions.IntegrationEvents.SubjectIntakeAddressData(
+            notification.Addresses.Select(a => new SubjectIntakeAddressData(
                     a.Street1,
                     a.Street2,
                     a.City,
@@ -72,7 +81,7 @@ public sealed class IntakeSessionIntegrationEventPublisher(
                     a.Type
                 ))
                 .ToList(),
-            notification.Employments.Select(e => new Application.Abstractions.IntegrationEvents.SubjectIntakeEmploymentData(
+            notification.Employments.Select(e => new SubjectIntakeEmploymentData(
                     e.EmployerName,
                     e.EmployerPhone,
                     e.EmployerAddress,
@@ -85,7 +94,7 @@ public sealed class IntakeSessionIntegrationEventPublisher(
                     e.CanContact
                 ))
                 .ToList(),
-            notification.Educations.Select(e => new Application.Abstractions.IntegrationEvents.SubjectIntakeEducationData(
+            notification.Educations.Select(e => new SubjectIntakeEducationData(
                     e.InstitutionName,
                     e.InstitutionAddress,
                     e.Degree,
@@ -96,7 +105,7 @@ public sealed class IntakeSessionIntegrationEventPublisher(
                     e.Graduated
                 ))
                 .ToList(),
-            notification.References.Select(r => new Application.Abstractions.IntegrationEvents.SubjectIntakeReferenceData(
+            notification.References.Select(r => new SubjectIntakeReferenceData(
                     r.Name,
                     r.Phone,
                     r.Email,
@@ -105,7 +114,7 @@ public sealed class IntakeSessionIntegrationEventPublisher(
                     r.Type
                 ))
                 .ToList(),
-            notification.Phones.Select(p => new Application.Abstractions.IntegrationEvents.SubjectIntakePhoneData(
+            notification.Phones.Select(p => new SubjectIntakePhoneData(
                     p.PhoneNumber,
                     p.Type,
                     p.IsPrimary

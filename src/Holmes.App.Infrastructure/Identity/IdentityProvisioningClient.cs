@@ -1,9 +1,9 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Holmes.App.Infrastructure.Identity.Models;
+using Holmes.App.Infrastructure.Security.Identity.Models;
 using Microsoft.Extensions.Options;
 
-namespace Holmes.App.Infrastructure.Identity;
+namespace Holmes.App.Infrastructure.Security.Identity;
 
 internal sealed class IdentityProvisioningClient(
     HttpClient httpClient,
