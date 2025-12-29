@@ -9,7 +9,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Holmes.Core.Application.Abstractions\Holmes.Core.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Holmes.Customers.Domain\Holmes.Customers.Domain.csproj"/>
-        <ProjectReference Include="..\..\Services\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj"/>
     </ItemGroup>
 
 </Project>

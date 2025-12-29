@@ -186,6 +186,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.IntakeSessions.Appli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Infrastructure.Security", "src\Holmes.App.Infrastructure\Holmes.App.Infrastructure.Security.csproj", "{36FFF85C-C6EC-449B-B712-027154C07DA7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Architecture.Tests", "src\Holmes.Architecture.Tests\Holmes.Architecture.Tests.csproj", "{280568CD-7BC0-4368-A9E2-0954CF006CD5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -432,6 +434,10 @@ Global
 		{36FFF85C-C6EC-449B-B712-027154C07DA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36FFF85C-C6EC-449B-B712-027154C07DA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36FFF85C-C6EC-449B-B712-027154C07DA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{280568CD-7BC0-4368-A9E2-0954CF006CD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{280568CD-7BC0-4368-A9E2-0954CF006CD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{280568CD-7BC0-4368-A9E2-0954CF006CD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{280568CD-7BC0-4368-A9E2-0954CF006CD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5FD2099B-1F20-482B-8DFA-7450EEBBED84} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
@@ -506,5 +512,6 @@ Global
 		{17A29F71-898C-414E-896C-2A5A2E963D10} = {26E7CD83-1AD4-4569-A85C-EE6878FD4ADE}
 		{109BAB85-687A-4924-9B23-5C5BFEE61797} = {52F9E2C8-BBE8-4190-B5BC-70FFA64D4798}
 		{36FFF85C-C6EC-449B-B712-027154C07DA7} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
+		{280568CD-7BC0-4368-A9E2-0954CF006CD5} = {19A8A346-EAAE-4C27-B7A5-EEE883E63D6B}
 	EndGlobalSection
 EndGlobal
