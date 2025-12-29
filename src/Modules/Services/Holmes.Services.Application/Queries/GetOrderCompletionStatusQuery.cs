@@ -1,27 +1,18 @@
+using Holmes.Core.Application;
 using Holmes.Core.Domain;
-using Holmes.Services.Application.Abstractions.Queries;
-using MediatR;
+using Holmes.Core.Domain.ValueObjects;
 
 namespace Holmes.Services.Application.Queries;
 
-public sealed class GetOrderCompletionStatusQueryHandler(
-    IServiceQueries serviceQueries
-) : IRequestHandler<GetOrderCompletionStatusQuery, Result<OrderCompletionStatus>>
-{
-    public async Task<Result<OrderCompletionStatus>> Handle(
-        GetOrderCompletionStatusQuery request,
-        CancellationToken cancellationToken
-    )
-    {
-        var status = await serviceQueries.GetOrderCompletionStatusAsync(
-            request.OrderId.ToString(), cancellationToken);
+public sealed record OrderCompletionStatus(
+    bool AllCompleted,
+    int TotalServices,
+    int CompletedServices,
+    int PendingServices,
+    int InProgressServices,
+    int FailedServices
+);
 
-        return Result.Success(new OrderCompletionStatus(
-            status.AllCompleted,
-            status.TotalServices,
-            status.CompletedServices,
-            status.PendingServices,
-            0, // InProgress is included in Pending count in the DTO
-            status.FailedServices));
-    }
-}
+public sealed record GetOrderCompletionStatusQuery(
+    UlidId OrderId
+) : RequestBase<Result<OrderCompletionStatus>>;

@@ -1,9 +1,0 @@
-using Holmes.Core.Application;
-using Holmes.Core.Domain;
-using Holmes.IntakeSessions.Application.Abstractions.Dtos;
-
-namespace Holmes.IntakeSessions.Application.Abstractions.Queries;
-
-public sealed record GetIntakeSessionsByOrderQuery(
-    string OrderId
-) : RequestBase<Result<IReadOnlyList<IntakeSessionSummaryDto>>>;

@@ -1,9 +1,7 @@
 using Holmes.Core.Application.Abstractions.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Application.Abstractions.Commands;
-using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Application.Commands;
-using Holmes.IntakeSessions.Application.Gateways;
+using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using Holmes.IntakeSessions.Tests.TestHelpers;
@@ -16,16 +14,12 @@ public class SubmitIntakeCommandTests
 {
     private Mock<IIntakeAnswersDecryptor> _decryptorMock = null!;
     private Mock<IAeadEncryptor> _encryptorMock = null!;
-    private Mock<IOrderWorkflowGateway> _orderGatewayMock = null!;
     private InMemoryIntakeSessionRepository _repository = null!;
-    private Mock<ISubjectDataGateway> _subjectGatewayMock = null!;
     private Mock<IIntakeSessionsUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _orderGatewayMock = new Mock<IOrderWorkflowGateway>();
-        _subjectGatewayMock = new Mock<ISubjectDataGateway>();
         _decryptorMock = new Mock<IIntakeAnswersDecryptor>();
         _encryptorMock = new Mock<IAeadEncryptor>();
         _repository = new InMemoryIntakeSessionRepository();
@@ -40,8 +34,6 @@ public class SubmitIntakeCommandTests
     private SubmitIntakeCommandHandler CreateHandler()
     {
         return new SubmitIntakeCommandHandler(
-            _orderGatewayMock.Object,
-            _subjectGatewayMock.Object,
             _decryptorMock.Object,
             _encryptorMock.Object,
             _unitOfWorkMock.Object,
@@ -50,37 +42,9 @@ public class SubmitIntakeCommandTests
     }
 
     [Test]
-    public async Task BlocksSubmissionWhenPolicyFails()
+    public async Task AdvancesSubmission()
     {
         var session = await SeedReadySessionAsync();
-        _orderGatewayMock.Setup(x =>
-                x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OrderPolicyCheckResult.Blocked("policy"));
-        var handler = CreateHandler();
-
-        var result = await handler.Handle(new SubmitIntakeCommand(session.Id, DateTimeOffset.UtcNow),
-            CancellationToken.None);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.IsSuccess, Is.False);
-            Assert.That(result.Error, Is.EqualTo("policy"));
-            Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.InProgress));
-        });
-        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-        _orderGatewayMock.Verify(x => x.NotifyIntakeSubmittedAsync(
-            It.IsAny<OrderIntakeSubmission>(),
-            It.IsAny<DateTimeOffset>(),
-            It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Test]
-    public async Task AdvancesWhenPolicyAllows()
-    {
-        var session = await SeedReadySessionAsync();
-        _orderGatewayMock.Setup(x =>
-                x.ValidateSubmissionAsync(It.IsAny<OrderIntakeSubmission>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OrderPolicyCheckResult.Allowed());
         var handler = CreateHandler();
         var submittedAt = DateTimeOffset.UtcNow;
 
@@ -93,10 +57,6 @@ public class SubmitIntakeCommandTests
             Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.AwaitingReview));
         });
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _orderGatewayMock.Verify(x => x.NotifyIntakeSubmittedAsync(
-            It.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
-            submittedAt,
-            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private async Task<IntakeSession> SeedReadySessionAsync()

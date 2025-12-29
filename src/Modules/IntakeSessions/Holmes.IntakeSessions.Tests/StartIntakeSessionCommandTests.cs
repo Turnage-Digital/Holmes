@@ -1,4 +1,3 @@
-using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Application.Commands;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Tests.TestHelpers;
@@ -40,8 +39,8 @@ public class StartIntakeSessionCommandTests
             Assert.That(result.IsSuccess, Is.True);
             Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.InProgress));
         });
-        // Note: Workflow notification now happens via IntakeSessionStarted domain event
-        // handled by IntakeToWorkflowHandler in App.Integration
+        // Note: Workflow notification now happens via IntakeSessionStartedIntegrationEvent
+        // handled by Orders.Application.
     }
 
     [Test]

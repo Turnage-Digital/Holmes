@@ -1,4 +1,3 @@
-using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Application.Commands;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Tests.TestHelpers;

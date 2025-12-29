@@ -1,12 +1,12 @@
-using Holmes.App.Application.EventHandlers;
+using Holmes.Notifications.Application.EventHandlers;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Abstractions;
 using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Domain;
-using Holmes.IntakeSessions.Domain.Events;
+using Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents;
 using Holmes.IntakeSessions.Domain.ValueObjects;
-using Holmes.Notifications.Application.Abstractions.Commands;
+using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Subjects.Application.Abstractions;
 using Holmes.Subjects.Application.Abstractions.Dtos;
@@ -63,7 +63,7 @@ public class IntakeInviteNotificationHandlerTests
         var invitedAt = DateTimeOffset.UtcNow;
         var expiresAt = invitedAt.AddHours(24);
 
-        var notification = new IntakeSessionInvited(
+        var notification = new IntakeSessionInvitedIntegrationEvent(
             sessionId,
             orderId,
             subjectId,
@@ -314,14 +314,14 @@ public class IntakeInviteNotificationHandlerTests
             Times.Once);
     }
 
-    private static IntakeSessionInvited CreateTestNotification(
+    private static IntakeSessionInvitedIntegrationEvent CreateTestNotification(
         UlidId? sessionId = null,
         string? resumeToken = null,
         DateTimeOffset? expiresAt = null
     )
     {
         var invitedAt = DateTimeOffset.UtcNow;
-        return new IntakeSessionInvited(
+        return new IntakeSessionInvitedIntegrationEvent(
             sessionId ?? UlidId.NewUlid(),
             UlidId.NewUlid(),
             UlidId.NewUlid(),
@@ -332,7 +332,7 @@ public class IntakeInviteNotificationHandlerTests
             PolicySnapshot.Create("policy-1", "schema-1", invitedAt));
     }
 
-    private void SetupSubjectAndCustomer(IntakeSessionInvited notification)
+    private void SetupSubjectAndCustomer(IntakeSessionInvitedIntegrationEvent notification)
     {
         var subjectSummary = new SubjectSummaryDto(
             notification.SubjectId.ToString(),

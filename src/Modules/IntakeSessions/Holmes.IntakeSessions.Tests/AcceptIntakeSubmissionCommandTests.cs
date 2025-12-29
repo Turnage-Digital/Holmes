@@ -1,7 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Application.Abstractions.Commands;
 using Holmes.IntakeSessions.Application.Commands;
-using Holmes.IntakeSessions.Application.Gateways;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using Holmes.IntakeSessions.Tests.TestHelpers;
@@ -11,24 +9,22 @@ namespace Holmes.IntakeSessions.Tests;
 
 public class AcceptIntakeSubmissionCommandTests
 {
-    private Mock<IOrderWorkflowGateway> _gatewayMock = null!;
     private InMemoryIntakeSessionRepository _repository = null!;
     private Mock<IIntakeSessionsUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _gatewayMock = new Mock<IOrderWorkflowGateway>();
         _repository = new InMemoryIntakeSessionRepository();
         _unitOfWorkMock = new Mock<IIntakeSessionsUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
     }
 
     [Test]
-    public async Task AcceptsSubmissionAndNotifiesOrder()
+    public async Task AcceptsSubmission()
     {
         var session = await SeedAwaitingReviewAsync();
-        var handler = new AcceptIntakeSubmissionCommandHandler(_gatewayMock.Object, _unitOfWorkMock.Object);
+        var handler = new AcceptIntakeSubmissionCommandHandler(_unitOfWorkMock.Object);
         var acceptedAt = DateTimeOffset.UtcNow;
 
         var result = await handler.Handle(new AcceptIntakeSubmissionCommand(session.Id, acceptedAt),
@@ -40,10 +36,6 @@ public class AcceptIntakeSubmissionCommandTests
             Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.Submitted));
         });
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _gatewayMock.Verify(x => x.NotifyIntakeAcceptedAsync(
-            It.Is<OrderIntakeSubmission>(s => s.IntakeSessionId == session.Id),
-            acceptedAt,
-            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private async Task<IntakeSession> SeedAwaitingReviewAsync()

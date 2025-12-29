@@ -1,7 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Application.Abstractions.Commands;
-using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Application.Commands;
+using Holmes.IntakeSessions.Application.Abstractions.Services;
 using Holmes.IntakeSessions.Domain;
 using Moq;
 
@@ -49,7 +48,7 @@ public class IssueIntakeInviteCommandTests
         Assert.That(result.IsSuccess, Is.True);
         _repositoryMock.Verify(x => x.AddAsync(It.IsAny<IntakeSession>(), It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        // Note: Workflow notification now happens via IntakeSessionInvited domain event
-        // handled by IntakeToWorkflowHandler in App.Integration
+        // Note: Workflow notification now happens via IntakeSessionInvitedIntegrationEvent
+        // handled by Orders.Application.
     }
 }

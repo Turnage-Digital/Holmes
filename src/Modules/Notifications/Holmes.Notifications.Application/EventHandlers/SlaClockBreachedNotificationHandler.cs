@@ -1,0 +1,73 @@
+using Holmes.SlaClocks.Application.Abstractions.IntegrationEvents;
+using Holmes.SlaClocks.Domain;
+using MediatR;
+using Microsoft.Extensions.Logging;
+
+namespace Holmes.Notifications.Application.EventHandlers;
+
+public sealed class SlaClockBreachedNotificationHandler(
+#pragma warning disable CS9113 // Parameter is unread - will be used when notification implementation is complete
+    ISender sender,
+#pragma warning restore CS9113
+    ILogger<SlaClockBreachedNotificationHandler> logger
+) : INotificationHandler<SlaClockBreachedIntegrationEvent>
+{
+    public async Task Handle(SlaClockBreachedIntegrationEvent notification, CancellationToken cancellationToken)
+    {
+        var clockKindDisplay = notification.Kind switch
+        {
+            ClockKind.Intake => "Intake",
+            ClockKind.Fulfillment => "Fulfillment",
+            ClockKind.Overall => "Overall",
+            _ => notification.Kind.ToString()
+        };
+
+        logger.LogError(
+            "SLA BREACHED: Order {OrderId}, {ClockKind} clock {ClockId}, deadline was {DeadlineAt}, breached at {BreachedAt}",
+            notification.OrderId,
+            clockKindDisplay,
+            notification.ClockId,
+            notification.DeadlineAt,
+            notification.BreachedAt);
+
+        // TODO: Look up customer escalation preferences for SLA breaches
+        // TODO: Look up supervisors/managers who should receive breach alerts
+        // TODO: Build urgent notification content for SLA breach
+
+        // Example of how this will work once customer and user info is available:
+        //
+        // var trigger = NotificationTrigger.SlaBreached(
+        //     notification.OrderId,
+        //     notification.Kind);
+        //
+        // // Get both assignees and their supervisors for escalation
+        // var recipients = await GetOrderEscalationRecipients(notification.OrderId, cancellationToken);
+        // foreach (var recipient in recipients)
+        // {
+        //     var content = new NotificationContent
+        //     {
+        //         Subject = $"URGENT: SLA Breached - {clockKindDisplay} deadline missed for Order {notification.OrderId}",
+        //         TemplateId = "sla-breached-v1",
+        //         TemplateData = new Dictionary<string, object>
+        //         {
+        //             ["OrderId"] = notification.OrderId.ToString(),
+        //             ["ClockKind"] = clockKindDisplay,
+        //             ["DeadlineAt"] = notification.DeadlineAt.ToString("f"),
+        //             ["BreachedAt"] = notification.BreachedAt.ToString("f"),
+        //             ["OverdueBy"] = (notification.BreachedAt - notification.DeadlineAt).ToString(@"d\.hh\:mm")
+        //         }
+        //     };
+        //
+        //     await sender.Send(new CreateNotificationCommand(
+        //         notification.CustomerId,
+        //         trigger,
+        //         recipient,
+        //         content,
+        //         schedule: null, // Immediate - this is urgent
+        //         NotificationPriority.Urgent,
+        //         isAdverseAction: false), cancellationToken);
+        // }
+
+        await Task.CompletedTask;
+    }
+}

@@ -1,4 +1,4 @@
-using Holmes.Notifications.Application.Abstractions.Commands;
+using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;

@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-23
 
-This document matches the current code under `src/Modules` and `src/Holmes.App.Application`.
+This document matches the current code under `src/Modules`.
 
 ---
 
@@ -60,10 +60,10 @@ Canceled (terminal)
 
 | From                    | To                      | Trigger/Command                       | Notes                                     |
 |-------------------------|-------------------------|---------------------------------------|-------------------------------------------|
-| `Created`               | `Invited`               | `RecordOrderInviteCommand`            | Issued by `IntakeSessionInvited` handler. |
-| `Invited`               | `IntakeInProgress`      | `MarkOrderIntakeStartedCommand`       | Issued by `IntakeSessionStarted` handler. |
-| `IntakeInProgress`      | `IntakeComplete`        | `MarkOrderIntakeSubmittedCommand`     | Issued by Intake submission gateway.      |
-| `IntakeComplete`        | `ReadyForFulfillment`   | `MarkOrderReadyForFulfillmentCommand` | Issued by Intake acceptance gateway.      |
+| `Created`               | `Invited`               | `RecordOrderInviteCommand`            | Issued by `IntakeSessionInvitedIntegrationEvent` handler. |
+| `Invited`               | `IntakeInProgress`      | `MarkOrderIntakeStartedCommand`       | Issued by `IntakeSessionStartedIntegrationEvent` handler. |
+| `IntakeInProgress`      | `IntakeComplete`        | `MarkOrderIntakeSubmittedCommand`     | Issued by `IntakeSubmissionWorkflowHandler`. |
+| `IntakeComplete`        | `ReadyForFulfillment`   | `MarkOrderReadyForFulfillmentCommand` | Issued by `IntakeSubmissionWorkflowHandler`. |
 | `ReadyForFulfillment`   | `FulfillmentInProgress` | `BeginOrderFulfillmentCommand`        | Issued after creating service requests.   |
 | `FulfillmentInProgress` | `ReadyForReport`        | `MarkOrderReadyForReportCommand`      | Issued after all services complete.       |
 | `ReadyForReport`        | `Closed`                | `CloseOrderCommand`                   | Manual or system close.                   |
@@ -158,29 +158,29 @@ Running -> AtRisk -> Breached
 
 ## 5) Cross-Aggregate Choreography
 
-**Event handlers in `src/Holmes.App.Application`**
+**Event handlers in consuming module Applications**
 
-- `IntakeToWorkflowHandler`
-    - `IntakeSessionInvited` -> `RecordOrderInviteCommand`
-    - `IntakeSessionStarted` -> `MarkOrderIntakeStartedCommand`
+- `IntakeToWorkflowHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/IntakeToWorkflowHandler.cs`)
+    - `IntakeSessionInvitedIntegrationEvent` -> `RecordOrderInviteCommand`
+    - `IntakeSessionStartedIntegrationEvent` -> `MarkOrderIntakeStartedCommand`
 
-- `OrderWorkflowGateway`
-    - `SubmitIntakeCommand` -> `MarkOrderIntakeSubmittedCommand`
-    - `AcceptIntakeSubmissionCommand` -> `MarkOrderReadyForFulfillmentCommand`
+- `IntakeSubmissionWorkflowHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/IntakeSubmissionWorkflowHandler.cs`)
+    - `IntakeSubmissionReceivedIntegrationEvent` -> `MarkOrderIntakeSubmittedCommand`
+    - `IntakeSubmissionAcceptedIntegrationEvent` -> `MarkOrderReadyForFulfillmentCommand`
 
-- `OrderStatusChangedSlaHandler`
-    - Starts/completes/pauses/resumes SLA clocks.
+- `OrderStatusChangedSlaHandler` (`src/Modules/SlaClocks/Holmes.SlaClocks.Application/EventHandlers/OrderStatusChangedSlaHandler.cs`)
+    - `OrderStatusChangedIntegrationEvent` starts/completes/pauses/resumes SLA clocks.
 
-- `OrderFulfillmentHandler`
-    - Creates service requests from the customer catalog.
+- `OrderFulfillmentHandler` (`src/Modules/Services/Holmes.Services.Application/EventHandlers/OrderFulfillmentHandler.cs`)
+    - `OrderStatusChangedIntegrationEvent` creates service requests from the customer catalog.
     - Calls `BeginOrderFulfillmentCommand` if any were created.
 
-- `ServiceCompletionOrderHandler`
-    - When all services are completed, calls `MarkOrderReadyForReportCommand`.
+- `ServiceCompletionOrderHandler` (`src/Modules/Orders/Holmes.Orders.Application/EventHandlers/ServiceCompletionOrderHandler.cs`)
+    - `ServiceCompletedIntegrationEvent` -> when all services are completed, calls `MarkOrderReadyForReportCommand`.
 
-- Notifications
-    - `IntakeInviteNotificationHandler` sends invite emails.
-    - `SlaClockAtRiskNotificationHandler` and `SlaClockBreachedNotificationHandler` log and are ready to wire to
+- Notifications (`src/Modules/Notifications/Holmes.Notifications.Application/EventHandlers/*.cs`)
+    - `IntakeSessionInvitedIntegrationEvent` -> `IntakeInviteNotificationHandler` sends invite emails.
+    - `SlaClockAtRiskIntegrationEvent` and `SlaClockBreachedIntegrationEvent` log and are ready to wire to
       notification requests.
 
 ---
@@ -202,7 +202,7 @@ Running -> AtRisk -> Breached
 
 ## 7) Happy Path (Current)
 
-1. Order created -> `OrderStatusChanged` starts Overall clock.
+1. Order created -> `OrderStatusChangedIntegrationEvent` starts Overall clock.
 2. Intake session invited -> Order moves to `Invited` and Intake clock starts.
 3. Subject starts intake -> Order moves to `IntakeInProgress`.
 4. Subject submits intake -> Order moves to `IntakeComplete`.
@@ -210,4 +210,3 @@ Running -> AtRisk -> Breached
 6. Services created -> Order moves to `FulfillmentInProgress`.
 7. All services complete -> Order moves to `ReadyForReport`.
 8. Operator closes order -> Order moves to `Closed`, Overall clock completes.
-

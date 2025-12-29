@@ -1,19 +1,19 @@
 using System.Text.Json;
-using Holmes.App.Application.Commands;
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Application.Abstractions.Events;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Abstractions.Queries;
+using Holmes.Customers.Application.Queries;
 using Holmes.Orders.Application.Abstractions;
-using Holmes.Orders.Application.Abstractions.Commands;
+using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Application.Abstractions.Dtos;
-using Holmes.Orders.Application.Abstractions.Queries;
+using Holmes.Orders.Application.Queries;
 using Holmes.Orders.Domain;
 using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Queries;
 using Holmes.Services.Domain;
-using Holmes.Subjects.Application.Abstractions.Queries;
+using Holmes.Subjects.Application.Commands;
+using Holmes.Subjects.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -101,11 +101,12 @@ public sealed class OrdersController(
             return BadRequest("Subject email or subject id is required.");
         }
 
-        var intakeCommand = new CreateOrderWithIntakeCommand(
+        var intakeCommand = new RequestSubjectIntakeCommand(
             request.SubjectEmail.Trim(),
             request.SubjectPhone?.Trim(),
             UlidId.FromUlid(parsedCustomer),
-            request.PolicySnapshotId);
+            request.PolicySnapshotId,
+            DateTimeOffset.UtcNow);
 
         var intakeResult = await mediator.Send(intakeCommand, cancellationToken);
         if (!intakeResult.IsSuccess)

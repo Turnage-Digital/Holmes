@@ -1,6 +1,6 @@
 using Holmes.Core.Infrastructure.Sql.Specifications;
 using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Queries;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;

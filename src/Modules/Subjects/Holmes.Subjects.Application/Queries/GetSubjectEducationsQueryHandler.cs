@@ -1,0 +1,21 @@
+using Holmes.Core.Domain;
+using Holmes.Subjects.Application.Abstractions;
+using Holmes.Subjects.Application.Abstractions.Dtos;
+using Holmes.Subjects.Application.Queries;
+using MediatR;
+
+namespace Holmes.Subjects.Application.Queries;
+
+public sealed class GetSubjectEducationsQueryHandler(
+    ISubjectQueries subjectQueries
+) : IRequestHandler<GetSubjectEducationsQuery, Result<IReadOnlyList<SubjectEducationDto>>>
+{
+    public async Task<Result<IReadOnlyList<SubjectEducationDto>>> Handle(
+        GetSubjectEducationsQuery request,
+        CancellationToken cancellationToken
+    )
+    {
+        var educations = await subjectQueries.GetEducationsAsync(request.SubjectId, cancellationToken);
+        return Result.Success(educations);
+    }
+}

@@ -186,6 +186,33 @@ public sealed class IntakeSession : AggregateRoot
         AddDomainEvent(new IntakeSubmissionReceived(Id, OrderId, submittedAt));
     }
 
+    public void CaptureSubjectData(
+        string? middleName,
+        byte[]? encryptedSsn,
+        string? ssnLast4,
+        IReadOnlyList<SubjectIntakeAddressData> addresses,
+        IReadOnlyList<SubjectIntakeEmploymentData> employments,
+        IReadOnlyList<SubjectIntakeEducationData> educations,
+        IReadOnlyList<SubjectIntakeReferenceData> references,
+        IReadOnlyList<SubjectIntakePhoneData> phones,
+        DateTimeOffset updatedAt
+    )
+    {
+        AddDomainEvent(new SubjectIntakeDataCaptured(
+            SubjectId,
+            OrderId,
+            Id,
+            middleName,
+            encryptedSsn,
+            ssnLast4,
+            addresses,
+            employments,
+            educations,
+            references,
+            phones,
+            updatedAt));
+    }
+
     public void AcceptSubmission(DateTimeOffset acceptedAt)
     {
         EnsureActive();

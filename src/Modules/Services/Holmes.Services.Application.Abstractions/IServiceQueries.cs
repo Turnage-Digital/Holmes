@@ -3,7 +3,7 @@ using Holmes.Services.Domain;
 
 // ReSharper disable once CheckNamespace
 
-namespace Holmes.Services.Application.Abstractions.Queries;
+namespace Holmes.Services.Application.Queries;
 
 /// <summary>
 ///     Query interface for service lookups. Used by application layer for read operations.

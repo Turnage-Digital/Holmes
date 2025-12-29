@@ -1,7 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.App.Application;
-using Holmes.App.Application.EventHandlers;
 using Holmes.App.Server.Services;
 using Holmes.Core.Application;
 using Holmes.Core.Application.Abstractions;
@@ -31,7 +29,7 @@ using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Services.Application.Abstractions;
-using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Queries;
 using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
@@ -136,8 +134,6 @@ internal static class DependencyInjection
             config.RegisterServicesFromAssemblyContaining<CreateNotificationCommandHandler>();
             config.RegisterServicesFromAssemblyContaining<StartSlaClockCommandHandler>();
             config.RegisterServicesFromAssemblyContaining<CreateServiceCommandHandler>();
-            // Integration handlers (cross-module event handlers)
-            config.RegisterServicesFromAssemblyContaining<IntakeToWorkflowHandler>();
         });
 
         return services;
@@ -260,8 +256,6 @@ internal static class DependencyInjection
         services.AddSlaClockInfrastructureSql(connectionString, serverVersion);
         services.AddServicesInfrastructureSql(connectionString, serverVersion);
 
-        services.AddAppApplication();
-
         return services;
     }
 
@@ -326,7 +320,6 @@ internal static class DependencyInjection
         services.AddScoped<ISlaClockProjectionWriter, SlaClockProjectionWriter>();
         services.AddScoped<IBusinessCalendarService, BusinessCalendarService>();
         services.AddSingleton<ISlaClockChangeBroadcaster, SlaClockChangeBroadcaster>();
-        services.AddAppApplication();
         return services;
     }
 }

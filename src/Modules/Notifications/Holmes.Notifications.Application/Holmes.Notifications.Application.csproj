@@ -8,8 +8,16 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
+        <ProjectReference Include="..\..\Customers\Holmes.Customers.Application.Abstractions\Holmes.Customers.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\IntakeSessions\Holmes.IntakeSessions.Application.Abstractions\Holmes.IntakeSessions.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Holmes.Notifications.Application.Abstractions\Holmes.Notifications.Application.Abstractions.csproj"/>
         <ProjectReference Include="..\Holmes.Notifications.Domain\Holmes.Notifications.Domain.csproj"/>
+        <ProjectReference Include="..\..\SlaClocks\Holmes.SlaClocks.Application.Abstractions\Holmes.SlaClocks.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\Subjects\Holmes.Subjects.Application.Abstractions\Holmes.Subjects.Application.Abstractions.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0"/>
     </ItemGroup>
 
 </Project>

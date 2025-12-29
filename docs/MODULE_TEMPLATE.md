@@ -110,25 +110,24 @@ Host registers IOrderStatusProvider in DI
 - **Evolvability**: Internal domain changes don't cascade across modules
 - **Clarity**: Dependencies are explicit contracts, not hidden couplings
 
-### Cross-Module Event Handlers
+### Cross-Module Integration Handlers
 
-When a domain event from Module A needs to trigger behavior in Module B, the handler belongs in
-`Holmes.App.Application`, NOT in either module's Application project.
+When a module needs to react to another module, the handler lives in the consuming module's Application and depends
+on the producer's `*.Application.Abstractions` integration events only.
 
 ```
 # Example: OrderStatusChanged (Workflow) → Start SLA clocks (SlaClocks)
 
-Holmes.App.Application/
-  └── NotificationHandlers/
-      └── OrderStatusChangedSlaHandler.cs  # Handles Workflow event, sends SlaClocks commands
+Holmes.SlaClocks.Application/
+  └── EventHandlers/
+      └── OrderStatusChangedSlaHandler.cs  # Handles Orders integration event, sends SlaClocks commands
 
-Holmes.App.Application.csproj references:
-  - Holmes.Orders.Application (for OrderStatusChanged event)
-  - Holmes.SlaClocks.Application (for StartSlaClockCommand)
+Holmes.SlaClocks.Application.csproj references:
+  - Holmes.Orders.Application.Abstractions (for OrderStatusChangedIntegrationEvent)
 ```
 
-This keeps each module internally cohesive and places cross-cutting orchestration in the integration layer
-where it can see all modules.
+This keeps module boundaries clean while allowing event-driven integration without direct cross-module Application
+references.
 
 ## CQRS Pattern
 
