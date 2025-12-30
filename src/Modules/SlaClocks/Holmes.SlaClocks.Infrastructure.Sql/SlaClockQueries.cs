@@ -1,7 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql.Specifications;
-using Holmes.SlaClocks.Application.Abstractions;
-using Holmes.SlaClocks.Application.Abstractions.Dtos;
+using Holmes.SlaClocks.Contracts;
+using Holmes.SlaClocks.Contracts.Dtos;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;

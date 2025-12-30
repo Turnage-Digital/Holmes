@@ -1,4 +1,4 @@
-using Holmes.Core.Application.Abstractions.Security;
+using Holmes.Core.Contracts.Security;
 
 namespace Holmes.Core.Infrastructure.Security;
 

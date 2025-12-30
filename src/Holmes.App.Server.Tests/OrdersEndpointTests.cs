@@ -8,7 +8,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
-using Holmes.Orders.Application.Abstractions.Dtos;
+using Holmes.Orders.Contracts.Dtos;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Orders.Infrastructure.Sql.Entities;

@@ -15,7 +15,7 @@ This roadmap focuses on what is implemented today and what remains in near-term 
 - **Event Store:** Append-only `events` table + snapshots; projections checkpointed
 - **Streaming:** Server-Sent Events via `/api/*/changes` endpoints
 - **Security:** OIDC + cookies via Holmes.Identity.Server; tenant isolation; AEAD for PII
-- **Module layering:** `Domain` -> `Application.Abstractions` -> `Application` -> `Infrastructure.Sql`
+- **Module layering:** `Domain` -> `Contracts` -> `Application` -> `Infrastructure.Sql`
 
 ---
 
@@ -35,53 +35,53 @@ This roadmap focuses on what is implemented today and what remains in near-term 
     Core/
       Holmes.Core.Domain/
       Holmes.Core.Application/
-      Holmes.Core.Application.Abstractions/
+      Holmes.Core.Contracts/
       Holmes.Core.Infrastructure.Sql/
       Holmes.Core.Infrastructure.Security/
       Holmes.Core.Tests/
     Subjects/
       Holmes.Subjects.Domain/
       Holmes.Subjects.Application/
-      Holmes.Subjects.Application.Abstractions/
+      Holmes.Subjects.Contracts/
       Holmes.Subjects.Infrastructure.Sql/
       Holmes.Subjects.Tests/
     Users/
       Holmes.Users.Domain/
       Holmes.Users.Application/
-      Holmes.Users.Application.Abstractions/
+      Holmes.Users.Contracts/
       Holmes.Users.Infrastructure.Sql/
     Customers/
       Holmes.Customers.Domain/
       Holmes.Customers.Application/
-      Holmes.Customers.Application.Abstractions/
+      Holmes.Customers.Contracts/
       Holmes.Customers.Infrastructure.Sql/
     Intake/
       Holmes.IntakeSessions.Domain/
       Holmes.IntakeSessions.Application/
-      Holmes.IntakeSessions.Application.Abstractions/
+      Holmes.IntakeSessions.Contracts/
       Holmes.IntakeSessions.Infrastructure.Sql/
       Holmes.IntakeSessions.Tests/
     Workflow/
       Holmes.Orders.Domain/
       Holmes.Orders.Application/
-      Holmes.Orders.Application.Abstractions/
+      Holmes.Orders.Contracts/
       Holmes.Orders.Infrastructure.Sql/
     Services/
       Holmes.Services.Domain/
       Holmes.Services.Application/
-      Holmes.Services.Application.Abstractions/
+      Holmes.Services.Contracts/
       Holmes.Services.Infrastructure.Sql/
       Holmes.Services.Tests/
     SlaClocks/
       Holmes.SlaClocks.Domain/
       Holmes.SlaClocks.Application/
-      Holmes.SlaClocks.Application.Abstractions/
+      Holmes.SlaClocks.Contracts/
       Holmes.SlaClocks.Infrastructure.Sql/
       Holmes.SlaClocks.Tests/
     Notifications/
       Holmes.Notifications.Domain/
       Holmes.Notifications.Application/
-      Holmes.Notifications.Application.Abstractions/
+      Holmes.Notifications.Contracts/
       Holmes.Notifications.Infrastructure.Sql/
       Holmes.Notifications.Tests/
 ```

@@ -1,9 +1,9 @@
-using Holmes.Customers.Application.Abstractions;
-using Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents;
+using Holmes.Customers.Contracts;
+using Holmes.IntakeSessions.Contracts.IntegrationEvents;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Domain.ValueObjects;
-using Holmes.Subjects.Application.Abstractions;
+using Holmes.Subjects.Contracts;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

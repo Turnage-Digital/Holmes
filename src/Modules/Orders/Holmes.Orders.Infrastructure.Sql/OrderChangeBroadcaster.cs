@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Contracts;
 
 namespace Holmes.Orders.Infrastructure.Sql;
 

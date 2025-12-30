@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Application.Abstractions.Services;
+using Holmes.SlaClocks.Contracts.Services;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql.Services;
 

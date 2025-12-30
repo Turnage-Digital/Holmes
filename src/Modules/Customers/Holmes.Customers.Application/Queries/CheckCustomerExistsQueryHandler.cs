@@ -1,4 +1,4 @@
-using Holmes.Customers.Application.Abstractions;
+using Holmes.Customers.Contracts;
 using MediatR;
 
 namespace Holmes.Customers.Application.Queries;

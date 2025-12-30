@@ -1,4 +1,4 @@
-using Holmes.Orders.Application.Abstractions.IntegrationEvents;
+using Holmes.Orders.Contracts.IntegrationEvents;
 using Holmes.Orders.Domain.Events;
 using MediatR;
 

@@ -2,14 +2,12 @@ using System.Text.RegularExpressions;
 
 namespace Holmes.Architecture.Tests;
 
-public sealed class ProjectReferenceRulesTests
+public sealed partial class ProjectReferenceRulesTests
 {
-    private static readonly Regex ProjectReferenceRegex = new(
-        "ProjectReference Include=\"([^\"]+)\"",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex ProjectReferenceRegex = GetRegex();
 
     [Test]
-    public void Cross_module_references_are_only_allowed_from_application_to_abstractions()
+    public void Cross_module_references_are_only_allowed_from_application_to_contracts()
     {
         var repoRoot = FindRepoRoot();
         var modulesRoot = Path.Combine(repoRoot, "src", "Modules");
@@ -52,7 +50,7 @@ public sealed class ProjectReferenceRulesTests
                     continue;
                 }
 
-                var allowed = sourceLayer == "Application" && targetLayer == "Application.Abstractions";
+                var allowed = sourceLayer == "Application" && targetLayer == "Contracts";
                 if (!allowed)
                 {
                     var relativeSource = Path.GetRelativePath(modulesRoot, csproj);
@@ -65,7 +63,7 @@ public sealed class ProjectReferenceRulesTests
         Assert.That(
             violations,
             Is.Empty,
-            "Cross-module references are only allowed from Application to Application.Abstractions.\n" +
+            "Cross-module references are only allowed from Application to Contracts.\n" +
             string.Join(Environment.NewLine, violations));
     }
 
@@ -94,9 +92,9 @@ public sealed class ProjectReferenceRulesTests
 
     private static string? GetLayer(string projectName)
     {
-        if (projectName.EndsWith(".Application.Abstractions", StringComparison.Ordinal))
+        if (projectName.EndsWith(".Contracts", StringComparison.Ordinal))
         {
-            return "Application.Abstractions";
+            return "Contracts";
         }
 
         if (projectName.EndsWith(".Infrastructure.Sql", StringComparison.Ordinal))
@@ -121,4 +119,7 @@ public sealed class ProjectReferenceRulesTests
 
         return null;
     }
+
+    [GeneratedRegex("ProjectReference Include=\"([^\"]+)\"", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    private static partial Regex GetRegex();
 }

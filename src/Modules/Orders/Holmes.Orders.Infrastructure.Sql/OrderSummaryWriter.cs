@@ -1,4 +1,4 @@
-using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Contracts;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;

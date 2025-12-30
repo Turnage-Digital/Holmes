@@ -1,4 +1,4 @@
-using Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents;
+using Holmes.IntakeSessions.Contracts.IntegrationEvents;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Domain;
 using MediatR;

@@ -1,6 +1,6 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Notifications.Application.Abstractions.Dtos;
+using Holmes.Notifications.Contracts.Dtos;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Application.Queries;
 using Holmes.Orders.Application.Queries;

@@ -1,7 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql.Specifications;
-using Holmes.Users.Application.Abstractions;
-using Holmes.Users.Application.Abstractions.Dtos;
+using Holmes.Users.Contracts;
+using Holmes.Users.Contracts.Dtos;
 using Holmes.Users.Infrastructure.Sql.Mappers;
 using Holmes.Users.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;

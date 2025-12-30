@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Contracts;
 
 namespace Holmes.App.Server;
 

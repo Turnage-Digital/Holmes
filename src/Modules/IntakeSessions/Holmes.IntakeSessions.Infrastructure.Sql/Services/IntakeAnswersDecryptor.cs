@@ -1,8 +1,8 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.Core.Application.Abstractions.Security;
-using Holmes.IntakeSessions.Application.Abstractions.Services;
+using Holmes.Core.Contracts.Security;
+using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 

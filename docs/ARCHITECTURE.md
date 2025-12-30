@@ -37,7 +37,7 @@ context is a self-contained module under `src/Modules/{ModuleName}/` with five p
     - Queries under `Queries/` (CQRS query handlers)
     - Event handlers under `EventHandlers/` for domain event projections and side effects
 
-3. `Holmes.{Module}.Application.Abstractions`
+3. `Holmes.{Module}.Contracts`
     - DTOs under `Dtos/`
     - Query interfaces under `Queries/` (e.g., `I{Entity}Queries.cs`)
     - Projection writer interfaces under `Projections/`
@@ -49,7 +49,7 @@ context is a self-contained module under `src/Modules/{ModuleName}/` with five p
     - `{Module}UnitOfWork.cs`
     - Database entities under `Entities/` (e.g., `CustomerDb.cs`)
     - Repositories under `Repositories/` implementing domain interfaces
-    - Query implementations under `Queries/` (implementing interfaces from Application.Abstractions)
+    - Query implementations under `Queries/` (implementing interfaces from Contracts)
     - Projections under `Projections/`
     - Mappers under `Mappers/`
     - Specifications under `Specifications/`
@@ -62,26 +62,26 @@ context is a self-contained module under `src/Modules/{ModuleName}/` with five p
 Dependency graph:
 
 ```
-Application ──────► Application.Abstractions ◄────── Infrastructure.Sql
+Application ──────► Contracts ◄────── Infrastructure.Sql
      │                        │                              │
      └────────► Domain ◄──────┴──────────────────────────────┘
 ```
 
 - Domain has no dependencies (pure domain logic)
-- Application.Abstractions depends on Domain (for value objects in DTOs)
-- Application depends on Domain and Application.Abstractions
-- Infrastructure.Sql depends on Domain and Application.Abstractions (NOT Application)
+- Contracts depends on Domain (for value objects in DTOs)
+- Application depends on Domain and Contracts
+- Infrastructure.Sql depends on Domain and Contracts (NOT Application)
 
 ---
 
 ## 3) Cross-Module Integration
 
-- Allowed references: `ModuleA.Application` → `ModuleB.Application.Abstractions` and
-  `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions`.
+- Allowed references: `ModuleA.Application` → `ModuleB.Contracts` and
+  `ModuleA.Infrastructure.Sql` → `ModuleB.Contracts`.
 - Forbidden references: direct dependencies on another module's Domain, Application, or Infrastructure.Sql.
 - Cross-module integration handlers live in the consuming module's Application and only reference the
-  producer's Application.Abstractions.
-- Integration event contracts live in the producer's `Application.Abstractions/IntegrationEvents/`.
+  producer's Contracts.
+- Integration event contracts live in the producer's `Contracts/IntegrationEvents/`.
 - Integration event publishers and consumers live in each module's `Application/EventHandlers/`.
 - No cross-module transactions; use the outbox + integration events between modules.
 - See `docs/INTEGRATION_INDEX.md` for the current producer/consumer map.
@@ -111,7 +111,7 @@ There is no central app application layer; integration handlers live in modules.
 
 - Read models are updated by event handlers inside each module.
 - Projection writers live in each module's Infrastructure project, and are invoked by the host.
-- Query interfaces live in Application.Abstractions and are implemented in Infrastructure.Sql.
+- Query interfaces live in Contracts and are implemented in Infrastructure.Sql.
 
 ---
 

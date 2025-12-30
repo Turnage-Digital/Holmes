@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Abstractions;
-using Holmes.Users.Application.Abstractions;
+using Holmes.Customers.Contracts;
+using Holmes.Users.Contracts;
 
 namespace Holmes.App.Infrastructure.Security;
 

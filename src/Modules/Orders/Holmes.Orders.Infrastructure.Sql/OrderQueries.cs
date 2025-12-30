@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Holmes.Orders.Application.Abstractions;
-using Holmes.Orders.Application.Abstractions.Dtos;
+using Holmes.Orders.Contracts;
+using Holmes.Orders.Contracts.Dtos;
 using Holmes.Orders.Domain;
 using Microsoft.EntityFrameworkCore;
 

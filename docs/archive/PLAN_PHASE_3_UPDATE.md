@@ -28,7 +28,7 @@ context is a self-contained module under `src/Modules/{ModuleName}/` with these 
     - Queries under `Queries/` (CQRS query handlers)
     - Event handlers under `EventHandlers/` for domain event projections and side effects
 
-3. `Holmes.{Module}.Application.Abstractions` - Contracts for the application layer:
+3. `Holmes.{Module}.Contracts` - Contracts for the application layer:
     - DTOs under `Dtos/`
     - Query interfaces under `Queries/` (e.g., `I{Entity}Queries.cs`)
     - Projection writer interfaces under `Projections/`
@@ -40,7 +40,7 @@ context is a self-contained module under `src/Modules/{ModuleName}/` with these 
     - `{Module}UnitOfWork.cs`
     - Database entities under `Entities/` (e.g., `CustomerDb.cs`)
     - Repositories under `Repositories/` implementing domain interfaces
-    - Query implementations under `Queries/` (implementing interfaces from Application.Abstractions)
+    - Query implementations under `Queries/` (implementing interfaces from Contracts)
     - Projections under `Projections/`
     - Mappers under `Mappers/`
     - Specifications under `Specifications/`
@@ -52,22 +52,22 @@ context is a self-contained module under `src/Modules/{ModuleName}/` with these 
 ### Dependency graph:
 
 ```
-Application ──────► Application.Abstractions ◄────── Infrastructure.Sql
+Application ──────► Contracts ◄────── Infrastructure.Sql
      │                        │                              │
      └────────► Domain ◄──────┴──────────────────────────────┘
 ```
 
 - Domain has no dependencies (pure domain logic)
-- Application.Abstractions depends on Domain (for value objects in DTOs)
-- Application depends on Domain and Application.Abstractions
-- Infrastructure.Sql depends on Domain and Application.Abstractions (NOT Application)
+- Contracts depends on Domain (for value objects in DTOs)
+- Application depends on Domain and Contracts
+- Infrastructure.Sql depends on Domain and Contracts (NOT Application)
 
 ### Cross-module references:
 
 When ModuleA needs types from ModuleB:
 
-- Allowed: `ModuleA.Application` → `ModuleB.Application.Abstractions`
-- Allowed: `ModuleA.Infrastructure.Sql` → `ModuleB.Application.Abstractions`
+- Allowed: `ModuleA.Application` → `ModuleB.Contracts`
+- Allowed: `ModuleA.Infrastructure.Sql` → `ModuleB.Contracts`
 - Forbidden: Direct references to another module's Domain, Application, or Infrastructure.Sql
 
 ### Cross-module integration handlers:

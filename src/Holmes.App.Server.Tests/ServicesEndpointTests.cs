@@ -10,7 +10,7 @@ using Holmes.Customers.Infrastructure.Sql.Entities;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Orders.Infrastructure.Sql.Entities;
-using Holmes.Services.Application.Abstractions.Dtos;
+using Holmes.Services.Contracts.Dtos;
 using Holmes.Services.Domain;
 using Holmes.Services.Infrastructure.Sql;
 using Holmes.Services.Infrastructure.Sql.Entities;

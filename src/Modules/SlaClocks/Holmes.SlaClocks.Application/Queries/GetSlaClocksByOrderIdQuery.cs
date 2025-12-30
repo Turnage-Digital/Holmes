@@ -1,6 +1,6 @@
-using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Contracts;
 using Holmes.Core.Domain;
-using Holmes.SlaClocks.Application.Abstractions.Dtos;
+using Holmes.SlaClocks.Contracts.Dtos;
 
 namespace Holmes.SlaClocks.Application.Queries;
 

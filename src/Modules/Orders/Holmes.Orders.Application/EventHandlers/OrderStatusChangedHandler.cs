@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Contracts;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Domain.Events;
 using MediatR;

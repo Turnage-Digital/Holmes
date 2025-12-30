@@ -8,11 +8,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
-        <ProjectReference Include="..\..\IntakeSessions\Holmes.IntakeSessions.Application.Abstractions\Holmes.IntakeSessions.Application.Abstractions.csproj"/>
-        <ProjectReference Include="..\Holmes.Orders.Application.Abstractions\Holmes.Orders.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\IntakeSessions\Holmes.IntakeSessions.Contracts\Holmes.IntakeSessions.Contracts.csproj"/>
+        <ProjectReference Include="..\Holmes.Orders.Contracts\Holmes.Orders.Contracts.csproj"/>
         <ProjectReference Include="..\Holmes.Orders.Domain\Holmes.Orders.Domain.csproj"/>
-        <ProjectReference Include="..\..\Services\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj"/>
-        <ProjectReference Include="..\..\Subjects\Holmes.Subjects.Application.Abstractions\Holmes.Subjects.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\Services\Holmes.Services.Contracts\Holmes.Services.Contracts.csproj"/>
+        <ProjectReference Include="..\..\Subjects\Holmes.Subjects.Contracts\Holmes.Subjects.Contracts.csproj"/>
     </ItemGroup>
 
 </Project>

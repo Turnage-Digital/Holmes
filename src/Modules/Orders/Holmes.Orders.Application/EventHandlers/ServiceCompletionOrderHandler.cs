@@ -1,7 +1,7 @@
-using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Contracts;
 using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Domain;
-using Holmes.Services.Application.Abstractions.IntegrationEvents;
+using Holmes.Services.Contracts.IntegrationEvents;
 using Holmes.Services.Application.Queries;
 using MediatR;
 using Microsoft.Extensions.Logging;

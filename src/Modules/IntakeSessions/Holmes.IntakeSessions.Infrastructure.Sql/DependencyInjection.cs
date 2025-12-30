@@ -1,5 +1,5 @@
-using Holmes.IntakeSessions.Application.Abstractions;
-using Holmes.IntakeSessions.Application.Abstractions.Services;
+using Holmes.IntakeSessions.Contracts;
+using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Infrastructure.Sql.Services;
 using Microsoft.EntityFrameworkCore;

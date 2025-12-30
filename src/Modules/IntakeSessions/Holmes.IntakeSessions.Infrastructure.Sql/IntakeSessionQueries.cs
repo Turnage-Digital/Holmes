@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Application.Abstractions;
-using Holmes.IntakeSessions.Application.Abstractions.Dtos;
+using Holmes.IntakeSessions.Contracts;
+using Holmes.IntakeSessions.Contracts.Dtos;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;

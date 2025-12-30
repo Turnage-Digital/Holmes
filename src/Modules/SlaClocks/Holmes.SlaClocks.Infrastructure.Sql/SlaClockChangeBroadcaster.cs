@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Application.Abstractions;
+using Holmes.SlaClocks.Contracts;
 
 namespace Holmes.SlaClocks.Infrastructure.Sql;
 

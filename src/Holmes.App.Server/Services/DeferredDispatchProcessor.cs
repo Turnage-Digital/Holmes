@@ -1,4 +1,4 @@
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts.Events;
 using MediatR;
 
 namespace Holmes.App.Server.Services;

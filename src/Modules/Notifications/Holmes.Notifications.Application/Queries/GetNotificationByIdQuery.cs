@@ -1,6 +1,6 @@
-using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Contracts;
 using Holmes.Core.Domain;
-using Holmes.Notifications.Application.Abstractions.Dtos;
+using Holmes.Notifications.Contracts.Dtos;
 
 namespace Holmes.Notifications.Application.Queries;
 

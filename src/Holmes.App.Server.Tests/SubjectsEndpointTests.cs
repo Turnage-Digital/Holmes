@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using Holmes.Subjects.Application.Abstractions.Dtos;
+using Holmes.Subjects.Contracts.Dtos;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;

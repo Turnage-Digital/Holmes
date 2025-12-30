@@ -115,15 +115,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Intake.Server", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Hosting", "src\Holmes.Hosting\Holmes.Hosting.csproj", "{ADDF918E-7B9C-4343-A608-BE521587D6BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Application.Abstractions", "src\Modules\Core\Holmes.Core.Application.Abstractions\Holmes.Core.Application.Abstractions.csproj", "{F59A38C5-75D5-4526-B43D-084E82849448}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Contracts", "src\Modules\Core\Holmes.Core.Contracts\Holmes.Core.Contracts.csproj", "{F59A38C5-75D5-4526-B43D-084E82849448}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Orders.Application.Abstractions", "src\Modules\Orders\Holmes.Orders.Application.Abstractions\Holmes.Orders.Application.Abstractions.csproj", "{2128B805-9948-4D3E-AC2C-FA4849A51B7F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Orders.Contracts", "src\Modules\Orders\Holmes.Orders.Contracts\Holmes.Orders.Contracts.csproj", "{2128B805-9948-4D3E-AC2C-FA4849A51B7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Users.Application.Abstractions", "src\Modules\Users\Holmes.Users.Application.Abstractions\Holmes.Users.Application.Abstractions.csproj", "{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Users.Contracts", "src\Modules\Users\Holmes.Users.Contracts\Holmes.Users.Contracts.csproj", "{2DE55F9C-0DE0-4111-9DE2-CD04C6F1B39A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Application.Abstractions", "src\Modules\Customers\Holmes.Customers.Application.Abstractions\Holmes.Customers.Application.Abstractions.csproj", "{51A7EFDA-92A9-471E-B95A-193D7579FABA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Customers.Contracts", "src\Modules\Customers\Holmes.Customers.Contracts\Holmes.Customers.Contracts.csproj", "{51A7EFDA-92A9-471E-B95A-193D7579FABA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Application.Abstractions", "src\Modules\Subjects\Holmes.Subjects.Application.Abstractions\Holmes.Subjects.Application.Abstractions.csproj", "{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Subjects.Contracts", "src\Modules\Subjects\Holmes.Subjects.Contracts\Holmes.Subjects.Contracts.csproj", "{526F45DD-0E86-4CFD-BDF5-E16B4729EDC7}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Holmes.Internal", "src\Holmes.Internal\Holmes.Internal.esproj", "{537C4436-7D89-44AD-A053-D97A013F5882}"
 EndProject
@@ -133,7 +133,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Internal.Server", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Identity.Server.Tests", "src\Holmes.Identity.Server.Tests\Holmes.Identity.Server.Tests.csproj", "{6372809D-FE47-4F11-A5E4-BE0634ABD025}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Notifications.Application.Abstractions", "src\Modules\Notifications\Holmes.Notifications.Application.Abstractions\Holmes.Notifications.Application.Abstractions.csproj", "{8CAB1015-21A4-41F5-925C-683BDE62FF0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Notifications.Contracts", "src\Modules\Notifications\Holmes.Notifications.Contracts\Holmes.Notifications.Contracts.csproj", "{8CAB1015-21A4-41F5-925C-683BDE62FF0E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SlaClocks", "SlaClocks", "{F64AD250-2E9E-402E-96CC-59A889894329}"
 EndProject
@@ -141,7 +141,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Domain", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Application", "src\Modules\SlaClocks\Holmes.SlaClocks.Application\Holmes.SlaClocks.Application.csproj", "{F9BFE7B6-B8DC-44CB-8678-CFA8ABF96B22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Application.Abstractions", "src\Modules\SlaClocks\Holmes.SlaClocks.Application.Abstractions\Holmes.SlaClocks.Application.Abstractions.csproj", "{81A8151A-B4D5-4872-B38E-762416EA51E0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Contracts", "src\Modules\SlaClocks\Holmes.SlaClocks.Contracts\Holmes.SlaClocks.Contracts.csproj", "{81A8151A-B4D5-4872-B38E-762416EA51E0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.SlaClocks.Infrastructure.Sql", "src\Modules\SlaClocks\Holmes.SlaClocks.Infrastructure.Sql\Holmes.SlaClocks.Infrastructure.Sql.csproj", "{93A4608E-B1DF-448C-81ED-C0362F6B72B3}"
 EndProject
@@ -166,7 +166,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Domain", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Application", "src\Modules\Services\Holmes.Services.Application\Holmes.Services.Application.csproj", "{4CDFC999-C612-4F52-A626-1F918F52F2DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Application.Abstractions", "src\Modules\Services\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj", "{4702AAC4-F557-4CA2-A139-F55061F8C08B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Contracts", "src\Modules\Services\Holmes.Services.Contracts\Holmes.Services.Contracts.csproj", "{4702AAC4-F557-4CA2-A139-F55061F8C08B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Infrastructure.Sql", "src\Modules\Services\Holmes.Services.Infrastructure.Sql\Holmes.Services.Infrastructure.Sql.csproj", "{AFA751FF-8289-48AF-A099-9FCD5E0627D3}"
 EndProject
@@ -174,7 +174,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Services.Tests", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.Core.Infrastructure.Sql", "src\Modules\Core\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj", "{17A29F71-898C-414E-896C-2A5A2E963D10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.IntakeSessions.Application.Abstractions", "src\Modules\IntakeSessions\Holmes.IntakeSessions.Application.Abstractions\Holmes.IntakeSessions.Application.Abstractions.csproj", "{109BAB85-687A-4924-9B23-5C5BFEE61797}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.IntakeSessions.Contracts", "src\Modules\IntakeSessions\Holmes.IntakeSessions.Contracts\Holmes.IntakeSessions.Contracts.csproj", "{109BAB85-687A-4924-9B23-5C5BFEE61797}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Holmes.App.Infrastructure.Security", "src\Holmes.App.Infrastructure\Holmes.App.Infrastructure.Security.csproj", "{36FFF85C-C6EC-449B-B712-027154C07DA7}"
 EndProject

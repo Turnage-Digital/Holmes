@@ -3,7 +3,7 @@ using Holmes.App.Infrastructure.Security.Identity;
 using Holmes.App.Infrastructure.Security.Identity.Models;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Application.Abstractions.Dtos;
+using Holmes.Users.Contracts.Dtos;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Application.Queries;
 using Holmes.Users.Domain;

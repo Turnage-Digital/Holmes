@@ -1,4 +1,4 @@
-using Holmes.Notifications.Application.Abstractions;
+using Holmes.Notifications.Contracts;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;

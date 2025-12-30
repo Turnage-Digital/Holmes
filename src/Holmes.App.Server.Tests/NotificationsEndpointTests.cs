@@ -6,7 +6,7 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
-using Holmes.Notifications.Application.Abstractions.Dtos;
+using Holmes.Notifications.Contracts.Dtos;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql;
 using Holmes.Notifications.Infrastructure.Sql.Entities;

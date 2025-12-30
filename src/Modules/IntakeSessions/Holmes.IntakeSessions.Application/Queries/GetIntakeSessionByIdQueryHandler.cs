@@ -1,6 +1,6 @@
 using Holmes.Core.Domain;
-using Holmes.IntakeSessions.Application.Abstractions;
-using Holmes.IntakeSessions.Application.Abstractions.Dtos;
+using Holmes.IntakeSessions.Contracts;
+using Holmes.IntakeSessions.Contracts.Dtos;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Queries;

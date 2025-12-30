@@ -1,7 +1,7 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Subjects.Application.Abstractions.Dtos;
+using Holmes.Subjects.Contracts.Dtos;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Application.Queries;
 using MediatR;

@@ -1,6 +1,6 @@
-using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Application.Abstractions.Dtos;
+using Holmes.IntakeSessions.Contracts.Dtos;
 
 namespace Holmes.IntakeSessions.Application.Queries;
 

@@ -1,4 +1,4 @@
-using Holmes.SlaClocks.Application.Abstractions.IntegrationEvents;
+using Holmes.SlaClocks.Contracts.IntegrationEvents;
 using Holmes.SlaClocks.Domain.Events;
 using MediatR;
 

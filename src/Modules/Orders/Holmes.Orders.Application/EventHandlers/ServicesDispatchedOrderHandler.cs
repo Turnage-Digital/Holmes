@@ -1,5 +1,5 @@
 using Holmes.Orders.Application.Commands;
-using Holmes.Services.Application.Abstractions.IntegrationEvents;
+using Holmes.Services.Contracts.IntegrationEvents;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

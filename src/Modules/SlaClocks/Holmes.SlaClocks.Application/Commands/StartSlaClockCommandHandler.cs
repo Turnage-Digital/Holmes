@@ -1,6 +1,6 @@
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Application.Abstractions.Services;
+using Holmes.SlaClocks.Contracts.Services;
 using Holmes.SlaClocks.Domain;
 using MediatR;
 

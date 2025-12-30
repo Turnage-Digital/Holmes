@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Application.Abstractions;
+using Holmes.Users.Contracts;
 using Microsoft.AspNetCore.Http;
 
 namespace Holmes.App.Infrastructure.Security;

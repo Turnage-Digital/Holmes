@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts.Events;
 using Holmes.Core.Domain.ValueObjects;
 using MediatR;
 

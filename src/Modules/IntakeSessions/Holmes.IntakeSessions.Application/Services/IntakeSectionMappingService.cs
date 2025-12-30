@@ -1,4 +1,4 @@
-using Holmes.IntakeSessions.Application.Abstractions.Services;
+using Holmes.IntakeSessions.Contracts.Services;
 
 namespace Holmes.IntakeSessions.Application.Services;
 

@@ -27,7 +27,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Holmes.Services.Domain\Holmes.Services.Domain.csproj"/>
         <ProjectReference Include="..\Holmes.Services.Application\Holmes.Services.Application.csproj"/>
-        <ProjectReference Include="..\Holmes.Services.Application.Abstractions\Holmes.Services.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\Holmes.Services.Contracts\Holmes.Services.Contracts.csproj"/>
         <ProjectReference Include="..\Holmes.Services.Infrastructure.Sql\Holmes.Services.Infrastructure.Sql.csproj"/>
     </ItemGroup>
 

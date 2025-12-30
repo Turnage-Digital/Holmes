@@ -1,5 +1,5 @@
 using Holmes.Core.Domain;
-using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 using MediatR;
 

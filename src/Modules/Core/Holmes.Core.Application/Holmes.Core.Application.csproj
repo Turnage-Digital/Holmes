@@ -11,7 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Holmes.Core.Application.Abstractions\Holmes.Core.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\Holmes.Core.Contracts\Holmes.Core.Contracts.csproj"/>
         <ProjectReference Include="..\Holmes.Core.Domain\Holmes.Core.Domain.csproj"/>
     </ItemGroup>
 

@@ -1,5 +1,5 @@
-using Holmes.SlaClocks.Application.Abstractions;
-using Holmes.SlaClocks.Application.Abstractions.Services;
+using Holmes.SlaClocks.Contracts;
+using Holmes.SlaClocks.Contracts.Services;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
 using Microsoft.EntityFrameworkCore;

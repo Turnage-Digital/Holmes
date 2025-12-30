@@ -8,12 +8,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
-        <ProjectReference Include="..\..\Customers\Holmes.Customers.Application.Abstractions\Holmes.Customers.Application.Abstractions.csproj"/>
-        <ProjectReference Include="..\..\IntakeSessions\Holmes.IntakeSessions.Application.Abstractions\Holmes.IntakeSessions.Application.Abstractions.csproj"/>
-        <ProjectReference Include="..\Holmes.Notifications.Application.Abstractions\Holmes.Notifications.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\Customers\Holmes.Customers.Contracts\Holmes.Customers.Contracts.csproj"/>
+        <ProjectReference Include="..\..\IntakeSessions\Holmes.IntakeSessions.Contracts\Holmes.IntakeSessions.Contracts.csproj"/>
+        <ProjectReference Include="..\Holmes.Notifications.Contracts\Holmes.Notifications.Contracts.csproj"/>
         <ProjectReference Include="..\Holmes.Notifications.Domain\Holmes.Notifications.Domain.csproj"/>
-        <ProjectReference Include="..\..\SlaClocks\Holmes.SlaClocks.Application.Abstractions\Holmes.SlaClocks.Application.Abstractions.csproj"/>
-        <ProjectReference Include="..\..\Subjects\Holmes.Subjects.Application.Abstractions\Holmes.Subjects.Application.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\SlaClocks\Holmes.SlaClocks.Contracts\Holmes.SlaClocks.Contracts.csproj"/>
+        <ProjectReference Include="..\..\Subjects\Holmes.Subjects.Contracts\Holmes.Subjects.Contracts.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

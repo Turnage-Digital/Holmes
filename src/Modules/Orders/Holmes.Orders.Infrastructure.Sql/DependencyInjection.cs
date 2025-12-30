@@ -1,4 +1,4 @@
-using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Contracts;
 using Holmes.Orders.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

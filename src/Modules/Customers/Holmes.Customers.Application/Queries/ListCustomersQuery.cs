@@ -1,6 +1,6 @@
-using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Contracts;
 using Holmes.Core.Domain;
-using Holmes.Customers.Application.Abstractions;
+using Holmes.Customers.Contracts;
 
 namespace Holmes.Customers.Application.Queries;
 

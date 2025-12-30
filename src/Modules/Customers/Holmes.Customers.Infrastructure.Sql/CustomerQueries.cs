@@ -1,6 +1,6 @@
 using Holmes.Core.Infrastructure.Sql.Specifications;
-using Holmes.Customers.Application.Abstractions;
-using Holmes.Customers.Application.Abstractions.Dtos;
+using Holmes.Customers.Contracts;
+using Holmes.Customers.Contracts.Dtos;
 using Holmes.Customers.Infrastructure.Sql.Entities;
 using Holmes.Customers.Infrastructure.Sql.Mappers;
 using Holmes.Customers.Infrastructure.Sql.Specifications;

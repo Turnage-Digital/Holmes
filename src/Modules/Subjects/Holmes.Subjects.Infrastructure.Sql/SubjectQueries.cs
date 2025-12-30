@@ -1,5 +1,5 @@
-using Holmes.Subjects.Application.Abstractions;
-using Holmes.Subjects.Application.Abstractions.Dtos;
+using Holmes.Subjects.Contracts;
+using Holmes.Subjects.Contracts.Dtos;
 using Holmes.Subjects.Infrastructure.Sql.Mappers;
 using Microsoft.EntityFrameworkCore;
 

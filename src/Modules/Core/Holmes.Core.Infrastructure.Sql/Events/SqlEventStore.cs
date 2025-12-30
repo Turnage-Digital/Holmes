@@ -1,4 +1,4 @@
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts.Events;
 using Holmes.Core.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
 

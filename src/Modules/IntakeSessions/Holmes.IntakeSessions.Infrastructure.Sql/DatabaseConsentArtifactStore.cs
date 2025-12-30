@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using Holmes.Core.Application.Abstractions.Security;
+using Holmes.Core.Contracts.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Infrastructure.Sql.Entities;

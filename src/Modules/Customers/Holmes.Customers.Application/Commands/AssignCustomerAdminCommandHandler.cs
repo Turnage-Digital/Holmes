@@ -1,6 +1,6 @@
 using Holmes.Core.Domain;
 using Holmes.Customers.Domain;
-using Holmes.Users.Application.Abstractions;
+using Holmes.Users.Contracts;
 using MediatR;
 
 namespace Holmes.Customers.Application.Commands;

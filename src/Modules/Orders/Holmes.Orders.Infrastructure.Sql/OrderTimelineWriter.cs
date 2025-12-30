@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Holmes.Orders.Application.Abstractions;
+using Holmes.Orders.Contracts;
 using Holmes.Orders.Infrastructure.Sql.Entities;
 using Microsoft.Extensions.Logging;
 

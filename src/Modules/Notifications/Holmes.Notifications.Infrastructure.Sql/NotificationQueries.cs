@@ -1,7 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql.Specifications;
-using Holmes.Notifications.Application.Abstractions;
-using Holmes.Notifications.Application.Abstractions.Dtos;
+using Holmes.Notifications.Contracts;
+using Holmes.Notifications.Contracts.Dtos;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Infrastructure.Sql.Specifications;
 using Microsoft.EntityFrameworkCore;

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Core\Holmes.Core.Contracts\Holmes.Core.Contracts.csproj"/>
+        <ProjectReference Include="..\Holmes.Notifications.Domain\Holmes.Notifications.Domain.csproj"/>
+    </ItemGroup>
+
+</Project>

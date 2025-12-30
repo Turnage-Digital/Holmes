@@ -1,4 +1,4 @@
-using Holmes.Subjects.Application.Abstractions;
+using Holmes.Subjects.Contracts;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

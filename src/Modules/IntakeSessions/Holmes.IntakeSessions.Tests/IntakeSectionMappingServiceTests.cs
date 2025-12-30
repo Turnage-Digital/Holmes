@@ -1,4 +1,4 @@
-using Holmes.IntakeSessions.Application.Abstractions.Services;
+using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Application.Services;
 
 namespace Holmes.IntakeSessions.Tests;

@@ -1,15 +1,15 @@
-using Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents;
+using Holmes.IntakeSessions.Contracts.IntegrationEvents;
 using Holmes.IntakeSessions.Domain.Events;
 using MediatR;
 using SubjectIntakeAddressData =
-    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeAddressData;
+    Holmes.IntakeSessions.Contracts.IntegrationEvents.SubjectIntakeAddressData;
 using SubjectIntakeEducationData =
-    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeEducationData;
+    Holmes.IntakeSessions.Contracts.IntegrationEvents.SubjectIntakeEducationData;
 using SubjectIntakeEmploymentData =
-    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeEmploymentData;
-using SubjectIntakePhoneData = Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakePhoneData;
+    Holmes.IntakeSessions.Contracts.IntegrationEvents.SubjectIntakeEmploymentData;
+using SubjectIntakePhoneData = Holmes.IntakeSessions.Contracts.IntegrationEvents.SubjectIntakePhoneData;
 using SubjectIntakeReferenceData =
-    Holmes.IntakeSessions.Application.Abstractions.IntegrationEvents.SubjectIntakeReferenceData;
+    Holmes.IntakeSessions.Contracts.IntegrationEvents.SubjectIntakeReferenceData;
 
 namespace Holmes.IntakeSessions.Application.EventHandlers;
 

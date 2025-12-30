@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Abstractions.Dtos;
+using Holmes.Customers.Contracts.Dtos;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql.Entities;

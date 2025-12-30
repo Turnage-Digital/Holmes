@@ -10,7 +10,7 @@ using Holmes.Customers.Infrastructure.Sql.Entities;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Orders.Infrastructure.Sql.Entities;
-using Holmes.SlaClocks.Application.Abstractions.Dtos;
+using Holmes.SlaClocks.Contracts.Dtos;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Infrastructure.Sql;
 using Holmes.SlaClocks.Infrastructure.Sql.Entities;

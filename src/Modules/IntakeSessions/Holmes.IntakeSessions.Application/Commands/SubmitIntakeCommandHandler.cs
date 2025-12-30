@@ -1,7 +1,7 @@
 using System.Text;
-using Holmes.Core.Application.Abstractions.Security;
+using Holmes.Core.Contracts.Security;
 using Holmes.Core.Domain;
-using Holmes.IntakeSessions.Application.Abstractions.Services;
+using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.Events;
 using MediatR;

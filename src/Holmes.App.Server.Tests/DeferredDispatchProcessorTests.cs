@@ -1,5 +1,5 @@
 using Holmes.App.Server.Services;
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts.Events;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

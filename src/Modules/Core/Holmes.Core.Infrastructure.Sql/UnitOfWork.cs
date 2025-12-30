@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Holmes.Core.Application.Abstractions;
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts;
+using Holmes.Core.Contracts.Events;
 using Holmes.Core.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Application.Abstractions.Services;
+using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Application.Commands;
 using Holmes.IntakeSessions.Domain;
 using Moq;

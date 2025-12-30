@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Application.Abstractions.Dtos;
+using Holmes.Users.Contracts.Dtos;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
