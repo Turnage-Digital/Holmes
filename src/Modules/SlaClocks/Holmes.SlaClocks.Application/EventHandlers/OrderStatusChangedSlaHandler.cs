@@ -1,6 +1,8 @@
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.Orders.Contracts.IntegrationEvents;
-using Holmes.SlaClocks.Contracts;
 using Holmes.SlaClocks.Application.Commands;
+using Holmes.SlaClocks.Contracts;
 using Holmes.SlaClocks.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -38,7 +40,10 @@ public sealed class OrderStatusChangedSlaHandler(
                     notification.OrderId,
                     notification.CustomerId,
                     ClockKind.Overall,
-                    notification.ChangedAt), cancellationToken);
+                    notification.ChangedAt)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                }, cancellationToken);
                 break;
 
             case InvitedStatus:
@@ -46,14 +51,20 @@ public sealed class OrderStatusChangedSlaHandler(
                     notification.OrderId,
                     notification.CustomerId,
                     ClockKind.Intake,
-                    notification.ChangedAt), cancellationToken);
+                    notification.ChangedAt)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                }, cancellationToken);
                 break;
 
             case IntakeCompleteStatus:
                 await sender.Send(new CompleteSlaClockCommand(
                     notification.OrderId,
                     ClockKind.Intake,
-                    notification.ChangedAt), cancellationToken);
+                    notification.ChangedAt)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                }, cancellationToken);
                 break;
 
             case ReadyForFulfillmentStatus:
@@ -61,21 +72,30 @@ public sealed class OrderStatusChangedSlaHandler(
                     notification.OrderId,
                     notification.CustomerId,
                     ClockKind.Fulfillment,
-                    notification.ChangedAt), cancellationToken);
+                    notification.ChangedAt)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                }, cancellationToken);
                 break;
 
             case ReadyForReportStatus:
                 await sender.Send(new CompleteSlaClockCommand(
                     notification.OrderId,
                     ClockKind.Fulfillment,
-                    notification.ChangedAt), cancellationToken);
+                    notification.ChangedAt)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                }, cancellationToken);
                 break;
 
             case ClosedStatus:
                 await sender.Send(new CompleteSlaClockCommand(
                     notification.OrderId,
                     ClockKind.Overall,
-                    notification.ChangedAt), cancellationToken);
+                    notification.ChangedAt)
+                {
+                    UserId = SystemActors.SlaClockWatchdog
+                }, cancellationToken);
                 break;
 
             case BlockedStatus:
@@ -110,7 +130,10 @@ public sealed class OrderStatusChangedSlaHandler(
             await sender.Send(new PauseSlaClockCommand(
                 clock.Id,
                 notification.Reason,
-                notification.ChangedAt), cancellationToken);
+                notification.ChangedAt)
+            {
+                UserId = SystemActors.SlaClockWatchdog
+            }, cancellationToken);
         }
     }
 
@@ -127,7 +150,10 @@ public sealed class OrderStatusChangedSlaHandler(
             await sender.Send(new CompleteSlaClockCommand(
                 notification.OrderId,
                 clock.Kind,
-                notification.ChangedAt), cancellationToken);
+                notification.ChangedAt)
+            {
+                UserId = SystemActors.SlaClockWatchdog
+            }, cancellationToken);
         }
     }
 
@@ -144,7 +170,10 @@ public sealed class OrderStatusChangedSlaHandler(
         {
             await sender.Send(new ResumeSlaClockCommand(
                 clock.Id,
-                notification.ChangedAt), cancellationToken);
+                notification.ChangedAt)
+            {
+                UserId = SystemActors.SlaClockWatchdog
+            }, cancellationToken);
         }
     }
 }

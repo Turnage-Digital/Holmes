@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
@@ -40,7 +41,7 @@ public class NotificationsEndpointTests
 
         var customerId = Ulid.NewUlid().ToString();
         var orderId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-notif");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedNotificationAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, DeliveryStatus.Delivered);
         await SeedNotificationAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, DeliveryStatus.Pending);
@@ -69,8 +70,8 @@ public class NotificationsEndpointTests
         var allowedOrder = Ulid.NewUlid().ToString();
         var deniedOrder = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
@@ -143,7 +144,7 @@ public class NotificationsEndpointTests
         var orderId = Ulid.NewUlid().ToString();
         var notificationId = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, customerId, "tenant-retry");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedNotificationAsync(factory, notificationId, orderId, customerId, DeliveryStatus.Failed);
 
@@ -184,8 +185,8 @@ public class NotificationsEndpointTests
         var allowedNotification = Ulid.NewUlid().ToString();
         var deniedNotification = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-retry");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-retry");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
@@ -251,7 +252,10 @@ public class NotificationsEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 
     private static async Task<UlidId> PromoteCurrentUserToAdminAsync(
@@ -269,7 +273,10 @@ public class NotificationsEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
 
         var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow)
         {
@@ -281,8 +288,7 @@ public class NotificationsEndpointTests
 
     private static async Task SeedCustomerAsync(
         HolmesWebApplicationFactory factory,
-        string customerId,
-        string tenantId
+        string customerId
     )
     {
         using var scope = factory.Services.CreateScope();
@@ -298,7 +304,6 @@ public class NotificationsEndpointTests
         customersDb.CustomerProfiles.Add(new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = tenantId,
             PolicySnapshotId = "policy-dev",
             BillingEmail = null,
             CreatedAt = DateTimeOffset.UtcNow,

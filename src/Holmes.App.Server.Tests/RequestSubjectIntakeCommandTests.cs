@@ -1,3 +1,4 @@
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Entities;
@@ -39,7 +40,10 @@ public class RequestSubjectIntakeCommandTests
                 "Create Order Admin",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -124,7 +128,10 @@ public class RequestSubjectIntakeCommandTests
                 "Reuse Subject Admin",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -212,7 +219,10 @@ public class RequestSubjectIntakeCommandTests
                 "No Dup Phone Admin",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -288,7 +298,10 @@ public class RequestSubjectIntakeCommandTests
                 "Empty Email Admin",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -341,7 +354,10 @@ public class RequestSubjectIntakeCommandTests
                 "Deferred Events Admin",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {

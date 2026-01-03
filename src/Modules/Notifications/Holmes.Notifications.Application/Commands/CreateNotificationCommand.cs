@@ -1,5 +1,5 @@
 using Holmes.Core.Contracts;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Domain.ValueObjects;
@@ -15,7 +15,7 @@ public sealed record CreateNotificationCommand(
     NotificationPriority Priority = NotificationPriority.Normal,
     bool IsAdverseAction = false,
     string? CorrelationId = null
-) : RequestBase<Result<CreateNotificationResult>>, ISkipUserAssignment;
+) : RequestBase<Result<CreateNotificationResult>>;
 
 public sealed record CreateNotificationResult(
     UlidId NotificationId,

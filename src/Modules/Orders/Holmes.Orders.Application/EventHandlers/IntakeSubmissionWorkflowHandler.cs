@@ -1,3 +1,5 @@
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.IntakeSessions.Contracts.IntegrationEvents;
 using Holmes.Orders.Application.Commands;
 using MediatR;
@@ -25,6 +27,7 @@ public sealed class IntakeSubmissionWorkflowHandler(
             notification.OrderId,
             notification.AcceptedAt,
             "Intake accepted");
+        command.UserId = SystemActors.System;
 
         var result = await sender.Send(command, cancellationToken);
         if (!result.IsSuccess)
@@ -50,6 +53,7 @@ public sealed class IntakeSubmissionWorkflowHandler(
             notification.IntakeSessionId,
             notification.SubmittedAt,
             "Intake submission received");
+        command.UserId = SystemActors.System;
 
         var result = await sender.Send(command, cancellationToken);
         if (!result.IsSuccess)

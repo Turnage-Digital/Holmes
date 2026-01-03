@@ -11,5 +11,5 @@ export {
   MonospaceIdCell,
   OptionalRelativeTimeCell,
   RelativeTimeCell,
-  SubjectNameCell,
+  SubjectNameCell
 } from "./DataGridCells";

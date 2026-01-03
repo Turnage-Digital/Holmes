@@ -1,4 +1,4 @@
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Orders.Domain;
 using MediatR;
 
@@ -9,8 +9,7 @@ public sealed class ResumeOrderFromBlockCommandHandler(IOrdersUnitOfWork unitOfW
 {
     public async Task<Result> Handle(ResumeOrderFromBlockCommand request, CancellationToken cancellationToken)
     {
-        var repository = unitOfWork.Orders;
-        var order = await repository.GetByIdAsync(request.OrderId, cancellationToken);
+        var order = await unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
             return Result.Fail($"Order '{request.OrderId}' not found.");
@@ -29,7 +28,7 @@ public sealed class ResumeOrderFromBlockCommandHandler(IOrdersUnitOfWork unitOfW
             return Result.Fail(ex.Message);
         }
 
-        await repository.UpdateAsync(order, cancellationToken);
+        await unitOfWork.Orders.UpdateAsync(order, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

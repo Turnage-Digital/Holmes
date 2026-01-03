@@ -1,8 +1,8 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Notifications.Contracts.Dtos;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Application.Queries;
+using Holmes.Notifications.Contracts.Dtos;
 using Holmes.Orders.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

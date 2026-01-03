@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Contracts;
 using Holmes.App.Server.Controllers;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
@@ -68,8 +69,8 @@ public class OrdersEndpointTests
 
         var customerA = Ulid.NewUlid().ToString();
         var customerB = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerA, "tenant-1");
-        await SeedCustomerAsync(factory, customerB, "tenant-2");
+        await SeedCustomerAsync(factory, customerA);
+        await SeedCustomerAsync(factory, customerB);
         await AssignCustomerAdminAsync(factory, customerA, viewerId, adminId);
 
         var orderA = Ulid.NewUlid().ToString();
@@ -100,8 +101,8 @@ public class OrdersEndpointTests
         var allowedOrder = Ulid.NewUlid().ToString();
         var deniedOrder = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, customerAllowed, "tenant-allowed");
-        await SeedCustomerAsync(factory, customerDenied, "tenant-denied");
+        await SeedCustomerAsync(factory, customerAllowed);
+        await SeedCustomerAsync(factory, customerDenied);
         await AssignCustomerAdminAsync(factory, customerAllowed, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, allowedOrder, customerAllowed, Ulid.NewUlid().ToString(),
@@ -129,7 +130,7 @@ public class OrdersEndpointTests
 
         var customerId = Ulid.NewUlid().ToString();
         var subjectId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-create");
+        await SeedCustomerAsync(factory, customerId);
         await SeedSubjectAsync(factory, subjectId);
 
         var request = new OrdersController.CreateOrderRequest(
@@ -164,7 +165,7 @@ public class OrdersEndpointTests
 
         var customerId = Ulid.NewUlid().ToString();
         var subjectId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-no-access");
+        await SeedCustomerAsync(factory, customerId);
         await SeedSubjectAsync(factory, subjectId);
 
         var request = new OrdersController.CreateOrderRequest(
@@ -189,8 +190,8 @@ public class OrdersEndpointTests
 
         var allowedCustomer = Ulid.NewUlid().ToString();
         var deniedCustomer = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, Ulid.NewUlid().ToString(), allowedCustomer, Ulid.NewUlid().ToString(),
@@ -237,7 +238,10 @@ public class OrdersEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 
     private static async Task<UlidId> PromoteCurrentUserToAdminAsync(
@@ -255,7 +259,10 @@ public class OrdersEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
 
         var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow)
         {
@@ -317,8 +324,7 @@ public class OrdersEndpointTests
 
     private static async Task SeedCustomerAsync(
         HolmesWebApplicationFactory factory,
-        string customerId,
-        string tenantId
+        string customerId
     )
     {
         using var scope = factory.Services.CreateScope();
@@ -334,7 +340,6 @@ public class OrdersEndpointTests
         customersDb.CustomerProfiles.Add(new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = tenantId,
             PolicySnapshotId = "policy-dev",
             BillingEmail = null,
             CreatedAt = DateTimeOffset.UtcNow,

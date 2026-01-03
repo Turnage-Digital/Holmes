@@ -1,4 +1,4 @@
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Notifications.Contracts;
 using Holmes.Notifications.Contracts.Dtos;
 using MediatR;

@@ -1,5 +1,5 @@
 using Holmes.Core.Contracts;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.SlaClocks.Contracts.Dtos;
 
 namespace Holmes.SlaClocks.Application.Queries;

@@ -42,12 +42,12 @@ src/Modules/<Feature>/
 
 ## Project References
 
-| Project                                     | References                                                                                               |
-|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `Holmes.<Feature>.Domain`                   | `Holmes.Core.Domain` only                                                                                |
-| `Holmes.<Feature>.Contracts` | `Holmes.<Feature>.Domain`, `Holmes.Core.Domain`                                                          |
-| `Holmes.<Feature>.Application`              | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Contracts`, `Holmes.Core.Application`        |
-| `Holmes.<Feature>.Infrastructure.Sql`       | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Contracts`, `Holmes.Core.Infrastructure.Sql` |
+| Project                               | References                                                                                |
+|---------------------------------------|-------------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`             | `Holmes.Core.Domain` only                                                                 |
+| `Holmes.<Feature>.Contracts`          | `Holmes.<Feature>.Domain`, `Holmes.Core.Domain`                                           |
+| `Holmes.<Feature>.Application`        | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Contracts`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql` | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Contracts`, `Holmes.Core.Infrastructure.Sql` |
 
 **Critical**: Infrastructure projects reference `Contracts` (for query interfaces and DTOs),
 but NEVER reference the `Application` project directly. This enables database swappability.
@@ -132,7 +132,8 @@ references.
 ### Integration Event Flow (Standard)
 
 - Contracts live in `...Contracts/IntegrationEvents/`.
-- Producers publish integration events from domain events via `...Application/EventHandlers/*IntegrationEventPublisher.cs`.
+- Producers publish integration events from domain events via
+  `...Application/EventHandlers/*IntegrationEventPublisher.cs`.
 - Consumers handle integration events in `...Application/EventHandlers/` and translate to local commands.
 - Use `SaveChangesAsync(true)` when you need outbox delivery; the `DeferredDispatchProcessor` publishes after commit.
 - Keep integration handlers thin; push composition into commands or services to avoid "gore" handlers.

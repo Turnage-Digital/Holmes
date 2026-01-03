@@ -1,8 +1,10 @@
-using Holmes.Orders.Contracts;
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.Orders.Application.Commands;
+using Holmes.Orders.Contracts;
 using Holmes.Orders.Domain;
-using Holmes.Services.Contracts.IntegrationEvents;
 using Holmes.Services.Application.Queries;
+using Holmes.Services.Contracts.IntegrationEvents;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -82,6 +84,7 @@ public sealed class ServiceCompletionOrderHandler(
             notification.OrderId,
             notification.CompletedAt,
             $"All {completionStatus.CompletedServices} services completed");
+        command.UserId = SystemActors.System;
 
         var result = await sender.Send(command, cancellationToken);
 

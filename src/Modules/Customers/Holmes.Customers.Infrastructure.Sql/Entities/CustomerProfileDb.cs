@@ -4,8 +4,6 @@ public class CustomerProfileDb
 {
     public string CustomerId { get; set; } = null!;
 
-    public string TenantId { get; set; } = null!;
-
     public string PolicySnapshotId { get; set; } = null!;
 
     public string? BillingEmail { get; set; }

@@ -12,7 +12,6 @@ public sealed record CustomerContactDto(
 
 public sealed record CustomerListItemDto(
     string Id,
-    string TenantId,
     string Name,
     CustomerStatus Status,
     string PolicySnapshotId,
@@ -30,7 +29,6 @@ public sealed record CustomerAdminDto(
 
 public sealed record CustomerDetailDto(
     string Id,
-    string TenantId,
     string Name,
     CustomerStatus Status,
     string PolicySnapshotId,

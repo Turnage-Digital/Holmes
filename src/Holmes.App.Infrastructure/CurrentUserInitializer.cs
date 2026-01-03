@@ -1,4 +1,5 @@
 using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Commands;
 using MediatR;
@@ -38,6 +39,7 @@ public sealed class CurrentUserInitializer(
             userContext.AuthenticationMethod,
             DateTimeOffset.UtcNow,
             IsTestEnvironment());
+        command.UserId = SystemActors.System;
 
         var userId = await mediator.Send(command, cancellationToken);
         cache.Set(cacheKey, userId, new MemoryCacheEntryOptions

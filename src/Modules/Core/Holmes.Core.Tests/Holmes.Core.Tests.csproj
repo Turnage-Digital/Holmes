@@ -30,8 +30,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
         <ProjectReference Include="..\Holmes.Core.Infrastructure.Sql\Holmes.Core.Infrastructure.Sql.csproj"/>
     </ItemGroup>
 
 </Project>
-

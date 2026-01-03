@@ -1,5 +1,5 @@
 using Holmes.Core.Contracts;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Services.Domain;
 
@@ -13,4 +13,4 @@ public sealed record CreateServiceCommand(
     ServiceScope? Scope,
     UlidId? CatalogSnapshotId,
     DateTimeOffset CreatedAt
-) : RequestBase<Result<UlidId>>, ISkipUserAssignment;
+) : RequestBase<Result<UlidId>>;

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
@@ -41,7 +42,7 @@ public class ServicesEndpointTests
 
         var customerId = Ulid.NewUlid().ToString();
         var orderId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-services-queue");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
         await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
@@ -71,7 +72,7 @@ public class ServicesEndpointTests
 
         var customerId = Ulid.NewUlid().ToString();
         var orderId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-services-status");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ServiceStatus.Pending);
         await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId,
@@ -101,8 +102,8 @@ public class ServicesEndpointTests
         var orderId1 = Ulid.NewUlid().ToString();
         var orderId2 = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, customerId1, "tenant-services-cust-1");
-        await SeedCustomerAsync(factory, customerId2, "tenant-services-cust-2");
+        await SeedCustomerAsync(factory, customerId1);
+        await SeedCustomerAsync(factory, customerId2);
         await SeedOrderSummaryAsync(factory, orderId1, customerId1);
         await SeedOrderSummaryAsync(factory, orderId2, customerId2);
         await SeedServiceAsync(factory, Ulid.NewUlid().ToString(), orderId1, customerId1, ServiceStatus.Pending);
@@ -128,7 +129,7 @@ public class ServicesEndpointTests
 
         var customerId = Ulid.NewUlid().ToString();
         var orderId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-services-page");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
 
         // Seed 5 pending services
@@ -165,8 +166,8 @@ public class ServicesEndpointTests
         var allowedOrder = Ulid.NewUlid().ToString();
         var deniedOrder = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-queue");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-queue");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
@@ -200,8 +201,8 @@ public class ServicesEndpointTests
         var allowedCustomer = Ulid.NewUlid().ToString();
         var deniedCustomer = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-denied");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-denied");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         // Trying to access denied customer directly should return Forbid
@@ -261,7 +262,10 @@ public class ServicesEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 
     private static async Task<UlidId> PromoteCurrentUserToAdminAsync(
@@ -279,7 +283,10 @@ public class ServicesEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
 
         var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow)
         {
@@ -291,8 +298,7 @@ public class ServicesEndpointTests
 
     private static async Task SeedCustomerAsync(
         HolmesWebApplicationFactory factory,
-        string customerId,
-        string tenantId
+        string customerId
     )
     {
         using var scope = factory.Services.CreateScope();
@@ -308,7 +314,6 @@ public class ServicesEndpointTests
         customersDb.CustomerProfiles.Add(new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = tenantId,
             PolicySnapshotId = "policy-dev",
             BillingEmail = null,
             CreatedAt = DateTimeOffset.UtcNow,

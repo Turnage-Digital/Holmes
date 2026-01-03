@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Holmes.Core.Domain;
 using Holmes.Users.Application.Commands;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,7 +44,10 @@ public class IntakeSessionsEndpointTests
             "Intake Tester",
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 
     private sealed record StartSessionRequest(string ResumeToken);

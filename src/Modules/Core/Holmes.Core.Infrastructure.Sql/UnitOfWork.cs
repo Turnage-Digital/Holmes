@@ -146,7 +146,9 @@ public abstract class UnitOfWork<TContext>(
             return;
         }
 
-        var tenant = tenantContext?.TenantId ?? "*";
+        var tenant = string.IsNullOrWhiteSpace(tenantContext?.CustomerId)
+            ? "*"
+            : tenantContext!.CustomerId;
         var actorId = tenantContext?.ActorId;
         var correlationId = Activity.Current?.TraceId.ToString();
         var causationId = Activity.Current?.ParentSpanId.ToString();

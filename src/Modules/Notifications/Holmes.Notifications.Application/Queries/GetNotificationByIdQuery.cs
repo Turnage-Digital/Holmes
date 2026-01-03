@@ -1,5 +1,5 @@
 using Holmes.Core.Contracts;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Notifications.Contracts.Dtos;
 
 namespace Holmes.Notifications.Application.Queries;

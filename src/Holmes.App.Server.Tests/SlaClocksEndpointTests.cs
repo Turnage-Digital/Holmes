@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Holmes.App.Server.Controllers;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Infrastructure.Sql;
@@ -41,7 +42,7 @@ public class SlaClocksEndpointTests
 
         var customerId = Ulid.NewUlid().ToString();
         var orderId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-clocks");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedSlaClockAsync(factory, Ulid.NewUlid().ToString(), orderId, customerId, ClockKind.Intake,
             ClockState.Running);
@@ -71,8 +72,8 @@ public class SlaClocksEndpointTests
         var allowedOrder = Ulid.NewUlid().ToString();
         var deniedOrder = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
@@ -145,7 +146,7 @@ public class SlaClocksEndpointTests
         var orderId = Ulid.NewUlid().ToString();
         var clockId = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, customerId, "tenant-pause");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedSlaClockAsync(factory, clockId, orderId, customerId, ClockKind.Intake, ClockState.Running);
 
@@ -176,7 +177,7 @@ public class SlaClocksEndpointTests
         var orderId = Ulid.NewUlid().ToString();
         var clockId = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, customerId, "tenant-pause-bad");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedSlaClockAsync(factory, clockId, orderId, customerId, ClockKind.Intake, ClockState.Running);
 
@@ -203,8 +204,8 @@ public class SlaClocksEndpointTests
         var allowedClock = Ulid.NewUlid().ToString();
         var deniedClock = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-pause");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-pause");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
@@ -236,7 +237,7 @@ public class SlaClocksEndpointTests
         var orderId = Ulid.NewUlid().ToString();
         var clockId = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, customerId, "tenant-resume");
+        await SeedCustomerAsync(factory, customerId);
         await SeedOrderSummaryAsync(factory, orderId, customerId);
         await SeedSlaClockAsync(factory, clockId, orderId, customerId, ClockKind.Intake, ClockState.Paused,
             "Previously paused");
@@ -270,8 +271,8 @@ public class SlaClocksEndpointTests
         var allowedClock = Ulid.NewUlid().ToString();
         var deniedClock = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-resume");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-resume");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         await SeedOrderSummaryAsync(factory, allowedOrder, allowedCustomer);
@@ -325,7 +326,10 @@ public class SlaClocksEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 
     private static async Task<UlidId> PromoteCurrentUserToAdminAsync(
@@ -343,7 +347,10 @@ public class SlaClocksEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
 
         var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow)
         {
@@ -355,8 +362,7 @@ public class SlaClocksEndpointTests
 
     private static async Task SeedCustomerAsync(
         HolmesWebApplicationFactory factory,
-        string customerId,
-        string tenantId
+        string customerId
     )
     {
         using var scope = factory.Services.CreateScope();
@@ -372,7 +378,6 @@ public class SlaClocksEndpointTests
         customersDb.CustomerProfiles.Add(new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = tenantId,
             PolicySnapshotId = "policy-dev",
             BillingEmail = null,
             CreatedAt = DateTimeOffset.UtcNow,

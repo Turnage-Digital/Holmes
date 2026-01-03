@@ -58,7 +58,6 @@ public static class CustomerMapper
     {
         return new CustomerListItemDto(
             directory.CustomerId,
-            profile?.TenantId ?? directory.CustomerId,
             directory.Name,
             directory.Status,
             GetPolicySnapshotId(profile),
@@ -78,7 +77,6 @@ public static class CustomerMapper
 
         return new CustomerDetailDto(
             directory.CustomerId,
-            profile?.TenantId ?? directory.CustomerId,
             directory.Name,
             directory.Status,
             GetPolicySnapshotId(profile),

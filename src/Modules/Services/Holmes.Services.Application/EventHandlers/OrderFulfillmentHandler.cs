@@ -1,7 +1,9 @@
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.Orders.Contracts.IntegrationEvents;
+using Holmes.Services.Application.Commands;
 using Holmes.Services.Contracts;
 using Holmes.Services.Contracts.IntegrationEvents;
-using Holmes.Services.Application.Commands;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -69,6 +71,7 @@ public sealed class OrderFulfillmentHandler(
                 null, // No scope for now
                 null, // No catalog snapshot ID for now
                 notification.ChangedAt);
+            command.UserId = SystemActors.System;
 
             var result = await sender.Send(command, cancellationToken);
 

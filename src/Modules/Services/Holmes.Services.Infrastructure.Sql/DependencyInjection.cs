@@ -1,5 +1,5 @@
-using Holmes.Services.Contracts;
 using Holmes.Services.Application.Queries;
+using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

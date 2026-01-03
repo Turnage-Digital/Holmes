@@ -1,6 +1,6 @@
 using System.Text;
 using Holmes.Core.Contracts.Security;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.Events;

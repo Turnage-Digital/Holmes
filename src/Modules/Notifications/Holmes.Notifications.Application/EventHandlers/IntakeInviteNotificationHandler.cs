@@ -1,3 +1,5 @@
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.Customers.Contracts;
 using Holmes.IntakeSessions.Contracts.IntegrationEvents;
 using Holmes.Notifications.Application.Commands;
@@ -96,15 +98,18 @@ public sealed class IntakeInviteNotificationHandler(
         };
 
         // Send the notification
-        var result = await sender.Send(
-            new CreateNotificationCommand(
-                notification.CustomerId,
-                trigger,
-                recipient,
-                content,
-                null, // Immediate
-                NotificationPriority.High),
-            cancellationToken);
+        var command = new CreateNotificationCommand(
+            notification.CustomerId,
+            trigger,
+            recipient,
+            content,
+            null, // Immediate
+            NotificationPriority.High)
+        {
+            UserId = SystemActors.NotificationProcessor
+        };
+
+        var result = await sender.Send(command, cancellationToken);
 
         if (result.IsSuccess)
         {

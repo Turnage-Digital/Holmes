@@ -1,4 +1,4 @@
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using MediatR;

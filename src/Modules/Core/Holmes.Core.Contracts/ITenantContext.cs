@@ -7,9 +7,9 @@ namespace Holmes.Core.Contracts;
 public interface ITenantContext
 {
     /// <summary>
-    ///     The current tenant identifier, or "*" for global/system operations.
+    ///     The current customer identifier, or "*" for global/system operations.
     /// </summary>
-    string TenantId { get; }
+    string? CustomerId { get; }
 
     /// <summary>
     ///     The current actor (user) identifier, if authenticated.

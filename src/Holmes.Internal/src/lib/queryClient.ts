@@ -7,10 +7,10 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       retry: (failureCount, _error) => {
         return failureCount < 2;
-      },
+      }
     },
     mutations: {
-      retry: 0,
-    },
-  },
+      retry: 0
+    }
+  }
 });

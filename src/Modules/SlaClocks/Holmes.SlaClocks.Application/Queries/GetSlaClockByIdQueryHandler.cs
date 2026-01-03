@@ -1,4 +1,4 @@
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.SlaClocks.Contracts;
 using Holmes.SlaClocks.Contracts.Dtos;
 using MediatR;

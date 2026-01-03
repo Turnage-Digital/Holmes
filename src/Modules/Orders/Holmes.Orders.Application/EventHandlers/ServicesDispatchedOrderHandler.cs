@@ -1,3 +1,5 @@
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.Orders.Application.Commands;
 using Holmes.Services.Contracts.IntegrationEvents;
 using MediatR;
@@ -19,6 +21,7 @@ public sealed class ServicesDispatchedOrderHandler(
             notification.OrderId,
             notification.DispatchedAt,
             $"Fulfillment started with {notification.ServiceCount} service(s)");
+        command.UserId = SystemActors.System;
 
         var result = await sender.Send(command, cancellationToken);
         if (!result.IsSuccess)

@@ -6,7 +6,7 @@ namespace Holmes.Customers.Infrastructure.Sql;
 
 public sealed class CustomerProfileRepository(CustomersDbContext dbContext) : ICustomerProfileRepository
 {
-    public async Task<bool> CreateProfileAsync(
+    public async Task CreateProfileAsync(
         string customerId,
         string? policySnapshotId,
         string? billingEmail,
@@ -20,13 +20,12 @@ public sealed class CustomerProfileRepository(CustomersDbContext dbContext) : IC
 
         if (exists)
         {
-            return false; // Profile already exists
+            throw new InvalidOperationException($"Customer profile already exists for '{customerId}'.");
         }
 
         var profile = new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = Ulid.NewUlid().ToString(),
             PolicySnapshotId = string.IsNullOrWhiteSpace(policySnapshotId)
                 ? "policy-default"
                 : policySnapshotId.Trim(),
@@ -58,7 +57,5 @@ public sealed class CustomerProfileRepository(CustomersDbContext dbContext) : IC
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-
-        return true;
     }
 }

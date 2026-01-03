@@ -1,3 +1,5 @@
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.IntakeSessions.Contracts.IntegrationEvents;
 using Holmes.Orders.Application.Commands;
 using MediatR;
@@ -20,11 +22,15 @@ public sealed class IntakeToWorkflowHandler(
             "IntakeSessionInvited: Notifying Workflow of invite for Order {OrderId}",
             notification.OrderId);
 
-        await sender.Send(new RecordOrderInviteCommand(
+        var inviteCommand = new RecordOrderInviteCommand(
             notification.OrderId,
             notification.IntakeSessionId,
             notification.InvitedAt,
-            "Intake invitation issued"), cancellationToken);
+            "Intake invitation issued")
+        {
+            UserId = SystemActors.System
+        };
+        await sender.Send(inviteCommand, cancellationToken);
     }
 
     public async Task Handle(IntakeSessionStartedIntegrationEvent notification, CancellationToken cancellationToken)
@@ -33,10 +39,14 @@ public sealed class IntakeToWorkflowHandler(
             "IntakeSessionStarted: Notifying Workflow of intake start for Order {OrderId}",
             notification.OrderId);
 
-        await sender.Send(new MarkOrderIntakeStartedCommand(
+        var startCommand = new MarkOrderIntakeStartedCommand(
             notification.OrderId,
             notification.IntakeSessionId,
             notification.StartedAt,
-            "Subject resumed intake"), cancellationToken);
+            "Subject resumed intake")
+        {
+            UserId = SystemActors.System
+        };
+        await sender.Send(startCommand, cancellationToken);
     }
 }

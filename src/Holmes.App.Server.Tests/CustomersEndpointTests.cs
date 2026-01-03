@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Contracts.Dtos;
 using Holmes.Customers.Domain;
@@ -96,7 +97,10 @@ public class CustomersEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
         return id.ToString();
     }
 
@@ -112,7 +116,10 @@ public class CustomersEndpointTests
             "Admin User",
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
 
         var grant = new GrantUserRoleCommand(
             id,
@@ -168,7 +175,7 @@ public class CustomersEndpointTests
         await PromoteUserToAdminAsync(factory, "catalog-admin", "catalog-admin@holmes.dev");
 
         var customerId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-catalog");
+        await SeedCustomerAsync(factory, customerId);
 
         var response = await client.GetAsync($"/api/customers/{customerId}/service-catalog");
 
@@ -193,8 +200,8 @@ public class CustomersEndpointTests
         var allowedCustomer = Ulid.NewUlid().ToString();
         var deniedCustomer = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-cat");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-cat");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         var allowedResponse = await client.GetAsync($"/api/customers/{allowedCustomer}/service-catalog");
@@ -243,7 +250,7 @@ public class CustomersEndpointTests
         await PromoteUserToAdminAsync(factory, "catalog-ops", "catalog-ops@holmes.dev");
 
         var customerId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-catalog-update");
+        await SeedCustomerAsync(factory, customerId);
 
         var updateRequest = new UpdateServiceCatalogRequest(
             [
@@ -290,7 +297,7 @@ public class CustomersEndpointTests
         await CreateUserIdAsync(factory, "catalog-no-ops", "catalog-no-ops@holmes.dev");
 
         var customerId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-catalog-no-ops");
+        await SeedCustomerAsync(factory, customerId);
 
         var updateRequest = new UpdateServiceCatalogRequest(
             [new ServiceCatalogServiceItem("SSN_TRACE", false, 1, null)],
@@ -314,8 +321,8 @@ public class CustomersEndpointTests
         var allowedCustomer = Ulid.NewUlid().ToString();
         var deniedCustomer = Ulid.NewUlid().ToString();
 
-        await SeedCustomerAsync(factory, allowedCustomer, "tenant-allowed-update");
-        await SeedCustomerAsync(factory, deniedCustomer, "tenant-denied-update");
+        await SeedCustomerAsync(factory, allowedCustomer);
+        await SeedCustomerAsync(factory, deniedCustomer);
         await AssignCustomerAdminAsync(factory, allowedCustomer, userId, adminId);
 
         var updateRequest = new UpdateServiceCatalogRequest(
@@ -361,7 +368,7 @@ public class CustomersEndpointTests
         await PromoteUserToAdminAsync(factory, "catalog-ops-empty", "catalog-ops-empty@holmes.dev");
 
         var customerId = Ulid.NewUlid().ToString();
-        await SeedCustomerAsync(factory, customerId, "tenant-catalog-empty");
+        await SeedCustomerAsync(factory, customerId);
 
         var updateRequest = new UpdateServiceCatalogRequest([], []);
 
@@ -400,7 +407,10 @@ public class CustomersEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 
     private static async Task<UlidId> PromoteUserToAdminAsync(
@@ -418,7 +428,10 @@ public class CustomersEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
 
         var grant = new GrantUserRoleCommand(id, UserRole.Admin, null, DateTimeOffset.UtcNow)
         {
@@ -430,8 +443,7 @@ public class CustomersEndpointTests
 
     private static async Task SeedCustomerAsync(
         HolmesWebApplicationFactory factory,
-        string customerId,
-        string tenantId
+        string customerId
     )
     {
         using var scope = factory.Services.CreateScope();
@@ -447,7 +459,6 @@ public class CustomersEndpointTests
         customersDb.CustomerProfiles.Add(new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = tenantId,
             PolicySnapshotId = "policy-dev",
             BillingEmail = null,
             CreatedAt = DateTimeOffset.UtcNow,

@@ -21,8 +21,6 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                 {
                     CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TenantId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     PolicySnapshotId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     BillingEmail = table.Column<string>(type: "varchar(320)", maxLength: 320, nullable: true)

@@ -1,7 +1,7 @@
 using Holmes.Core.Contracts.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Application.Commands;
+using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Domain;
 using Holmes.IntakeSessions.Domain.ValueObjects;
 using Holmes.IntakeSessions.Tests.TestHelpers;

@@ -18,9 +18,7 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
 
         if (request is RequestBase<TResponse> requestBase)
         {
-            var actor = request is ISkipUserAssignment
-                ? "[System]"
-                : requestBase.UserId ?? "[Unknown]";
+            var actor = requestBase.UserId ?? "[Unknown]";
 
             logger.LogInformation("Handled {request}",
                 new { requestBase.GetType().Name, Actor = actor });

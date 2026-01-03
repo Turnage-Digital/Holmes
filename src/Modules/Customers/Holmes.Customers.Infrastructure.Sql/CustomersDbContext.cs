@@ -115,10 +115,6 @@ public class CustomersDbContext(DbContextOptions<CustomersDbContext> options)
                 .HasMaxLength(26)
                 .IsRequired();
 
-            builder.Property(x => x.TenantId)
-                .HasMaxLength(26)
-                .IsRequired();
-
             builder.Property(x => x.PolicySnapshotId)
                 .HasMaxLength(64)
                 .IsRequired();

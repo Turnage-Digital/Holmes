@@ -14,6 +14,7 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Holmes.Core.Application;
 
 namespace Holmes.App.Server.Tests.EventHandlers;
 
@@ -85,7 +86,6 @@ public class IntakeInviteNotificationHandlerTests
 
         var customerListItem = new CustomerListItemDto(
             customerId.ToString(),
-            "tenant-1",
             "Acme Corp",
             CustomerStatus.Active,
             "policy-1",
@@ -355,7 +355,6 @@ public class IntakeInviteNotificationHandlerTests
     {
         var customer = new CustomerListItemDto(
             customerId.ToString(),
-            "tenant-1",
             "Test Company",
             CustomerStatus.Active,
             "policy-1",

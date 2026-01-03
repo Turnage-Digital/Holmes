@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Domain;

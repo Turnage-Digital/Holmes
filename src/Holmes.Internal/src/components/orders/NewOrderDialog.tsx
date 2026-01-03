@@ -13,7 +13,7 @@ import {
   Select,
   Stack,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
 
 import type { CustomerListItemDto } from "@/types/api";
@@ -35,7 +35,7 @@ interface FormState {
 const initialFormState: FormState = {
   customerId: "",
   subjectEmail: "",
-  subjectPhone: "",
+  subjectPhone: ""
 };
 
 const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
@@ -45,7 +45,7 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
   // Fetch customers for dropdown
   const { data: customersData, isLoading: customersLoading } = useCustomers(
     1,
-    100,
+    100
   );
   const customers = customersData?.items ?? [];
 
@@ -55,17 +55,17 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
 
   const handleChange =
     (field: keyof FormState) =>
-    (
-      event:
-        | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-        | { target: { value: string } },
-    ) => {
-      setFormState((prev) => ({
-        ...prev,
-        [field]: event.target.value,
-      }));
-      setError(null);
-    };
+      (
+        event:
+          | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+          | { target: { value: string } }
+      ) => {
+        setFormState((prev) => ({
+          ...prev,
+          [field]: event.target.value
+        }));
+        setError(null);
+      };
 
   const validateForm = (): string | null => {
     if (!formState.customerId) {
@@ -95,7 +95,7 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
     try {
       // Get the selected customer to access policySnapshotId
       const selectedCustomer = customers.find(
-        (c) => c.id === formState.customerId,
+        (c) => c.id === formState.customerId
       );
       if (!selectedCustomer) {
         throw new Error("Selected customer not found.");
@@ -106,7 +106,7 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
         subjectEmail: formState.subjectEmail.trim(),
         subjectPhone: formState.subjectPhone.trim() || undefined,
         customerId: formState.customerId,
-        policySnapshotId: selectedCustomer.policySnapshotId,
+        policySnapshotId: selectedCustomer.policySnapshotId
       });
 
       // Reset and close
@@ -140,7 +140,7 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
               label="Customer"
               onChange={(e) =>
                 handleChange("customerId")({
-                  target: { value: e.target.value },
+                  target: { value: e.target.value }
                 })
               }
               disabled={customersLoading || isSubmitting}

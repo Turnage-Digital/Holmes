@@ -1,3 +1,5 @@
+using Holmes.Core.Application;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Infrastructure.Sql;
@@ -101,6 +103,7 @@ public sealed class SeedData(
             "pwd",
             timestamp,
             true);
+        command.UserId = SystemActors.System;
         return await mediator.Send(command, cancellationToken);
     }
 
@@ -191,7 +194,6 @@ public sealed class SeedData(
         var profile = new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = Ulid.NewUlid().ToString(),
             PolicySnapshotId = "policy-default",
             BillingEmail = "billing@holmes.dev",
             CreatedAt = timestamp,

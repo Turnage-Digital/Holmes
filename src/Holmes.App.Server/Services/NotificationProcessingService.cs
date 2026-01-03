@@ -1,7 +1,8 @@
+using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Notifications.Contracts;
 using Holmes.Notifications.Application.Commands;
+using Holmes.Notifications.Contracts;
 using MediatR;
 
 namespace Holmes.App.Server.Services;

@@ -95,7 +95,6 @@ export interface CustomerAdminDto {
 
 export interface CustomerListItemDto {
   id: Ulid;
-  tenantId: Ulid;
   name: string;
   status: CustomerStatus;
   policySnapshotId: string;
@@ -107,7 +106,6 @@ export interface CustomerListItemDto {
 
 export interface CustomerDetailDto {
   id: Ulid;
-  tenantId: Ulid;
   name: string;
   status: CustomerStatus;
   policySnapshotId: string;

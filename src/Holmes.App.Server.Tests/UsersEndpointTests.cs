@@ -2,9 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Contracts.Dtos;
 using Holmes.Users.Application.Commands;
+using Holmes.Users.Contracts.Dtos;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
 using MediatR;
@@ -113,7 +114,10 @@ public class UsersEndpointTests
             subject,
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
         return id.ToString();
     }
 
@@ -129,7 +133,10 @@ public class UsersEndpointTests
             "Admin User",
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
 
         var grant = new GrantUserRoleCommand(
             id,

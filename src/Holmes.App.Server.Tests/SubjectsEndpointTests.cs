@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Holmes.Subjects.Contracts.Dtos;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
+using Holmes.Core.Domain;
 using Holmes.Users.Application.Commands;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -321,6 +322,9 @@ public class SubjectsEndpointTests
             "Subject Tester",
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 }

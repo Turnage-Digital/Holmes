@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Holmes.Core.Application;
 
 namespace Holmes.App.Server.Tests.Services;
 

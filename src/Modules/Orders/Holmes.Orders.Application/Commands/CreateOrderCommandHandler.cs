@@ -1,4 +1,4 @@
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Orders.Domain;
 using MediatR;
 
@@ -9,8 +9,7 @@ public sealed class CreateOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
 {
     public async Task<Result> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
-        var repository = unitOfWork.Orders;
-        var existing = await repository.GetByIdAsync(request.OrderId, cancellationToken);
+        var existing = await unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken);
         if (existing is not null)
         {
             return Result.Fail($"Order '{request.OrderId}' already exists.");
@@ -24,7 +23,7 @@ public sealed class CreateOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
             request.CreatedAt,
             request.PackageCode);
 
-        await repository.AddAsync(order, cancellationToken);
+        await unitOfWork.Orders.AddAsync(order, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

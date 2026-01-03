@@ -12,7 +12,7 @@ import {
   Chip,
   LinearProgress,
   Stack,
-  Typography,
+  Typography
 } from "@mui/material";
 
 import ServiceStatusCard from "./ServiceStatusCard";
@@ -37,7 +37,7 @@ interface TierSummaryProps extends ServiceActionsProps {
 }
 
 const getTierStatus = (
-  services: ServiceSummaryDto[],
+  services: ServiceSummaryDto[]
 ): {
   label: string;
   color: "success" | "warning" | "error" | "default";
@@ -47,13 +47,13 @@ const getTierStatus = (
     return {
       label: "Empty",
       color: "default",
-      icon: <HourglassEmptyIcon />,
+      icon: <HourglassEmptyIcon />
     };
   }
 
   const hasFailures = services.some((s) => s.status === "Failed");
   const allComplete = services.every(
-    (s) => s.status === "Completed" || s.status === "Canceled",
+    (s) => s.status === "Completed" || s.status === "Canceled"
   );
   const allPending = services.every((s) => s.status === "Pending");
 
@@ -61,7 +61,7 @@ const getTierStatus = (
     return {
       label: "Has Failures",
       color: "error",
-      icon: <ErrorOutlineIcon />,
+      icon: <ErrorOutlineIcon />
     };
   }
 
@@ -69,7 +69,7 @@ const getTierStatus = (
     return {
       label: "Complete",
       color: "success",
-      icon: <CheckCircleOutlineIcon />,
+      icon: <CheckCircleOutlineIcon />
     };
   }
 
@@ -77,31 +77,31 @@ const getTierStatus = (
     return {
       label: "Pending",
       color: "default",
-      icon: <HourglassEmptyIcon />,
+      icon: <HourglassEmptyIcon />
     };
   }
 
   return {
     label: "In Progress",
     color: "warning",
-    icon: <HourglassEmptyIcon />,
+    icon: <HourglassEmptyIcon />
   };
 };
 
 const TierAccordion = ({
-  tier,
-  services,
-  defaultExpanded = false,
-  onRetry,
-  onCancel,
-  retryingId,
-  cancelingId,
-}: TierSummaryProps) => {
+                         tier,
+                         services,
+                         defaultExpanded = false,
+                         onRetry,
+                         onCancel,
+                         retryingId,
+                         cancelingId
+                       }: TierSummaryProps) => {
   const status = getTierStatus(services);
 
   // Calculate progress
   const completedCount = services.filter(
-    (s) => s.status === "Completed",
+    (s) => s.status === "Completed"
   ).length;
   const progressPercent =
     services.length > 0 ? (completedCount / services.length) * 100 : 0;
@@ -112,7 +112,7 @@ const TierAccordion = ({
       acc[s.status] = (acc[s.status] || 0) + 1;
       return acc;
     },
-    {} as Record<ServiceStatus, number>,
+    {} as Record<ServiceStatus, number>
   );
 
   const progressColor = status.color === "error" ? "error" : "primary";
@@ -160,7 +160,7 @@ const TierAccordion = ({
             display: "flex",
             alignItems: "center",
             width: "100%",
-            gap: 2,
+            gap: 2
           }}
         >
           <Chip
@@ -219,12 +219,12 @@ interface TierProgressViewProps extends ServiceActionsProps {
 }
 
 const TierProgressView = ({
-  services,
-  onRetry,
-  onCancel,
-  retryingId,
-  cancelingId,
-}: TierProgressViewProps) => {
+                            services,
+                            onRetry,
+                            onCancel,
+                            retryingId,
+                            cancelingId
+                          }: TierProgressViewProps) => {
   // Group services by tier
   const tierGroups = useMemo(() => {
     const groups = new Map<number, ServiceSummaryDto[]>();
@@ -241,11 +241,11 @@ const TierProgressView = ({
   // Calculate overall stats
   const totalServices = services.length;
   const completedServices = services.filter(
-    (s) => s.status === "Completed",
+    (s) => s.status === "Completed"
   ).length;
   const failedServices = services.filter((s) => s.status === "Failed").length;
   const inProgressServices = services.filter(
-    (s) => s.status === "InProgress" || s.status === "Dispatched",
+    (s) => s.status === "InProgress" || s.status === "Dispatched"
   ).length;
 
   const inProgressStat =
@@ -289,7 +289,7 @@ const TierProgressView = ({
           gap: 3,
           p: 2,
           bgcolor: "grey.50",
-          borderRadius: 1,
+          borderRadius: 1
         }}
       >
         <Box>

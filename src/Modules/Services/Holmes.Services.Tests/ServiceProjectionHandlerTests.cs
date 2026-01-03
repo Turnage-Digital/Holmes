@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Contracts;
 using Holmes.Services.Application.EventHandlers;
+using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 using Holmes.Services.Domain.Events;
 using Moq;

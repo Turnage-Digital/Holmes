@@ -1,7 +1,7 @@
 using Holmes.Core.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Users.Contracts;
 using Holmes.Users.Application.Exceptions;
+using Holmes.Users.Contracts;
 using Holmes.Users.Domain;
 using Holmes.Users.Domain.Events;
 using Holmes.Users.Domain.ValueObjects;
@@ -17,7 +17,7 @@ public sealed record RegisterExternalUserCommand(
     string? AuthenticationMethod,
     DateTimeOffset AuthenticatedAt,
     bool AllowAutoProvision = false
-) : RequestBase<UlidId>, ISkipUserAssignment;
+) : RequestBase<UlidId>;
 
 public sealed class RegisterExternalUserCommandHandler(
     IUsersUnitOfWork unitOfWork,

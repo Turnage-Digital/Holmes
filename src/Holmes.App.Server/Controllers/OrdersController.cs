@@ -4,13 +4,13 @@ using Holmes.App.Server.Contracts;
 using Holmes.Core.Contracts.Events;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Queries;
-using Holmes.Orders.Contracts;
-using Holmes.Orders.Contracts.Dtos;
 using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Application.Queries;
+using Holmes.Orders.Contracts;
+using Holmes.Orders.Contracts.Dtos;
 using Holmes.Orders.Domain;
-using Holmes.Services.Contracts.Dtos;
 using Holmes.Services.Application.Queries;
+using Holmes.Services.Contracts.Dtos;
 using Holmes.Services.Domain;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Application.Queries;
@@ -351,11 +351,21 @@ public sealed class OrdersController(
         var clampedLimit = Math.Clamp(limit, 1, 500);
 
         var events = await eventStore.ReadStreamAsync(
-            "*", // tenant - using wildcard for now
+            customerIdForOrder,
             streamId,
             0, // from position 0 (all events)
             clampedLimit,
             cancellationToken);
+
+        if (events.Count == 0)
+        {
+            events = await eventStore.ReadStreamAsync(
+                "*",
+                streamId,
+                0,
+                clampedLimit,
+                cancellationToken);
+        }
 
         var dtos = events.Select(e => new OrderAuditEventDto(
                 e.Position,

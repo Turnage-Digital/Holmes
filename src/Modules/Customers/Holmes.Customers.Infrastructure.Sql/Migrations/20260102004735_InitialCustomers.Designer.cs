@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Customers.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(CustomersDbContext))]
-    [Migration("20251224021055_InitialCustomers")]
+    [Migration("20260102004735_InitialCustomers")]
     partial class InitialCustomers
     {
         /// <inheritdoc />
@@ -148,11 +148,6 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAdd()

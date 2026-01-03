@@ -1,5 +1,5 @@
-using Holmes.IntakeSessions.Contracts.Services;
 using Holmes.IntakeSessions.Application.Services;
+using Holmes.IntakeSessions.Contracts.Services;
 
 namespace Holmes.IntakeSessions.Tests;
 

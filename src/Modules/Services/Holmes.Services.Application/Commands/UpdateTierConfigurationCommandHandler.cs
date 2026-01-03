@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 using MediatR;

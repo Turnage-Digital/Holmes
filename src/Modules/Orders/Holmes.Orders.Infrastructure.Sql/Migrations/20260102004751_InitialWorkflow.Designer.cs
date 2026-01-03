@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Orders.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(OrdersDbContext))]
-    [Migration("20251224021110_InitialWorkflow")]
+    [Migration("20260102004751_InitialWorkflow")]
     partial class InitialWorkflow
     {
         /// <inheritdoc />

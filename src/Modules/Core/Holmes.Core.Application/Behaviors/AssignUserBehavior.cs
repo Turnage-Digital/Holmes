@@ -14,7 +14,7 @@ public class AssignUserBehavior<TRequest, TResponse>(
         CancellationToken cancellationToken
     )
     {
-        if (request is not ISkipUserAssignment && request is IUserContextRequest userAwareRequest)
+        if (request is IUserContextRequest userAwareRequest)
         {
             await EnsureUserIdAsync(userAwareRequest, cancellationToken);
         }
