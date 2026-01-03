@@ -4,16 +4,13 @@ using Holmes.Core.Domain.ValueObjects;
 
 namespace Holmes.Subjects.Application.Commands;
 
-public sealed record RequestSubjectIntakeCommand(
+public sealed record CreateSubjectCommand(
     string SubjectEmail,
     string? SubjectPhone,
-    UlidId CustomerId,
-    string PolicySnapshotId,
     DateTimeOffset RequestedAt
-) : RequestBase<Result<RequestSubjectIntakeResult>>;
+) : RequestBase<Result<CreateSubjectResult>>;
 
-public sealed record RequestSubjectIntakeResult(
+public sealed record CreateSubjectResult(
     UlidId SubjectId,
-    bool SubjectWasExisting,
-    UlidId OrderId
+    bool SubjectWasExisting
 );

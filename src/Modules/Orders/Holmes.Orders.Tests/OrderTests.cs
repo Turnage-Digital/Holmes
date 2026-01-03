@@ -14,7 +14,7 @@ public class OrderTests
         var customerId = UlidId.NewUlid();
         var createdAt = DateTimeOffset.UtcNow;
 
-        var order = Order.Create(orderId, subjectId, customerId, "policy-v1", createdAt);
+        var order = Order.Create(orderId, subjectId, customerId, "policy-v1", createdAt, null, UlidId.NewUlid());
 
         Assert.Multiple(() =>
         {
@@ -221,6 +221,8 @@ public class OrderTests
             UlidId.NewUlid(),
             UlidId.NewUlid(),
             "policy-v1",
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            null,
+            UlidId.NewUlid());
     }
 }

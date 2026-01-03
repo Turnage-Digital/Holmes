@@ -329,7 +329,8 @@ public sealed class SeedData(
                 customerId,
                 policySnapshotId,
                 createdAt,
-                "standard")
+                "standard",
+                adminUserId)
             {
                 UserId = adminUserId.ToString()
             };

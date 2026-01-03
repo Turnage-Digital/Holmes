@@ -1,8 +1,6 @@
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
-using Holmes.Core.Infrastructure.Sql.Entities;
-using Holmes.Customers.Application.Commands;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
@@ -14,30 +12,29 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Holmes.App.Server.Tests;
 
 /// <summary>
-///     Integration tests for <see cref="RequestSubjectIntakeCommand" />.
-///     Verifies the command correctly orchestrates subject creation/reuse
-///     and order creation. Intake invites are issued asynchronously.
+///     Integration tests for <see cref="CreateSubjectCommand" />.
+///     Verifies the command creates or reuses subjects from email input
+///     and normalizes phone numbers without duplication.
 /// </summary>
 [TestFixture]
-public class RequestSubjectIntakeCommandTests
+public class CreateSubjectCommandTests
 {
     [Test]
-    public async Task Creates_Subject_Order_And_IntakeSession_Atomically()
+    public async Task Creates_Subject_From_Email_And_Persists_Events()
     {
         await using var factory = new HolmesWebApplicationFactory();
 
         // Arrange: Create an admin and customer
         UlidId adminId;
-        UlidId customerId;
         using (var scope = factory.Services.CreateScope())
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
             adminId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test",
-                "create-order-admin",
-                "create-order-admin@test.com",
-                "Create Order Admin",
+                "ensure-subject-admin",
+                "ensure-subject-admin@test.com",
+                "Ensure Subject Admin",
                 "password",
                 DateTimeOffset.UtcNow,
                 true)
@@ -49,24 +46,17 @@ public class RequestSubjectIntakeCommandTests
             {
                 UserId = adminId.ToString()
             });
-
-            customerId = await mediator.Send(new RegisterCustomerCommand("Test Customer Inc", DateTimeOffset.UtcNow)
-            {
-                UserId = adminId.ToString()
-            });
         }
 
-        // Act: Create order with intake
-        RequestSubjectIntakeResult? result;
+        // Act: Create subject from email
+        CreateSubjectResult? result;
         using (var scope = factory.Services.CreateScope())
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-            var commandResult = await mediator.Send(new RequestSubjectIntakeCommand(
+            var commandResult = await mediator.Send(new CreateSubjectCommand(
                 "new-subject@example.com",
                 "+15551234567",
-                customerId,
-                "policy-v1",
                 DateTimeOffset.UtcNow)
             {
                 UserId = adminId.ToString()
@@ -76,13 +66,9 @@ public class RequestSubjectIntakeCommandTests
             result = commandResult.Value;
         }
 
-        // Assert: Command returned valid result
-        // Note: With deferred dispatch, projections may not be populated yet.
-        // We verify the command result instead of projections.
         Assert.Multiple(() =>
         {
-            Assert.That(result!.SubjectId, Is.Not.Null.And.Not.EqualTo(default(UlidId)));
-            Assert.That(result.OrderId, Is.Not.Null.And.Not.EqualTo(default(UlidId)));
+            Assert.That(result!.SubjectId, Is.Not.EqualTo(default(UlidId)));
             Assert.That(result.SubjectWasExisting, Is.False, "Subject should be new");
         });
 
@@ -91,31 +77,20 @@ public class RequestSubjectIntakeCommandTests
         {
             var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
 
-            // Subject event should exist
             var subjectEvents = await coreDb.Events
                 .Where(e => e.StreamId == $"Subject:{result!.SubjectId}")
                 .ToListAsync();
             Assert.That(subjectEvents, Has.Count.GreaterThanOrEqualTo(1), "Subject events should be persisted");
-
-            // Order event should exist (issued asynchronously)
-            var orderEvents = await WaitForOrderEventsAsync(
-                coreDb,
-                result!.OrderId,
-                CancellationToken.None);
-            Assert.That(orderEvents, Has.Count.GreaterThanOrEqualTo(1), "Order events should be persisted");
-
-            // IntakeSession invite is issued asynchronously by integration handlers.
         }
     }
 
     [Test]
-    public async Task Reuses_Existing_Subject_By_Email()
+    public async Task Reuses_Subject_By_Email()
     {
         await using var factory = new HolmesWebApplicationFactory();
 
-        // Arrange: Create admin, customer, and existing subject
+        // Arrange: Create admin and existing subject
         UlidId adminId;
-        UlidId customerId;
         UlidId existingSubjectId;
         using (var scope = factory.Services.CreateScope())
         {
@@ -138,17 +113,9 @@ public class RequestSubjectIntakeCommandTests
                 UserId = adminId.ToString()
             });
 
-            customerId = await mediator.Send(new RegisterCustomerCommand("Reuse Customer Inc", DateTimeOffset.UtcNow)
-            {
-                UserId = adminId.ToString()
-            });
-
-            // Create order with intake first time
-            var firstResult = await mediator.Send(new RequestSubjectIntakeCommand(
+            var firstResult = await mediator.Send(new CreateSubjectCommand(
                 "existing@example.com",
                 "+15551111111",
-                customerId,
-                "policy-v1",
                 DateTimeOffset.UtcNow)
             {
                 UserId = adminId.ToString()
@@ -158,17 +125,15 @@ public class RequestSubjectIntakeCommandTests
             existingSubjectId = firstResult.Value.SubjectId;
         }
 
-        // Act: Create another order for the same email
-        RequestSubjectIntakeResult? result;
+        // Act: Create again with same email
+        CreateSubjectResult? result;
         using (var scope = factory.Services.CreateScope())
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-            var commandResult = await mediator.Send(new RequestSubjectIntakeCommand(
+            var commandResult = await mediator.Send(new CreateSubjectCommand(
                 "existing@example.com",
-                "+15552222222", // Different phone
-                customerId,
-                "policy-v2",
+                "+15552222222",
                 DateTimeOffset.UtcNow)
             {
                 UserId = adminId.ToString()
@@ -178,7 +143,6 @@ public class RequestSubjectIntakeCommandTests
             result = commandResult.Value;
         }
 
-        // Assert: Same subject was reused
         Assert.Multiple(() =>
         {
             Assert.That(result!.SubjectId, Is.EqualTo(existingSubjectId), "Should reuse existing subject");
@@ -200,13 +164,12 @@ public class RequestSubjectIntakeCommandTests
     }
 
     [Test]
-    public async Task Does_Not_Duplicate_Phone_If_Already_Exists()
+    public async Task Does_Not_Duplicate_Phone_For_Email()
     {
         await using var factory = new HolmesWebApplicationFactory();
 
         // Arrange
         UlidId adminId;
-        UlidId customerId;
         UlidId subjectId;
         using (var scope = factory.Services.CreateScope())
         {
@@ -229,17 +192,9 @@ public class RequestSubjectIntakeCommandTests
                 UserId = adminId.ToString()
             });
 
-            customerId = await mediator.Send(new RegisterCustomerCommand("No Dup Phone Inc", DateTimeOffset.UtcNow)
-            {
-                UserId = adminId.ToString()
-            });
-
-            // First order with phone
-            var firstResult = await mediator.Send(new RequestSubjectIntakeCommand(
+            var firstResult = await mediator.Send(new CreateSubjectCommand(
                 "same-phone@example.com",
                 "+15559999999",
-                customerId,
-                "policy-v1",
                 DateTimeOffset.UtcNow)
             {
                 UserId = adminId.ToString()
@@ -249,16 +204,14 @@ public class RequestSubjectIntakeCommandTests
             subjectId = firstResult.Value.SubjectId;
         }
 
-        // Act: Create another order with the SAME phone
+        // Act: Ensure again with the same phone
         using (var scope = factory.Services.CreateScope())
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-            var secondResult = await mediator.Send(new RequestSubjectIntakeCommand(
+            var secondResult = await mediator.Send(new CreateSubjectCommand(
                 "same-phone@example.com",
-                "+15559999999", // Same phone
-                customerId,
-                "policy-v2",
+                "+15559999999",
                 DateTimeOffset.UtcNow)
             {
                 UserId = adminId.ToString()
@@ -286,7 +239,6 @@ public class RequestSubjectIntakeCommandTests
 
         // Arrange
         UlidId adminId;
-        UlidId customerId;
         using (var scope = factory.Services.CreateScope())
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
@@ -307,11 +259,6 @@ public class RequestSubjectIntakeCommandTests
             {
                 UserId = adminId.ToString()
             });
-
-            customerId = await mediator.Send(new RegisterCustomerCommand("Empty Email Inc", DateTimeOffset.UtcNow)
-            {
-                UserId = adminId.ToString()
-            });
         }
 
         // Act
@@ -319,11 +266,9 @@ public class RequestSubjectIntakeCommandTests
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-            var result = await mediator.Send(new RequestSubjectIntakeCommand(
+            var result = await mediator.Send(new CreateSubjectCommand(
                 "",
                 "+15551234567",
-                customerId,
-                "policy-v1",
                 DateTimeOffset.UtcNow)
             {
                 UserId = adminId.ToString()
@@ -333,107 +278,5 @@ public class RequestSubjectIntakeCommandTests
             Assert.That(result.IsSuccess, Is.False);
             Assert.That(result.Error, Does.Contain("email"));
         }
-    }
-
-    [Test]
-    public async Task Events_Are_Persisted_With_Null_DispatchedAt()
-    {
-        await using var factory = new HolmesWebApplicationFactory();
-
-        // Arrange
-        UlidId adminId;
-        UlidId customerId;
-        using (var scope = factory.Services.CreateScope())
-        {
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-
-            adminId = await mediator.Send(new RegisterExternalUserCommand(
-                "https://issuer.test",
-                "deferred-events-admin",
-                "deferred-events-admin@test.com",
-                "Deferred Events Admin",
-                "password",
-                DateTimeOffset.UtcNow,
-                true)
-            {
-                UserId = SystemActors.System
-            });
-
-            await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
-            {
-                UserId = adminId.ToString()
-            });
-
-            customerId = await mediator.Send(new RegisterCustomerCommand("Deferred Events Inc", DateTimeOffset.UtcNow)
-            {
-                UserId = adminId.ToString()
-            });
-        }
-
-        // Act: Create order with intake
-        RequestSubjectIntakeResult? result;
-        using (var scope = factory.Services.CreateScope())
-        {
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-
-            var commandResult = await mediator.Send(new RequestSubjectIntakeCommand(
-                "deferred-events@example.com",
-                "+15551234567",
-                customerId,
-                "policy-v1",
-                DateTimeOffset.UtcNow)
-            {
-                UserId = adminId.ToString()
-            });
-
-            Assert.That(commandResult.IsSuccess, Is.True, commandResult.Error);
-            result = commandResult.Value;
-        }
-
-        // Assert: Events from Subject and Order should exist
-        // Note: The DeferredDispatchProcessor may have already dispatched them,
-        // so we just verify events were created for the right streams
-        using (var scope = factory.Services.CreateScope())
-        {
-            var coreDb = scope.ServiceProvider.GetRequiredService<CoreDbContext>();
-
-            // Subject registration event
-            var subjectEvents = await coreDb.Events
-                .Where(e => e.StreamId == $"Subject:{result!.SubjectId}")
-                .ToListAsync();
-            Assert.That(subjectEvents, Has.Count.GreaterThanOrEqualTo(1), "Subject events should exist");
-
-            // Order creation event (issued asynchronously)
-            var orderEvents = await WaitForOrderEventsAsync(
-                coreDb,
-                result!.OrderId,
-                CancellationToken.None);
-            Assert.That(orderEvents, Has.Count.GreaterThanOrEqualTo(1), "Order events should exist");
-
-            // IntakeSession invite is issued asynchronously by integration handlers.
-        }
-    }
-
-    private static async Task<List<EventRecord>> WaitForOrderEventsAsync(
-        CoreDbContext coreDb,
-        UlidId orderId,
-        CancellationToken cancellationToken
-    )
-    {
-        List<EventRecord> events = [];
-        for (var attempt = 0; attempt < 20; attempt++)
-        {
-            events = await coreDb.Events
-                .Where(e => e.StreamId == $"Order:{orderId}")
-                .ToListAsync(cancellationToken);
-            if (events.Count > 0)
-            {
-                return events;
-            }
-
-            await Task.Delay(100, cancellationToken);
-        }
-
-        return events;
     }
 }

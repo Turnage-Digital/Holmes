@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Holmes.Orders.Application.EventHandlers;
 
-public sealed class IntakeSubmissionWorkflowHandler(
+public sealed class IntakeSubmissionOrderHandler(
     ISender sender,
-    ILogger<IntakeSubmissionWorkflowHandler> logger
+    ILogger<IntakeSubmissionOrderHandler> logger
 ) : INotificationHandler<IntakeSubmissionReceivedIntegrationEvent>,
     INotificationHandler<IntakeSubmissionAcceptedIntegrationEvent>
 {

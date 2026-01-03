@@ -21,7 +21,8 @@ public sealed class CreateOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
             request.CustomerId,
             request.PolicySnapshotId,
             request.CreatedAt,
-            request.PackageCode);
+            request.PackageCode,
+            request.CreatedBy);
 
         await unitOfWork.Orders.AddAsync(order, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

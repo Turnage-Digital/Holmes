@@ -6,12 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Holmes.Orders.Application.EventHandlers;
 
-/// <summary>
-///     Bridges Intake integration events to Workflow commands.
-/// </summary>
-public sealed class IntakeToWorkflowHandler(
+public sealed class IntakeSessionOrderHandler(
     ISender sender,
-    ILogger<IntakeToWorkflowHandler> logger
+    ILogger<IntakeSessionOrderHandler> logger
 ) : INotificationHandler<IntakeSessionInvitedIntegrationEvent>,
     INotificationHandler<IntakeSessionStartedIntegrationEvent>
 {

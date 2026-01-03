@@ -34,7 +34,7 @@ public sealed class StartIntakeSessionCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         // IntakeSessionStarted domain event is published by UnitOfWork.SaveChangesAsync
-        // IntakeToWorkflowHandler in App.Integration listens and sends MarkOrderIntakeStartedCommand
+        // IntakeSessionOrderHandler listens and sends MarkOrderIntakeStartedCommand
 
         return Result.Success();
     }

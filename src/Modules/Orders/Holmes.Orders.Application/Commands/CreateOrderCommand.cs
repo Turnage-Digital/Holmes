@@ -10,5 +10,6 @@ public sealed record CreateOrderCommand(
     UlidId CustomerId,
     string PolicySnapshotId,
     DateTimeOffset CreatedAt,
-    string? PackageCode
+    string? PackageCode,
+    UlidId CreatedBy
 ) : RequestBase<Result>;

@@ -5,18 +5,18 @@ using MediatR;
 
 namespace Holmes.Subjects.Application.Commands;
 
-public sealed class RequestSubjectIntakeCommandHandler(
+public sealed class CreateSubjectCommandHandler(
     ISubjectsUnitOfWork unitOfWork
-) : IRequestHandler<RequestSubjectIntakeCommand, Result<RequestSubjectIntakeResult>>
+) : IRequestHandler<CreateSubjectCommand, Result<CreateSubjectResult>>
 {
-    public async Task<Result<RequestSubjectIntakeResult>> Handle(
-        RequestSubjectIntakeCommand request,
+    public async Task<Result<CreateSubjectResult>> Handle(
+        CreateSubjectCommand request,
         CancellationToken cancellationToken
     )
     {
         if (string.IsNullOrWhiteSpace(request.SubjectEmail))
         {
-            return Result.Fail<RequestSubjectIntakeResult>("Subject email is required.");
+            return Result.Fail<CreateSubjectResult>("Subject email is required.");
         }
 
         var now = request.RequestedAt;
@@ -67,20 +67,10 @@ public sealed class RequestSubjectIntakeCommandHandler(
             await unitOfWork.Subjects.AddAsync(subject, cancellationToken);
         }
 
-        var orderId = UlidId.NewUlid();
-        var requestedBy = request.GetUserUlid();
-        subject.RequestIntake(
-            orderId,
-            request.CustomerId,
-            request.PolicySnapshotId,
-            now,
-            requestedBy);
-
         await unitOfWork.SaveChangesAsync(true, cancellationToken);
 
-        return Result.Success(new RequestSubjectIntakeResult(
+        return Result.Success(new CreateSubjectResult(
             subject.Id,
-            subjectWasExisting,
-            orderId));
+            subjectWasExisting));
     }
 }

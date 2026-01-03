@@ -1,13 +1,13 @@
 using Holmes.Core.Domain.ValueObjects;
 using MediatR;
 
-namespace Holmes.Orders.Domain.Events;
+namespace Holmes.Orders.Contracts.IntegrationEvents;
 
-public sealed record OrderCreatedFromIntake(
+public sealed record OrderCreatedIntegrationEvent(
     UlidId OrderId,
     UlidId SubjectId,
     UlidId CustomerId,
     string PolicySnapshotId,
     DateTimeOffset CreatedAt,
-    UlidId RequestedBy
+    UlidId CreatedBy
 ) : INotification;

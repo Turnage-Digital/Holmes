@@ -6,16 +6,16 @@ using Microsoft.Extensions.Logging;
 namespace Holmes.IntakeSessions.Application.EventHandlers;
 
 /// <summary>
-///     Issues an intake invite for orders created from subject intake requests.
+///     Issues an intake invite for newly created orders.
 /// </summary>
-public sealed class OrderCreatedFromIntakeInviteHandler(
+public sealed class OrderCreatedInviteHandler(
     ISender sender,
-    ILogger<OrderCreatedFromIntakeInviteHandler> logger
-) : INotificationHandler<OrderCreatedFromIntakeIntegrationEvent>
+    ILogger<OrderCreatedInviteHandler> logger
+) : INotificationHandler<OrderCreatedIntegrationEvent>
 {
     private static readonly TimeSpan DefaultTimeToLive = TimeSpan.FromHours(168);
 
-    public async Task Handle(OrderCreatedFromIntakeIntegrationEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(OrderCreatedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         var command = new IssueIntakeInviteCommand(
             notification.OrderId,
@@ -30,7 +30,7 @@ public sealed class OrderCreatedFromIntakeInviteHandler(
             DefaultTimeToLive,
             null)
         {
-            UserId = notification.RequestedBy.ToString()
+            UserId = notification.CreatedBy.ToString()
         };
 
         var result = await sender.Send(command, cancellationToken);

@@ -8,5 +8,6 @@ public sealed record OrderCreated(
     UlidId SubjectId,
     UlidId CustomerId,
     string PolicySnapshotId,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    UlidId CreatedBy
 ) : INotification;
