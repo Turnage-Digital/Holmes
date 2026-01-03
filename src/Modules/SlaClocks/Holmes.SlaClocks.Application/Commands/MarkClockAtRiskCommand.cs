@@ -1,8 +1,6 @@
 using Holmes.Core.Application;
-using Holmes.Core.Domain;
+using Holmes.Core.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Domain;
-using MediatR;
 
 namespace Holmes.SlaClocks.Application.Commands;
 
@@ -10,23 +8,3 @@ public sealed record MarkClockAtRiskCommand(
     UlidId ClockId,
     DateTimeOffset AtRiskAt
 ) : RequestBase<Result>;
-
-public sealed class MarkClockAtRiskCommandHandler(
-    ISlaClockUnitOfWork unitOfWork
-) : IRequestHandler<MarkClockAtRiskCommand, Result>
-{
-    public async Task<Result> Handle(MarkClockAtRiskCommand request, CancellationToken cancellationToken)
-    {
-        var clock = await unitOfWork.SlaClocks.GetByIdAsync(request.ClockId, cancellationToken);
-        if (clock is null)
-        {
-            return Result.Fail($"SLA clock '{request.ClockId}' not found.");
-        }
-
-        clock.MarkAtRisk(request.AtRiskAt);
-        await unitOfWork.SlaClocks.UpdateAsync(clock, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
-    }
-}

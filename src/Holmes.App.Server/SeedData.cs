@@ -1,7 +1,10 @@
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Infrastructure.Sql;
 using Holmes.Customers.Infrastructure.Sql.Entities;
+using Holmes.Orders.Application.Commands;
+using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Services.Application.Commands;
 using Holmes.Services.Domain;
 using Holmes.SlaClocks.Application.Commands;
@@ -11,8 +14,6 @@ using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using Holmes.Users.Infrastructure.Sql;
-using Holmes.Workflow.Application.Commands;
-using Holmes.Workflow.Infrastructure.Sql;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,7 +53,7 @@ public sealed class SeedData(
             var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
             var subjectsDb = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
             var usersDb = scope.ServiceProvider.GetRequiredService<UsersDbContext>();
-            var workflowDb = scope.ServiceProvider.GetRequiredService<WorkflowDbContext>();
+            var workflowDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
 
             if (await HasExistingSeedAsync(usersDb, cancellationToken))
             {
@@ -101,6 +102,7 @@ public sealed class SeedData(
             "pwd",
             timestamp,
             true);
+        command.UserId = SystemActors.System;
         return await mediator.Send(command, cancellationToken);
     }
 
@@ -191,7 +193,6 @@ public sealed class SeedData(
         var profile = new CustomerProfileDb
         {
             CustomerId = customerId,
-            TenantId = Ulid.NewUlid().ToString(),
             PolicySnapshotId = "policy-default",
             BillingEmail = "billing@holmes.dev",
             CreatedAt = timestamp,
@@ -269,7 +270,7 @@ public sealed class SeedData(
 
     private static async Task EnsureDemoOrdersAsync(
         IServiceProvider services,
-        WorkflowDbContext workflowDb,
+        OrdersDbContext workflowDb,
         UlidId customerId,
         List<UlidId> subjectIds,
         UlidId adminUserId,
@@ -303,7 +304,7 @@ public sealed class SeedData(
             // Intake complete - ready for review
             (subjectIds[5], TimeSpan.FromDays(-2), "IntakeComplete"),
 
-            // Ready for fulfillment / FulfillmentInProgress (these will have service requests)
+            // Ready for fulfillment / FulfillmentInProgress (these will have services)
             (subjectIds[6], TimeSpan.FromDays(-3), "ReadyForFulfillment"),
             (subjectIds[7], TimeSpan.FromDays(-4), "ReadyForFulfillment"),
             (subjectIds[8], TimeSpan.FromDays(-5), "ReadyForFulfillment"),
@@ -430,8 +431,8 @@ public sealed class SeedData(
                 orderId, customerId, ClockKind.Fulfillment, readyTimestamp)
             { UserId = adminUserId.ToString() }, cancellationToken);
 
-        // Create service requests for fulfillment dashboard
-        await CreateServiceRequestsForOrderAsync(
+        // Create services for fulfillment dashboard
+        await CreateServicesForOrderAsync(
             mediator, orderId, customerId, adminUserId, readyTimestamp, cancellationToken);
 
         if (targetStatus == "ReadyForFulfillment" || targetStatus == "FulfillmentInProgress")
@@ -451,7 +452,7 @@ public sealed class SeedData(
         }
     }
 
-    private static async Task CreateServiceRequestsForOrderAsync(
+    private static async Task CreateServicesForOrderAsync(
         IMediator mediator,
         UlidId orderId,
         UlidId customerId,
@@ -485,21 +486,21 @@ public sealed class SeedData(
 
         foreach (var (code, _) in tier1Services)
         {
-            await mediator.Send(new CreateServiceRequestCommand(
+            await mediator.Send(new CreateServiceCommand(
                     orderId, customerId, code, 1, null, null, timestamp)
                 { UserId = adminUserId.ToString() }, cancellationToken);
         }
 
         foreach (var (code, _) in tier2Services)
         {
-            await mediator.Send(new CreateServiceRequestCommand(
+            await mediator.Send(new CreateServiceCommand(
                     orderId, customerId, code, 2, null, null, timestamp.AddSeconds(1))
                 { UserId = adminUserId.ToString() }, cancellationToken);
         }
 
         foreach (var (code, _) in tier3Services)
         {
-            await mediator.Send(new CreateServiceRequestCommand(
+            await mediator.Send(new CreateServiceCommand(
                     orderId, customerId, code, 3, null, null, timestamp.AddSeconds(2))
                 { UserId = adminUserId.ToString() }, cancellationToken);
         }

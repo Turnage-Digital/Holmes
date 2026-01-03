@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Abstractions.Dtos;
+using Holmes.Customers.Contracts.Dtos;
 using Holmes.Customers.Domain;
 using Holmes.Customers.Domain.ValueObjects;
 using Holmes.Customers.Infrastructure.Sql.Entities;
@@ -58,7 +58,6 @@ public static class CustomerMapper
     {
         return new CustomerListItemDto(
             directory.CustomerId,
-            profile?.TenantId ?? directory.CustomerId,
             directory.Name,
             directory.Status,
             GetPolicySnapshotId(profile),
@@ -78,7 +77,6 @@ public static class CustomerMapper
 
         return new CustomerDetailDto(
             directory.CustomerId,
-            profile?.TenantId ?? directory.CustomerId,
             directory.Name,
             directory.Status,
             GetPolicySnapshotId(profile),

@@ -20,7 +20,7 @@ Background screening is fundamentally about **services**: discrete units of work
 
 **The DDD Question:** Where do Services live?
 
-**Answer:** Services are a **separate bounded context** (`Holmes.Services`) with `ServiceRequest` as an aggregate root.
+**Answer:** Services are a **separate bounded context** (`Holmes.Services`) with `Service` as an aggregate root.
 
 **Why not child entities of Order?**
 
@@ -32,9 +32,9 @@ Background screening is fundamentally about **services**: discrete units of work
 
 **Relationship to Order:**
 
-- Order *references* ServiceRequests by ID
-- `OrderRoutingService` creates ServiceRequests when Order reaches `ReadyForRouting`
-- Order subscribes to `ServiceRequestCompleted` events to know when to advance
+- Order *references* Services by ID
+- `OrderRoutingService` creates Services when Order reaches `ReadyForRouting`
+- Order subscribes to `ServiceCompleted` events to know when to advance
 - Order transitions to `ReadyForReport` when all required services complete
 
 ## 2. Stakeholders & Working Cadence
@@ -55,21 +55,21 @@ Standing ceremonies:
 
 ## 3. Scope Breakdown
 
-| Track                        | Deliverables                                                                            | Definition of Done                                                                                     |
-|------------------------------|-----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| **ServiceRequest Aggregate** | `ServiceRequest` with state machine, tier assignment, vendor assignment, result storage | State transitions fire domain events; results stored in normalized schema; aggregate replayable        |
-| **Service Tiering**          | Customer-defined execution tiers with stop conditions                                   | Tier 1 completes before Tier 2 dispatches; stop conditions halt downstream tiers; parallel mode option |
-| **Service Type Taxonomy**    | `ServiceType` enum/value object with categories and specific types                      | All common service types defined; extensible for custom types                                          |
-| **Service Catalog**          | `ServiceCatalog` aggregate for customer-specific service configurations                 | Customer can enable/disable service types; tier assignments; vendor mappings per customer              |
-| **Vendor Adapter Layer**     | `IVendorAdapter` interface, `IVendorCredentialStore`, `StubVendorAdapter`               | Adapters translate vendor protocols; credentials fetched from secure store; stub returns fixture data  |
-| **Order Routing**            | `OrderRoutingService` that determines services from package + policy                    | Package code maps to service list; services created with tier assignments when Order ready for routing |
-| **Service SLA Clocks**       | Optional service-level SLA tracking                                                     | Clock starts on dispatch; at-risk/breach detection; customer-configurable targets                      |
-| **Address History**          | Subject enhancement with address collection                                             | Addresses captured during intake; county FIPS derivation for criminal searches                         |
-| **Read Models**              | `service_requests`, `service_results`, `fulfillment_dashboard`                          | Projections replayable; dashboard shows in-flight services by tier                                     |
+| Track                     | Deliverables                                                                     | Definition of Done                                                                                     |
+|---------------------------|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| **Service Aggregate**     | `Service` with state machine, tier assignment, vendor assignment, result storage | State transitions fire domain events; results stored in normalized schema; aggregate replayable        |
+| **Service Tiering**       | Customer-defined execution tiers with stop conditions                            | Tier 1 completes before Tier 2 dispatches; stop conditions halt downstream tiers; parallel mode option |
+| **Service Type Taxonomy** | `ServiceType` enum/value object with categories and specific types               | All common service types defined; extensible for custom types                                          |
+| **Service Catalog**       | `ServiceCatalog` aggregate for customer-specific service configurations          | Customer can enable/disable service types; tier assignments; vendor mappings per customer              |
+| **Vendor Adapter Layer**  | `IVendorAdapter` interface, `IVendorCredentialStore`, `StubVendorAdapter`        | Adapters translate vendor protocols; credentials fetched from secure store; stub returns fixture data  |
+| **Order Routing**         | `OrderRoutingService` that determines services from package + policy             | Package code maps to service list; services created with tier assignments when Order ready for routing |
+| **Service SLA Clocks**    | Optional service-level SLA tracking                                              | Clock starts on dispatch; at-risk/breach detection; customer-configurable targets                      |
+| **Address History**       | Subject enhancement with address collection                                      | Addresses captured during intake; county FIPS derivation for criminal searches                         |
+| **Read Models**           | `service_requests`, `service_results`, `fulfillment_dashboard`                   | Projections replayable; dashboard shows in-flight services by tier                                     |
 
 ## 4. Domain Model
 
-### 4.1 ServiceRequest Aggregate
+### 4.1 Service Aggregate
 
 **Bounded Context:** `Holmes.Services`
 
@@ -77,7 +77,7 @@ Standing ceremonies:
 
 ```
 Holmes.Services.Domain/
-  ServiceRequest.cs           # Aggregate root
+  Service.cs           # Aggregate root
   ServiceCatalog.cs           # Aggregate root (customer service config)
   ServiceType.cs              # Value object / enum
   ServiceScope.cs             # Geographic scope
@@ -85,14 +85,14 @@ Holmes.Services.Domain/
   ServiceResult.cs            # Normalized result
   VendorAssignment.cs         # Vendor binding (value object)
   Events/
-    ServiceRequestCreated.cs
-    ServiceRequestDispatched.cs
+    ServiceCreated.cs
+    ServiceDispatched.cs
     ServiceResultReceived.cs
-    ServiceRequestCompleted.cs
-    ServiceRequestFailed.cs
-    ServiceRequestCanceled.cs
-    ServiceRequestRetried.cs
-  IServiceRequestRepository.cs
+    ServiceCompleted.cs
+    ServiceFailed.cs
+    ServiceCanceled.cs
+    ServiceRetried.cs
+  IServiceRepository.cs
   IServicesUnitOfWork.cs
 
 Holmes.Services.Infrastructure.Sql/
@@ -170,7 +170,7 @@ public sealed class TierExecutionService
             var nextServices = services.Where(s => s.Tier == nextTier && s.Status == ServiceStatus.Pending);
             foreach (var service in nextServices)
             {
-                await _sender.Send(new DispatchServiceRequestCommand(service.Id));
+                await _sender.Send(new DispatchServiceCommand(service.Id));
             }
         }
     }
@@ -235,10 +235,10 @@ public async Task Handle(OrderStatusChanged notification, ...)
         subject,
         policy);
 
-    // ServiceRequests reference the snapshot
+    // Services reference the snapshot
     foreach (var service in services)
     {
-        await _sender.Send(new CreateServiceRequestCommand(
+        await _sender.Send(new CreateServiceCommand(
             order.Id,
             catalogSnapshot.Id,  // Link to snapshot
             service.Type,
@@ -264,7 +264,7 @@ CREATE TABLE services.service_catalog_snapshots (
     INDEX idx_customer (customer_id)
 );
 
--- ServiceRequest references the snapshot
+-- Service references the snapshot
 ALTER TABLE services.service_requests
     ADD COLUMN catalog_snapshot_id CHAR(26) AFTER customer_id,
     ADD FOREIGN KEY (catalog_snapshot_id) REFERENCES service_catalog_snapshots(id);
@@ -276,7 +276,7 @@ ALTER TABLE services.service_requests
 |------------------|-----------------------------------------------------|-----------------------------------------------------------|
 | What it captures | SLA rules, intake requirements, adjudication matrix | Tiers, stop conditions, vendor mappings, enabled services |
 | When snapshotted | Order creation                                      | Order routing                                             |
-| Stored on        | `Order.PolicySnapshotId`                            | `ServiceRequest.CatalogSnapshotId`                        |
+| Stored on        | `Order.PolicySnapshotId`                            | `Service.CatalogSnapshotId`                               |
 | Ensures          | Policy changes don't affect in-flight orders        | Service config changes don't affect in-flight orders      |
 
 ### 4.3 Service Type Taxonomy
@@ -423,7 +423,7 @@ public interface IVendorAdapter
     IEnumerable<ServiceCategory> SupportedCategories { get; }
 
     Task<DispatchResult> DispatchAsync(
-        ServiceRequest request,
+        Service request,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult> ParseCallbackAsync(
@@ -527,7 +527,7 @@ When Order emits `OrderStatusChanged` to `ReadyForRouting`:
 2. Loads Package definition (e.g., "EMP_STD_US")
 3. Loads Subject's address history for county determination
 4. Applies Policy rules (address_years, excluded jurisdictions)
-5. Creates `ServiceRequest` for each required service
+5. Creates `Service` for each required service
 6. Transitions Order to `RoutingInProgress`
 
 ```csharp
@@ -547,7 +547,7 @@ public sealed class OrderRoutingHandler : INotificationHandler<OrderStatusChange
 
         foreach (var service in services)
         {
-            await _sender.Send(new CreateServiceRequestCommand(
+            await _sender.Send(new CreateServiceCommand(
                 order.Id,
                 service.Type,
                 service.Scope,
@@ -564,9 +564,9 @@ public sealed class OrderRoutingHandler : INotificationHandler<OrderStatusChange
 When all services complete, Order can advance:
 
 ```csharp
-public sealed class ServiceCompletedOrderHandler : INotificationHandler<ServiceRequestCompleted>
+public sealed class ServiceCompletedOrderHandler : INotificationHandler<ServiceCompleted>
 {
-    public async Task Handle(ServiceRequestCompleted notification, ...)
+    public async Task Handle(ServiceCompleted notification, ...)
     {
         var allServices = await _serviceRepo.GetByOrderIdAsync(notification.OrderId);
 
@@ -640,14 +640,14 @@ UI presents address history form; `SubmitIntakeCommand` includes addresses.
 
 ### 8.1 Integration with SlaClocks Module
 
-When `ServiceRequestDispatched` fires:
+When `ServiceDispatched` fires:
 
 ```csharp
-public sealed class ServiceDispatchedSlaHandler : INotificationHandler<ServiceRequestDispatched>
+public sealed class ServiceDispatchedSlaHandler : INotificationHandler<ServiceDispatched>
 {
-    public async Task Handle(ServiceRequestDispatched notification, ...)
+    public async Task Handle(ServiceDispatched notification, ...)
     {
-        var service = await _serviceRepo.GetByIdAsync(notification.ServiceRequestId);
+        var service = await _serviceRepo.GetByIdAsync(notification.ServiceId);
         var config = await _catalogService.GetServiceConfigAsync(
             service.CustomerId, service.ServiceType);
 
@@ -779,7 +779,7 @@ PUT  /api/admin/customers/{id}/services/{type} # Update service config
 
 ## 11. Acceptance Checklist
 
-1. **ServiceRequest Aggregate:**
+1. **Service Aggregate:**
     - [ ] State machine enforces valid transitions
     - [ ] Domain events fire on state changes
     - [ ] Results stored in normalized schema
@@ -793,7 +793,7 @@ PUT  /api/admin/customers/{id}/services/{type} # Update service config
     - [ ] Parallel mode bypasses tier ordering
     - [ ] Customer-specific tier configuration honored
     - [ ] ServiceCatalog snapshotted at routing time
-    - [ ] ServiceRequests reference catalog snapshot ID
+    - [ ] Services reference catalog snapshot ID
 
 3. **Service Type Taxonomy:**
     - [ ] All common service types defined
@@ -868,7 +868,7 @@ PUT  /api/admin/customers/{id}/services/{type} # Update service config
 
 1. Create `Holmes.Services.Domain` project scaffolding
 2. Define `ServiceType` taxonomy (enums + value objects)
-3. Implement `ServiceRequest` aggregate with state machine
+3. Implement `Service` aggregate with state machine
 4. Create `StubVendorAdapter` with fixture data
 5. Add address history to Subject aggregate
 6. Implement `OrderRoutingHandler` for package→services

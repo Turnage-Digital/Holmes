@@ -146,11 +146,6 @@ namespace Holmes.Customers.Infrastructure.Sql.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .HasColumnType("varchar(26)");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)")

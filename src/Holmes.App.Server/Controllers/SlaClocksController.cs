@@ -1,9 +1,9 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Application.Abstractions.Dtos;
+using Holmes.Orders.Application.Queries;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Application.Queries;
-using Holmes.Workflow.Application.Queries;
+using Holmes.SlaClocks.Contracts.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

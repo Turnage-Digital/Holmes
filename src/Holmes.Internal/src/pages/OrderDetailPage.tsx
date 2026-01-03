@@ -59,7 +59,7 @@ import {
   createServiceChangesStream,
   createSlaClockChangesStream,
   queryKeys,
-  useCancelServiceRequest,
+  useCancelService,
   useCustomer,
   useIsAdmin,
   useOrder,
@@ -71,7 +71,7 @@ import {
   usePauseSlaClock,
   useResumeSlaClock,
   useRetryNotification,
-  useRetryServiceRequest,
+  useRetryService,
   useSubject,
 } from "@/hooks/api";
 import { getOrderStatusColor, getOrderStatusLabel } from "@/lib/status";
@@ -326,8 +326,8 @@ interface ServicesTabProps {
 const ServicesTab = ({ orderId }: ServicesTabProps) => {
   const isAdmin = useIsAdmin();
   const { data: orderServices, isLoading, error } = useOrderServices(orderId);
-  const retryMutation = useRetryServiceRequest();
-  const cancelMutation = useCancelServiceRequest();
+  const retryMutation = useRetryService();
+  const cancelMutation = useCancelService();
 
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
@@ -353,7 +353,7 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
       setCancelingId(cancelServiceId);
       cancelMutation.mutate(
         {
-          serviceRequestId: cancelServiceId,
+          serviceId: cancelServiceId,
           payload: { reason: cancelReason.trim() },
         },
         {
@@ -409,8 +409,8 @@ const ServicesTab = ({ orderId }: ServicesTabProps) => {
         <DialogTitle>Cancel Service Request</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            Please provide a reason for canceling this service request. This
-            action cannot be undone.
+            Please provide a reason for canceling this service. This action
+            cannot be undone.
           </Typography>
           <TextField
             fullWidth
@@ -524,7 +524,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
             </Typography>
           </Box>
           {(() => {
-            const actorIdDisplay = event.actorId ? (
+            const actorDisplay = event.actorId ? (
               <Tooltip title="Actor ID">
                 <Chip
                   label={`${event.actorId.slice(0, 12)}…`}
@@ -534,7 +534,7 @@ const AuditEventCard = ({ event }: { event: OrderAuditEventDto }) => {
                 />
               </Tooltip>
             ) : null;
-            return actorIdDisplay;
+            return actorDisplay;
           })()}
         </Box>
       </AccordionSummary>

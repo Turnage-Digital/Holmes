@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
+        <ProjectReference Include="..\..\IntakeSessions\Holmes.IntakeSessions.Contracts\Holmes.IntakeSessions.Contracts.csproj"/>
+        <ProjectReference Include="..\Holmes.Orders.Contracts\Holmes.Orders.Contracts.csproj"/>
+        <ProjectReference Include="..\Holmes.Orders.Domain\Holmes.Orders.Domain.csproj"/>
+        <ProjectReference Include="..\..\Services\Holmes.Services.Contracts\Holmes.Services.Contracts.csproj"/>
+        <ProjectReference Include="..\..\Subjects\Holmes.Subjects.Contracts\Holmes.Subjects.Contracts.csproj"/>
+    </ItemGroup>
+
+</Project>

@@ -1,9 +1,6 @@
-using Holmes.Services.Application.Abstractions;
-using Holmes.Services.Application.Abstractions.Projections;
-using Holmes.Services.Application.Abstractions.Queries;
+using Holmes.Services.Application.Queries;
+using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
-using Holmes.Services.Infrastructure.Sql.Projections;
-using Holmes.Services.Infrastructure.Sql.Queries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,15 +18,15 @@ public static class DependencyInjection
             options.UseMySql(connectionString, serverVersion, builder =>
                 builder.MigrationsAssembly(typeof(ServicesDbContext).Assembly.FullName)));
 
-        services.AddScoped<ServiceRequestRepository>();
-        services.AddScoped<IServiceRequestRepository>(sp => sp.GetRequiredService<ServiceRequestRepository>());
+        services.AddScoped<ServiceRepository>();
+        services.AddScoped<IServiceRepository>(sp => sp.GetRequiredService<ServiceRepository>());
         services.AddScoped<IServicesUnitOfWork, ServicesUnitOfWork>();
-        services.AddScoped<IServiceRequestQueries, SqlServiceRequestQueries>();
-        services.AddScoped<IServiceCatalogQueries, SqlServiceCatalogQueries>();
+        services.AddScoped<IServiceQueries, ServiceQueries>();
+        services.AddScoped<IServiceCatalogQueries, ServiceCatalogQueries>();
         services.AddScoped<IServiceCatalogRepository, ServiceCatalogRepository>();
 
         // Projection writer
-        services.AddScoped<IServiceProjectionWriter, SqlServiceProjectionWriter>();
+        services.AddScoped<IServiceProjectionWriter, ServiceProjectionWriter>();
 
         // Vendor adapters
         services.AddSingleton<IVendorAdapter, StubVendorAdapter>();

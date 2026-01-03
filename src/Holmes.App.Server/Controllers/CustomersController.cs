@@ -1,10 +1,10 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Abstractions.Dtos;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Application.Queries;
-using Holmes.Services.Application.Abstractions.Dtos;
+using Holmes.Customers.Contracts.Dtos;
+using Holmes.Services.Contracts.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -285,11 +285,11 @@ public sealed class CustomersController(
     public sealed record ModifyCustomerAdminRequest(string UserId);
 
     public sealed record UpdateServiceCatalogRequest(
-        IReadOnlyCollection<ServiceCatalogServiceRequestItem>? Services,
+        IReadOnlyCollection<ServiceCatalogServiceItem>? Services,
         IReadOnlyCollection<ServiceCatalogTierRequestItem>? Tiers
     );
 
-    public sealed record ServiceCatalogServiceRequestItem(
+    public sealed record ServiceCatalogServiceItem(
         string ServiceTypeCode,
         bool IsEnabled,
         int Tier,

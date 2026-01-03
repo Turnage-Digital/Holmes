@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using Holmes.Subjects.Application.Abstractions.Dtos;
+using Holmes.Core.Domain;
+using Holmes.Subjects.Contracts.Dtos;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
@@ -321,6 +322,9 @@ public class SubjectsEndpointTests
             "Subject Tester",
             "pwd",
             DateTimeOffset.UtcNow,
-            true));
+            true)
+        {
+            UserId = SystemActors.System
+        });
     }
 }

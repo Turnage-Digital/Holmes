@@ -1,8 +1,6 @@
 using Holmes.Core.Application;
-using Holmes.Core.Domain;
+using Holmes.Core.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions.Queries;
-using MediatR;
 
 namespace Holmes.Services.Application.Queries;
 
@@ -18,25 +16,3 @@ public sealed record OrderCompletionStatus(
 public sealed record GetOrderCompletionStatusQuery(
     UlidId OrderId
 ) : RequestBase<Result<OrderCompletionStatus>>;
-
-public sealed class GetOrderCompletionStatusQueryHandler(
-    IServiceRequestQueries serviceRequestQueries
-) : IRequestHandler<GetOrderCompletionStatusQuery, Result<OrderCompletionStatus>>
-{
-    public async Task<Result<OrderCompletionStatus>> Handle(
-        GetOrderCompletionStatusQuery request,
-        CancellationToken cancellationToken
-    )
-    {
-        var status = await serviceRequestQueries.GetOrderCompletionStatusAsync(
-            request.OrderId.ToString(), cancellationToken);
-
-        return Result.Success(new OrderCompletionStatus(
-            status.AllCompleted,
-            status.TotalServices,
-            status.CompletedServices,
-            status.PendingServices,
-            0, // InProgress is included in Pending count in the DTO
-            status.FailedServices));
-    }
-}

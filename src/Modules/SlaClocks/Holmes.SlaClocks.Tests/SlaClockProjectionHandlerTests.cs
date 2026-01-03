@@ -1,8 +1,7 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.SlaClocks.Application.Abstractions.Dtos;
-using Holmes.SlaClocks.Application.Abstractions.Projections;
-using Holmes.SlaClocks.Application.Abstractions.Queries;
 using Holmes.SlaClocks.Application.EventHandlers;
+using Holmes.SlaClocks.Contracts;
+using Holmes.SlaClocks.Contracts.Dtos;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Domain.Events;
 using Moq;

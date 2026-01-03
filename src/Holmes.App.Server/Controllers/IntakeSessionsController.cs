@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Intake.Application.Commands;
-using Holmes.Intake.Application.Queries;
+using Holmes.IntakeSessions.Application.Commands;
+using Holmes.IntakeSessions.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

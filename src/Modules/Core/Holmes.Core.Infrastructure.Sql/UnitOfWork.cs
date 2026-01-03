@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Holmes.Core.Application.Abstractions;
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts;
+using Holmes.Core.Contracts.Events;
 using Holmes.Core.Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -17,17 +17,24 @@ public abstract class UnitOfWork<TContext>(
 {
     private bool _disposed;
 
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        return SaveChangesAsync(false, cancellationToken);
+    }
+
+    public async Task<int> SaveChangesAsync(bool deferDispatch, CancellationToken cancellationToken)
     {
         using var activity = UnitOfWorkTelemetry.ActivitySource.StartActivity();
         var tags = new TagList
         {
             { "db.context", typeof(TContext).Name },
             { "db.provider", dbContext.Database.ProviderName ?? "unknown" },
-            { "db.transactional", dbContext.Database.IsRelational() }
+            { "db.transactional", dbContext.Database.IsRelational() },
+            { "holmes.defer_dispatch", deferDispatch }
         };
         activity?.SetTag("db.system", dbContext.Database.ProviderName);
         activity?.SetTag("holmes.unit_of_work.context", typeof(TContext).Name);
+        activity?.SetTag("holmes.unit_of_work.defer_dispatch", deferDispatch);
 
         var startTimestamp = Stopwatch.GetTimestamp();
 
@@ -41,21 +48,32 @@ public abstract class UnitOfWork<TContext>(
             // Only wrap in a transaction for relational providers
             if (dbContext.Database.IsRelational())
             {
-                await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-                try
+                var hasExternalTransaction = dbContext.Database.CurrentTransaction is not null;
+                if (hasExternalTransaction)
                 {
-                    // 1. Save aggregate state changes
                     retval = await dbContext.SaveChangesAsync(cancellationToken);
-
-                    // 2. Persist events to EventRecord (within transaction)
-                    await PersistEventsAsync(aggregates, cancellationToken);
-
-                    await transaction.CommitAsync(cancellationToken);
+                    await PersistEventsAsync(aggregates, !deferDispatch, cancellationToken);
                 }
-                catch
+                else
                 {
-                    await transaction.RollbackAsync(cancellationToken)!;
-                    throw;
+                    await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+                    try
+                    {
+                        // 1. Save aggregate state changes
+                        retval = await dbContext.SaveChangesAsync(cancellationToken);
+
+                        // 2. Persist events to EventRecord (within transaction)
+                        // When deferDispatch is false, mark events as already dispatched since
+                        // they will be published immediately after commit
+                        await PersistEventsAsync(aggregates, !deferDispatch, cancellationToken);
+
+                        await transaction.CommitAsync(cancellationToken);
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync(cancellationToken)!;
+                        throw;
+                    }
                 }
             }
             else
@@ -64,11 +82,15 @@ public abstract class UnitOfWork<TContext>(
                 retval = await dbContext.SaveChangesAsync(cancellationToken);
 
                 // Still persist events for non-relational (testing) scenarios
-                await PersistEventsAsync(aggregates, cancellationToken);
+                await PersistEventsAsync(aggregates, !deferDispatch, cancellationToken);
             }
 
             // 3. Dispatch events via MediatR (after commit)
-            await DispatchDomainEventsAsync(aggregates, cancellationToken);
+            // When deferDispatch is true, skip this - OutboxProcessor will handle it
+            if (!deferDispatch)
+            {
+                await DispatchDomainEventsAsync(aggregates, cancellationToken);
+            }
 
             activity?.SetStatus(ActivityStatusCode.Ok);
             activity?.SetTag("holmes.unit_of_work.result", "success");
@@ -114,6 +136,7 @@ public abstract class UnitOfWork<TContext>(
 
     private async Task PersistEventsAsync(
         IReadOnlyCollection<IHasDomainEvents> aggregates,
+        bool markAsDispatched,
         CancellationToken cancellationToken
     )
     {
@@ -123,7 +146,9 @@ public abstract class UnitOfWork<TContext>(
             return;
         }
 
-        var tenant = tenantContext?.TenantId ?? "*";
+        var tenant = string.IsNullOrWhiteSpace(tenantContext?.CustomerId)
+            ? "*"
+            : tenantContext!.CustomerId;
         var actorId = tenantContext?.ActorId;
         var correlationId = Activity.Current?.TraceId.ToString();
         var causationId = Activity.Current?.ParentSpanId.ToString();
@@ -144,6 +169,7 @@ public abstract class UnitOfWork<TContext>(
                 aggregate.GetStreamId(),
                 aggregate.GetStreamType(),
                 envelopes,
+                markAsDispatched,
                 cancellationToken);
         }
     }

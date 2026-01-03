@@ -1,5 +1,5 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 
 namespace Holmes.Services.Infrastructure.Sql;
@@ -16,7 +16,7 @@ public sealed class StubVendorAdapter : IVendorAdapter
         Enum.GetValues<ServiceCategory>();
 
     public async Task<DispatchResult> DispatchAsync(
-        ServiceRequest request,
+        Service service,
         CancellationToken cancellationToken = default
     )
     {

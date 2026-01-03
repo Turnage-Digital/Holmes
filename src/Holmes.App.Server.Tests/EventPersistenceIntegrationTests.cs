@@ -1,4 +1,5 @@
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts.Events;
+using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Customers.Application.Commands;
@@ -39,7 +40,10 @@ public class EventPersistenceIntegrationTests
                 "Integration Test User",
                 "password123",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
             userId = id.ToString();
         }
 
@@ -102,7 +106,10 @@ public class EventPersistenceIntegrationTests
                 "User To Suspend",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             adminId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test",
@@ -111,7 +118,10 @@ public class EventPersistenceIntegrationTests
                 "Admin User",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             // Grant admin role
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
@@ -173,7 +183,10 @@ public class EventPersistenceIntegrationTests
                 "Customer Admin",
                 "password",
                 DateTimeOffset.UtcNow,
-                true));
+                true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -243,7 +256,10 @@ public class EventPersistenceIntegrationTests
 
             adminId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test", "global-admin", "global-admin@test.com",
-                "Global Admin", "password", DateTimeOffset.UtcNow, true));
+                "Global Admin", "password", DateTimeOffset.UtcNow, true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -257,7 +273,10 @@ public class EventPersistenceIntegrationTests
 
             userToAssignId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test", "customer-admin-user", "customer-admin@test.com",
-                "Customer Admin User", "password", DateTimeOffset.UtcNow, true));
+                "Customer Admin User", "password", DateTimeOffset.UtcNow, true)
+            {
+                UserId = SystemActors.System
+            });
         }
 
         // Act: Assign customer admin
@@ -301,7 +320,10 @@ public class EventPersistenceIntegrationTests
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             adminId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test", "subject-admin", "subject-admin@test.com",
-                "Subject Admin", "password", DateTimeOffset.UtcNow, true));
+                "Subject Admin", "password", DateTimeOffset.UtcNow, true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -379,11 +401,17 @@ public class EventPersistenceIntegrationTests
 
             userId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test", "versioning-test-user", "versioning@test.com",
-                "Versioning Test", "password", DateTimeOffset.UtcNow, true));
+                "Versioning Test", "password", DateTimeOffset.UtcNow, true)
+            {
+                UserId = SystemActors.System
+            });
 
             adminId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test", "versioning-admin", "versioning-admin@test.com",
-                "Versioning Admin", "password", DateTimeOffset.UtcNow, true));
+                "Versioning Admin", "password", DateTimeOffset.UtcNow, true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {
@@ -458,7 +486,10 @@ public class EventPersistenceIntegrationTests
 
             adminId = await mediator.Send(new RegisterExternalUserCommand(
                 "https://issuer.test", "serializer-admin", "serializer-admin@test.com",
-                "Serializer Admin", "password", DateTimeOffset.UtcNow, true));
+                "Serializer Admin", "password", DateTimeOffset.UtcNow, true)
+            {
+                UserId = SystemActors.System
+            });
 
             await mediator.Send(new GrantUserRoleCommand(adminId, UserRole.Admin, null, DateTimeOffset.UtcNow)
             {

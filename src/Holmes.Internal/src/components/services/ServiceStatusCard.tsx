@@ -24,8 +24,8 @@ import { formatDistanceToNow } from "date-fns";
 
 import type {
   ServiceCategory,
-  ServiceRequestSummaryDto,
   ServiceStatus,
+  ServiceSummaryDto,
 } from "@/types/api";
 
 import { StatusBadge } from "@/components/patterns";
@@ -78,7 +78,7 @@ const categoryColors: Record<
 // ============================================================================
 
 interface ServiceStatusCardProps {
-  service: ServiceRequestSummaryDto;
+  service: ServiceSummaryDto;
   showCategory?: boolean;
   onRetry?: (serviceId: string) => void;
   onCancel?: (serviceId: string) => void;

@@ -62,7 +62,7 @@ src/Modules/SlaClocks/
 │   └── Services/
 │       └── IBusinessCalendarService.cs      # Interface for deadline calculation
 │
-├── Holmes.SlaClocks.Application.Abstractions/
+├── Holmes.SlaClocks.Contracts/
 │   └── Dtos/
 │       └── SlaClockDto.cs
 │
@@ -401,7 +401,7 @@ SlaClocks emits events → Notifications module subscribes via handler in `App.I
 
 1. **Domain Layer** - SlaClock aggregate, enums, events, repository interface
 2. **Application Layer** - Commands, queries, OrderStatusChangedSlaHandler
-3. **Application.Abstractions** - DTOs
+3. **Contracts** - DTOs
 4. **Infrastructure Layer** - DbContext, repository, business calendar service
 5. **Watchdog Service** - Background service in App.Server
 6. **Notification Integration** - Handler in App.Integration

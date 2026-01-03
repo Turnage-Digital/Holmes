@@ -1,5 +1,5 @@
-using Holmes.Core.Application.Abstractions;
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts;
+using Holmes.Core.Contracts.Events;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Services.Domain;
 using MediatR;
@@ -15,8 +15,8 @@ public sealed class ServicesUnitOfWork(
 )
     : UnitOfWork<ServicesDbContext>(dbContext, mediator, eventStore, serializer, tenantContext), IServicesUnitOfWork
 {
-    private readonly Lazy<IServiceRequestRepository> _serviceRequests =
-        new(() => new ServiceRequestRepository(dbContext));
+    private readonly Lazy<IServiceRepository> _services =
+        new(() => new ServiceRepository(dbContext));
 
-    public IServiceRequestRepository ServiceRequests => _serviceRequests.Value;
+    public IServiceRepository Services => _services.Value;
 }

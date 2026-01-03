@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1"/>
+        <PackageReference Include="NUnit" Version="4.4.0"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="5.2.0"/>
+        <PackageReference Include="coverlet.collector" Version="6.0.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Modules\Core\Holmes.Core.Domain\Holmes.Core.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\Customers\Holmes.Customers.Domain\Holmes.Customers.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\IntakeSessions\Holmes.IntakeSessions.Domain\Holmes.IntakeSessions.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\Notifications\Holmes.Notifications.Domain\Holmes.Notifications.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\Orders\Holmes.Orders.Domain\Holmes.Orders.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\Services\Holmes.Services.Domain\Holmes.Services.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\SlaClocks\Holmes.SlaClocks.Domain\Holmes.SlaClocks.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\Subjects\Holmes.Subjects.Domain\Holmes.Subjects.Domain.csproj"/>
+        <ProjectReference Include="..\Modules\Users\Holmes.Users.Domain\Holmes.Users.Domain.csproj"/>
+    </ItemGroup>
+
+</Project>

@@ -1,28 +1,34 @@
 using System.Security.Claims;
-using Holmes.Core.Application.Abstractions;
+using Holmes.Core.Contracts;
 
-namespace Holmes.App.Server.Infrastructure;
+namespace Holmes.App.Server;
 
 /// <summary>
 ///     HTTP-based tenant context that extracts tenant and actor from the current HTTP request claims.
 /// </summary>
 public sealed class HttpTenantContext(IHttpContextAccessor httpContextAccessor) : ITenantContext
 {
-    private const string TenantClaim = "tenant_id";
-    private const string DefaultTenantId = "*";
+    private const string CustomerClaim = "customer_id";
+    private const string ActorClaim = "holmes_user_id";
+    private const string DefaultCustomerId = "*";
 
-    public string TenantId
+    public string? CustomerId
     {
         get
         {
             var user = httpContextAccessor.HttpContext?.User;
             if (user?.Identity?.IsAuthenticated != true)
             {
-                return DefaultTenantId;
+                return null;
             }
 
-            var tenantClaim = user.FindFirst(TenantClaim);
-            return tenantClaim?.Value ?? DefaultTenantId;
+            var customerClaim = user.FindFirst(CustomerClaim);
+            if (!string.IsNullOrWhiteSpace(customerClaim?.Value))
+            {
+                return customerClaim.Value;
+            }
+
+            return DefaultCustomerId;
         }
     }
 
@@ -34,6 +40,12 @@ public sealed class HttpTenantContext(IHttpContextAccessor httpContextAccessor) 
             if (user?.Identity?.IsAuthenticated != true)
             {
                 return null;
+            }
+
+            var actorClaim = user.FindFirst(ActorClaim);
+            if (!string.IsNullOrWhiteSpace(actorClaim?.Value))
+            {
+                return actorClaim.Value;
             }
 
             // Try standard claims first, then common alternatives

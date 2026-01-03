@@ -17,9 +17,8 @@ public interface ICustomerProfileRepository
 {
     /// <summary>
     ///     Creates a customer profile with optional contacts.
-    ///     Returns true if created, false if already exists.
     /// </summary>
-    Task<bool> CreateProfileAsync(
+    Task CreateProfileAsync(
         string customerId,
         string? policySnapshotId,
         string? billingEmail,

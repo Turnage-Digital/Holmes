@@ -14,8 +14,8 @@ src/Modules/<Feature>/
     - Domain events and repository interfaces (write-focused)
     - I<Feature>UnitOfWork interface
 
-  Holmes.<Feature>.Application.Abstractions/
-    <feature>.Application.Abstractions.csproj
+  Holmes.<Feature>.Contracts/
+    <feature>.Contracts.csproj
     - DTOs for queries and cross-module contracts
     - Query interfaces (I<Feature>Queries)
     - Broadcaster/notification interfaces
@@ -42,18 +42,18 @@ src/Modules/<Feature>/
 
 ## Project References
 
-| Project                                     | References                                                                                               |
-|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `Holmes.<Feature>.Domain`                   | `Holmes.Core.Domain` only                                                                                |
-| `Holmes.<Feature>.Application.Abstractions` | `Holmes.<Feature>.Domain`, `Holmes.Core.Domain`                                                          |
-| `Holmes.<Feature>.Application`              | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Application`        |
-| `Holmes.<Feature>.Infrastructure.Sql`       | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Application.Abstractions`, `Holmes.Core.Infrastructure.Sql` |
+| Project                               | References                                                                                |
+|---------------------------------------|-------------------------------------------------------------------------------------------|
+| `Holmes.<Feature>.Domain`             | `Holmes.Core.Domain` only                                                                 |
+| `Holmes.<Feature>.Contracts`          | `Holmes.<Feature>.Domain`, `Holmes.Core.Domain`                                           |
+| `Holmes.<Feature>.Application`        | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Contracts`, `Holmes.Core.Application`        |
+| `Holmes.<Feature>.Infrastructure.Sql` | `Holmes.<Feature>.Domain`, `Holmes.<Feature>.Contracts`, `Holmes.Core.Infrastructure.Sql` |
 
-**Critical**: Infrastructure projects reference `Application.Abstractions` (for query interfaces and DTOs),
+**Critical**: Infrastructure projects reference `Contracts` (for query interfaces and DTOs),
 but NEVER reference the `Application` project directly. This enables database swappability.
 
 `Holmes.App.Server` references the Application + Infrastructure projects only.
-`Holmes.App.Infrastructure` references only `Application.Abstractions` projects (never Infrastructure.Sql).
+`Holmes.App.Infrastructure` references only `Contracts` projects (never Infrastructure.Sql).
 Tests reference the Application layer (for handlers) plus Infrastructure for integration scenarios.
 
 ## Cross-Module Boundaries (CRITICAL)
@@ -65,22 +65,22 @@ This is a fundamental DDD rule that preserves bounded context independence:
 ### ❌ FORBIDDEN References
 
 ```
-Holmes.SlaClocks.Application → Holmes.Workflow.Domain        # NO!
+Holmes.SlaClocks.Application → Holmes.Orders.Domain        # NO!
 Holmes.Services.Application  → Holmes.Subjects.Domain        # NO!
-Holmes.Intake.Infrastructure → Holmes.Workflow.Application   # NO!
+Holmes.IntakeSessions.Infrastructure → Holmes.Orders.Application   # NO!
 ```
 
 ### ✅ ALLOWED Cross-Module Communication
 
 When Module A needs data or behavior from Module B:
 
-1. **Module B exposes an `*.Application.Abstractions` project** containing:
+1. **Module B exposes an `*.Contracts` project** containing:
     - DTOs (data transfer objects)
     - Query interfaces (e.g., `IOrderQueries`, `IUserQueries`)
     - Event contracts for integration events
     - Broadcaster/notification interfaces
 
-2. **Module A references only `Holmes.ModuleB.Application.Abstractions`** — never
+2. **Module A references only `Holmes.ModuleB.Contracts`** — never
    the Domain or Application implementation.
 
 3. **The host wires up the implementations** via DI, keeping modules decoupled.
@@ -91,15 +91,15 @@ When Module A needs data or behavior from Module B:
 
 ```
 # WRONG - direct domain reference
-Holmes.SlaClocks.Application → Holmes.Workflow.Domain
+Holmes.SlaClocks.Application → Holmes.Orders.Domain
 
 # RIGHT - abstraction reference
-Holmes.Workflow.Application.Abstractions/
+Holmes.Orders.Contracts/
   └── IOrderStatusProvider.cs
   └── Dtos/OrderStatusDto.cs
 
-Holmes.SlaClocks.Application → Holmes.Workflow.Application.Abstractions
-Holmes.Workflow.Infrastructure.Sql implements IOrderStatusProvider
+Holmes.SlaClocks.Application → Holmes.Orders.Contracts
+Holmes.Orders.Infrastructure.Sql implements IOrderStatusProvider
 Host registers IOrderStatusProvider in DI
 ```
 
@@ -110,25 +110,33 @@ Host registers IOrderStatusProvider in DI
 - **Evolvability**: Internal domain changes don't cascade across modules
 - **Clarity**: Dependencies are explicit contracts, not hidden couplings
 
-### Cross-Module Event Handlers
+### Cross-Module Integration Handlers
 
-When a domain event from Module A needs to trigger behavior in Module B, the handler belongs in
-`Holmes.App.Integration`, NOT in either module's Application project.
+When a module needs to react to another module, the handler lives in the consuming module's Application and depends
+on the producer's `*.Contracts` integration events only.
 
 ```
 # Example: OrderStatusChanged (Workflow) → Start SLA clocks (SlaClocks)
 
-Holmes.App.Integration/
-  └── NotificationHandlers/
-      └── OrderStatusChangedSlaHandler.cs  # Handles Workflow event, sends SlaClocks commands
+Holmes.SlaClocks.Application/
+  └── EventHandlers/
+      └── OrderStatusChangedSlaHandler.cs  # Handles Orders integration event, sends SlaClocks commands
 
-Holmes.App.Integration.csproj references:
-  - Holmes.Workflow.Application (for OrderStatusChanged event)
-  - Holmes.SlaClocks.Application (for StartSlaClockCommand)
+Holmes.SlaClocks.Application.csproj references:
+  - Holmes.Orders.Contracts (for OrderStatusChangedIntegrationEvent)
 ```
 
-This keeps each module internally cohesive and places cross-cutting orchestration in the integration layer
-where it can see all modules.
+This keeps module boundaries clean while allowing event-driven integration without direct cross-module Application
+references.
+
+### Integration Event Flow (Standard)
+
+- Contracts live in `...Contracts/IntegrationEvents/`.
+- Producers publish integration events from domain events via
+  `...Application/EventHandlers/*IntegrationEventPublisher.cs`.
+- Consumers handle integration events in `...Application/EventHandlers/` and translate to local commands.
+- Use `SaveChangesAsync(true)` when you need outbox delivery; the `DeferredDispatchProcessor` publishes after commit.
+- Keep integration handlers thin; push composition into commands or services to avoid "gore" handlers.
 
 ## CQRS Pattern
 
@@ -142,7 +150,7 @@ Holmes uses Command Query Responsibility Segregation (CQRS) to separate read and
 
 ### Read Side (Queries)
 
-- **Query interfaces** (`I<Feature>Queries`) live in `Application.Abstractions`
+- **Query interfaces** (`I<Feature>Queries`) live in `Contracts`
 - **Query implementations** (`Sql<Feature>Queries`) live in `Infrastructure.Sql`
 - Queries return **DTOs only** — never domain entities
 - Use **Specifications** for reusable query logic
@@ -150,7 +158,7 @@ Holmes uses Command Query Responsibility Segregation (CQRS) to separate read and
 ### Example Query Interface
 
 ```csharp
-// In Application.Abstractions/Queries/IUserQueries.cs
+// In Contracts/Queries/IUserQueries.cs
 public interface IUserQueries
 {
     Task<UserDto?> GetByIdAsync(string userId, CancellationToken ct);

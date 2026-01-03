@@ -1,4 +1,4 @@
-using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 
 namespace Holmes.Services.Infrastructure.Sql;
@@ -17,16 +17,11 @@ public sealed class VendorAdapterFactory : IVendorAdapterFactory
 
     public IVendorAdapter? GetAdapter(string vendorCode)
     {
-        return _adapters.TryGetValue(vendorCode, out var adapter) ? adapter : null;
+        return _adapters.GetValueOrDefault(vendorCode);
     }
 
     public IVendorAdapter? GetAdapterForCategory(ServiceCategory category)
     {
         return _adapters.Values.FirstOrDefault(a => a.SupportedCategories.Contains(category));
-    }
-
-    public IEnumerable<IVendorAdapter> GetAll()
-    {
-        return _adapters.Values;
     }
 }

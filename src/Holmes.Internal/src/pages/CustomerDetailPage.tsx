@@ -74,13 +74,6 @@ const OverviewTab = ({ customer }: OverviewTabProps) => (
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
-            Tenant ID
-          </Typography>
-          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-            {customer.tenantId}
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
             Policy Snapshot
           </Typography>
           <Typography variant="body2" sx={{ fontFamily: "monospace" }}>

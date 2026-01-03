@@ -1,4 +1,4 @@
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts.Events;
 using Holmes.Core.Infrastructure.Sql.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +14,7 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
         string streamId,
         string streamType,
         IReadOnlyCollection<EventEnvelope> events,
+        bool markAsDispatched,
         CancellationToken cancellationToken
     )
     {
@@ -29,6 +30,7 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
 
         var records = new List<EventRecord>(events.Count);
         var version = currentVersion;
+        var now = DateTime.UtcNow;
 
         foreach (var envelope in events)
         {
@@ -48,7 +50,8 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
                 CausationId = envelope.CausationId,
                 ActorId = envelope.ActorId,
                 IdempotencyKey = idempotencyKey,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = now,
+                DispatchedAt = markAsDispatched ? now : null
             });
         }
 
@@ -127,6 +130,50 @@ public sealed class SqlEventStore(CoreDbContext dbContext) : IEventStore
             .ToListAsync(cancellationToken);
 
         return records.Select(ToStoredEvent).ToList();
+    }
+
+    public async Task<IReadOnlyList<StoredEvent>> ReadUndispatchedAsync(
+        int batchSize,
+        CancellationToken cancellationToken
+    )
+    {
+        var records = await dbContext.Events
+            .Where(e => e.DispatchedAt == null)
+            .OrderBy(e => e.Position)
+            .Take(batchSize)
+            .ToListAsync(cancellationToken);
+
+        return records.Select(ToStoredEvent).ToList();
+    }
+
+    public async Task MarkDispatchedAsync(
+        long position,
+        CancellationToken cancellationToken
+    )
+    {
+        await dbContext.Events
+            .Where(e => e.Position == position)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(e => e.DispatchedAt, DateTime.UtcNow),
+                cancellationToken);
+    }
+
+    public async Task MarkDispatchedBatchAsync(
+        IEnumerable<long> positions,
+        CancellationToken cancellationToken
+    )
+    {
+        var positionList = positions.ToList();
+        if (positionList.Count == 0)
+        {
+            return;
+        }
+
+        await dbContext.Events
+            .Where(e => positionList.Contains(e.Position))
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(e => e.DispatchedAt, DateTime.UtcNow),
+                cancellationToken);
     }
 
     private static StoredEvent ToStoredEvent(EventRecord record)

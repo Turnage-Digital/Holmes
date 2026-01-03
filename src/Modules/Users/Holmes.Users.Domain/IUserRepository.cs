@@ -4,7 +4,7 @@ namespace Holmes.Users.Domain;
 
 /// <summary>
 ///     Write-focused repository for User aggregate.
-///     Query methods have been moved to IUserQueries in Application.Abstractions.
+///     Query methods have been moved to IUserQueries in Contracts.
 /// </summary>
 public interface IUserRepository
 {

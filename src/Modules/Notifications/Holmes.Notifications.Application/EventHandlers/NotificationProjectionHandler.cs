@@ -1,4 +1,4 @@
-using Holmes.Notifications.Application.Abstractions.Projections;
+using Holmes.Notifications.Contracts;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Domain.Events;
 using MediatR;
@@ -11,7 +11,7 @@ namespace Holmes.Notifications.Application.EventHandlers;
 public sealed class NotificationProjectionHandler(
     INotificationProjectionWriter writer
 )
-    : INotificationHandler<NotificationRequestCreated>,
+    : INotificationHandler<NotificationCreated>,
         INotificationHandler<NotificationQueued>,
         INotificationHandler<NotificationDelivered>,
         INotificationHandler<NotificationDeliveryFailed>,
@@ -34,6 +34,24 @@ public sealed class NotificationProjectionHandler(
             notification.CancelledAt,
             notification.Reason,
             cancellationToken);
+    }
+
+    public Task Handle(NotificationCreated notification, CancellationToken cancellationToken)
+    {
+        var model = new NotificationProjectionModel(
+            notification.NotificationId.ToString(),
+            notification.CustomerId.ToString(),
+            notification.OrderId?.ToString(),
+            notification.SubjectId?.ToString(),
+            notification.TriggerType,
+            notification.Channel,
+            DeliveryStatus.Pending,
+            notification.IsAdverseAction,
+            notification.CreatedAt,
+            notification.ScheduledFor
+        );
+
+        return writer.UpsertAsync(model, cancellationToken);
     }
 
     public Task Handle(NotificationDelivered notification, CancellationToken cancellationToken)
@@ -61,23 +79,5 @@ public sealed class NotificationProjectionHandler(
             notification.NotificationId.ToString(),
             notification.QueuedAt,
             cancellationToken);
-    }
-
-    public Task Handle(NotificationRequestCreated notification, CancellationToken cancellationToken)
-    {
-        var model = new NotificationProjectionModel(
-            notification.NotificationId.ToString(),
-            notification.CustomerId.ToString(),
-            notification.OrderId?.ToString(),
-            notification.SubjectId?.ToString(),
-            notification.TriggerType,
-            notification.Channel,
-            DeliveryStatus.Pending,
-            notification.IsAdverseAction,
-            notification.CreatedAt,
-            notification.ScheduledFor
-        );
-
-        return writer.UpsertAsync(model, cancellationToken);
     }
 }

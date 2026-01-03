@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions.Projections;
 using Holmes.Services.Application.EventHandlers;
+using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 using Holmes.Services.Domain.Events;
 using Moq;
@@ -20,15 +20,15 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestCreated_UpsertsProjection()
+    public async Task Handle_ServiceCreated_UpsertsProjection()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var createdAt = DateTimeOffset.UtcNow;
 
-        var notification = new ServiceRequestCreated(
-            serviceRequestId,
+        var notification = new ServiceCreated(
+            serviceId,
             orderId,
             customerId,
             ServiceType.SsnTrace.Code,
@@ -53,7 +53,7 @@ public sealed class ServiceProjectionHandlerTests
         Assert.That(capturedModel, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(capturedModel!.ServiceRequestId, Is.EqualTo(serviceRequestId.ToString()));
+            Assert.That(capturedModel!.ServiceId, Is.EqualTo(serviceId.ToString()));
             Assert.That(capturedModel.OrderId, Is.EqualTo(orderId.ToString()));
             Assert.That(capturedModel.CustomerId, Is.EqualTo(customerId.ToString()));
             Assert.That(capturedModel.ServiceTypeCode, Is.EqualTo(ServiceType.SsnTrace.Code));
@@ -67,15 +67,15 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestCreated_WithScope_UpsertsProjection()
+    public async Task Handle_ServiceCreated_WithScope_UpsertsProjection()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var createdAt = DateTimeOffset.UtcNow;
 
-        var notification = new ServiceRequestCreated(
-            serviceRequestId,
+        var notification = new ServiceCreated(
+            serviceId,
             orderId,
             customerId,
             ServiceType.CountySearch.Code,
@@ -105,17 +105,17 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestDispatched_UpdatesDispatchedInfo()
+    public async Task Handle_ServiceDispatched_UpdatesDispatchedInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var dispatchedAt = DateTimeOffset.UtcNow;
         const string vendorCode = "STUB";
         const string vendorReferenceId = "REF-12345";
 
-        var notification = new ServiceRequestDispatched(
-            serviceRequestId,
+        var notification = new ServiceDispatched(
+            serviceId,
             orderId,
             customerId,
             ServiceType.SsnTrace.Code,
@@ -127,7 +127,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateDispatchedAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 vendorCode,
                 vendorReferenceId,
                 dispatchedAt,
@@ -136,16 +136,16 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestDispatched_WithNullVendorRef_UpdatesDispatchedInfo()
+    public async Task Handle_ServiceDispatched_WithNullVendorRef_UpdatesDispatchedInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var dispatchedAt = DateTimeOffset.UtcNow;
         const string vendorCode = "STUB";
 
-        var notification = new ServiceRequestDispatched(
-            serviceRequestId,
+        var notification = new ServiceDispatched(
+            serviceId,
             orderId,
             customerId,
             ServiceType.SsnTrace.Code,
@@ -157,7 +157,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateDispatchedAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 vendorCode,
                 null,
                 dispatchedAt,
@@ -166,14 +166,14 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestInProgress_UpdatesInProgressInfo()
+    public async Task Handle_ServiceInProgress_UpdatesInProgressInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var updatedAt = DateTimeOffset.UtcNow;
 
-        var notification = new ServiceRequestInProgress(
-            serviceRequestId,
+        var notification = new ServiceInProgress(
+            serviceId,
             orderId,
             ServiceType.SsnTrace.Code,
             "STUB",
@@ -183,23 +183,23 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateInProgressAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 updatedAt,
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
     [Test]
-    public async Task Handle_ServiceRequestCompleted_UpdatesCompletedInfo()
+    public async Task Handle_ServiceCompleted_UpdatesCompletedInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var completedAt = DateTimeOffset.UtcNow;
         const int recordCount = 3;
 
-        var notification = new ServiceRequestCompleted(
-            serviceRequestId,
+        var notification = new ServiceCompleted(
+            serviceId,
             orderId,
             customerId,
             ServiceType.CountySearch.Code,
@@ -211,7 +211,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateCompletedAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 ServiceResultStatus.Hit,
                 recordCount,
                 completedAt,
@@ -220,15 +220,15 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestCompleted_WithClear_UpdatesCompletedInfo()
+    public async Task Handle_ServiceCompleted_WithClear_UpdatesCompletedInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var completedAt = DateTimeOffset.UtcNow;
 
-        var notification = new ServiceRequestCompleted(
-            serviceRequestId,
+        var notification = new ServiceCompleted(
+            serviceId,
             orderId,
             customerId,
             ServiceType.SsnTrace.Code,
@@ -240,7 +240,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateCompletedAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 ServiceResultStatus.Clear,
                 0,
                 completedAt,
@@ -249,17 +249,17 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestFailed_UpdatesFailedInfo()
+    public async Task Handle_ServiceFailed_UpdatesFailedInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var failedAt = DateTimeOffset.UtcNow;
         const string errorMessage = "Connection timeout";
         const int attemptCount = 2;
 
-        var notification = new ServiceRequestFailed(
-            serviceRequestId,
+        var notification = new ServiceFailed(
+            serviceId,
             orderId,
             customerId,
             ServiceType.SsnTrace.Code,
@@ -273,7 +273,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateFailedAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 errorMessage,
                 attemptCount,
                 true,
@@ -283,17 +283,17 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestFailed_NoRetry_UpdatesFailedInfo()
+    public async Task Handle_ServiceFailed_NoRetry_UpdatesFailedInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var failedAt = DateTimeOffset.UtcNow;
         const string errorMessage = "Fatal error";
         const int attemptCount = 3;
 
-        var notification = new ServiceRequestFailed(
-            serviceRequestId,
+        var notification = new ServiceFailed(
+            serviceId,
             orderId,
             customerId,
             ServiceType.SsnTrace.Code,
@@ -307,7 +307,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateFailedAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 errorMessage,
                 attemptCount,
                 false,
@@ -317,16 +317,16 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestCanceled_UpdatesCanceledInfo()
+    public async Task Handle_ServiceCanceled_UpdatesCanceledInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var canceledAt = DateTimeOffset.UtcNow;
         const string reason = "Order canceled by customer";
 
-        var notification = new ServiceRequestCanceled(
-            serviceRequestId,
+        var notification = new ServiceCanceled(
+            serviceId,
             orderId,
             customerId,
             ServiceType.SsnTrace.Code,
@@ -337,7 +337,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateCanceledAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 reason,
                 canceledAt,
                 It.IsAny<CancellationToken>()),
@@ -345,15 +345,15 @@ public sealed class ServiceProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_ServiceRequestRetried_UpdatesRetriedInfo()
+    public async Task Handle_ServiceRetried_UpdatesRetriedInfo()
     {
-        var serviceRequestId = UlidId.NewUlid();
+        var serviceId = UlidId.NewUlid();
         var orderId = UlidId.NewUlid();
         var retriedAt = DateTimeOffset.UtcNow;
         const int attemptCount = 2;
 
-        var notification = new ServiceRequestRetried(
-            serviceRequestId,
+        var notification = new ServiceRetried(
+            serviceId,
             orderId,
             ServiceType.SsnTrace.Code,
             attemptCount,
@@ -363,7 +363,7 @@ public sealed class ServiceProjectionHandlerTests
 
         _writerMock.Verify(
             x => x.UpdateRetriedAsync(
-                serviceRequestId.ToString(),
+                serviceId.ToString(),
                 attemptCount,
                 retriedAt,
                 It.IsAny<CancellationToken>()),

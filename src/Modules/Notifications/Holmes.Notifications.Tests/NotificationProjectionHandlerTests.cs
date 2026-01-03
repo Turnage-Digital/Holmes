@@ -1,6 +1,6 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Notifications.Application.Abstractions.Projections;
 using Holmes.Notifications.Application.EventHandlers;
+using Holmes.Notifications.Contracts;
 using Holmes.Notifications.Domain;
 using Holmes.Notifications.Domain.Events;
 using Moq;
@@ -20,7 +20,7 @@ public sealed class NotificationProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_NotificationRequestCreated_UpsertsProjection()
+    public async Task Handle_NotificationCreated_UpsertsProjection()
     {
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
@@ -29,7 +29,7 @@ public sealed class NotificationProjectionHandlerTests
         var createdAt = DateTimeOffset.UtcNow;
         var scheduledFor = createdAt.AddMinutes(5);
 
-        var notification = new NotificationRequestCreated(
+        var notification = new NotificationCreated(
             notificationId,
             customerId,
             orderId,
@@ -69,13 +69,13 @@ public sealed class NotificationProjectionHandlerTests
     }
 
     [Test]
-    public async Task Handle_NotificationRequestCreated_WithNullOptionalFields_UpsertsProjection()
+    public async Task Handle_NotificationCreated_WithNullOptionalFields_UpsertsProjection()
     {
         var notificationId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var createdAt = DateTimeOffset.UtcNow;
 
-        var notification = new NotificationRequestCreated(
+        var notification = new NotificationCreated(
             notificationId,
             customerId,
             null,

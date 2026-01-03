@@ -1,10 +1,9 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions.Dtos;
-using Holmes.Services.Application.Abstractions.Queries;
 using Holmes.Services.Application.Commands;
 using Holmes.Services.Application.Queries;
+using Holmes.Services.Contracts.Dtos;
 using Holmes.Services.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -39,12 +38,12 @@ public sealed class ServicesController(
     }
 
     /// <summary>
-    ///     Returns paginated service requests for the fulfillment dashboard queue.
+    ///     Returns paginated services for the fulfillment dashboard queue.
     ///     Supports filtering by status and customer.
     /// </summary>
     [HttpGet("queue")]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]
-    public async Task<ActionResult<PaginatedResponse<ServiceRequestSummaryDto>>> GetFulfillmentQueue(
+    public async Task<ActionResult<PaginatedResponse<ServiceSummaryDto>>> GetFulfillmentQueue(
         [FromQuery] ServiceQueueQuery query,
         CancellationToken cancellationToken
     )
@@ -57,7 +56,7 @@ public sealed class ServicesController(
         var (page, pageSize) = PaginationNormalization.Normalize(query.Page, query.PageSize);
         if (!isGlobalAdmin && (allowedCustomers is null || allowedCustomers.Count == 0))
         {
-            return Ok(PaginatedResponse<ServiceRequestSummaryDto>.Create([], page, pageSize, 0));
+            return Ok(PaginatedResponse<ServiceSummaryDto>.Create([], page, pageSize, 0));
         }
 
         // Validate customer ID if provided
@@ -90,7 +89,7 @@ public sealed class ServicesController(
             return Problem(queryResult.Error);
         }
 
-        return Ok(PaginatedResponse<ServiceRequestSummaryDto>.Create(
+        return Ok(PaginatedResponse<ServiceSummaryDto>.Create(
             queryResult.Value.Items.ToList(), page, pageSize, queryResult.Value.TotalCount));
     }
 
@@ -133,37 +132,37 @@ public sealed class ServicesController(
     }
 
     /// <summary>
-    ///     Retries a failed service request.
+    ///     Retries a failed service.
     /// </summary>
-    [HttpPost("{serviceRequestId}/retry")]
+    [HttpPost("{serviceId}/retry")]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]
     public async Task<ActionResult> RetryAsync(
-        string serviceRequestId,
+        string serviceId,
         CancellationToken cancellationToken
     )
     {
-        if (!Ulid.TryParse(serviceRequestId, out var parsedId))
+        if (!Ulid.TryParse(serviceId, out var parsedId))
         {
-            return BadRequest("Invalid service request id format.");
+            return BadRequest("Invalid service id format.");
         }
 
-        // Look up the service request to verify it exists and get customer ID for access control
+        // Look up the service to verify it exists and get customer ID for access control
         var serviceResult = await mediator.Send(
-            new GetServiceRequestQuery(UlidId.FromUlid(parsedId)), cancellationToken);
+            new GetServiceQuery(UlidId.FromUlid(parsedId)), cancellationToken);
 
         if (!serviceResult.IsSuccess)
         {
             return NotFound(serviceResult.Error);
         }
 
-        var serviceRequest = serviceResult.Value;
+        var service = serviceResult.Value;
 
-        if (!await currentUserAccess.HasCustomerAccessAsync(serviceRequest.CustomerId, cancellationToken))
+        if (!await currentUserAccess.HasCustomerAccessAsync(service.CustomerId, cancellationToken))
         {
             return Forbid();
         }
 
-        var command = new RetryServiceRequestCommand(
+        var command = new RetryServiceCommand(
             UlidId.FromUlid(parsedId),
             DateTimeOffset.UtcNow
         );
@@ -179,19 +178,19 @@ public sealed class ServicesController(
     }
 
     /// <summary>
-    ///     Cancels a pending or in-progress service request.
+    ///     Cancels a pending or in-progress service.
     /// </summary>
-    [HttpPost("{serviceRequestId}/cancel")]
+    [HttpPost("{serviceId}/cancel")]
     [Authorize(Policy = AuthorizationPolicies.RequireOps)]
     public async Task<ActionResult> CancelAsync(
-        string serviceRequestId,
-        [FromBody] CancelServiceRequest request,
+        string serviceId,
+        [FromBody] CancelService request,
         CancellationToken cancellationToken
     )
     {
-        if (!Ulid.TryParse(serviceRequestId, out var parsedId))
+        if (!Ulid.TryParse(serviceId, out var parsedId))
         {
-            return BadRequest("Invalid service request id format.");
+            return BadRequest("Invalid service id format.");
         }
 
         if (string.IsNullOrWhiteSpace(request.Reason))
@@ -199,23 +198,23 @@ public sealed class ServicesController(
             return BadRequest("Reason is required.");
         }
 
-        // Look up the service request to verify it exists and get customer ID for access control
+        // Look up the service to verify it exists and get customer ID for access control
         var serviceResult = await mediator.Send(
-            new GetServiceRequestQuery(UlidId.FromUlid(parsedId)), cancellationToken);
+            new GetServiceQuery(UlidId.FromUlid(parsedId)), cancellationToken);
 
         if (!serviceResult.IsSuccess)
         {
             return NotFound(serviceResult.Error);
         }
 
-        var serviceRequest = serviceResult.Value;
+        var service = serviceResult.Value;
 
-        if (!await currentUserAccess.HasCustomerAccessAsync(serviceRequest.CustomerId, cancellationToken))
+        if (!await currentUserAccess.HasCustomerAccessAsync(service.CustomerId, cancellationToken))
         {
             return Forbid();
         }
 
-        var command = new CancelServiceRequestCommand(
+        var command = new CancelServiceCommand(
             UlidId.FromUlid(parsedId),
             request.Reason,
             DateTimeOffset.UtcNow
@@ -244,5 +243,5 @@ public sealed class ServicesController(
         public IReadOnlyCollection<string>? Category { get; init; }
     }
 
-    public sealed record CancelServiceRequest(string Reason);
+    public sealed record CancelService(string Reason);
 }

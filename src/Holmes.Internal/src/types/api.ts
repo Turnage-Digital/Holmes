@@ -95,7 +95,6 @@ export interface CustomerAdminDto {
 
 export interface CustomerListItemDto {
   id: Ulid;
-  tenantId: Ulid;
   name: string;
   status: CustomerStatus;
   policySnapshotId: string;
@@ -107,7 +106,6 @@ export interface CustomerListItemDto {
 
 export interface CustomerDetailDto {
   id: Ulid;
-  tenantId: Ulid;
   name: string;
   status: CustomerStatus;
   policySnapshotId: string;
@@ -336,9 +334,17 @@ export interface OrderStatsDto {
 
 export interface CreateOrderRequest {
   customerId: Ulid;
-  subjectId: Ulid;
   policySnapshotId: string;
+  subjectId?: Ulid;
+  subjectEmail?: string;
+  subjectPhone?: string;
   packageCode?: string;
+}
+
+export interface CreateOrderWithIntakeResponse {
+  subjectId: Ulid;
+  subjectWasExisting: boolean;
+  orderId: Ulid;
 }
 
 export interface OrderSummaryQuery {
@@ -397,7 +403,7 @@ export interface OrderChangeEvent {
 }
 
 export interface ServiceChangeEvent {
-  serviceRequestId: Ulid;
+  serviceId: Ulid;
   orderId: Ulid;
   serviceTypeCode: string;
   status: ServiceStatus;
@@ -447,7 +453,7 @@ export interface ServiceTypeDto {
   defaultTier: number;
 }
 
-export interface ServiceRequestSummaryDto {
+export interface ServiceSummaryDto {
   id: Ulid;
   orderId: Ulid;
   customerId: Ulid;
@@ -471,7 +477,7 @@ export interface ServiceRequestSummaryDto {
 
 export interface OrderServicesDto {
   orderId: Ulid;
-  services: ServiceRequestSummaryDto[];
+  services: ServiceSummaryDto[];
   totalServices: number;
   completedServices: number;
   pendingServices: number;
@@ -530,7 +536,7 @@ export interface UpdateServiceCatalogRequest {
   tiers?: ServiceCatalogTierInput[];
 }
 
-export interface CancelServiceRequest {
+export interface CancelService {
   reason: string;
 }
 

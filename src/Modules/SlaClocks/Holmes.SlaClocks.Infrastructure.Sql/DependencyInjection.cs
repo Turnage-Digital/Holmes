@@ -1,11 +1,6 @@
-using Holmes.SlaClocks.Application.Abstractions.Notifications;
-using Holmes.SlaClocks.Application.Abstractions.Projections;
-using Holmes.SlaClocks.Application.Abstractions.Queries;
-using Holmes.SlaClocks.Application.Abstractions.Services;
+using Holmes.SlaClocks.Contracts;
+using Holmes.SlaClocks.Contracts.Services;
 using Holmes.SlaClocks.Domain;
-using Holmes.SlaClocks.Infrastructure.Sql.Notifications;
-using Holmes.SlaClocks.Infrastructure.Sql.Projections;
-using Holmes.SlaClocks.Infrastructure.Sql.Queries;
 using Holmes.SlaClocks.Infrastructure.Sql.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,20 +15,20 @@ public static class DependencyInjection
         ServerVersion serverVersion
     )
     {
-        services.AddDbContext<SlaClockDbContext>(options =>
+        services.AddDbContext<SlaClocksDbContext>(options =>
             options.UseMySql(connectionString, serverVersion, builder =>
-                builder.MigrationsAssembly(typeof(SlaClockDbContext).Assembly.FullName)));
+                builder.MigrationsAssembly(typeof(SlaClocksDbContext).Assembly.FullName)));
 
         // Write side
         services.AddScoped<SlaClockRepository>();
         services.AddScoped<ISlaClockRepository>(sp => sp.GetRequiredService<SlaClockRepository>());
-        services.AddScoped<ISlaClockUnitOfWork, SlaClockUnitOfWork>();
+        services.AddScoped<ISlaClocksUnitOfWork, SlaClocksUnitOfWork>();
 
         // Read side (CQRS)
-        services.AddScoped<ISlaClockQueries, SqlSlaClockQueries>();
+        services.AddScoped<ISlaClockQueries, SlaClockQueries>();
 
         // Projections
-        services.AddScoped<ISlaClockProjectionWriter, SqlSlaClockProjectionWriter>();
+        services.AddScoped<ISlaClockProjectionWriter, SlaClockProjectionWriter>();
         services.AddScoped<SlaClockEventProjectionRunner>();
 
         // Services

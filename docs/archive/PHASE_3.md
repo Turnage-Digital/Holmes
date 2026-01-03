@@ -37,7 +37,7 @@ Standing ceremonies:
 | Track                         | Deliverables                                                                                                                                        | Definition of Done                                                                                                                                   |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **SLA Clocks**                | `SlaClock` aggregate, business calendar service, holiday/jurisdiction models, clock state machine (running → at_risk → breached → paused → resumed) | Clocks compute deadlines correctly with business-day math; at-risk/breached transitions fire domain events; projection exposes queryable clock index |
-| **Notifications**             | `NotificationRequest` aggregate, provider abstraction (`INotificationProvider`), tenant-configured routing (email/SMS/webhook), delivery tracking   | Holmes emits `NotificationRequested` events; providers deliver asynchronously; delivery proofs captured; retry/backoff implemented                   |
+| **Notifications**             | `Notification` aggregate, provider abstraction (`INotificationProvider`), tenant-configured routing (email/SMS/webhook), delivery tracking          | Holmes emits `NotificationCreated` events; providers deliver asynchronously; delivery proofs captured; retry/backoff implemented                     |
 | **Read Models & Projections** | `sla_clocks`, `notification_history` projections with checkpointing                                                                                 | Replayable via projection runner; verification queries documented in runbooks                                                                        |
 | **Observability & Ops**       | Clock health dashboards, notification delivery metrics; runbooks for clock replay and notification retry                                            | Grafana dashboards live; alerts for breached clocks and failed notifications; runbooks updated                                                       |
 
@@ -160,7 +160,7 @@ Holmes **does not** send:
 - Dispute resolution correspondence
 - Any communication with legal liability implications
 
-For adverse action, Holmes emits a `NotificationRequested` event with `IsAdverseAction = true`. The tenant's
+For adverse action, Holmes emits a `NotificationCreated` event with `IsAdverseAction = true`. The tenant's
 systems must handle the actual letter generation and delivery — they bear the legal responsibility.
 
 **Tenant/Policy-Defined Rules:** Notification rules are configured at the tenant level (via customer policy),
@@ -177,7 +177,7 @@ scheduling may be added in future phases for non-critical operational alerts.
 
 **Aggregates:**
 
-- `NotificationRequest` — tracks a single notification through its lifecycle
+- `Notification` — tracks a single notification through its lifecycle
 
 **Enums:**
 
@@ -196,7 +196,7 @@ scheduling may be added in future phases for non-critical operational alerts.
 
 **Domain Events:**
 
-- `NotificationRequestCreated` — notification created
+- `NotificationCreated` — notification created
 - `NotificationQueued` — handed to provider
 - `NotificationDelivered` — delivery confirmed
 - `NotificationDeliveryFailed` — delivery failed (with reason and attempt number)
@@ -205,7 +205,7 @@ scheduling may be added in future phases for non-critical operational alerts.
 
 **Commands:**
 
-- `CreateNotificationRequestCommand` — create notification request
+- `CreateNotificationCommand` — create notification request
 - `ProcessNotificationCommand` — send via provider, record result
 - `RecordDeliveryResultCommand` — update status from external callback
 
@@ -363,7 +363,7 @@ dotnet run --project src/Tools/Holmes.Projections.Runner --projection notificati
     - [ ] Clock projection replayable and queryable
 
 2. **Notifications:**
-    - [x] `NotificationRequested` events emitted for configured triggers
+    - [x] `NotificationCreated` events emitted for configured triggers
     - [x] Provider abstraction delivers via email/SMS/webhook stubs
     - [x] Delivery status tracked through lifecycle
     - [x] Failed notifications retryable with backoff
@@ -417,12 +417,12 @@ dotnet run --project src/Tools/Holmes.Projections.Runner --projection notificati
       `SlaClockWatchdogServiceTests`)
     - Default SLAs: Intake 1 day, Fulfillment 3 days, Overall 5 days (customer-defined via service agreements)
 - **Notifications:** ✅ Module complete
-    - Domain: `NotificationRequest` aggregate, enums, value objects, events, repository interface
+    - Domain: `Notification` aggregate, enums, value objects, events, repository interface
     - Application: Commands (`Create`, `Process`, `RecordDeliveryResult`), query, event handlers
-    - Infrastructure: DbContext, repository with `NotificationRequestMapper`, stub providers (`LoggingEmailProvider`,
+    - Infrastructure: DbContext, repository with `NotificationMapper`, stub providers (`LoggingEmailProvider`,
       `LoggingSmsProvider`, `LoggingWebhookProvider`)
     - Background: `NotificationProcessingService` for polling-based delivery
-    - Tests: Domain unit tests (`NotificationRequestTests`), background service tests (
+    - Tests: Domain unit tests (`NotificationTests`), background service tests (
       `NotificationProcessingServiceTests`)
     - Added to solution under `src/Modules/Notifications/`
 - **Identity Broker:** ✅ Complete (Holmes.Identity.Server with Duende IdentityServer)

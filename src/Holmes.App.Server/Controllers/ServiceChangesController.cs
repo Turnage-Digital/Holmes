@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Services.Application.Abstractions;
+using Holmes.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,7 +38,7 @@ public sealed class ServiceChangesController(IServiceChangeBroadcaster broadcast
             {
                 var payload = JsonSerializer.Serialize(new
                 {
-                    serviceRequestId = change.ServiceRequestId.ToString(),
+                    serviceId = change.ServiceId.ToString(),
                     orderId = change.OrderId.ToString(),
                     serviceTypeCode = change.ServiceTypeCode,
                     status = change.Status.ToString(),

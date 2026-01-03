@@ -42,6 +42,7 @@ const ALWAYS_VISIBLE: IntakeSectionId[] = ["addresses"];
  */
 const ALL_SECTIONS: IntakeSectionId[] = [
   "addresses",
+  "phone",
   "employment",
   "education",
   "references",

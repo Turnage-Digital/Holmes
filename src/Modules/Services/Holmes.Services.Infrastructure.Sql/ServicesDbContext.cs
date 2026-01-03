@@ -10,7 +10,7 @@ public class ServicesDbContext : DbContext
     {
     }
 
-    public DbSet<ServiceRequestDb> ServiceRequests => Set<ServiceRequestDb>();
+    public DbSet<ServiceDb> Services => Set<ServiceDb>();
     public DbSet<ServiceResultDb> ServiceResults => Set<ServiceResultDb>();
     public DbSet<ServiceCatalogSnapshotDb> ServiceCatalogSnapshots => Set<ServiceCatalogSnapshotDb>();
     public DbSet<ServiceProjectionDb> ServiceProjections => Set<ServiceProjectionDb>();
@@ -19,9 +19,9 @@ public class ServicesDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<ServiceRequestDb>(entity =>
+        modelBuilder.Entity<ServiceDb>(entity =>
         {
-            entity.ToTable("service_requests");
+            entity.ToTable("services");
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id).HasMaxLength(26).IsFixedLength();
@@ -56,8 +56,8 @@ public class ServicesDbContext : DbContext
             entity.HasIndex(e => new { e.OrderId, e.Tier }).HasDatabaseName("idx_order_tier");
 
             entity.HasOne(e => e.Result)
-                .WithOne(r => r.ServiceRequest)
-                .HasForeignKey<ServiceResultDb>(r => r.ServiceRequestId);
+                .WithOne(r => r.Service)
+                .HasForeignKey<ServiceResultDb>(r => r.ServiceId);
         });
 
         modelBuilder.Entity<ServiceResultDb>(entity =>
@@ -66,7 +66,7 @@ public class ServicesDbContext : DbContext
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id).HasMaxLength(26).IsFixedLength();
-            entity.Property(e => e.ServiceRequestId).HasMaxLength(26).IsFixedLength().IsRequired();
+            entity.Property(e => e.ServiceId).HasMaxLength(26).IsFixedLength().IsRequired();
             entity.Property(e => e.Status).IsRequired();
             entity.Property(e => e.RecordsJson).HasColumnType("json");
             entity.Property(e => e.RawResponseHash).HasMaxLength(64);
@@ -74,7 +74,7 @@ public class ServicesDbContext : DbContext
             entity.Property(e => e.ReceivedAt).HasPrecision(6).IsRequired();
             entity.Property(e => e.NormalizedAt).HasPrecision(6);
 
-            entity.HasIndex(e => e.ServiceRequestId).HasDatabaseName("idx_service_request");
+            entity.HasIndex(e => e.ServiceId).HasDatabaseName("idx_service");
         });
 
         modelBuilder.Entity<ServiceCatalogSnapshotDb>(entity =>

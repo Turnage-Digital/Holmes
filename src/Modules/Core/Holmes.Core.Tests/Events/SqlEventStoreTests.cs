@@ -1,4 +1,4 @@
-using Holmes.Core.Application.Abstractions.Events;
+using Holmes.Core.Contracts.Events;
 using Holmes.Core.Infrastructure.Sql;
 using Holmes.Core.Infrastructure.Sql.Events;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,7 @@ public class SqlEventStoreTests
             new("evt-2", "TestEvent", "{\"data\":\"test2\"}", "corr-1", "evt-1", "user-1")
         };
 
-        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", events, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", events, false, CancellationToken.None);
 
         var records = await context.Events.ToListAsync();
         Assert.That(records, Has.Count.EqualTo(2));
@@ -53,11 +53,11 @@ public class SqlEventStoreTests
 
         // First batch
         var batch1 = new List<EventEnvelope> { new("evt-1", "TestEvent", "{}", null, null, null) };
-        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", batch1, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", batch1, false, CancellationToken.None);
 
         // Second batch should start at version 2
         var batch2 = new List<EventEnvelope> { new("evt-2", "TestEvent", "{}", null, null, null) };
-        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", batch2, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", batch2, false, CancellationToken.None);
 
         var records = await context.Events.OrderBy(e => e.Version).ToListAsync();
         Assert.That(records[0].Version, Is.EqualTo(1));
@@ -74,8 +74,8 @@ public class SqlEventStoreTests
         var events1 = new List<EventEnvelope> { new("evt-1", "TestEvent", "{}", null, null, null) };
         var events2 = new List<EventEnvelope> { new("evt-2", "TestEvent", "{}", null, null, null) };
 
-        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", events1, CancellationToken.None);
-        await store.AppendEventsAsync("tenant-1", "Order:456", "Order", events2, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", events1, false, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:456", "Order", events2, false, CancellationToken.None);
 
         var result = await store.ReadStreamAsync("tenant-1", "Order:123", 0, 100, CancellationToken.None);
 
@@ -92,8 +92,8 @@ public class SqlEventStoreTests
         var orderEvents = new List<EventEnvelope> { new("evt-1", "OrderCreated", "{}", null, null, null) };
         var userEvents = new List<EventEnvelope> { new("evt-2", "UserCreated", "{}", null, null, null) };
 
-        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", orderEvents, CancellationToken.None);
-        await store.AppendEventsAsync("tenant-1", "User:456", "User", userEvents, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", orderEvents, false, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "User:456", "User", userEvents, false, CancellationToken.None);
 
         var result = await store.ReadByStreamTypeAsync("tenant-1", "Order", 0, 100, null, CancellationToken.None);
 
@@ -108,7 +108,7 @@ public class SqlEventStoreTests
         var store = new SqlEventStore(context);
 
         var events = new List<EventEnvelope> { new("evt-1", "TestEvent", "{}", null, null, null) };
-        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", events, CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", events, false, CancellationToken.None);
 
         // Query with timestamp in the past (before the event was created)
         var pastTimestamp = DateTime.UtcNow.AddHours(-1);
@@ -124,7 +124,7 @@ public class SqlEventStoreTests
         await using var context = CreateCoreDbContext();
         var store = new SqlEventStore(context);
 
-        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", [], CancellationToken.None);
+        await store.AppendEventsAsync("tenant-1", "Order:123", "Order", [], false, CancellationToken.None);
 
         var records = await context.Events.ToListAsync();
         Assert.That(records, Is.Empty);

@@ -1,5 +1,4 @@
-using Holmes.SlaClocks.Application.Abstractions.Projections;
-using Holmes.SlaClocks.Application.Abstractions.Queries;
+using Holmes.SlaClocks.Contracts;
 using Holmes.SlaClocks.Domain;
 using Holmes.SlaClocks.Domain.Events;
 using MediatR;

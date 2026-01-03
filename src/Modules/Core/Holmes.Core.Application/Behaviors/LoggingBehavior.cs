@@ -1,3 +1,4 @@
+using Holmes.Core.Contracts;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -13,22 +14,20 @@ public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TReque
         CancellationToken cancellationToken
     )
     {
-        TResponse retval;
+        var response = await next(cancellationToken);
+
         if (request is RequestBase<TResponse> requestBase)
         {
-            logger.LogInformation("Handling {request}",
-                new { requestBase.GetType().Name, requestBase.UserId });
-
-            retval = await next(cancellationToken);
+            var actor = requestBase.UserId ?? "[Unknown]";
 
             logger.LogInformation("Handled {request}",
-                new { requestBase.GetType().Name, requestBase.UserId });
+                new { requestBase.GetType().Name, Actor = actor });
         }
         else
         {
-            retval = await next(cancellationToken);
+            logger.LogInformation("Handled {request}", new { request.GetType().Name });
         }
 
-        return retval;
+        return response;
     }
 }
