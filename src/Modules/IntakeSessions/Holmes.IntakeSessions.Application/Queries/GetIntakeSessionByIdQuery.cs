@@ -1,5 +1,5 @@
-using Holmes.Core.Contracts;
 using Holmes.Core.Application;
+using Holmes.Core.Contracts;
 using Holmes.IntakeSessions.Contracts.Dtos;
 
 namespace Holmes.IntakeSessions.Application.Queries;

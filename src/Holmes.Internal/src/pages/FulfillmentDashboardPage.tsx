@@ -18,17 +18,30 @@ import {
   Select,
   Stack,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
-import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridRowParams,
+} from "@mui/x-data-grid";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
-import type { ServiceCategory, ServiceStatus, ServiceSummaryDto } from "@/types/api";
+import type {
+  ServiceCategory,
+  ServiceStatus,
+  ServiceSummaryDto,
+} from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay, MonospaceIdCell, StatusBadge } from "@/components/patterns";
+import {
+  DataGridNoRowsOverlay,
+  MonospaceIdCell,
+  StatusBadge,
+} from "@/components/patterns";
 import { queryKeys, useFulfillmentQueue } from "@/hooks/api";
 
 // ============================================================================
@@ -78,7 +91,7 @@ const categoryColors: Record<
   Civil: "default",
   Reference: "info",
   Healthcare: "success",
-  Custom: "default"
+  Custom: "default",
 };
 
 // ============================================================================
@@ -89,14 +102,14 @@ const FulfillmentDashboardPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<ServiceStatus | "all">(
-    "all"
+    "all",
   );
   const [categoryFilter, setCategoryFilter] = useState<ServiceCategory | "all">(
-    "all"
+    "all",
   );
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25
+    pageSize: 25,
   });
 
   // Build query based on filters - API uses 1-based pages
@@ -111,9 +124,9 @@ const FulfillmentDashboardPage = () => {
       category:
         categoryFilter === "all"
           ? undefined
-          : ([categoryFilter] as ServiceCategory[])
+          : ([categoryFilter] as ServiceCategory[]),
     }),
-    [paginationModel, statusFilter, categoryFilter]
+    [paginationModel, statusFilter, categoryFilter],
   );
 
   // Fetch data from real API
@@ -128,10 +141,10 @@ const FulfillmentDashboardPage = () => {
     return {
       pending: fulfillmentQueue.filter((s) => s.status === "Pending").length,
       inProgress: fulfillmentQueue.filter(
-        (s) => s.status === "InProgress" || s.status === "Dispatched"
+        (s) => s.status === "InProgress" || s.status === "Dispatched",
       ).length,
       failed: fulfillmentQueue.filter((s) => s.status === "Failed").length,
-      total: totalCount
+      total: totalCount,
     };
   }, [fulfillmentQueue, totalCount]);
 
@@ -157,7 +170,7 @@ const FulfillmentDashboardPage = () => {
         <Typography variant="body2" fontWeight={500}>
           {params.value}
         </Typography>
-      )
+      ),
     },
     {
       field: "category",
@@ -170,7 +183,7 @@ const FulfillmentDashboardPage = () => {
           color={categoryColors[params.value as ServiceCategory]}
           variant="outlined"
         />
-      )
+      ),
     },
     {
       field: "status",
@@ -178,7 +191,7 @@ const FulfillmentDashboardPage = () => {
       width: 120,
       renderCell: (params: GridRenderCellParams) => (
         <StatusBadge type="service" status={params.value} />
-      )
+      ),
     },
     {
       field: "tier",
@@ -191,7 +204,7 @@ const FulfillmentDashboardPage = () => {
           color="primary"
           variant="outlined"
         />
-      )
+      ),
     },
     {
       field: "orderId",
@@ -199,7 +212,7 @@ const FulfillmentDashboardPage = () => {
       width: 140,
       renderCell: (params: GridRenderCellParams) => (
         <MonospaceIdCell id={params.value} />
-      )
+      ),
     },
     {
       field: "vendorCode",
@@ -214,7 +227,7 @@ const FulfillmentDashboardPage = () => {
             —
           </Typography>
         );
-      }
+      },
     },
     {
       field: "scopeValue",
@@ -233,7 +246,7 @@ const FulfillmentDashboardPage = () => {
             —
           </Typography>
         );
-      }
+      },
     },
     {
       field: "attemptCount",
@@ -243,7 +256,7 @@ const FulfillmentDashboardPage = () => {
         <Typography variant="body2">
           {params.value}/{params.row.maxAttempts}
         </Typography>
-      )
+      ),
     },
     {
       field: "createdAt",
@@ -253,7 +266,7 @@ const FulfillmentDashboardPage = () => {
         <Typography variant="body2" color="text.secondary">
           {formatDistanceToNow(new Date(params.value), { addSuffix: false })}
         </Typography>
-      )
+      ),
     },
     {
       field: "lastError",
@@ -272,15 +285,15 @@ const FulfillmentDashboardPage = () => {
               sx={{
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: "nowrap"
+                whiteSpace: "nowrap",
               }}
             >
               {params.value}
             </Typography>
           </Tooltip>
         );
-      }
-    }
+      },
+    },
   ];
 
   return (
@@ -295,7 +308,7 @@ const FulfillmentDashboardPage = () => {
             disabled={isLoading}
             onClick={() => {
               queryClient.invalidateQueries({
-                queryKey: queryKeys.fulfillmentQueue(query)
+                queryKey: queryKeys.fulfillmentQueue(query),
               });
             }}
           >
@@ -392,12 +405,12 @@ const FulfillmentDashboardPage = () => {
         slots={{
           noRowsOverlay: () => (
             <DataGridNoRowsOverlay message="No services in the fulfillment queue." />
-          )
+          ),
         }}
         sx={{
           minHeight: 500,
           "& .MuiDataGrid-row": { cursor: "pointer" },
-          "& .MuiDataGrid-row:hover": { bgcolor: "action.hover" }
+          "& .MuiDataGrid-row:hover": { bgcolor: "action.hover" },
         }}
         disableRowSelectionOnClick
       />

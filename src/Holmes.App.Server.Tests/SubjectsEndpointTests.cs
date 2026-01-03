@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using Holmes.Core.Domain;
 using Holmes.Subjects.Contracts.Dtos;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Subjects.Infrastructure.Sql.Entities;
-using Holmes.Core.Domain;
 using Holmes.Users.Application.Commands;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

@@ -12,12 +12,12 @@ interface EmptyStateProps {
 }
 
 const EmptyState = ({
-                      title,
-                      description,
-                      icon = <InboxIcon fontSize="large" color="disabled" />,
-                      actionLabel,
-                      onActionClick
-                    }: EmptyStateProps) => (
+  title,
+  description,
+  icon = <InboxIcon fontSize="large" color="disabled" />,
+  actionLabel,
+  onActionClick,
+}: EmptyStateProps) => (
   <Stack
     spacing={1}
     sx={{
@@ -26,7 +26,7 @@ const EmptyState = ({
       textAlign: "center",
       py: 6,
       px: 2,
-      color: "text.secondary"
+      color: "text.secondary",
     }}
   >
     <Box>{icon}</Box>

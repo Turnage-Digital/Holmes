@@ -1,4 +1,3 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Notifications.Application.Commands;

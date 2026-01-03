@@ -1,4 +1,3 @@
-using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Core.Infrastructure.Sql;
 using MediatR;

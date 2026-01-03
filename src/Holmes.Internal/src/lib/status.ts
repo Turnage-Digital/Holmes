@@ -22,7 +22,7 @@ export const orderStatuses: OrderStatus[] = [
   "ReadyForReport",
   "Closed",
   "Blocked",
-  "Canceled"
+  "Canceled",
 ];
 
 export const openStatuses: OrderStatus[] = [
@@ -33,7 +33,7 @@ export const openStatuses: OrderStatus[] = [
   "ReadyForFulfillment",
   "FulfillmentInProgress",
   "ReadyForReport",
-  "Blocked"
+  "Blocked",
 ];
 
 export const closedStatuses: OrderStatus[] = ["Closed", "Canceled"];
@@ -46,12 +46,12 @@ const orderStatusMeta: Record<OrderStatus, StatusMeta> = {
   ReadyForFulfillment: { label: "Ready for Fulfillment", chipColor: "success" },
   FulfillmentInProgress: {
     label: "Fulfillment In Progress",
-    chipColor: "warning"
+    chipColor: "warning",
   },
   ReadyForReport: { label: "Ready for Report", chipColor: "info" },
   Closed: { label: "Closed", chipColor: "success" },
   Blocked: { label: "Blocked", chipColor: "error" },
-  Canceled: { label: "Canceled", chipColor: "default" }
+  Canceled: { label: "Canceled", chipColor: "default" },
 };
 
 export const isOrderStatus = (value: string | null): value is OrderStatus =>
@@ -82,7 +82,7 @@ const userStatuses: UserStatus[] = ["Active", "Invited", "Suspended"];
 const userStatusMeta: Record<UserStatus, StatusMeta> = {
   Active: { label: "Active", chipColor: "success" },
   Invited: { label: "Invited", chipColor: "warning" },
-  Suspended: { label: "Suspended", chipColor: "error" }
+  Suspended: { label: "Suspended", chipColor: "error" },
 };
 
 const isUserStatus = (value: string): value is UserStatus =>
@@ -113,7 +113,7 @@ const subjectStatuses: SubjectStatus[] = ["Active", "Merged", "Archived"];
 const subjectStatusMeta: Record<SubjectStatus, StatusMeta> = {
   Active: { label: "Active", chipColor: "success" },
   Merged: { label: "Merged", chipColor: "warning" },
-  Archived: { label: "Archived", chipColor: "default" }
+  Archived: { label: "Archived", chipColor: "default" },
 };
 
 const isSubjectStatus = (value: string): value is SubjectStatus =>
@@ -143,7 +143,7 @@ const customerStatuses: CustomerStatus[] = ["Active", "Suspended"];
 
 const customerStatusMeta: Record<CustomerStatus, StatusMeta> = {
   Active: { label: "Active", chipColor: "success" },
-  Suspended: { label: "Suspended", chipColor: "error" }
+  Suspended: { label: "Suspended", chipColor: "error" },
 };
 
 const isCustomerStatus = (value: string): value is CustomerStatus =>
@@ -173,7 +173,7 @@ const serviceStatuses: ServiceStatus[] = [
   "InProgress",
   "Completed",
   "Failed",
-  "Canceled"
+  "Canceled",
 ];
 
 const serviceStatusMeta: Record<ServiceStatus, StatusMeta> = {
@@ -182,7 +182,7 @@ const serviceStatusMeta: Record<ServiceStatus, StatusMeta> = {
   InProgress: { label: "In Progress", chipColor: "warning" },
   Completed: { label: "Completed", chipColor: "success" },
   Failed: { label: "Failed", chipColor: "error" },
-  Canceled: { label: "Canceled", chipColor: "default" }
+  Canceled: { label: "Canceled", chipColor: "default" },
 };
 
 const isServiceStatus = (value: string): value is ServiceStatus =>
@@ -227,7 +227,7 @@ export const getStatusLabel = (type: EntityType, status: string): string => {
 
 export const getStatusColor = (
   type: EntityType,
-  status: string
+  status: string,
 ): StatusColor => {
   switch (type) {
     case "order":

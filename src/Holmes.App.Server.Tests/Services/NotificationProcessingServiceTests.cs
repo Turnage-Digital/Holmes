@@ -1,5 +1,5 @@
 using Holmes.App.Server.Services;
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Contracts;
@@ -8,7 +8,6 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Holmes.Core.Application;
 
 namespace Holmes.App.Server.Tests.Services;
 

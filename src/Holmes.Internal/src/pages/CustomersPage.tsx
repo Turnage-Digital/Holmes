@@ -1,14 +1,28 @@
 import React, { FormEvent, useState } from "react";
 
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
+import {
+  Alert,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  TextField,
+} from "@mui/material";
 import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 
 import type { CreateCustomerRequest, CustomerListItemDto } from "@/types/api";
 
 import { PageHeader } from "@/components/layout";
-import { DataGridNoRowsOverlay, MonospaceIdCell, RelativeTimeCell, StatusBadge } from "@/components/patterns";
+import {
+  DataGridNoRowsOverlay,
+  MonospaceIdCell,
+  RelativeTimeCell,
+  StatusBadge,
+} from "@/components/patterns";
 import { useCreateCustomer, useCustomers } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
 
@@ -16,14 +30,14 @@ const initialFormState: CreateCustomerRequest = {
   name: "",
   policySnapshotId: "",
   billingEmail: "",
-  contacts: []
+  contacts: [],
 };
 
 const CustomersPage = () => {
   const navigate = useNavigate();
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 25
+    pageSize: 25,
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formState, setFormState] =
@@ -34,7 +48,7 @@ const CustomersPage = () => {
   const {
     data: customersData,
     isLoading,
-    error
+    error,
   } = useCustomers(paginationModel.page + 1, paginationModel.pageSize);
 
   const createCustomerMutation = useCreateCustomer();
@@ -83,7 +97,7 @@ const CustomersPage = () => {
     {
       field: "name",
       headerName: "Name",
-      width: 250
+      width: 250,
     },
     {
       field: "status",
@@ -91,31 +105,31 @@ const CustomersPage = () => {
       width: 120,
       renderCell: (params) => (
         <StatusBadge type="customer" status={params.value} />
-      )
+      ),
     },
     {
       field: "policySnapshotId",
       headerName: "Policy",
       width: 200,
-      renderCell: (params) => <MonospaceIdCell id={params.value} />
+      renderCell: (params) => <MonospaceIdCell id={params.value} />,
     },
     {
       field: "billingEmail",
       headerName: "Billing Email",
-      width: 220
+      width: 220,
     },
     {
       field: "contacts",
       headerName: "Contacts",
       width: 100,
-      renderCell: (params) => params.value?.length ?? 0
+      renderCell: (params) => params.value?.length ?? 0,
     },
     {
       field: "createdAt",
       headerName: "Created",
       width: 180,
-      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />
-    }
+      renderCell: (params) => <RelativeTimeCell timestamp={params.value} />,
+    },
   ];
 
   return (
@@ -164,11 +178,11 @@ const CustomersPage = () => {
         slots={{
           noRowsOverlay: () => (
             <DataGridNoRowsOverlay message="No customers yet. Add your first customer to get started." />
-          )
+          ),
         }}
         sx={{
           minHeight: 400,
-          "& .MuiDataGrid-row": { cursor: "pointer" }
+          "& .MuiDataGrid-row": { cursor: "pointer" },
         }}
         disableRowSelectionOnClick
       />
@@ -202,7 +216,7 @@ const CustomersPage = () => {
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    policySnapshotId: e.target.value
+                    policySnapshotId: e.target.value,
                   }))
                 }
                 required
@@ -217,7 +231,7 @@ const CustomersPage = () => {
                 onChange={(e) =>
                   setFormState((prev) => ({
                     ...prev,
-                    billingEmail: e.target.value
+                    billingEmail: e.target.value,
                   }))
                 }
                 fullWidth

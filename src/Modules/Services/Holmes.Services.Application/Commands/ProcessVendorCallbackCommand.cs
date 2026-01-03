@@ -1,5 +1,5 @@
-using Holmes.Core.Contracts;
 using Holmes.Core.Application;
+using Holmes.Core.Contracts;
 
 namespace Holmes.Services.Application.Commands;
 

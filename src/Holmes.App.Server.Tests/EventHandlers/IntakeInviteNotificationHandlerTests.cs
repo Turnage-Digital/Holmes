@@ -1,4 +1,4 @@
-using Holmes.Core.Domain;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Contracts;
 using Holmes.Customers.Contracts.Dtos;
@@ -14,7 +14,6 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Holmes.Core.Application;
 
 namespace Holmes.App.Server.Tests.EventHandlers;
 

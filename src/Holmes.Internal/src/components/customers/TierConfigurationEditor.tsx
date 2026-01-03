@@ -16,11 +16,15 @@ import {
   Switch,
   TextField,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 
-import type { CatalogServiceItemDto, TierConfigurationDto, Ulid } from "@/types/api";
+import type {
+  CatalogServiceItemDto,
+  TierConfigurationDto,
+  Ulid,
+} from "@/types/api";
 
 import { useUpdateServiceCatalog } from "@/hooks/api";
 import { getErrorMessage } from "@/utils/errorMessage";
@@ -37,15 +41,15 @@ interface TierCardProps {
 }
 
 const TierCard = ({
-                    tier,
-                    availableServices,
-                    customerId,
-                    defaultExpanded = false
-                  }: TierCardProps) => {
+  tier,
+  availableServices,
+  customerId,
+  defaultExpanded = false,
+}: TierCardProps) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [localName, setLocalName] = useState(tier.name);
   const [localDescription, setLocalDescription] = useState(
-    tier.description ?? ""
+    tier.description ?? "",
   );
   const [errorMessage, setErrorMessage] = useState<string>();
   const [successMessage, setSuccessMessage] = useState<string>();
@@ -54,7 +58,7 @@ const TierCard = ({
 
   // Get service display names by code
   const serviceNameMap = new Map(
-    availableServices.map((s) => [s.serviceTypeCode, s.displayName])
+    availableServices.map((s) => [s.serviceTypeCode, s.displayName]),
   );
 
   const handleUpdate = async (
@@ -63,7 +67,7 @@ const TierCard = ({
       description: string;
       autoDispatch: boolean;
       waitForPreviousTier: boolean;
-    }>
+    }>,
   ) => {
     setErrorMessage(undefined);
     setSuccessMessage(undefined);
@@ -81,10 +85,10 @@ const TierCard = ({
               waitForPreviousTier:
                 updates.waitForPreviousTier ?? tier.waitForPreviousTier,
               requiredServices: [...tier.requiredServices],
-              optionalServices: [...tier.optionalServices]
-            }
-          ]
-        }
+              optionalServices: [...tier.optionalServices],
+            },
+          ],
+        },
       });
       setSuccessMessage("Configuration saved");
       setTimeout(() => setSuccessMessage(undefined), 3000);
@@ -115,12 +119,12 @@ const TierCard = ({
         <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
           {params.value}
         </Typography>
-      )
+      ),
     },
     {
       field: "displayName",
       headerName: "Name",
-      flex: 1.5
+      flex: 1.5,
     },
     {
       field: "type",
@@ -136,8 +140,8 @@ const TierCard = ({
             variant="outlined"
           />
         );
-      }
-    }
+      },
+    },
   ];
 
   // Combine required and optional services for the grid
@@ -146,14 +150,14 @@ const TierCard = ({
       id: `req-${code}`,
       code,
       displayName: serviceNameMap.get(code) ?? code,
-      type: "Required"
+      type: "Required",
     })),
     ...tier.optionalServices.map((code) => ({
       id: `opt-${code}`,
       code,
       displayName: serviceNameMap.get(code) ?? code,
-      type: "Optional"
-    }))
+      type: "Optional",
+    })),
   ];
 
   const totalServices =
@@ -263,7 +267,7 @@ const TierCard = ({
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-              gap: 2
+              gap: 2,
             }}
           >
             <TextField
@@ -315,7 +319,7 @@ const TierCard = ({
                         checked={tier.waitForPreviousTier}
                         onChange={(e) =>
                           handleUpdate({
-                            waitForPreviousTier: e.target.checked
+                            waitForPreviousTier: e.target.checked,
                           })
                         }
                         disabled={updateMutation.isPending}
@@ -380,17 +384,17 @@ interface TierConfigurationEditorProps {
 }
 
 const TierConfigurationEditor = ({
-                                   customerId,
-                                   tiers,
-                                   availableServices
-                                 }: TierConfigurationEditorProps) => {
+  customerId,
+  tiers,
+  availableServices,
+}: TierConfigurationEditorProps) => {
   // Sort tiers by tier number
   const sortedTiers = [...tiers].sort((a, b) => a.tier - b.tier);
 
   // Count total services
   const totalConfigured = tiers.reduce(
     (acc, t) => acc + t.requiredServices.length + t.optionalServices.length,
-    0
+    0,
   );
 
   return (
