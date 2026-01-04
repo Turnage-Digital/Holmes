@@ -5,10 +5,6 @@ using MediatR;
 
 namespace Holmes.Customers.Application.EventHandlers;
 
-/// <summary>
-///     Handles customer domain events to maintain the customer projection table.
-///     This replaces the synchronous UpsertDirectory calls in the repository.
-/// </summary>
 public sealed class CustomerProjectionHandler(ICustomerProjectionWriter writer)
     : INotificationHandler<CustomerRegistered>,
         INotificationHandler<CustomerRenamed>,
