@@ -1,10 +1,9 @@
 using System.Text.Json;
 using Holmes.App.Infrastructure.Security;
-using Holmes.Core.Application;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Application;
 using Holmes.Core.Contracts.Events;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Queries;
 using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Application.Queries;
 using Holmes.Orders.Contracts;
@@ -13,7 +12,6 @@ using Holmes.Orders.Domain;
 using Holmes.Services.Application.Queries;
 using Holmes.Services.Contracts.Dtos;
 using Holmes.Services.Domain;
-using Holmes.Subjects.Application.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,17 +39,6 @@ public sealed class OrdersController(
             return BadRequest("Invalid customer id format.");
         }
 
-        var customerId = parsedCustomer.ToString();
-        if (!await currentUserAccess.HasCustomerAccessAsync(customerId, cancellationToken))
-        {
-            return Forbid();
-        }
-
-        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
-        {
-            return NotFound($"Customer '{customerId}' not found.");
-        }
-
         if (!string.IsNullOrWhiteSpace(request.SubjectId))
         {
             return BadRequest("Subject id is not supported. Provide subject email instead.");
@@ -62,30 +49,27 @@ public sealed class OrdersController(
             return BadRequest("Subject email is required.");
         }
 
-        var createdBy = await currentUserAccess.GetUserIdAsync(cancellationToken);
-        var subjectResult = await CreateSubjectAsync(request, createdBy, cancellationToken);
-        if (!subjectResult.IsSuccess)
-        {
-            return BadRequest(subjectResult.Error);
-        }
-
-        var createdOrderResult = await CreateOrderAsync(
-            subjectResult.Value.SubjectId,
+        var command = new CreateOrderCommand(
             UlidId.FromUlid(parsedCustomer),
-            request,
-            createdBy,
-            cancellationToken);
-        if (!createdOrderResult.IsSuccess)
+            request.PolicySnapshotId,
+            request.SubjectEmail.Trim(),
+            request.SubjectPhone?.Trim(),
+            request.PackageCode,
+            DateTimeOffset.UtcNow);
+
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.IsSuccess)
         {
-            return BadRequest(createdOrderResult.Error);
+            return result.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.NotFound => NotFound($"Customer '{parsedCustomer}' not found."),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
-        var response = new CreateOrderWithIntakeResponse(
-            subjectResult.Value.SubjectId.ToString(),
-            subjectResult.Value.SubjectWasExisting,
-            createdOrderResult.Value.ToString());
-
-        return Created($"/api/orders/{createdOrderResult.Value}/timeline", response);
+        return Created($"/api/orders/{result.Value.OrderId}/timeline", result.Value);
     }
 
     [HttpGet("summary")]
@@ -397,54 +381,4 @@ public sealed class OrdersController(
         string? SubjectPhone = null,
         string? PackageCode = null
     );
-
-    public sealed record CreateOrderWithIntakeResponse(
-        string SubjectId,
-        bool SubjectWasExisting,
-        string OrderId
-    );
-
-    private async Task<Result<CreateSubjectResult>> CreateSubjectAsync(
-        CreateOrderRequest request,
-        UlidId createdBy,
-        CancellationToken cancellationToken
-    )
-    {
-        var command = new CreateSubjectCommand(
-            request.SubjectEmail!.Trim(),
-            request.SubjectPhone?.Trim(),
-            DateTimeOffset.UtcNow)
-        {
-            UserId = createdBy.ToString()
-        };
-
-        return await mediator.Send(command, cancellationToken);
-    }
-
-    private async Task<Result<UlidId>> CreateOrderAsync(
-        UlidId subjectId,
-        UlidId customerId,
-        CreateOrderRequest request,
-        UlidId createdBy,
-        CancellationToken cancellationToken
-    )
-    {
-        var orderId = UlidId.NewUlid();
-        var command = new CreateOrderCommand(
-            orderId,
-            subjectId,
-            customerId,
-            request.PolicySnapshotId,
-            DateTimeOffset.UtcNow,
-            request.PackageCode,
-            createdBy);
-
-        var result = await mediator.Send(command, cancellationToken);
-        if (!result.IsSuccess)
-        {
-            return Result.Fail<UlidId>(result.Error ?? "Failed to create order.");
-        }
-
-        return Result.Success(orderId);
-    }
 }

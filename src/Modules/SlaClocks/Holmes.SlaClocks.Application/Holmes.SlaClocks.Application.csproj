@@ -8,9 +8,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Core\Holmes.Core.Application\Holmes.Core.Application.csproj"/>
+        <ProjectReference Include="..\..\Customers\Holmes.Customers.Contracts\Holmes.Customers.Contracts.csproj"/>
         <ProjectReference Include="..\..\Orders\Holmes.Orders.Contracts\Holmes.Orders.Contracts.csproj"/>
         <ProjectReference Include="..\Holmes.SlaClocks.Contracts\Holmes.SlaClocks.Contracts.csproj"/>
         <ProjectReference Include="..\Holmes.SlaClocks.Domain\Holmes.SlaClocks.Domain.csproj"/>
+        <ProjectReference Include="..\..\Users\Holmes.Users.Contracts\Holmes.Users.Contracts.csproj"/>
     </ItemGroup>
 
 </Project>

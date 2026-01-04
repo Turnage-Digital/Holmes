@@ -55,7 +55,5 @@ public sealed class CustomerProfileRepository(CustomersDbContext dbContext) : IC
         {
             await dbContext.CustomerContacts.AddRangeAsync(contactEntities, cancellationToken);
         }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

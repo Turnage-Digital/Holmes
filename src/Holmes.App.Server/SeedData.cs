@@ -10,6 +10,7 @@ using Holmes.Services.Domain;
 using Holmes.SlaClocks.Application.Commands;
 using Holmes.SlaClocks.Domain;
 using Holmes.Subjects.Application.Commands;
+using Holmes.Subjects.Contracts;
 using Holmes.Subjects.Infrastructure.Sql;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
@@ -261,8 +262,11 @@ public sealed class SeedData(
             {
                 UserId = adminUserId.ToString()
             };
-            var subjectId = await mediator.Send(createSubject, cancellationToken);
-            subjectIds.Add(subjectId);
+            var subjectResult = await mediator.Send(createSubject, cancellationToken);
+            if (subjectResult.IsSuccess)
+            {
+                subjectIds.Add(UlidId.Parse(subjectResult.Value.SubjectId));
+            }
         }
 
         return subjectIds;
@@ -318,23 +322,38 @@ public sealed class SeedData(
             // Use fresh scope for each order to avoid EF tracking conflicts
             using var scope = services.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            var subjectQueries = scope.ServiceProvider.GetRequiredService<ISubjectQueries>();
 
-            var orderId = UlidId.NewUlid();
             var createdAt = now.Add(ageOffset);
+
+            var subjectDetail = await subjectQueries.GetDetailByIdAsync(
+                subjectId.ToString(),
+                cancellationToken);
+
+            var subjectEmail = subjectDetail?.Email;
+            if (string.IsNullOrWhiteSpace(subjectEmail))
+            {
+                continue;
+            }
 
             // Create the order
             var createCommand = new CreateOrderCommand(
-                orderId,
-                subjectId,
                 customerId,
                 policySnapshotId,
-                createdAt,
+                subjectEmail,
+                null,
                 "standard",
-                adminUserId)
+                createdAt)
             {
                 UserId = adminUserId.ToString()
             };
-            await mediator.Send(createCommand, cancellationToken);
+            var createdResult = await mediator.Send(createCommand, cancellationToken);
+            if (!createdResult.IsSuccess)
+            {
+                continue;
+            }
+
+            var orderId = UlidId.Parse(createdResult.Value.OrderId);
 
             // Progress the order to the target status
             await ProgressOrderToStatusAsync(mediator, orderId, customerId, subjectId,

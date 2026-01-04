@@ -20,12 +20,12 @@ public sealed class DispatchServiceCommandHandler(
 
         if (service is null)
         {
-            return Result.Fail($"Service {request.ServiceId} not found");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         if (service.Status != ServiceStatus.Pending)
         {
-            return Result.Fail("Service is not in Pending status");
+            return Result.Fail(ResultErrors.Validation);
         }
 
         // If no vendor assigned, select one based on category
@@ -34,7 +34,7 @@ public sealed class DispatchServiceCommandHandler(
             var adapter = vendorAdapterFactory.GetAdapterForCategory(service.Category);
             if (adapter is null)
             {
-                return Result.Fail($"No vendor available for category {service.Category}");
+                return Result.Fail(ResultErrors.Validation);
             }
 
             service.AssignVendor(adapter.VendorCode, request.DispatchedAt);
@@ -44,7 +44,7 @@ public sealed class DispatchServiceCommandHandler(
         var vendorAdapter = vendorAdapterFactory.GetAdapter(service.VendorCode!);
         if (vendorAdapter is null)
         {
-            return Result.Fail($"Vendor adapter '{service.VendorCode}' not found");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         // Dispatch to vendor

@@ -1,5 +1,6 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Subjects.Application.Commands;
 using Holmes.Subjects.Application.Queries;
@@ -29,7 +30,9 @@ public sealed class SubjectsController(
 
         if (!result.IsSuccess)
         {
-            return Problem(result.Error);
+            return result.Error == ResultErrors.Validation
+                ? BadRequest()
+                : Problem(result.Error);
         }
 
         return Ok(PaginatedResponse<SubjectListItemDto>.Create(
@@ -42,22 +45,22 @@ public sealed class SubjectsController(
         CancellationToken cancellationToken
     )
     {
-        var subjectId = await mediator.Send(new RegisterSubjectCommand(
+        var result = await mediator.Send(new RegisterSubjectCommand(
             request.GivenName,
             request.FamilyName,
             request.DateOfBirth,
             request.Email,
             DateTimeOffset.UtcNow), cancellationToken);
 
-        var summaryResult = await mediator.Send(
-            new GetSubjectSummaryQuery(subjectId.ToString()), cancellationToken);
-
-        if (!summaryResult.IsSuccess)
+        if (!result.IsSuccess)
         {
-            return Problem("Failed to load created subject.");
+            return Problem(result.Error);
         }
 
-        return CreatedAtAction(nameof(GetSubjectById), new { subjectId = subjectId.ToString() }, summaryResult.Value);
+        return CreatedAtAction(
+            nameof(GetSubjectById),
+            new { subjectId = result.Value.SubjectId },
+            result.Value);
     }
 
     [HttpGet("{subjectId}")]

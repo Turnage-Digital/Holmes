@@ -15,12 +15,12 @@ public sealed class AcceptIntakeSubmissionCommandHandler(
         var session = await repository.GetByIdAsync(request.IntakeSessionId, cancellationToken);
         if (session is null)
         {
-            return Result.Fail($"Intake session '{request.IntakeSessionId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         if (session.ConsentArtifact is null)
         {
-            return Result.Fail("Intake session has no consent artifact to attach to the order.");
+            return Result.Fail(ResultErrors.Validation);
         }
 
         session.AcceptSubmission(request.AcceptedAt);

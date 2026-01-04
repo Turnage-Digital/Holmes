@@ -30,7 +30,7 @@ public sealed class UpdateTierConfigurationCommandHandler(
 
         if (tierIndex < 0)
         {
-            return Result.Fail($"Tier {request.Tier} not found in catalog.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var existing = tiers[tierIndex];

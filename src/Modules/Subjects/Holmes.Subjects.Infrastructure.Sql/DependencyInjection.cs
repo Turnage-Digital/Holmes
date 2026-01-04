@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<ISubjectsUnitOfWork, SubjectsUnitOfWork>();
         services.AddScoped<ISubjectQueries, SubjectQueries>();
         services.AddScoped<ISubjectProjectionWriter, SubjectProjectionWriter>();
+        services.AddScoped<ISubjectGateway, SubjectGateway>();
 
         return services;
     }

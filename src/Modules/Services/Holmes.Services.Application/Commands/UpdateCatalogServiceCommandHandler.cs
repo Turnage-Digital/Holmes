@@ -31,7 +31,7 @@ public sealed class UpdateCatalogServiceCommandHandler(
 
         if (serviceIndex < 0)
         {
-            return Result.Fail($"Service type '{request.ServiceTypeCode}' not found in catalog.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var existing = services[serviceIndex];

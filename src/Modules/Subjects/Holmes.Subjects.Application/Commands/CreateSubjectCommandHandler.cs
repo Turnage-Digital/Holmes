@@ -16,7 +16,7 @@ public sealed class CreateSubjectCommandHandler(
     {
         if (string.IsNullOrWhiteSpace(request.SubjectEmail))
         {
-            return Result.Fail<CreateSubjectResult>("Subject email is required.");
+            return Result.Fail<CreateSubjectResult>(ResultErrors.Validation);
         }
 
         var now = request.RequestedAt;

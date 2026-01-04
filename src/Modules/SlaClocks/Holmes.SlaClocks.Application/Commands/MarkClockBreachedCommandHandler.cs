@@ -13,7 +13,7 @@ public sealed class MarkClockBreachedCommandHandler(
         var clock = await unitOfWork.SlaClocks.GetByIdAsync(request.ClockId, cancellationToken);
         if (clock is null)
         {
-            return Result.Fail($"SLA clock '{request.ClockId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         clock.MarkBreached(request.BreachedAt);

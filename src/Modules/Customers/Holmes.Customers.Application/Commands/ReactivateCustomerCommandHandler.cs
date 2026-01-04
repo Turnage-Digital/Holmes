@@ -9,16 +9,15 @@ public sealed class ReactivateCustomerCommandHandler(ICustomersUnitOfWork unitOf
 {
     public async Task<Result> Handle(ReactivateCustomerCommand request, CancellationToken cancellationToken)
     {
-        var repository = unitOfWork.Customers;
-        var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
+        var customer = await unitOfWork.Customers.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
-            return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var actor = request.GetUserUlid();
         customer.Reactivate(actor, request.ReactivatedAt);
-        await repository.UpdateAsync(customer, cancellationToken);
+        await unitOfWork.Customers.UpdateAsync(customer, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

@@ -134,9 +134,9 @@ public class OrdersEndpointTests
         var request = new OrdersController.CreateOrderRequest(
             customerId,
             "policy-snapshot-v1",
-            SubjectId: null,
-            SubjectEmail: "summary-subject@holmes.dev",
-            SubjectPhone: "+15551234567",
+            null,
+            "summary-subject@holmes.dev",
+            "+15551234567",
             "PKG-A");
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
@@ -146,7 +146,7 @@ public class OrdersEndpointTests
         }
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-        var created = await response.Content.ReadFromJsonAsync<OrdersController.CreateOrderWithIntakeResponse>(
+        var created = await response.Content.ReadFromJsonAsync<CreateOrderResponse>(
             JsonOptions);
         Assert.That(created, Is.Not.Null);
 
@@ -177,10 +177,10 @@ public class OrdersEndpointTests
         var request = new OrdersController.CreateOrderRequest(
             customerId,
             "policy-snapshot-v1",
-            SubjectId: null,
-            SubjectEmail: "subject-email@holmes.dev",
-            SubjectPhone: "+15550001111",
-            PackageCode: "PKG-A");
+            null,
+            "subject-email@holmes.dev",
+            "+15550001111",
+            "PKG-A");
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
         if (response.StatusCode != HttpStatusCode.Created)
@@ -189,7 +189,7 @@ public class OrdersEndpointTests
         }
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-        var payload = await response.Content.ReadFromJsonAsync<OrdersController.CreateOrderWithIntakeResponse>(
+        var payload = await response.Content.ReadFromJsonAsync<CreateOrderResponse>(
             JsonOptions);
         Assert.That(payload, Is.Not.Null);
         var createdPayload = payload!;
@@ -230,9 +230,9 @@ public class OrdersEndpointTests
         var request = new OrdersController.CreateOrderRequest(
             customerId,
             "policy-snapshot-v1",
-            SubjectId: null,
-            SubjectEmail: "forbidden-subject@holmes.dev",
-            SubjectPhone: "+15550002222");
+            null,
+            "forbidden-subject@holmes.dev",
+            "+15550002222");
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
 

@@ -12,7 +12,7 @@ public sealed class CancelOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
         var order = await unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
-            return Result.Fail($"Order '{request.OrderId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         try
@@ -21,7 +21,7 @@ public sealed class CancelOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return Result.Fail(ex.Message);
+            return Result.Fail(ResultErrors.Validation);
         }
 
         await unitOfWork.Orders.UpdateAsync(order, cancellationToken);

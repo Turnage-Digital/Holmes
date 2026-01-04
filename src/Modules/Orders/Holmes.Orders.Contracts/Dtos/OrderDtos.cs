@@ -49,3 +49,9 @@ public sealed record OrderAuditEventDto(
     string? CorrelationId,
     string? ActorId
 );
+
+public sealed record CreateOrderResponse(
+    string SubjectId,
+    bool SubjectWasExisting,
+    string OrderId
+);

@@ -1,5 +1,6 @@
+using Holmes.Core.Application;
 using Holmes.Core.Contracts;
-using Holmes.Core.Domain.ValueObjects;
+using Holmes.Subjects.Contracts.Dtos;
 
 namespace Holmes.Subjects.Application.Commands;
 
@@ -9,4 +10,4 @@ public sealed record RegisterSubjectCommand(
     DateOnly? DateOfBirth,
     string? Email,
     DateTimeOffset RegisteredAt
-) : RequestBase<UlidId>;
+) : RequestBase<Result<SubjectSummaryDto>>;

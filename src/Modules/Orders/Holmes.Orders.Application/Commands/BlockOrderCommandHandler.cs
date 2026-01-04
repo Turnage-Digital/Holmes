@@ -12,7 +12,7 @@ public sealed class BlockOrderCommandHandler(IOrdersUnitOfWork unitOfWork)
         var order = await unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
-            return Result.Fail($"Order '{request.OrderId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         try

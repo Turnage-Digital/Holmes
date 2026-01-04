@@ -1,3 +1,4 @@
+using Holmes.Core.Application;
 using Holmes.Core.Domain;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Core.Infrastructure.Sql;
@@ -276,7 +277,7 @@ public class CreateSubjectCommandTests
 
             // Assert
             Assert.That(result.IsSuccess, Is.False);
-            Assert.That(result.Error, Does.Contain("email"));
+            Assert.That(result.Error, Is.EqualTo(ResultErrors.Validation));
         }
     }
 }

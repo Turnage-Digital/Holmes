@@ -1,15 +1,15 @@
 using Holmes.Core.Application;
 using Holmes.Core.Contracts;
 using Holmes.Core.Domain.ValueObjects;
+using Holmes.Orders.Contracts.Dtos;
 
 namespace Holmes.Orders.Application.Commands;
 
 public sealed record CreateOrderCommand(
-    UlidId OrderId,
-    UlidId SubjectId,
     UlidId CustomerId,
     string PolicySnapshotId,
-    DateTimeOffset CreatedAt,
+    string SubjectEmail,
+    string? SubjectPhone,
     string? PackageCode,
-    UlidId CreatedBy
-) : RequestBase<Result>;
+    DateTimeOffset CreatedAt
+) : RequestBase<Result<CreateOrderResponse>>;

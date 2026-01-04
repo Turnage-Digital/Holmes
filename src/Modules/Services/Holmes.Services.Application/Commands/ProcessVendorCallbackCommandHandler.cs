@@ -18,7 +18,7 @@ public sealed class ProcessVendorCallbackCommandHandler(
         var vendorAdapter = vendorAdapterFactory.GetAdapter(request.VendorCode);
         if (vendorAdapter is null)
         {
-            return Result.Fail($"Vendor adapter '{request.VendorCode}' not found");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         // Find the service by vendor reference
@@ -27,7 +27,7 @@ public sealed class ProcessVendorCallbackCommandHandler(
 
         if (service is null)
         {
-            return Result.Fail($"Service not found for vendor reference {request.VendorReferenceId}");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         if (service.IsTerminal)
