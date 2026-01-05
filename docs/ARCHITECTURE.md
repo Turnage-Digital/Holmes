@@ -164,6 +164,31 @@ Enforcement (Must Be Implemented First)
 
 ---
 
+## 7.2) Order Workflow (Event-Driven, Orders-Owned State)
+
+Orders owns the workflow state and progresses via integration events with no cross-module transactions.
+Integration event names must be module-local and must not mention other modules.
+
+Workflow sequence (canonical event names):
+
+1. Orders: CreateOrder command creates a workflow order with SubjectEmail/SubjectPhone; SubjectId and
+   ActiveIntakeSessionId are null; status is Created (represents Requested). Orders publishes OrderRequested.
+2. Subjects: consumes OrderRequested, resolves/creates Subject, publishes SubjectResolved (OrderId + SubjectId).
+3. Orders: consumes SubjectResolved, assigns SubjectId, publishes OrderSubjectAssigned.
+4. IntakeSessions: consumes OrderSubjectAssigned, creates intake session + invite/OTP initiation, publishes
+   IntakeSessionStarted (OrderId + IntakeSessionId).
+5. IntakeSessions: on submission, publishes IntakeSubmitted (OrderId + IntakeSessionId). Orders consumes and advances
+   status to IntakeComplete.
+
+Rules for this workflow:
+
+- No shared transactions across modules; each handler commits independently.
+- All integration event publication uses deferred dispatch/outbox (SaveChangesAsync(true)).
+- Handlers must be idempotent and safe under retries.
+- Orders may store SubjectEmail/SubjectPhone until SubjectId is assigned.
+
+---
+
 ## 8) Bounded Contexts
 
 Module boundaries are defined by business capabilities, not technical layers. The module set will evolve as the

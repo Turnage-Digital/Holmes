@@ -6,18 +6,30 @@ namespace Holmes.Orders.Application.EventHandlers;
 
 public sealed class OrderIntegrationEventPublisher(
     IMediator mediator
-) : INotificationHandler<OrderCreated>,
+) : INotificationHandler<OrderRequested>,
+    INotificationHandler<OrderSubjectAssigned>,
     INotificationHandler<OrderStatusChanged>
 {
-    public Task Handle(OrderCreated notification, CancellationToken cancellationToken)
+    public Task Handle(OrderRequested notification, CancellationToken cancellationToken)
     {
-        return mediator.Publish(new OrderCreatedIntegrationEvent(
+        return mediator.Publish(new OrderRequestedIntegrationEvent(
             notification.OrderId,
-            notification.SubjectId,
             notification.CustomerId,
+            notification.SubjectEmail,
+            notification.SubjectPhone,
             notification.PolicySnapshotId,
-            notification.CreatedAt,
-            notification.CreatedBy), cancellationToken);
+            notification.PackageCode,
+            notification.RequestedAt,
+            notification.RequestedBy), cancellationToken);
+    }
+
+    public Task Handle(OrderSubjectAssigned notification, CancellationToken cancellationToken)
+    {
+        return mediator.Publish(new OrderSubjectAssignedIntegrationEvent(
+            notification.OrderId,
+            notification.CustomerId,
+            notification.SubjectId,
+            notification.AssignedAt), cancellationToken);
     }
 
     public Task Handle(OrderStatusChanged notification, CancellationToken cancellationToken)

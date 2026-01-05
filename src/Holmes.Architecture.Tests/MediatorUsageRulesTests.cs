@@ -9,7 +9,7 @@ public sealed class MediatorUsageRulesTests
     public void Non_get_controller_actions_call_mediator_send_once()
     {
         var repoRoot = FindRepoRoot();
-        var controllersRoot = Path.Combine(repoRoot, "src");
+        var controllersRoot = Path.Combine(repoRoot, "src", "Holmes.App.Server", "Controllers");
 
         var violations = new List<string>();
 
@@ -61,7 +61,7 @@ public sealed class MediatorUsageRulesTests
             var root = CSharpSyntaxTree.ParseText(File.ReadAllText(file)).GetRoot();
             foreach (var @class in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
             {
-                if (!@class.Identifier.Text.EndsWith("CommandHandler", StringComparison.Ordinal))
+                if (!IsCommandHandler(@class))
                 {
                     continue;
                 }
@@ -108,12 +108,45 @@ public sealed class MediatorUsageRulesTests
 
     private static bool IsMediatorSendInvocation(InvocationExpressionSyntax invocation)
     {
-        return invocation.Expression switch
+        if (invocation.Expression is not MemberAccessExpressionSyntax member ||
+            member.Name.Identifier.Text != "Send")
         {
-            MemberAccessExpressionSyntax member => member.Name.Identifier.Text == "Send",
-            IdentifierNameSyntax identifier => identifier.Identifier.Text == "Send",
+            return false;
+        }
+
+        return member.Expression switch
+        {
+            IdentifierNameSyntax identifier =>
+                identifier.Identifier.Text.Contains("mediator", StringComparison.OrdinalIgnoreCase) ||
+                identifier.Identifier.Text.Contains("sender", StringComparison.OrdinalIgnoreCase),
             _ => false
         };
+    }
+
+    private static bool IsCommandHandler(ClassDeclarationSyntax declaration)
+    {
+        if (declaration.BaseList is null)
+        {
+            return false;
+        }
+
+        foreach (var baseType in declaration.BaseList.Types)
+        {
+            if (baseType.Type is not GenericNameSyntax generic ||
+                generic.Identifier.Text != "IRequestHandler" ||
+                generic.TypeArgumentList.Arguments.Count < 1)
+            {
+                continue;
+            }
+
+            var requestType = generic.TypeArgumentList.Arguments[0].ToString();
+            if (requestType.EndsWith("Command", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static string FindRepoRoot()

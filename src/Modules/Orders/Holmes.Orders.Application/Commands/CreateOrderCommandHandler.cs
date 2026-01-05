@@ -3,7 +3,6 @@ using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Contracts;
 using Holmes.Orders.Contracts.Dtos;
 using Holmes.Orders.Domain;
-using Holmes.Subjects.Contracts;
 using Holmes.Users.Contracts;
 using MediatR;
 
@@ -11,7 +10,6 @@ namespace Holmes.Orders.Application.Commands;
 
 public sealed class CreateOrderCommandHandler(
     IOrdersUnitOfWork unitOfWork,
-    ISubjectGateway subjectGateway,
     ICustomerQueries customerQueries,
     IUserAccessQueries userAccessQueries,
     ICustomerAccessQueries customerAccessQueries
@@ -46,28 +44,20 @@ public sealed class CreateOrderCommandHandler(
             return Result.Fail<CreateOrderResponse>(ResultErrors.NotFound);
         }
 
-        var subject = await subjectGateway.EnsureSubjectAsync(
-            request.SubjectEmail,
-            request.SubjectPhone,
-            request.CreatedAt,
-            cancellationToken);
-
         var orderId = UlidId.NewUlid();
         var order = Order.Create(
             orderId,
-            subject.SubjectId,
             request.CustomerId,
             request.PolicySnapshotId,
+            request.SubjectEmail,
+            request.SubjectPhone,
             request.CreatedAt,
             request.PackageCode,
             userId);
 
         await unitOfWork.Orders.AddAsync(order, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(true, cancellationToken);
 
-        return Result.Success(new CreateOrderResponse(
-            subject.SubjectId.ToString(),
-            subject.WasExisting,
-            orderId.ToString()));
+        return Result.Success(new CreateOrderResponse(orderId.ToString()));
     }
 }

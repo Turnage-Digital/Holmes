@@ -20,7 +20,7 @@ namespace Holmes.Orders.Infrastructure.Sql.Migrations
                 {
                     OrderId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    SubjectId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                    SubjectId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -75,11 +75,15 @@ namespace Holmes.Orders.Infrastructure.Sql.Migrations
                 {
                     OrderId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    SubjectId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
+                    SubjectId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CustomerId = table.Column<string>(type: "varchar(26)", maxLength: 26, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PolicySnapshotId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SubjectEmail = table.Column<string>(type: "varchar(320)", maxLength: 320, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SubjectPhone = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PackageCode = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),

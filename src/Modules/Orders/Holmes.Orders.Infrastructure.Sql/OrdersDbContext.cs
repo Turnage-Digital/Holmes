@@ -30,7 +30,14 @@ public class OrdersDbContext(DbContextOptions<OrdersDbContext> options)
 
         builder.Property(x => x.SubjectId)
             .HasMaxLength(26)
+            .IsRequired(false);
+
+        builder.Property(x => x.SubjectEmail)
+            .HasMaxLength(320)
             .IsRequired();
+
+        builder.Property(x => x.SubjectPhone)
+            .HasMaxLength(32);
 
         builder.Property(x => x.CustomerId)
             .HasMaxLength(26)
@@ -73,7 +80,7 @@ public class OrdersDbContext(DbContextOptions<OrdersDbContext> options)
             .ValueGeneratedNever();
         builder.Property(x => x.SubjectId)
             .HasMaxLength(26)
-            .IsRequired();
+            .IsRequired(false);
         builder.Property(x => x.CustomerId)
             .HasMaxLength(26)
             .IsRequired();

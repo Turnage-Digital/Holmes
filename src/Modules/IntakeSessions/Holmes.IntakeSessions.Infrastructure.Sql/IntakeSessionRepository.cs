@@ -23,6 +23,15 @@ public class IntakeSessionRepository(IntakeSessionsDbContext dbContext)
         return db is null ? null : IntakeSessionMapper.ToDomain(db);
     }
 
+    public async Task<IntakeSession?> GetByOrderIdAsync(UlidId orderId, CancellationToken cancellationToken)
+    {
+        var db = await dbContext.IntakeSessions
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(x => x.OrderId == orderId.ToString(), cancellationToken);
+
+        return db is null ? null : IntakeSessionMapper.ToDomain(db);
+    }
+
     public async Task UpdateAsync(IntakeSession session, CancellationToken cancellationToken)
     {
         var db = await dbContext.IntakeSessions

@@ -39,11 +39,6 @@ public sealed class OrdersController(
             return BadRequest("Invalid customer id format.");
         }
 
-        if (!string.IsNullOrWhiteSpace(request.SubjectId))
-        {
-            return BadRequest("Subject id is not supported. Provide subject email instead.");
-        }
-
         if (string.IsNullOrWhiteSpace(request.SubjectEmail))
         {
             return BadRequest("Subject email is required.");
@@ -376,7 +371,6 @@ public sealed class OrdersController(
     public sealed record CreateOrderRequest(
         string CustomerId,
         string PolicySnapshotId,
-        string? SubjectId = null,
         string? SubjectEmail = null,
         string? SubjectPhone = null,
         string? PackageCode = null

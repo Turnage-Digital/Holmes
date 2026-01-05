@@ -204,6 +204,16 @@ public sealed class Subject : AggregateRoot
         MiddleName = middleName;
     }
 
+    public void RecordResolution(
+        UlidId orderId,
+        UlidId customerId,
+        DateTimeOffset resolvedAt,
+        bool wasExisting
+    )
+    {
+        Emit(new SubjectResolved(orderId, customerId, Id, resolvedAt, wasExisting));
+    }
+
     public void AddAddress(SubjectAddress address, DateTimeOffset timestamp)
     {
         ArgumentNullException.ThrowIfNull(address);

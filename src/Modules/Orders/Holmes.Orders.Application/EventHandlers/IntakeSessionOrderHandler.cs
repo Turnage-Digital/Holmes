@@ -1,48 +1,40 @@
-using Holmes.Core.Domain;
 using Holmes.IntakeSessions.Contracts.IntegrationEvents;
-using Holmes.Orders.Application.Commands;
+using Holmes.Orders.Domain;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Holmes.Orders.Application.EventHandlers;
 
 public sealed class IntakeSessionOrderHandler(
-    ISender sender,
+    IOrdersUnitOfWork unitOfWork,
     ILogger<IntakeSessionOrderHandler> logger
-) : INotificationHandler<IntakeSessionInvitedIntegrationEvent>,
-    INotificationHandler<IntakeSessionStartedIntegrationEvent>
+) : INotificationHandler<IntakeSessionStartedIntegrationEvent>
 {
-    public async Task Handle(IntakeSessionInvitedIntegrationEvent notification, CancellationToken cancellationToken)
-    {
-        logger.LogDebug(
-            "IntakeSessionInvited: Notifying Workflow of invite for Order {OrderId}",
-            notification.OrderId);
-
-        var inviteCommand = new RecordOrderInviteCommand(
-            notification.OrderId,
-            notification.IntakeSessionId,
-            notification.InvitedAt,
-            "Intake invitation issued")
-        {
-            UserId = SystemActors.System
-        };
-        await sender.Send(inviteCommand, cancellationToken);
-    }
-
     public async Task Handle(IntakeSessionStartedIntegrationEvent notification, CancellationToken cancellationToken)
     {
         logger.LogDebug(
             "IntakeSessionStarted: Notifying Workflow of intake start for Order {OrderId}",
             notification.OrderId);
 
-        var startCommand = new MarkOrderIntakeStartedCommand(
-            notification.OrderId,
-            notification.IntakeSessionId,
-            notification.StartedAt,
-            "Subject resumed intake")
+        var order = await unitOfWork.Orders.GetByIdAsync(notification.OrderId, cancellationToken);
+        if (order is null)
         {
-            UserId = SystemActors.System
-        };
-        await sender.Send(startCommand, cancellationToken);
+            return;
+        }
+
+        var linked = order.LinkIntakeSession(
+            notification.IntakeSessionId,
+            notification.OccurredAt,
+            "Intake session started");
+        if (!linked)
+        {
+            logger.LogWarning(
+                "Order {OrderId} already linked to a different intake session, skipping update",
+                notification.OrderId);
+            return;
+        }
+
+        await unitOfWork.Orders.UpdateAsync(order, cancellationToken);
+        await unitOfWork.SaveChangesAsync(true, cancellationToken);
     }
 }

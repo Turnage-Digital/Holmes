@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Holmes.IntakeSessions.Contracts.IntegrationEvents;
 
-public sealed record IntakeSessionStartedIntegrationEvent(
+public sealed record IntakeSubmittedIntegrationEvent(
     UlidId OrderId,
     UlidId IntakeSessionId,
     DateTimeOffset OccurredAt

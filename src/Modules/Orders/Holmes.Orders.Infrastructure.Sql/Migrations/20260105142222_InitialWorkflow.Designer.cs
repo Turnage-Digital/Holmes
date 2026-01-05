@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Holmes.Orders.Infrastructure.Sql.Migrations
 {
     [DbContext(typeof(OrdersDbContext))]
-    [Migration("20260102004751_InitialWorkflow")]
+    [Migration("20260105142222_InitialWorkflow")]
     partial class InitialWorkflow
     {
         /// <inheritdoc />
@@ -90,10 +90,18 @@ namespace Holmes.Orders.Infrastructure.Sql.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
 
-                    b.Property<string>("SubjectId")
+                    b.Property<string>("SubjectEmail")
                         .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("varchar(320)");
+
+                    b.Property<string>("SubjectId")
                         .HasMaxLength(26)
                         .HasColumnType("varchar(26)");
+
+                    b.Property<string>("SubjectPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
 
                     b.HasKey("OrderId");
 
@@ -151,7 +159,6 @@ namespace Holmes.Orders.Infrastructure.Sql.Migrations
                         .HasColumnType("varchar(32)");
 
                     b.Property<string>("SubjectId")
-                        .IsRequired()
                         .HasMaxLength(26)
                         .HasColumnType("varchar(26)");
 
