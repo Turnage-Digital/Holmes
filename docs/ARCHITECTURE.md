@@ -185,7 +185,6 @@ Rules for this workflow:
 - No shared transactions across modules; each handler commits independently.
 - All integration event publication uses deferred dispatch/outbox (SaveChangesAsync(true)).
 - Handlers must be idempotent and safe under retries.
-- Orders may store SubjectEmail/SubjectPhone until SubjectId is assigned.
 
 ---
 

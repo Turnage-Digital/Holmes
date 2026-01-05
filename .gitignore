@@ -2,7 +2,6 @@
 .DS_Store
 .Claude
 
-AGENTS.md
 *.DotSettings.user
 
 bin

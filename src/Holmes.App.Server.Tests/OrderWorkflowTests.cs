@@ -65,6 +65,7 @@ public class OrderWorkflowTests
         Assert.That(createdOrder, Is.Not.Null);
         Assert.That(createdOrder!.SubjectId, Is.Null);
         Assert.That(createdOrder.SubjectEmail, Is.EqualTo("workflow@example.com"));
+        Assert.That(createdOrder.SubjectPhone, Is.EqualTo("+15551234567"));
 
         var subjectHandler = new OrderRequestedSubjectHandler(subjectsUow);
         var requestedEvent = new OrderRequestedIntegrationEvent(
@@ -98,6 +99,8 @@ public class OrderWorkflowTests
 
         var resolvedOrder = await ordersUow.Orders.GetByIdAsync(orderId, CancellationToken.None);
         Assert.That(resolvedOrder!.SubjectId, Is.EqualTo(subject.Id));
+        Assert.That(resolvedOrder.SubjectEmail, Is.EqualTo("workflow@example.com"));
+        Assert.That(resolvedOrder.SubjectPhone, Is.EqualTo("+15551234567"));
 
         var orderQueries = new FakeOrderQueries(resolvedOrder);
         var intakeHandler = new OrderSubjectAssignedIntakeHandler(
@@ -129,6 +132,8 @@ public class OrderWorkflowTests
         var invitedOrder = await ordersUow.Orders.GetByIdAsync(orderId, CancellationToken.None);
         Assert.That(invitedOrder!.ActiveIntakeSessionId, Is.EqualTo(sessionId));
         Assert.That(invitedOrder.Status, Is.EqualTo(OrderStatus.Invited));
+        Assert.That(invitedOrder.SubjectEmail, Is.EqualTo("workflow@example.com"));
+        Assert.That(invitedOrder.SubjectPhone, Is.EqualTo("+15551234567"));
 
         var intakeSubmissionHandler = new IntakeSubmissionOrderHandler(
             ordersUow,
