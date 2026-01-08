@@ -8,13 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Holmes.IntakeSessions.Infrastructure.Sql;
 
-public sealed class DatabaseConsentArtifactStore(
+public sealed class DatabaseAuthorizationArtifactStore(
     IntakeSessionsDbContext dbContext,
     IAeadEncryptor encryptor
-) : IConsentArtifactStore
+) : IAuthorizationArtifactStore
 {
-    public async Task<ConsentArtifactDescriptor> SaveAsync(
-        ConsentArtifactWriteRequest request,
+    public async Task<AuthorizationArtifactDescriptor> SaveAsync(
+        AuthorizationArtifactWriteRequest request,
         Stream payload,
         CancellationToken cancellationToken
     )
@@ -24,7 +24,7 @@ public sealed class DatabaseConsentArtifactStore(
         var bytes = buffer.ToArray();
         var encrypted = await encryptor.EncryptAsync(bytes, cancellationToken: cancellationToken);
         var hash = Convert.ToHexString(SHA256.HashData(bytes));
-        var entity = new ConsentArtifactDb
+        var entity = new AuthorizationArtifactDb
         {
             ArtifactId = request.ArtifactId.ToString(),
             OrderId = request.OrderId.ToString(),
@@ -39,10 +39,10 @@ public sealed class DatabaseConsentArtifactStore(
             MetadataJson = JsonSerializer.Serialize(request.Metadata)
         };
 
-        dbContext.ConsentArtifacts.Add(entity);
+        dbContext.AuthorizationArtifacts.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ConsentArtifactDescriptor(
+        return new AuthorizationArtifactDescriptor(
             request.ArtifactId,
             request.MimeType,
             bytes.LongLength,
@@ -52,10 +52,10 @@ public sealed class DatabaseConsentArtifactStore(
             entity.CreatedAt);
     }
 
-    public async Task<ConsentArtifactStream?> GetAsync(UlidId artifactId, CancellationToken cancellationToken)
+    public async Task<AuthorizationArtifactStream?> GetAsync(UlidId artifactId, CancellationToken cancellationToken)
     {
         var id = artifactId.ToString();
-        var entity = await dbContext.ConsentArtifacts
+        var entity = await dbContext.AuthorizationArtifacts
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.ArtifactId == id, cancellationToken);
         if (entity is null)
@@ -64,7 +64,7 @@ public sealed class DatabaseConsentArtifactStore(
         }
 
         var decrypted = await encryptor.DecryptAsync(entity.Payload, cancellationToken: cancellationToken);
-        var descriptor = new ConsentArtifactDescriptor(
+        var descriptor = new AuthorizationArtifactDescriptor(
             artifactId,
             entity.MimeType,
             entity.Length,
@@ -73,12 +73,12 @@ public sealed class DatabaseConsentArtifactStore(
             entity.SchemaVersion,
             entity.CreatedAt);
 
-        return new ConsentArtifactStream(descriptor, new MemoryStream(decrypted, false));
+        return new AuthorizationArtifactStream(descriptor, new MemoryStream(decrypted, false));
     }
 
     public async Task<bool> ExistsAsync(UlidId artifactId, CancellationToken cancellationToken)
     {
         var id = artifactId.ToString();
-        return await dbContext.ConsentArtifacts.AnyAsync(x => x.ArtifactId == id, cancellationToken);
+        return await dbContext.AuthorizationArtifacts.AnyAsync(x => x.ArtifactId == id, cancellationToken);
     }
 }

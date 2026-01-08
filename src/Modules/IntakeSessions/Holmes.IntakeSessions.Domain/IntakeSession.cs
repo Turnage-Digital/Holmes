@@ -22,7 +22,7 @@ public sealed class IntakeSession : AggregateRoot
     public string ResumeToken { get; private set; } = string.Empty;
     public PolicySnapshot PolicySnapshot { get; private set; } = null!;
     public IntakeAnswersSnapshot? AnswersSnapshot { get; private set; }
-    public ConsentArtifactPointer? ConsentArtifact { get; private set; }
+    public AuthorizationArtifactPointer? AuthorizationArtifact { get; private set; }
     public DateTimeOffset? SubmittedAt { get; private set; }
     public DateTimeOffset? AcceptedAt { get; private set; }
     public string? CancellationReason { get; private set; }
@@ -40,7 +40,7 @@ public sealed class IntakeSession : AggregateRoot
         string resumeToken,
         PolicySnapshot policySnapshot,
         IntakeAnswersSnapshot? answersSnapshot,
-        ConsentArtifactPointer? consentArtifact,
+        AuthorizationArtifactPointer? authorizationArtifact,
         DateTimeOffset? submittedAt,
         DateTimeOffset? acceptedAt,
         string? cancellationReason,
@@ -60,7 +60,7 @@ public sealed class IntakeSession : AggregateRoot
             ResumeToken = resumeToken,
             PolicySnapshot = policySnapshot,
             AnswersSnapshot = answersSnapshot,
-            ConsentArtifact = consentArtifact,
+            AuthorizationArtifact = authorizationArtifact,
             SubmittedAt = submittedAt,
             AcceptedAt = acceptedAt,
             CancellationReason = cancellationReason,
@@ -144,19 +144,19 @@ public sealed class IntakeSession : AggregateRoot
         AddDomainEvent(new IntakeProgressSaved(Id, OrderId, answers));
     }
 
-    public void CaptureConsent(ConsentArtifactPointer artifact)
+    public void CaptureAuthorization(AuthorizationArtifactPointer artifact)
     {
         ArgumentNullException.ThrowIfNull(artifact);
         EnsureActive();
         if (Status is not (IntakeSessionStatus.InProgress or IntakeSessionStatus.AwaitingReview))
         {
-            throw new InvalidOperationException("Consent can only be captured for active sessions.");
+            throw new InvalidOperationException("Authorization can only be captured for active sessions.");
         }
 
-        ConsentArtifact = artifact;
+        AuthorizationArtifact = artifact;
         LastTouchedAt = artifact.CapturedAt;
 
-        AddDomainEvent(new ConsentCaptured(Id, OrderId, artifact));
+        AddDomainEvent(new AuthorizationCaptured(Id, OrderId, artifact));
     }
 
     public void Submit(DateTimeOffset submittedAt)
@@ -169,9 +169,9 @@ public sealed class IntakeSession : AggregateRoot
 
         EnsureNotExpired(submittedAt);
 
-        if (ConsentArtifact is null)
+        if (AuthorizationArtifact is null)
         {
-            throw new InvalidOperationException("Consent must be captured before submission.");
+            throw new InvalidOperationException("Authorization must be captured before submission.");
         }
 
         if (AnswersSnapshot is null)

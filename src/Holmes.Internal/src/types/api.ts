@@ -603,7 +603,7 @@ export interface PauseClockRequest {
 export type NotificationTriggerType =
   | "IntakeSessionInvited"
   | "IntakeSubmissionReceived"
-  | "ConsentCaptured"
+  | "AuthorizationCaptured"
   | "OrderStateChanged"
   | "SlaClockAtRisk"
   | "SlaClockBreached"

@@ -61,11 +61,11 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
                 result.Value.ExpiresAt));
     }
 
-    [HttpPost("{sessionId}/consent")]
+    [HttpPost("{sessionId}/authorization")]
     [AllowAnonymous]
-    public async Task<IActionResult> CaptureConsent(
+    public async Task<IActionResult> CaptureAuthorization(
         string sessionId,
-        [FromBody] CaptureConsentArtifactRequest request,
+        [FromBody] CaptureAuthorizationArtifactRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -81,10 +81,10 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
         }
         catch (FormatException)
         {
-            return BadRequest("Consent payload must be base64 encoded.");
+            return BadRequest("Authorization payload must be base64 encoded.");
         }
 
-        var command = new CaptureConsentArtifactCommand(
+        var command = new CaptureAuthorizationArtifactCommand(
             parsedSession,
             request.MimeType,
             request.SchemaVersion,
@@ -314,7 +314,7 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
 
     public sealed record VerifyOtpResponse(bool Verified);
 
-    public sealed record CaptureConsentArtifactRequest(
+    public sealed record CaptureAuthorizationArtifactRequest(
         string MimeType,
         string SchemaVersion,
         string PayloadBase64,

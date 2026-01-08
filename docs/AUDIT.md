@@ -115,7 +115,7 @@ Stream ID format: `IntakeSession:{sessionId}`
 | `IntakeSessionInvited`     | Intake invite sent        | `IntakeSessionId`, `OrderId`, `SubjectId`, `ExpiresAt` |
 | `IntakeSessionStarted`     | Subject began intake      | `IntakeSessionId`, `StartedAt`                         |
 | `IntakeProgressSaved`      | Progress checkpoint saved | `IntakeSessionId`, `AnswersSnapshot`                   |
-| `ConsentCaptured`          | Consent form signed       | `IntakeSessionId`, `Artifact`                          |
+| `AuthorizationCaptured`    | Authorization signed      | `IntakeSessionId`, `Artifact`                          |
 | `IntakeSubmissionReceived` | Intake form submitted     | `IntakeSessionId`, `SubmittedAt`                       |
 | `IntakeSubmissionAccepted` | Submission approved       | `IntakeSessionId`, `AcceptedAt`                        |
 | `IntakeSessionExpired`     | Session timed out         | `IntakeSessionId`, `ExpiredAt`, `Reason`               |

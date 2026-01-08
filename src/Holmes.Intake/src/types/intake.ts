@@ -86,7 +86,7 @@ export interface ExtendedIntakeFormState {
   email: string;
   phone: string;
   ssnFull: string;
-  consentAccepted: boolean;
+  authorizationAccepted: boolean;
 
   // Collections (new)
   addresses: IntakeAddress[];

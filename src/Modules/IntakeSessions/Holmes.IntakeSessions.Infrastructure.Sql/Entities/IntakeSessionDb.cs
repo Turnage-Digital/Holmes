@@ -16,13 +16,13 @@ public class IntakeSessionDb
     public string? AnswersPayloadHash { get; set; }
     public string? AnswersPayloadCipherText { get; set; }
     public DateTimeOffset? AnswersUpdatedAt { get; set; }
-    public string? ConsentArtifactId { get; set; }
-    public string? ConsentMimeType { get; set; }
-    public long? ConsentLength { get; set; }
-    public string? ConsentHash { get; set; }
-    public string? ConsentHashAlgorithm { get; set; }
-    public string? ConsentSchemaVersion { get; set; }
-    public DateTimeOffset? ConsentCapturedAt { get; set; }
+    public string? AuthorizationArtifactId { get; set; }
+    public string? AuthorizationMimeType { get; set; }
+    public long? AuthorizationLength { get; set; }
+    public string? AuthorizationHash { get; set; }
+    public string? AuthorizationHashAlgorithm { get; set; }
+    public string? AuthorizationSchemaVersion { get; set; }
+    public DateTimeOffset? AuthorizationCapturedAt { get; set; }
     public DateTimeOffset? SubmittedAt { get; set; }
     public DateTimeOffset? AcceptedAt { get; set; }
     public string? CancellationReason { get; set; }

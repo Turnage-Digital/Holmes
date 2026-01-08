@@ -1,6 +1,6 @@
 namespace Holmes.IntakeSessions.Infrastructure.Sql.Entities;
 
-public class ConsentArtifactDb
+public class AuthorizationArtifactDb
 {
     public string ArtifactId { get; set; } = null!;
     public string OrderId { get; set; } = null!;

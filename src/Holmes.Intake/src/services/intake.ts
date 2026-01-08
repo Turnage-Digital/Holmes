@@ -1,8 +1,8 @@
 import { apiFetch } from "@holmes/ui-core";
 
 import {
-  CaptureConsentRequest,
-  CaptureConsentResponse,
+  CaptureAuthorizationRequest,
+  CaptureAuthorizationResponse,
   IntakeBootstrapResponse,
   SaveIntakeProgressRequest,
   StartIntakeSessionRequest,
@@ -29,10 +29,10 @@ export const verifyIntakeOtp = (
     body: payload,
   });
 
-export const captureConsentArtifact = async (
+export const captureAuthorizationArtifact = async (
   sessionId: string,
-  payload: CaptureConsentRequest,
-): Promise<CaptureConsentResponse> => {
+  payload: CaptureAuthorizationRequest,
+): Promise<CaptureAuthorizationResponse> => {
   const response = await apiFetch<{
     ArtifactId: string;
     MimeType: string;
@@ -41,7 +41,7 @@ export const captureConsentArtifact = async (
     HashAlgorithm: string;
     SchemaVersion: string;
     CreatedAt: string;
-  }>(`/intake/sessions/${sessionId}/consent`, {
+  }>(`/intake/sessions/${sessionId}/authorization`, {
     method: "POST",
     body: payload,
   });

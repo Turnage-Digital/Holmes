@@ -2,7 +2,7 @@ using Holmes.Core.Domain.ValueObjects;
 
 namespace Holmes.IntakeSessions.Domain.ValueObjects;
 
-public sealed record ConsentArtifactPointer(
+public sealed record AuthorizationArtifactPointer(
     UlidId ArtifactId,
     string MimeType,
     long Length,
@@ -12,7 +12,7 @@ public sealed record ConsentArtifactPointer(
     DateTimeOffset CapturedAt
 )
 {
-    public static ConsentArtifactPointer Create(
+    public static AuthorizationArtifactPointer Create(
         UlidId artifactId,
         string mimeType,
         long length,
@@ -29,6 +29,13 @@ public sealed record ConsentArtifactPointer(
         ArgumentException.ThrowIfNullOrWhiteSpace(hashAlgorithm);
         ArgumentException.ThrowIfNullOrWhiteSpace(schemaVersion);
 
-        return new ConsentArtifactPointer(artifactId, mimeType, length, hash, hashAlgorithm, schemaVersion, capturedAt);
+        return new AuthorizationArtifactPointer(
+            artifactId,
+            mimeType,
+            length,
+            hash,
+            hashAlgorithm,
+            schemaVersion,
+            capturedAt);
     }
 }

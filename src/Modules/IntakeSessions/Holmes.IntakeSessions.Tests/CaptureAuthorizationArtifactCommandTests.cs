@@ -6,17 +6,17 @@ using Moq;
 
 namespace Holmes.IntakeSessions.Tests;
 
-public class CaptureConsentArtifactCommandTests
+public class CaptureAuthorizationArtifactCommandTests
 {
     private InMemoryIntakeSessionRepository _repository = null!;
-    private Mock<IConsentArtifactStore> _storeMock = null!;
+    private Mock<IAuthorizationArtifactStore> _storeMock = null!;
     private Mock<IIntakeSessionsUnitOfWork> _unitOfWorkMock = null!;
 
     [SetUp]
     public void SetUp()
     {
         _repository = new InMemoryIntakeSessionRepository();
-        _storeMock = new Mock<IConsentArtifactStore>();
+        _storeMock = new Mock<IAuthorizationArtifactStore>();
         _unitOfWorkMock = new Mock<IIntakeSessionsUnitOfWork>();
         _unitOfWorkMock.Setup(x => x.IntakeSessions).Returns(_repository);
     }
@@ -28,7 +28,7 @@ public class CaptureConsentArtifactCommandTests
         session.Start(DateTimeOffset.UtcNow, null);
         await _repository.AddAsync(session, CancellationToken.None);
 
-        var descriptor = new ConsentArtifactDescriptor(
+        var descriptor = new AuthorizationArtifactDescriptor(
             UlidId.NewUlid(),
             "application/pdf",
             1024,
@@ -37,11 +37,12 @@ public class CaptureConsentArtifactCommandTests
             "schema",
             DateTimeOffset.UtcNow);
         _storeMock.Setup(x =>
-                x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                x.SaveAsync(It.IsAny<AuthorizationArtifactWriteRequest>(), It.IsAny<Stream>(),
+                    It.IsAny<CancellationToken>()))
             .ReturnsAsync(descriptor);
 
-        var handler = new CaptureConsentArtifactCommandHandler(_storeMock.Object, _unitOfWorkMock.Object);
-        var command = new CaptureConsentArtifactCommand(
+        var handler = new CaptureAuthorizationArtifactCommandHandler(_storeMock.Object, _unitOfWorkMock.Object);
+        var command = new CaptureAuthorizationArtifactCommand(
             session.Id,
             "application/pdf",
             "schema",
@@ -50,14 +51,14 @@ public class CaptureConsentArtifactCommandTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
-        Assert.Multiple(() =>
+            Assert.Multiple(() =>
         {
             Assert.That(result.IsSuccess, Is.True);
             Assert.That(result.Value, Is.EqualTo(descriptor));
-            Assert.That(session.ConsentArtifact, Is.Not.Null);
+            Assert.That(session.AuthorizationArtifact, Is.Not.Null);
         });
         _storeMock.Verify(
-            x => x.SaveAsync(It.IsAny<ConsentArtifactWriteRequest>(), It.IsAny<Stream>(),
+            x => x.SaveAsync(It.IsAny<AuthorizationArtifactWriteRequest>(), It.IsAny<Stream>(),
                 It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

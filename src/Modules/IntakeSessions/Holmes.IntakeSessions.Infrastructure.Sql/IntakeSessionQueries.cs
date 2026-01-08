@@ -121,23 +121,23 @@ public sealed class IntakeSessionQueries(IntakeSessionsDbContext dbContext) : II
         // Extract section config from policy metadata
         var sectionConfig = ParseSectionConfig(policyJson.RootElement);
 
-        ConsentArtifactDto? consent = null;
-        if (session.ConsentArtifactId is not null &&
-            session.ConsentMimeType is not null &&
-            session.ConsentLength.HasValue &&
-            session.ConsentHash is not null &&
-            session.ConsentHashAlgorithm is not null &&
-            session.ConsentSchemaVersion is not null &&
-            session.ConsentCapturedAt.HasValue)
+        AuthorizationArtifactDto? authorization = null;
+        if (session.AuthorizationArtifactId is not null &&
+            session.AuthorizationMimeType is not null &&
+            session.AuthorizationLength.HasValue &&
+            session.AuthorizationHash is not null &&
+            session.AuthorizationHashAlgorithm is not null &&
+            session.AuthorizationSchemaVersion is not null &&
+            session.AuthorizationCapturedAt.HasValue)
         {
-            consent = new ConsentArtifactDto(
-                session.ConsentArtifactId,
-                session.ConsentMimeType,
-                session.ConsentLength.Value,
-                session.ConsentHash,
-                session.ConsentHashAlgorithm,
-                session.ConsentSchemaVersion,
-                session.ConsentCapturedAt.Value
+            authorization = new AuthorizationArtifactDto(
+                session.AuthorizationArtifactId,
+                session.AuthorizationMimeType,
+                session.AuthorizationLength.Value,
+                session.AuthorizationHash,
+                session.AuthorizationHashAlgorithm,
+                session.AuthorizationSchemaVersion,
+                session.AuthorizationCapturedAt.Value
             );
         }
 
@@ -170,7 +170,7 @@ public sealed class IntakeSessionQueries(IntakeSessionsDbContext dbContext) : II
             session.AcceptedAt,
             session.CancellationReason,
             session.SupersededBySessionId,
-            consent,
+            authorization,
             answers,
             sectionConfig
         );

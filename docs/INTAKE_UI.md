@@ -12,10 +12,11 @@ The Intake UI exists to guide a subject through a short, tightly-scoped workflow
 
 1. Open invite link
 2. Verify identity (OTP)
-3. Review disclosures / consent
-4. Provide minimal required data
-5. Submit
-6. Exit
+3. Review disclosure
+4. Provide authorization
+5. Provide minimal required data
+6. Submit
+7. Exit
 
 The experience must be:
 
@@ -90,7 +91,7 @@ src/
 
 ### 3.3 Shared UI Core
 
-* Intake and Internal share a thin `ui-core` layer (tokens, typography, form primitives, OTP control, consent viewer,
+* Intake and Internal share a thin `ui-core` layer (tokens, typography, form primitives, OTP control, disclosure viewer,
   wizard shell, fetch/error helpers).
 * Layout shells, navigation, and role concepts remain isolated to each app.
 
@@ -152,25 +153,31 @@ Events emitted:
 * Error states: expired, wrong, too many attempts
 * On success load subject + policy data
 
-## 5.3 Consent
+## 5.3 Disclosure
 
-* Show disclosure content (HTML/PDF)
-* Checkbox + timestamp
-* “I Agree” → Data Entry
+* Show disclosure content only (HTML/PDF)
+* No checkbox or authorization language
+* “Continue” → Authorization
 
-## 5.4 Data Entry
+## 5.4 Authorization
+
+* Short authorization statement
+* Unchecked checkbox + timestamp
+* “Authorize & continue” → Data Entry
+
+## 5.5 Data Entry
 
 * Minimal fields only
 * Real-time validation
 * Auto-format phone/email where possible
 
-## 5.5 Review
+## 5.6 Review
 
 * Display entered data
 * Highlight required corrections
 * “Submit”
 
-## 5.6 Success
+## 5.7 Success
 
 * “You’re all set. You may close this screen.”
 * No next steps, no navigation
@@ -207,7 +214,7 @@ Events emitted:
 
 ### 6.5 Evidence Capture
 
-* Consent step must record checkbox, timestamp, IP/UA context, and the disclosure version/hash surfaced by the server.
+* Authorization step must record checkbox, timestamp, IP/UA context, and the disclosure version/hash surfaced by the server.
 * Review step surfaces what will be stored; submission wipes local draft data.
 
 ---
@@ -261,7 +268,7 @@ These are deliberately **not** part of the initial build, but good to anticipate
 The Intake UI is considered complete when:
 
 1. A subject can complete the flow in under **60 seconds**.
-2. OTP → Consent → Data → Review → Submit works on:
+2. OTP → Disclosure → Authorization → Data → Review → Submit works on:
 
     * iPhone Safari
     * Android Chrome
@@ -271,7 +278,7 @@ The Intake UI is considered complete when:
    without
    hanging the UI.
 5. Draft persistence follows guardrails (per-invite key, TTL, wiped on submit/abandon; minimal PII).
-6. Consent step captures evidence (checkbox, timestamp, IP/UA, disclosure version/hash) surfaced by the server.
+6. Authorization step captures evidence (checkbox, timestamp, IP/UA, disclosure version/hash) surfaced by the server.
 7. No service worker, no caching beyond the guarded draft storage.
 8. Build output is less than ~200 KB compressed.
 9. `Holmes.Intake.Server` can serve the SPA standalone.

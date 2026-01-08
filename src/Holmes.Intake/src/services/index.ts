@@ -1,7 +1,7 @@
 export {
   startIntakeSession,
   verifyIntakeOtp,
-  captureConsentArtifact,
+  captureAuthorizationArtifact,
   saveIntakeProgress,
   submitIntake,
   getIntakeBootstrap,

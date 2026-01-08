@@ -177,7 +177,7 @@ const NewOrderDialog = ({ open, onClose }: NewOrderDialogProps) => {
 
           <Typography variant="body2" color="text.secondary">
             The subject will receive an invite to complete their intake, provide
-            consent, and verify their information.
+            disclosure review and authorization, and verify their information.
           </Typography>
         </Stack>
       </DialogContent>

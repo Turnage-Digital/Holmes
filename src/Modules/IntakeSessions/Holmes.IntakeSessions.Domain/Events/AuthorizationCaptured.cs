@@ -4,8 +4,8 @@ using MediatR;
 
 namespace Holmes.IntakeSessions.Domain.Events;
 
-public sealed record ConsentCaptured(
+public sealed record AuthorizationCaptured(
     UlidId IntakeSessionId,
     UlidId OrderId,
-    ConsentArtifactPointer Artifact
+    AuthorizationArtifactPointer Artifact
 ) : INotification;

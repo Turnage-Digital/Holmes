@@ -37,7 +37,7 @@ import {
 } from "@/hooks/useSectionVisibility";
 import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
 import {
-  captureConsentArtifact,
+  captureAuthorizationArtifact,
   getIntakeBootstrap,
   saveIntakeProgress,
   startIntakeSession,
@@ -45,7 +45,7 @@ import {
   verifyIntakeOtp,
 } from "@/services/intake";
 import {
-  CaptureConsentResponse,
+  CaptureAuthorizationResponse,
   IntakeBootstrapResponse,
   IntakeSectionConfig,
   SaveIntakeProgressRequest,
@@ -62,7 +62,8 @@ import {
 type IntakeStepId =
   | "verify"
   | "otp"
-  | "consent"
+  | "disclosure"
+  | "authorization"
   | "personal"
   | "phone"
   | "addresses"
@@ -93,7 +94,7 @@ interface IntakeFormState {
   email: string;
   phone: string;
   ssn: string;
-  consentAccepted: boolean;
+  authorizationAccepted: boolean;
   addresses: IntakeAddress[];
   employments: IntakeEmployment[];
   educations: IntakeEducation[];
@@ -102,7 +103,7 @@ interface IntakeFormState {
 }
 
 const formSchemaVersion = "intake-extended-v2";
-const consentSchemaVersion = "consent-basic-v1";
+const authorizationSchemaVersion = "authorization-basic-v1";
 
 const initialFormState: IntakeFormState = {
   firstName: "",
@@ -112,7 +113,7 @@ const initialFormState: IntakeFormState = {
   email: "",
   phone: "",
   ssn: "",
-  consentAccepted: false,
+  authorizationAccepted: false,
   addresses: [createEmptyAddress()],
   employments: [],
   educations: [],
@@ -120,9 +121,11 @@ const initialFormState: IntakeFormState = {
   phones: [],
 };
 
-const CONSENT_TEXT = `I authorize Holmes to obtain and share consumer reports for employment purposes.
-I acknowledge I have received and reviewed the disclosure describing this process.
-This authorization remains valid for this background check request and may be revoked in writing.`;
+const DISCLOSURE_TEXT = `A consumer report (background check) may be obtained about you for employment purposes.
+This disclosure is provided before authorization is requested.`;
+
+const AUTHORIZATION_TEXT = `I authorize Holmes to obtain a consumer report about me for employment purposes.
+This authorization applies to this background check request and may be revoked in writing.`;
 
 const StepCopy = ({
   heading,
@@ -201,9 +204,11 @@ const IntakeFlow = () => {
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpVerified, setOtpVerified] = useState(false);
   const [formState, setFormState] = useState<IntakeFormState>(initialFormState);
-  const [consentReceipt, setConsentReceipt] =
-    useState<CaptureConsentResponse | null>(null);
-  const [consentError, setConsentError] = useState<string | null>(null);
+  const [authorizationReceipt, setAuthorizationReceipt] =
+    useState<CaptureAuthorizationResponse | null>(null);
+  const [authorizationError, setAuthorizationError] = useState<string | null>(
+    null,
+  );
   const [progressError, setProgressError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
@@ -277,18 +282,19 @@ const IntakeFlow = () => {
     });
 
   const {
-    mutateAsync: captureConsentMutateAsync,
-    isPending: isCapturingConsent,
+    mutateAsync: captureAuthorizationMutateAsync,
+    isPending: isCapturingAuthorization,
   } = useMutation({
     mutationFn: () =>
-      captureConsentArtifact(requireSessionId(), {
+      captureAuthorizationArtifact(requireSessionId(), {
         mimeType: "text/plain",
-        schemaVersion: consentSchemaVersion,
-        payloadBase64: toBase64(CONSENT_TEXT),
+        schemaVersion: authorizationSchemaVersion,
+        payloadBase64: toBase64(AUTHORIZATION_TEXT),
         capturedAt: new Date().toISOString(),
         metadata: {
           source: "intake-ui",
           variant: "phase-2",
+          artifactType: "authorization",
         },
       }),
   });
@@ -412,12 +418,12 @@ const IntakeFlow = () => {
         yearsKnown: r.yearsKnown,
         type: r.type,
       })),
-      consent: {
-        artifactId: consentReceipt?.artifactId ?? null,
-        acceptedAt: consentReceipt?.createdAt ?? null,
+      authorization: {
+        artifactId: authorizationReceipt?.artifactId ?? null,
+        acceptedAt: authorizationReceipt?.createdAt ?? null,
       },
     }),
-    [consentReceipt, formState],
+    [authorizationReceipt, formState],
   );
 
   const persistProgressSnapshot = useCallback(async () => {
@@ -443,15 +449,15 @@ const IntakeFlow = () => {
       setSectionConfig(bootstrap.sectionConfig);
     }
 
-    if (bootstrap.consent) {
-      setConsentReceipt({
-        artifactId: bootstrap.consent.artifactId,
-        mimeType: bootstrap.consent.mimeType,
-        length: bootstrap.consent.length,
-        hash: bootstrap.consent.hash,
-        hashAlgorithm: bootstrap.consent.hashAlgorithm,
-        schemaVersion: bootstrap.consent.schemaVersion,
-        createdAt: bootstrap.consent.capturedAt,
+    if (bootstrap.authorization) {
+      setAuthorizationReceipt({
+        artifactId: bootstrap.authorization.artifactId,
+        mimeType: bootstrap.authorization.mimeType,
+        length: bootstrap.authorization.length,
+        hash: bootstrap.authorization.hash,
+        hashAlgorithm: bootstrap.authorization.hashAlgorithm,
+        schemaVersion: bootstrap.authorization.schemaVersion,
+        createdAt: bootstrap.authorization.capturedAt,
       });
     }
 
@@ -484,7 +490,8 @@ const IntakeFlow = () => {
     if (!decoded) {
       setFormState((prev) => ({
         ...prev,
-        consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
+        authorizationAccepted:
+          prev.authorizationAccepted || Boolean(bootstrap.authorization),
       }));
       return;
     }
@@ -499,7 +506,8 @@ const IntakeFlow = () => {
       educations: decoded.educations ?? prev.educations,
       references: decoded.references ?? prev.references,
       phones: decoded.phones?.length ? decoded.phones : prev.phones,
-      consentAccepted: prev.consentAccepted || Boolean(bootstrap.consent),
+      authorizationAccepted:
+        prev.authorizationAccepted || Boolean(bootstrap.authorization),
     }));
   }, []);
 
@@ -542,27 +550,31 @@ const IntakeFlow = () => {
 
   const verifyingOtp = isVerifyingOtp || isStartingSession || isBootstrapping;
 
-  const handleConsentCapture = useCallback(async () => {
-    if (consentReceipt) {
+  const handleAuthorizationCapture = useCallback(async () => {
+    if (authorizationReceipt) {
       return true;
     }
 
-    if (!formState.consentAccepted) {
-      setConsentError("Please confirm you have read and agree to continue.");
+    if (!formState.authorizationAccepted) {
+      setAuthorizationError("Please confirm your authorization to continue.");
       return false;
     }
 
-    setConsentError(null);
+    setAuthorizationError(null);
 
     try {
-      const receipt = await captureConsentMutateAsync();
-      setConsentReceipt(receipt);
+      const receipt = await captureAuthorizationMutateAsync();
+      setAuthorizationReceipt(receipt);
       return true;
     } catch (error) {
-      setConsentError(extractErrorMessage(error));
+      setAuthorizationError(extractErrorMessage(error));
       return false;
     }
-  }, [captureConsentMutateAsync, consentReceipt, formState.consentAccepted]);
+  }, [
+    captureAuthorizationMutateAsync,
+    authorizationReceipt,
+    formState.authorizationAccepted,
+  ]);
 
   const handleSubmit = useCallback(async () => {
     setSubmissionError(null);
@@ -579,9 +591,9 @@ const IntakeFlow = () => {
       return false;
     }
 
-    if (!consentReceipt) {
-      const consentOk = await handleConsentCapture();
-      if (!consentOk) {
+    if (!authorizationReceipt) {
+      const authorizationOk = await handleAuthorizationCapture();
+      if (!authorizationOk) {
         return false;
       }
     }
@@ -595,8 +607,8 @@ const IntakeFlow = () => {
       return false;
     }
   }, [
-    consentReceipt,
-    handleConsentCapture,
+    authorizationReceipt,
+    handleAuthorizationCapture,
     persistProgressSnapshot,
     submitIntakeMutateAsync,
     validateForm,
@@ -714,33 +726,56 @@ const IntakeFlow = () => {
         primaryButtonDisabled: verifyingOtp,
       },
       {
-        id: "consent",
-        title: "Consent & Disclosures",
-        subtitle: "Review standard disclosures and acknowledge consent.",
+        id: "disclosure",
+        title: "Disclosure",
+        subtitle: "Review the standalone disclosure before continuing.",
+        render: () => (
+          <Stack spacing={2}>
+            <StepCopy
+              heading="Disclosure"
+              body="Please read the disclosure below. This page is only the disclosure."
+            />
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Stack spacing={1}>
+                {DISCLOSURE_TEXT.split("\n").map((line) => (
+                  <Typography key={line} variant="body2" color="text.secondary">
+                    {line}
+                  </Typography>
+                ))}
+              </Stack>
+            </Paper>
+          </Stack>
+        ),
+        primaryCtaLabel: "Continue",
+      },
+      {
+        id: "authorization",
+        title: "Authorization",
+        subtitle: "Provide written authorization for this background check.",
         render: () => {
-          let consentStatus: ReactNode = null;
-          if (consentReceipt) {
-            consentStatus = (
+          let authorizationStatus: ReactNode = null;
+          if (authorizationReceipt) {
+            authorizationStatus = (
               <Alert severity="success">
-                Consent saved at{" "}
-                {new Date(consentReceipt.createdAt).toLocaleString()}.
+                Authorization saved at{" "}
+                {new Date(authorizationReceipt.createdAt).toLocaleString()}.
               </Alert>
             );
           }
-          const consentErrorAlert = consentError ? (
-            <Alert severity="error">{consentError}</Alert>
+          const authorizationErrorAlert = authorizationError ? (
+            <Alert severity="error">{authorizationError}</Alert>
           ) : null;
 
           return (
             <Stack spacing={2}>
               <StepCopy
-                heading="Disclosures in plain language"
-                body="Review the summary below and confirm you agree to continue."
-                helper="We will attach this acceptance to your intake record."
+                heading="Authorize this background check"
+                body="Confirm you authorize Holmes to obtain a consumer report."
+                helper="We will attach this authorization to your intake record."
               />
               <Paper variant="outlined" sx={{ p: 2 }}>
                 <Stack spacing={1}>
-                  {CONSENT_TEXT.split("\n").map((line) => (
+                  {AUTHORIZATION_TEXT.split("\n").map((line) => (
                     <Typography
                       key={line}
                       variant="body2"
@@ -754,23 +789,29 @@ const IntakeFlow = () => {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={formState.consentAccepted}
+                    checked={formState.authorizationAccepted}
                     onChange={(event) => {
-                      updateField("consentAccepted", event.target.checked);
-                      setConsentError(null);
+                      updateField(
+                        "authorizationAccepted",
+                        event.target.checked,
+                      );
+                      setAuthorizationError(null);
                     }}
                   />
                 }
-                label="I have read the disclosure and authorize this background check."
+                label="I authorize this background check."
               />
-              {consentErrorAlert}
-              {consentStatus}
+              {authorizationErrorAlert}
+              {authorizationStatus}
             </Stack>
           );
         },
-        primaryCtaLabel: isCapturingConsent ? "Saving..." : "Agree & continue",
-        onPrimary: handleConsentCapture,
-        primaryButtonDisabled: isCapturingConsent,
+        primaryCtaLabel: isCapturingAuthorization
+          ? "Saving..."
+          : "Authorize & continue",
+        onPrimary: handleAuthorizationCapture,
+        primaryButtonDisabled:
+          isCapturingAuthorization || !formState.authorizationAccepted,
       },
       {
         id: "personal",
@@ -1170,7 +1211,10 @@ const IntakeFlow = () => {
                     `${formState.educations.length}`,
                   )}
                   <Divider sx={{ my: 1 }} />
-                  {summaryRow("Consent", consentReceipt ? "Saved" : "Pending")}
+                  {summaryRow(
+                    "Authorization",
+                    authorizationReceipt ? "Saved" : "Pending",
+                  )}
                 </Stack>
               </Paper>
               <Typography variant="body2" color="text.secondary">
@@ -1200,15 +1244,15 @@ const IntakeFlow = () => {
       },
     ],
     [
-      consentError,
-      consentReceipt,
+      authorizationError,
+      authorizationReceipt,
       formState,
-      handleConsentCapture,
+      handleAuthorizationCapture,
       handleOtpVerification,
       handleSubmit,
       inviteError,
       inviteParamsMissing,
-      isCapturingConsent,
+      isCapturingAuthorization,
       isSavingProgress,
       isSubmittingIntake,
       otpCode,
@@ -1229,7 +1273,7 @@ const IntakeFlow = () => {
   // Filter steps based on section visibility from ordered services
   const steps = useMemo(() => {
     return allSteps.filter((step) => {
-      // Steps without sectionId are always visible (verify, otp, consent, personal, review, success)
+      // Steps without sectionId are always visible (verify, otp, disclosure, authorization, personal, review, success)
       if (!step.sectionId) {
         return true;
       }
@@ -1271,8 +1315,8 @@ const IntakeFlow = () => {
     setOtpCode("");
     setOtpError(null);
     setOtpVerified(false);
-    setConsentReceipt(null);
-    setConsentError(null);
+    setAuthorizationReceipt(null);
+    setAuthorizationError(null);
     setProgressError(null);
     setSubmissionError(null);
     setFormState(initialFormState);

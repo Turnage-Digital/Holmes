@@ -5,11 +5,11 @@ using Holmes.IntakeSessions.Domain;
 
 namespace Holmes.IntakeSessions.Application.Commands;
 
-public sealed record CaptureConsentArtifactCommand(
+public sealed record CaptureAuthorizationArtifactCommand(
     UlidId IntakeSessionId,
     string MimeType,
     string SchemaVersion,
     byte[] Payload,
     DateTimeOffset CapturedAt,
     IReadOnlyDictionary<string, string>? Metadata = null
-) : RequestBase<Result<ConsentArtifactDescriptor>>;
+) : RequestBase<Result<AuthorizationArtifactDescriptor>>;

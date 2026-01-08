@@ -101,7 +101,7 @@ Invited -> InProgress -> AwaitingReview -> Submitted
 
 **Guards**
 
-- Submit requires `ConsentArtifact` and `AnswersSnapshot`.
+- Submit requires `AuthorizationArtifact` and `AnswersSnapshot`.
 - Supersede is not allowed after `Submitted`.
 
 ---

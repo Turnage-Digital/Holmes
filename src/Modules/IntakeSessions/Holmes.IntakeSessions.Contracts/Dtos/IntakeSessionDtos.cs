@@ -34,12 +34,12 @@ public sealed record IntakeSessionBootstrapDto(
     DateTimeOffset? AcceptedAt,
     string? CancellationReason,
     string? SupersededBySessionId,
-    ConsentArtifactDto? Consent,
+    AuthorizationArtifactDto? Authorization,
     AnswersSnapshotDto? Answers,
     IntakeSectionConfigDto? SectionConfig
 );
 
-public sealed record ConsentArtifactDto(
+public sealed record AuthorizationArtifactDto(
     string ArtifactId,
     string MimeType,
     long Length,

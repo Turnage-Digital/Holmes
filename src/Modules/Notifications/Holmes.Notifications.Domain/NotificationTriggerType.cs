@@ -4,7 +4,7 @@ public enum NotificationTriggerType
 {
     IntakeSessionInvited,
     IntakeSubmissionReceived,
-    ConsentCaptured,
+    AuthorizationCaptured,
     OrderStateChanged,
     SlaClockAtRisk,
     SlaClockBreached,
