@@ -83,7 +83,7 @@ public sealed class IssueIntakeInviteCommandHandler(
         return Convert.ToHexString(bytes);
     }
 
-    private IReadOnlyDictionary<string, string> BuildMetadataWithSections(IssueIntakeInviteCommand request)
+    private Dictionary<string, string> BuildMetadataWithSections(IssueIntakeInviteCommand request)
     {
         // Start with the provided metadata
         var metadata = new Dictionary<string, string>(

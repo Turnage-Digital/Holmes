@@ -26,8 +26,10 @@ public class IntakeAuthorizationCaptureTests
             "SHA256",
             "authorization-v1",
             DateTimeOffset.UtcNow);
-        mediator.Setup(m => m.Send(It.IsAny<CaptureAuthorizationArtifactCommand>(), It.IsAny<CancellationToken>()))
-            .Callback<CaptureAuthorizationArtifactCommand, CancellationToken>((cmd, _) => captured = cmd)
+        mediator.Setup(m => m.Send(It.IsAny<IRequest<Result<AuthorizationArtifactDescriptor>>>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<IRequest<Result<AuthorizationArtifactDescriptor>>, CancellationToken>((cmd, _) =>
+                captured = (CaptureAuthorizationArtifactCommand)cmd)
             .ReturnsAsync(Result.Success(descriptor));
 
         var controller = new IntakeSessionsController(mediator.Object)
@@ -53,13 +55,16 @@ public class IntakeAuthorizationCaptureTests
 
         Assert.That(response, Is.TypeOf<OkObjectResult>());
         Assert.That(captured, Is.Not.Null);
+        var capturedCommand = captured!;
+        Assert.That(capturedCommand.Metadata, Is.Not.Null);
+        var metadata = capturedCommand.Metadata!;
         Assert.Multiple(() =>
         {
-            Assert.That(captured!.Metadata, Does.ContainKey(IntakeMetadataKeys.ClientIpAddress));
-            Assert.That(captured.Metadata[IntakeMetadataKeys.ClientIpAddress], Is.EqualTo("203.0.113.5"));
-            Assert.That(captured.Metadata[IntakeMetadataKeys.ClientUserAgent], Is.EqualTo("HolmesIntake/1.0"));
-            Assert.That(captured.Metadata, Does.ContainKey(IntakeMetadataKeys.ServerReceivedAt));
-            Assert.That(captured.Metadata, Does.ContainKey(IntakeMetadataKeys.ClientCapturedAt));
+            Assert.That(metadata, Does.ContainKey(IntakeMetadataKeys.ClientIpAddress));
+            Assert.That(metadata[IntakeMetadataKeys.ClientIpAddress], Is.EqualTo("203.0.113.5"));
+            Assert.That(metadata[IntakeMetadataKeys.ClientUserAgent], Is.EqualTo("HolmesIntake/1.0"));
+            Assert.That(metadata, Does.ContainKey(IntakeMetadataKeys.ServerReceivedAt));
+            Assert.That(metadata, Does.ContainKey(IntakeMetadataKeys.ClientCapturedAt));
         });
     }
 }
