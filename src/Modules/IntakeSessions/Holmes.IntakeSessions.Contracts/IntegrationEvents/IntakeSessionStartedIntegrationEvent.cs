@@ -4,8 +4,7 @@ using MediatR;
 namespace Holmes.IntakeSessions.Contracts.IntegrationEvents;
 
 public sealed record IntakeSessionStartedIntegrationEvent(
-    UlidId IntakeSessionId,
     UlidId OrderId,
-    DateTimeOffset StartedAt,
-    string? DeviceInfo
+    UlidId IntakeSessionId,
+    DateTimeOffset OccurredAt
 ) : INotification;

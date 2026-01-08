@@ -13,12 +13,12 @@ public sealed class SaveIntakeProgressCommandHandler(IIntakeSessionsUnitOfWork u
         var session = await unitOfWork.IntakeSessions.GetByIdAsync(request.IntakeSessionId, cancellationToken);
         if (session is null)
         {
-            return Result.Fail($"Intake session '{request.IntakeSessionId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         if (!string.Equals(session.ResumeToken, request.ResumeToken, StringComparison.Ordinal))
         {
-            return Result.Fail("Resume token is invalid.");
+            return Result.Fail(ResultErrors.Validation);
         }
 
         try
@@ -30,9 +30,9 @@ public sealed class SaveIntakeProgressCommandHandler(IIntakeSessionsUnitOfWork u
                 request.UpdatedAt);
             session.SaveProgress(snapshot);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            return Result.Fail(ex.Message);
+            return Result.Fail(ResultErrors.Validation);
         }
 
         await unitOfWork.IntakeSessions.UpdateAsync(session, cancellationToken);

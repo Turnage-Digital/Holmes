@@ -10,21 +10,29 @@ public class OrderTests
     public void CreateInitializesOrder()
     {
         var orderId = UlidId.NewUlid();
-        var subjectId = UlidId.NewUlid();
         var customerId = UlidId.NewUlid();
         var createdAt = DateTimeOffset.UtcNow;
 
-        var order = Order.Create(orderId, subjectId, customerId, "policy-v1", createdAt);
+        var order = Order.Create(
+            orderId,
+            customerId,
+            "policy-v1",
+            "subject@example.com",
+            null,
+            createdAt,
+            null,
+            UlidId.NewUlid());
 
         Assert.Multiple(() =>
         {
             Assert.That(order.Id, Is.EqualTo(orderId));
-            Assert.That(order.SubjectId, Is.EqualTo(subjectId));
+            Assert.That(order.SubjectId, Is.Null);
             Assert.That(order.CustomerId, Is.EqualTo(customerId));
             Assert.That(order.PolicySnapshotId, Is.EqualTo("policy-v1"));
+            Assert.That(order.SubjectEmail, Is.EqualTo("subject@example.com"));
             Assert.That(order.Status, Is.EqualTo(OrderStatus.Created));
         });
-        Assert.That(order.DomainEvents, Has.Exactly(1).TypeOf<OrderCreated>());
+        Assert.That(order.DomainEvents, Has.Exactly(1).TypeOf<OrderRequested>());
         Assert.That(order.DomainEvents, Has.Exactly(1).TypeOf<OrderStatusChanged>());
     }
 
@@ -219,8 +227,11 @@ public class OrderTests
         return Order.Create(
             UlidId.NewUlid(),
             UlidId.NewUlid(),
-            UlidId.NewUlid(),
             "policy-v1",
-            DateTimeOffset.UtcNow);
+            "subject@example.com",
+            null,
+            DateTimeOffset.UtcNow,
+            null,
+            UlidId.NewUlid());
     }
 }

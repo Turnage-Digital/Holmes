@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Holmes.App.Infrastructure.Security.Identity;
 using Holmes.Core.Application;
+using Holmes.Users.Contracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -32,6 +33,7 @@ public static class DependencyInjection
         services.AddOptions<IdentityProvisioningOptions>()
             .BindConfiguration(IdentityProvisioningOptions.SectionName);
         services.AddHttpClient<IIdentityProvisioningClient, IdentityProvisioningClient>();
+        services.AddScoped<IIdentityProvisioningService, IdentityProvisioningService>();
 
         return services;
     }

@@ -14,7 +14,7 @@ public sealed class UpdateSubjectIntakeDataCommandHandler(ISubjectsUnitOfWork un
         var subject = await repository.GetByIdAsync(request.SubjectId, cancellationToken);
         if (subject is null)
         {
-            return Result.Fail($"Subject '{request.SubjectId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         // Update middle name

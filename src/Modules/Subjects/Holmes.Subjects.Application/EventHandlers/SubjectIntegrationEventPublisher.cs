@@ -6,16 +6,15 @@ namespace Holmes.Subjects.Application.EventHandlers;
 
 public sealed class SubjectIntegrationEventPublisher(
     IMediator mediator
-) : INotificationHandler<SubjectIntakeRequested>
+) : INotificationHandler<SubjectResolved>
 {
-    public Task Handle(SubjectIntakeRequested notification, CancellationToken cancellationToken)
+    public Task Handle(SubjectResolved notification, CancellationToken cancellationToken)
     {
-        return mediator.Publish(new SubjectIntakeRequestedIntegrationEvent(
+        return mediator.Publish(new SubjectResolvedIntegrationEvent(
             notification.OrderId,
-            notification.SubjectId,
             notification.CustomerId,
-            notification.PolicySnapshotId,
-            notification.RequestedAt,
-            notification.RequestedBy), cancellationToken);
+            notification.SubjectId,
+            notification.ResolvedAt,
+            notification.WasExisting), cancellationToken);
     }
 }

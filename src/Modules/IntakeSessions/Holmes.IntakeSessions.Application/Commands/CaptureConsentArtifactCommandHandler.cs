@@ -21,12 +21,12 @@ public sealed class CaptureConsentArtifactCommandHandler(
         var session = await repository.GetByIdAsync(request.IntakeSessionId, cancellationToken);
         if (session is null)
         {
-            return Result.Fail<ConsentArtifactDescriptor>($"Intake session '{request.IntakeSessionId}' not found.");
+            return Result.Fail<ConsentArtifactDescriptor>(ResultErrors.NotFound);
         }
 
         if (request.Payload.Length == 0)
         {
-            return Result.Fail<ConsentArtifactDescriptor>("Consent payload cannot be empty.");
+            return Result.Fail<ConsentArtifactDescriptor>(ResultErrors.Validation);
         }
 
         var artifactId = UlidId.NewUlid();

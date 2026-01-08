@@ -4,7 +4,7 @@ namespace Holmes.Orders.Contracts.Dtos;
 
 public sealed record OrderSummaryDto(
     string OrderId,
-    string SubjectId,
+    string? SubjectId,
     string CustomerId,
     string PolicySnapshotId,
     string? PackageCode,
@@ -48,4 +48,8 @@ public sealed record OrderAuditEventDto(
     DateTimeOffset CreatedAt,
     string? CorrelationId,
     string? ActorId
+);
+
+public sealed record CreateOrderResponse(
+    string OrderId
 );

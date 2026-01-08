@@ -9,10 +9,9 @@ public sealed class RegisterCustomerCommandHandler(ICustomersUnitOfWork unitOfWo
 {
     public async Task<UlidId> Handle(RegisterCustomerCommand request, CancellationToken cancellationToken)
     {
-        var repository = unitOfWork.Customers;
         var id = UlidId.NewUlid();
         var customer = Customer.Register(id, request.Name, request.RegisteredAt);
-        await repository.AddAsync(customer, cancellationToken);
+        await unitOfWork.Customers.AddAsync(customer, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return id;
     }

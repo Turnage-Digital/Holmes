@@ -1,7 +1,6 @@
 using Holmes.App.Infrastructure.Security;
-using Holmes.App.Infrastructure.Security.Identity;
-using Holmes.App.Infrastructure.Security.Identity.Models;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Application.Queries;
@@ -18,8 +17,7 @@ namespace Holmes.App.Server.Controllers;
 [Route("api/users")]
 public sealed class UsersController(
     IMediator mediator,
-    ICurrentUserAccess currentUserAccess,
-    IIdentityProvisioningClient identityProvisioningClient
+    ICurrentUserAccess currentUserAccess
 ) : ControllerBase
 {
     [HttpGet]
@@ -75,23 +73,12 @@ public sealed class UsersController(
         var result = await mediator.Send(command, cancellationToken);
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return result.Error == ResultErrors.Validation
+                ? BadRequest()
+                : BadRequest(result.Error);
         }
 
-        var invitedUserId = result.Value;
-        var userResult = await mediator.Send(new GetUserByIdQuery(invitedUserId), cancellationToken);
-
-        if (!userResult.IsSuccess)
-        {
-            return Problem("Failed to load invited user.");
-        }
-
-        var mappedUser = userResult.Value;
-        var provisioning = await identityProvisioningClient.ProvisionUserAsync(
-            new ProvisionIdentityUserRequest(invitedUserId.ToString(), mappedUser.Email, mappedUser.DisplayName),
-            cancellationToken);
-
-        return Created(string.Empty, new InviteUserResponse(mappedUser, provisioning.ConfirmationLink));
+        return Created(string.Empty, new InviteUserResponse(result.Value.User, result.Value.ConfirmationLink));
     }
 
     [HttpPost("{userId}/roles")]

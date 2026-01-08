@@ -13,17 +13,17 @@ public sealed class VerifyIntakeSessionOtpCommandHandler(
         var session = await unitOfWork.IntakeSessions.GetByIdAsync(request.IntakeSessionId, cancellationToken);
         if (session is null)
         {
-            return Result.Fail($"Intake session '{request.IntakeSessionId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         if (session.ExpiresAt <= DateTimeOffset.UtcNow)
         {
-            return Result.Fail("This invite has expired. Request a new link.");
+            return Result.Fail(ResultErrors.Validation);
         }
 
         if (!string.Equals(session.ResumeToken, request.Code, StringComparison.Ordinal))
         {
-            return Result.Fail("Invalid or expired verification code.");
+            return Result.Fail(ResultErrors.Validation);
         }
 
         return Result.Success();

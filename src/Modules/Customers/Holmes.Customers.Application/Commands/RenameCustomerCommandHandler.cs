@@ -9,15 +9,14 @@ public sealed class RenameCustomerCommandHandler(ICustomersUnitOfWork unitOfWork
 {
     public async Task<Result> Handle(RenameCustomerCommand request, CancellationToken cancellationToken)
     {
-        var repository = unitOfWork.Customers;
-        var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
+        var customer = await unitOfWork.Customers.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
-            return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         customer.Rename(request.Name, request.RenamedAt);
-        await repository.UpdateAsync(customer, cancellationToken);
+        await unitOfWork.Customers.UpdateAsync(customer, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

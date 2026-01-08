@@ -42,3 +42,5 @@ public sealed record CurrentUserDto(
     DateTimeOffset LastAuthenticatedAt,
     IReadOnlyCollection<UserRoleDto> Roles
 );
+
+public sealed record InviteUserResultDto(UserDto User, string ConfirmationLink);

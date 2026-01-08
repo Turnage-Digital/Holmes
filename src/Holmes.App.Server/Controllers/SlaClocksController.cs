@@ -1,4 +1,5 @@
 using Holmes.App.Infrastructure.Security;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Orders.Application.Queries;
 using Holmes.SlaClocks.Application.Commands;
@@ -85,24 +86,6 @@ public sealed class SlaClocksController(
             return BadRequest("Reason is required.");
         }
 
-        var targetClockId = parsedClock.ToString();
-
-        // Look up the clock to verify it exists and get customer ID for access control
-        var clockResult = await mediator.Send(
-            new GetSlaClockByIdQuery(targetClockId), cancellationToken);
-
-        if (!clockResult.IsSuccess)
-        {
-            return NotFound(clockResult.Error);
-        }
-
-        var clock = clockResult.Value;
-
-        if (!await currentUserAccess.HasCustomerAccessAsync(clock.CustomerId.ToString(), cancellationToken))
-        {
-            return Forbid();
-        }
-
         var command = new PauseSlaClockCommand(
             UlidId.FromUlid(parsedClock),
             request.Reason,
@@ -113,7 +96,13 @@ public sealed class SlaClocksController(
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return result.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.NotFound => NotFound(),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
         return NoContent();
@@ -134,24 +123,6 @@ public sealed class SlaClocksController(
             return BadRequest("Invalid clock id format.");
         }
 
-        var targetClockId = parsedClock.ToString();
-
-        // Look up the clock to verify it exists and get customer ID for access control
-        var clockResult = await mediator.Send(
-            new GetSlaClockByIdQuery(targetClockId), cancellationToken);
-
-        if (!clockResult.IsSuccess)
-        {
-            return NotFound(clockResult.Error);
-        }
-
-        var clock = clockResult.Value;
-
-        if (!await currentUserAccess.HasCustomerAccessAsync(clock.CustomerId.ToString(), cancellationToken))
-        {
-            return Forbid();
-        }
-
         var command = new ResumeSlaClockCommand(
             UlidId.FromUlid(parsedClock),
             DateTimeOffset.UtcNow
@@ -161,7 +132,13 @@ public sealed class SlaClocksController(
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return result.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.NotFound => NotFound(),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
         return NoContent();

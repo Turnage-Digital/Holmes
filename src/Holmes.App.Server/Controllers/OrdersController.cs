@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Application;
 using Holmes.Core.Contracts.Events;
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.Customers.Application.Queries;
 using Holmes.Orders.Application.Commands;
 using Holmes.Orders.Application.Queries;
 using Holmes.Orders.Contracts;
@@ -12,8 +12,6 @@ using Holmes.Orders.Domain;
 using Holmes.Services.Application.Queries;
 using Holmes.Services.Contracts.Dtos;
 using Holmes.Services.Domain;
-using Holmes.Subjects.Application.Commands;
-using Holmes.Subjects.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,85 +39,32 @@ public sealed class OrdersController(
             return BadRequest("Invalid customer id format.");
         }
 
-        var customerId = parsedCustomer.ToString();
-        if (!await currentUserAccess.HasCustomerAccessAsync(customerId, cancellationToken))
-        {
-            return Forbid();
-        }
-
-        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
-        {
-            return NotFound($"Customer '{customerId}' not found.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.SubjectId))
-        {
-            if (!Ulid.TryParse(request.SubjectId, out var parsedSubject))
-            {
-                return BadRequest("Invalid subject id format.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.SubjectEmail))
-            {
-                return BadRequest("Provide either subjectId or subjectEmail, not both.");
-            }
-
-            var subjectId = parsedSubject.ToString();
-            if (!await mediator.Send(new CheckSubjectExistsQuery(subjectId), cancellationToken))
-            {
-                return NotFound($"Subject '{subjectId}' not found.");
-            }
-
-            var orderId = UlidId.NewUlid();
-            var timestamp = DateTimeOffset.UtcNow;
-            var command = new CreateOrderCommand(
-                orderId,
-                UlidId.FromUlid(parsedSubject),
-                UlidId.FromUlid(parsedCustomer),
-                request.PolicySnapshotId,
-                timestamp,
-                request.PackageCode);
-
-            var result = await mediator.Send(command, cancellationToken);
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Error);
-            }
-
-            var summaryResult = await mediator.Send(new GetOrderSummaryQuery(orderId.ToString()), cancellationToken);
-
-            if (!summaryResult.IsSuccess)
-            {
-                return Problem("Failed to load created order.");
-            }
-
-            return Created($"/api/orders/{orderId}/timeline", summaryResult.Value);
-        }
-
         if (string.IsNullOrWhiteSpace(request.SubjectEmail))
         {
-            return BadRequest("Subject email or subject id is required.");
+            return BadRequest("Subject email is required.");
         }
 
-        var intakeCommand = new RequestSubjectIntakeCommand(
-            request.SubjectEmail.Trim(),
-            request.SubjectPhone?.Trim(),
+        var command = new CreateOrderCommand(
             UlidId.FromUlid(parsedCustomer),
             request.PolicySnapshotId,
+            request.SubjectEmail.Trim(),
+            request.SubjectPhone?.Trim(),
+            request.PackageCode,
             DateTimeOffset.UtcNow);
 
-        var intakeResult = await mediator.Send(intakeCommand, cancellationToken);
-        if (!intakeResult.IsSuccess)
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.IsSuccess)
         {
-            return BadRequest(intakeResult.Error);
+            return result.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.NotFound => NotFound($"Customer '{parsedCustomer}' not found."),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
-        var response = new CreateOrderWithIntakeResponse(
-            intakeResult.Value.SubjectId.ToString(),
-            intakeResult.Value.SubjectWasExisting,
-            intakeResult.Value.OrderId.ToString());
-
-        return Created($"/api/orders/{intakeResult.Value.OrderId}/timeline", response);
+        return Created($"/api/orders/{result.Value.OrderId}/timeline", result.Value);
     }
 
     [HttpGet("summary")]
@@ -426,15 +371,8 @@ public sealed class OrdersController(
     public sealed record CreateOrderRequest(
         string CustomerId,
         string PolicySnapshotId,
-        string? SubjectId = null,
         string? SubjectEmail = null,
         string? SubjectPhone = null,
         string? PackageCode = null
-    );
-
-    public sealed record CreateOrderWithIntakeResponse(
-        string SubjectId,
-        bool SubjectWasExisting,
-        string OrderId
     );
 }

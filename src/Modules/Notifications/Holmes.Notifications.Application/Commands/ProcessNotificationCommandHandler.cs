@@ -1,5 +1,8 @@
 using Holmes.Core.Application;
+using Holmes.Core.Domain.ValueObjects;
+using Holmes.Customers.Contracts;
 using Holmes.Notifications.Domain;
+using Holmes.Users.Contracts;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -9,7 +12,9 @@ public sealed class ProcessNotificationCommandHandler(
     INotificationsUnitOfWork unitOfWork,
     IEnumerable<INotificationProvider> providers,
     TimeProvider timeProvider,
-    ILogger<ProcessNotificationCommandHandler> logger
+    ILogger<ProcessNotificationCommandHandler> logger,
+    IUserAccessQueries userAccessQueries,
+    ICustomerAccessQueries customerAccessQueries
 ) : IRequestHandler<ProcessNotificationCommand, Result>
 {
     public async Task<Result> Handle(
@@ -23,7 +28,21 @@ public sealed class ProcessNotificationCommandHandler(
 
         if (notification is null)
         {
-            return Result.Fail($"Notification {request.NotificationId} not found.");
+            return Result.Fail(ResultErrors.NotFound);
+        }
+
+        if (Ulid.TryParse(request.UserId, out var parsedActor))
+        {
+            var actor = UlidId.FromUlid(parsedActor);
+            var isGlobalAdmin = await userAccessQueries.IsGlobalAdminAsync(actor, cancellationToken);
+            if (!isGlobalAdmin)
+            {
+                var allowedCustomers = await customerAccessQueries.GetAdminCustomerIdsAsync(actor, cancellationToken);
+                if (!allowedCustomers.Contains(notification.CustomerId.ToString()))
+                {
+                    return Result.Fail(ResultErrors.Forbidden);
+                }
+            }
         }
 
         if (notification.Status != DeliveryStatus.Pending &&

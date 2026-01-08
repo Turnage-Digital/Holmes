@@ -3,7 +3,7 @@ namespace Holmes.Orders.Infrastructure.Sql.Entities;
 public class OrderSummaryProjectionDb
 {
     public string OrderId { get; set; } = null!;
-    public string SubjectId { get; set; } = null!;
+    public string? SubjectId { get; set; }
     public string CustomerId { get; set; } = null!;
     public string PolicySnapshotId { get; set; } = null!;
     public string? PackageCode { get; set; }

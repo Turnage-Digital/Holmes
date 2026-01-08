@@ -122,6 +122,72 @@ There is no central app application layer; integration handlers live in modules.
 
 ---
 
+## 7.1) Controller and Transaction Rules (Non-Negotiable)
+
+Core Rules (Must Always Hold)
+
+- One write endpoint → one use-case command → one transaction
+- Any HTTP endpoint that is not GET must call IMediator.Send() exactly once.
+- Controllers must not orchestrate multiple commands or queries.
+- Prerequisites use synchronous Gateways (Contracts)
+- If a use case cannot proceed without something existing, the command handler may call a Gateway interface in a *
+  .Contracts project.
+- Example: ISubjectGateway.EnsureSubjectAsync(...)
+- Gateways are only for prerequisites, not side effects.
+- Reactions use integration events (outbox-backed)
+- Anything that happens because a use case succeeded (intake session, notifications, SLA clocks, projections) must be
+  triggered by integration events, not direct calls.
+- No "EnsureIntakeSession", no chained commands.
+- No IMediator.Send() inside command handlers
+- Command handlers must not compose other commands.
+- They may:
+    - Call domain methods
+    - Call gateways
+    - Save once
+    - Emit integration events
+- Queries are excluded from this rule.
+- Controllers are thin
+- Validate request shape
+- Map to a single command
+- Send command
+- Return result
+
+Enforcement (Must Be Implemented First)
+
+- Test 1 — Controllers
+    - Any method with [HttpPost], [HttpPut], [HttpDelete], or [HttpPatch]
+    - Must contain exactly one call to mediator.Send(...)
+    - Fail otherwise
+- Test 2 — Command Handlers
+    - Any *CommandHandler may not contain .Send(
+    - Fail build if violated
+
+---
+
+## 7.2) Order Workflow (Event-Driven, Orders-Owned State)
+
+Orders owns the workflow state and progresses via integration events with no cross-module transactions.
+Integration event names must be module-local and must not mention other modules.
+
+Workflow sequence (canonical event names):
+
+1. Orders: CreateOrder command creates a workflow order with SubjectEmail/SubjectPhone; SubjectId and
+   ActiveIntakeSessionId are null; status is Created (represents Requested). Orders publishes OrderRequested.
+2. Subjects: consumes OrderRequested, resolves/creates Subject, publishes SubjectResolved (OrderId + SubjectId).
+3. Orders: consumes SubjectResolved, assigns SubjectId, publishes OrderSubjectAssigned.
+4. IntakeSessions: consumes OrderSubjectAssigned, creates intake session + invite/OTP initiation, publishes
+   IntakeSessionStarted (OrderId + IntakeSessionId).
+5. IntakeSessions: on submission, publishes IntakeSubmitted (OrderId + IntakeSessionId). Orders consumes and advances
+   status to IntakeComplete.
+
+Rules for this workflow:
+
+- No shared transactions across modules; each handler commits independently.
+- All integration event publication uses deferred dispatch/outbox (SaveChangesAsync(true)).
+- Handlers must be idempotent and safe under retries.
+
+---
+
 ## 8) Bounded Contexts
 
 Module boundaries are defined by business capabilities, not technical layers. The module set will evolve as the

@@ -50,9 +50,6 @@ public sealed class IssueIntakeInviteCommandHandler(
         await unitOfWork.IntakeSessions.AddAsync(session, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // IntakeSessionInvited domain event is published by UnitOfWork.SaveChangesAsync
-        // IntakeToWorkflowHandler in App.Integration listens and sends RecordOrderInviteCommand
-
         return Result.Success(new IssueIntakeInviteResult(
             session.Id,
             session.ResumeToken,

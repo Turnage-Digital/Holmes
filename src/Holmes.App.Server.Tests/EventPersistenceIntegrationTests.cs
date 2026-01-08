@@ -336,7 +336,7 @@ public class EventPersistenceIntegrationTests
         using (var scope = factory.Services.CreateScope())
         {
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            subjectId = await mediator.Send(new RegisterSubjectCommand(
+            var subjectResult = await mediator.Send(new RegisterSubjectCommand(
                 "Jane",
                 "Doe",
                 new DateOnly(1990, 5, 15),
@@ -345,6 +345,7 @@ public class EventPersistenceIntegrationTests
             {
                 UserId = adminId.ToString()
             });
+            subjectId = UlidId.Parse(subjectResult.Value.SubjectId);
         }
 
         // Assert: Verify event was persisted
@@ -496,7 +497,7 @@ public class EventPersistenceIntegrationTests
                 UserId = adminId.ToString()
             });
 
-            subjectId = await mediator.Send(new RegisterSubjectCommand(
+            var subjectResult = await mediator.Send(new RegisterSubjectCommand(
                 "María",
                 "García-López",
                 new DateOnly(1985, 12, 25),
@@ -505,6 +506,7 @@ public class EventPersistenceIntegrationTests
             {
                 UserId = adminId.ToString()
             });
+            subjectId = UlidId.Parse(subjectResult.Value.SubjectId);
         }
 
         // Assert: Verify serialization round-trips correctly (Unicode may be escaped in JSON)

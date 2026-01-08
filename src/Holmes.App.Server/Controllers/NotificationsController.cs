@@ -1,4 +1,5 @@
 using Holmes.App.Infrastructure.Security;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Notifications.Application.Commands;
 using Holmes.Notifications.Application.Queries;
@@ -74,31 +75,19 @@ public sealed class NotificationsController(
             return BadRequest("Invalid notification id format.");
         }
 
-        var targetNotificationId = parsedNotification.ToString();
-
-        // Look up the notification to verify it exists and get customer ID for access control
-        var notificationResult = await mediator.Send(
-            new GetNotificationByIdQuery(targetNotificationId), cancellationToken);
-
-        if (!notificationResult.IsSuccess)
-        {
-            return NotFound(notificationResult.Error);
-        }
-
-        var notification = notificationResult.Value;
-
-        if (!await currentUserAccess.HasCustomerAccessAsync(notification.CustomerId.ToString(), cancellationToken))
-        {
-            return Forbid();
-        }
-
         // Use ProcessNotificationCommand which already handles retry of failed notifications
         var command = new ProcessNotificationCommand(UlidId.FromUlid(parsedNotification));
         var result = await mediator.Send(command, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return result.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.NotFound => NotFound(),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
         return NoContent();

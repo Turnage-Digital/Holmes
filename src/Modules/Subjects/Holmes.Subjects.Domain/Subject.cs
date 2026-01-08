@@ -204,6 +204,16 @@ public sealed class Subject : AggregateRoot
         MiddleName = middleName;
     }
 
+    public void RecordResolution(
+        UlidId orderId,
+        UlidId customerId,
+        DateTimeOffset resolvedAt,
+        bool wasExisting
+    )
+    {
+        Emit(new SubjectResolved(orderId, customerId, Id, resolvedAt, wasExisting));
+    }
+
     public void AddAddress(SubjectAddress address, DateTimeOffset timestamp)
     {
         ArgumentNullException.ThrowIfNull(address);
@@ -312,25 +322,6 @@ public sealed class Subject : AggregateRoot
         {
             _phones.Add(phone);
         }
-    }
-
-    public void RequestIntake(
-        UlidId orderId,
-        UlidId customerId,
-        string policySnapshotId,
-        DateTimeOffset requestedAt,
-        UlidId requestedBy
-    )
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(policySnapshotId);
-
-        Emit(new SubjectIntakeRequested(
-            orderId,
-            Id,
-            customerId,
-            policySnapshotId,
-            requestedAt,
-            requestedBy));
     }
 
     private void Apply(SubjectRegistered @event)

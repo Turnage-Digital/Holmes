@@ -20,7 +20,7 @@ public sealed class RecordDeliveryResultCommandHandler(
 
         if (notification is null)
         {
-            return Result.Fail($"Notification {request.NotificationId} not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var now = timeProvider.GetUtcNow();

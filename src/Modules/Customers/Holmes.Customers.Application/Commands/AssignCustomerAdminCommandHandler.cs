@@ -16,14 +16,14 @@ public sealed class AssignCustomerAdminCommandHandler(
         var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
-            return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var userExists = await userDirectory.ExistsAsync(request.TargetUserId, cancellationToken);
 
         if (!userExists)
         {
-            return Result.Fail($"User '{request.TargetUserId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var actor = request.GetUserUlid();

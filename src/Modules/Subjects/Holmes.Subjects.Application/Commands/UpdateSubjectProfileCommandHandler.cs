@@ -13,7 +13,7 @@ public sealed class UpdateSubjectProfileCommandHandler(ISubjectsUnitOfWork unitO
         var subject = await repository.GetByIdAsync(request.TargetSubjectId, cancellationToken);
         if (subject is null)
         {
-            return Result.Fail($"Subject '{request.TargetSubjectId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         subject.UpdateProfile(request.GivenName, request.FamilyName, request.DateOfBirth, request.Email);

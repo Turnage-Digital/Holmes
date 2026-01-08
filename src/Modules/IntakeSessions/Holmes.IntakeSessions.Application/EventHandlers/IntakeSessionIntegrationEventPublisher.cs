@@ -16,14 +16,20 @@ namespace Holmes.IntakeSessions.Application.EventHandlers;
 public sealed class IntakeSessionIntegrationEventPublisher(
     IMediator mediator
 ) : INotificationHandler<IntakeSessionInvited>,
-    INotificationHandler<IntakeSessionStarted>,
     INotificationHandler<IntakeSubmissionReceived>,
-    INotificationHandler<IntakeSubmissionAccepted>,
     INotificationHandler<SubjectIntakeDataCaptured>
 {
     public Task Handle(IntakeSessionInvited notification, CancellationToken cancellationToken)
     {
-        return mediator.Publish(new IntakeSessionInvitedIntegrationEvent(
+        return PublishInviteEvents(notification, cancellationToken);
+    }
+
+    private async Task PublishInviteEvents(
+        IntakeSessionInvited notification,
+        CancellationToken cancellationToken
+    )
+    {
+        await mediator.Publish(new IntakeSessionInvitedIntegrationEvent(
             notification.IntakeSessionId,
             notification.OrderId,
             notification.SubjectId,
@@ -32,30 +38,18 @@ public sealed class IntakeSessionIntegrationEventPublisher(
             notification.InvitedAt,
             notification.ExpiresAt,
             notification.PolicySnapshot), cancellationToken);
-    }
 
-    public Task Handle(IntakeSessionStarted notification, CancellationToken cancellationToken)
-    {
-        return mediator.Publish(new IntakeSessionStartedIntegrationEvent(
-            notification.IntakeSessionId,
+        await mediator.Publish(new IntakeSessionStartedIntegrationEvent(
             notification.OrderId,
-            notification.StartedAt,
-            notification.DeviceInfo), cancellationToken);
-    }
-
-    public Task Handle(IntakeSubmissionAccepted notification, CancellationToken cancellationToken)
-    {
-        return mediator.Publish(new IntakeSubmissionAcceptedIntegrationEvent(
             notification.IntakeSessionId,
-            notification.OrderId,
-            notification.AcceptedAt), cancellationToken);
+            notification.InvitedAt), cancellationToken);
     }
 
     public Task Handle(IntakeSubmissionReceived notification, CancellationToken cancellationToken)
     {
-        return mediator.Publish(new IntakeSubmissionReceivedIntegrationEvent(
-            notification.IntakeSessionId,
+        return mediator.Publish(new IntakeSubmittedIntegrationEvent(
             notification.OrderId,
+            notification.IntakeSessionId,
             notification.SubmittedAt), cancellationToken);
     }
 

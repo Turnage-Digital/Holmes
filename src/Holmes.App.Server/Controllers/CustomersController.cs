@@ -1,5 +1,6 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Customers.Application.Commands;
 using Holmes.Customers.Application.Queries;
@@ -51,42 +52,33 @@ public sealed class CustomersController(
         CancellationToken cancellationToken
     )
     {
-        var caller = await currentUserAccess.GetUserIdAsync(cancellationToken);
-
-        if (!await currentUserAccess.IsGlobalAdminAsync(cancellationToken))
-        {
-            return Forbid();
-        }
-
         var timestamp = DateTimeOffset.UtcNow;
-
-        var id = await mediator.Send(new RegisterCustomerCommand(request.Name, timestamp), cancellationToken);
-
-        await mediator.Send(new AssignCustomerAdminCommand(
-            id,
-            caller,
-            timestamp), cancellationToken);
 
         var contacts = request.Contacts?
             .Select(c => new CreateContactInfo(c.Name, c.Email, c.Phone, c.Role))
             .ToList();
 
-        await mediator.Send(new CreateCustomerProfileCommand(
-            id,
-            request.PolicySnapshotId,
-            request.BillingEmail,
-            contacts,
-            timestamp), cancellationToken);
-
         var createdResult = await mediator.Send(
-            new GetCustomerListItemQuery(id.ToString()), cancellationToken);
+            new CreateCustomerCommand(
+                request.Name,
+                request.PolicySnapshotId,
+                request.BillingEmail,
+                contacts,
+                timestamp),
+            cancellationToken);
 
         if (!createdResult.IsSuccess)
         {
-            return Problem("Failed to load created customer.");
+            return createdResult.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(createdResult.Error)
+            };
         }
 
-        return CreatedAtAction(nameof(GetCustomerById), new { customerId = id }, createdResult.Value);
+        return CreatedAtAction(nameof(GetCustomerById), new { customerId = createdResult.Value.Id },
+            createdResult.Value);
     }
 
     [HttpGet("{customerId}")]
@@ -218,11 +210,6 @@ public sealed class CustomersController(
             return Forbid();
         }
 
-        if (!await mediator.Send(new CheckCustomerExistsQuery(customerId), cancellationToken))
-        {
-            return NotFound();
-        }
-
         var caller = await currentUserAccess.GetUserIdAsync(cancellationToken);
 
         var services = request.Services?
@@ -252,7 +239,12 @@ public sealed class CustomersController(
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return result.Error switch
+            {
+                ResultErrors.NotFound => NotFound(),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
         return NoContent();

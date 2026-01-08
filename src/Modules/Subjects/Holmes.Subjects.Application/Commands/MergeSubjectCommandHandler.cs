@@ -13,7 +13,7 @@ public sealed class MergeSubjectCommandHandler(ISubjectsUnitOfWork unitOfWork)
         var subject = await repository.GetByIdAsync(request.SourceSubjectId, cancellationToken);
         if (subject is null)
         {
-            return Result.Fail($"Subject '{request.SourceSubjectId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var actor = request.GetUserUlid();

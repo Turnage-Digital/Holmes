@@ -5,7 +5,8 @@ using MediatR;
 namespace Holmes.Customers.Application.Commands;
 
 public sealed class CreateCustomerProfileCommandHandler(
-    ICustomerProfileRepository profileRepository
+    ICustomerProfileRepository profileRepository,
+    ICustomersUnitOfWork unitOfWork
 ) : IRequestHandler<CreateCustomerProfileCommand, Result>
 {
     public async Task<Result> Handle(CreateCustomerProfileCommand request, CancellationToken cancellationToken)
@@ -21,6 +22,8 @@ public sealed class CreateCustomerProfileCommandHandler(
             contacts,
             request.CreatedAt,
             cancellationToken);
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

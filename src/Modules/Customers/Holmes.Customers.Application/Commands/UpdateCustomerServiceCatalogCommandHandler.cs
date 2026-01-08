@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Holmes.Core.Application;
+using Holmes.Customers.Contracts;
 using Holmes.Services.Contracts;
 using Holmes.Services.Domain;
 using MediatR;
@@ -8,7 +9,8 @@ namespace Holmes.Customers.Application.Commands;
 
 public sealed class UpdateCustomerServiceCatalogCommandHandler(
     IServiceCatalogQueries catalogQueries,
-    IServiceCatalogRepository catalogRepository
+    IServiceCatalogRepository catalogRepository,
+    ICustomerQueries customerQueries
 ) : IRequestHandler<UpdateCustomerServiceCatalogCommand, Result>
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -25,7 +27,13 @@ public sealed class UpdateCustomerServiceCatalogCommandHandler(
         // Validate that at least some configuration is provided
         if (request.Services.Count == 0 && request.Tiers.Count == 0)
         {
-            return Result.Fail("At least one service or tier configuration must be provided.");
+            return Result.Fail(ResultErrors.Validation);
+        }
+
+        var customerExists = await customerQueries.ExistsAsync(request.CustomerId, cancellationToken);
+        if (!customerExists)
+        {
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         // Get existing config to merge with or use as base

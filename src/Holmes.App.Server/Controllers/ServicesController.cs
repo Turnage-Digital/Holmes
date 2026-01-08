@@ -1,5 +1,6 @@
 using Holmes.App.Infrastructure.Security;
 using Holmes.App.Server.Contracts;
+using Holmes.Core.Application;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.Services.Application.Commands;
 using Holmes.Services.Application.Queries;
@@ -146,22 +147,6 @@ public sealed class ServicesController(
             return BadRequest("Invalid service id format.");
         }
 
-        // Look up the service to verify it exists and get customer ID for access control
-        var serviceResult = await mediator.Send(
-            new GetServiceQuery(UlidId.FromUlid(parsedId)), cancellationToken);
-
-        if (!serviceResult.IsSuccess)
-        {
-            return NotFound(serviceResult.Error);
-        }
-
-        var service = serviceResult.Value;
-
-        if (!await currentUserAccess.HasCustomerAccessAsync(service.CustomerId, cancellationToken))
-        {
-            return Forbid();
-        }
-
         var command = new RetryServiceCommand(
             UlidId.FromUlid(parsedId),
             DateTimeOffset.UtcNow
@@ -171,7 +156,13 @@ public sealed class ServicesController(
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return result.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.NotFound => NotFound(),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
         return NoContent();
@@ -198,22 +189,6 @@ public sealed class ServicesController(
             return BadRequest("Reason is required.");
         }
 
-        // Look up the service to verify it exists and get customer ID for access control
-        var serviceResult = await mediator.Send(
-            new GetServiceQuery(UlidId.FromUlid(parsedId)), cancellationToken);
-
-        if (!serviceResult.IsSuccess)
-        {
-            return NotFound(serviceResult.Error);
-        }
-
-        var service = serviceResult.Value;
-
-        if (!await currentUserAccess.HasCustomerAccessAsync(service.CustomerId, cancellationToken))
-        {
-            return Forbid();
-        }
-
         var command = new CancelServiceCommand(
             UlidId.FromUlid(parsedId),
             request.Reason,
@@ -224,7 +199,13 @@ public sealed class ServicesController(
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return result.Error switch
+            {
+                ResultErrors.Forbidden => Forbid(),
+                ResultErrors.NotFound => NotFound(),
+                ResultErrors.Validation => BadRequest(),
+                _ => BadRequest(result.Error)
+            };
         }
 
         return NoContent();

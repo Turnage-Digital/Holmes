@@ -18,12 +18,12 @@ public sealed class RecordServiceResultCommandHandler(
 
         if (service is null)
         {
-            return Result.Fail($"Service {request.ServiceId} not found");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         if (service.IsTerminal)
         {
-            return Result.Fail("Service is already in a terminal state");
+            return Result.Fail(ResultErrors.Validation);
         }
 
         service.RecordResult(request.Result, request.CompletedAt);

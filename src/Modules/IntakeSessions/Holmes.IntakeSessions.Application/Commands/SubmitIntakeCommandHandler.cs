@@ -23,12 +23,12 @@ public sealed class SubmitIntakeCommandHandler(
         var session = await repository.GetByIdAsync(request.IntakeSessionId, cancellationToken);
         if (session is null)
         {
-            return Result.Fail($"Intake session '{request.IntakeSessionId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         if (session.ConsentArtifact is null || session.AnswersSnapshot is null)
         {
-            return Result.Fail("Intake session is missing consent or answers data.");
+            return Result.Fail(ResultErrors.Validation);
         }
 
         // Decrypt and persist subject data from intake answers

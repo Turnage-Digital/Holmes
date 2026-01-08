@@ -26,9 +26,11 @@ public sealed class Order : AggregateRoot
     }
 
     public UlidId Id { get; private set; }
-    public UlidId SubjectId { get; private set; }
+    public UlidId? SubjectId { get; private set; }
     public UlidId CustomerId { get; private set; }
     public string PolicySnapshotId { get; private set; } = null!;
+    public string SubjectEmail { get; private set; } = string.Empty;
+    public string? SubjectPhone { get; private set; }
     public string? PackageCode { get; private set; }
     public OrderStatus Status { get; private set; }
     public OrderStatus? BlockedFromStatus { get; private set; }
@@ -46,68 +48,51 @@ public sealed class Order : AggregateRoot
 
     public static Order Create(
         UlidId orderId,
-        UlidId subjectId,
         UlidId customerId,
         string policySnapshotId,
+        string subjectEmail,
+        string? subjectPhone,
         DateTimeOffset createdAt,
-        string? packageCode = null
+        string? packageCode,
+        UlidId createdBy
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(policySnapshotId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(subjectEmail);
 
-        var order = CreateCore(orderId, subjectId, customerId, policySnapshotId, createdAt, packageCode);
+        var normalizedEmail = subjectEmail.Trim().ToLowerInvariant();
+        var normalizedPhone = string.IsNullOrWhiteSpace(subjectPhone) ? null : subjectPhone.Trim();
 
-        order.AddDomainEvent(new OrderCreated(
-            order.Id,
-            order.SubjectId,
-            order.CustomerId,
-            order.PolicySnapshotId,
-            createdAt));
-
-        order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created",
-            createdAt));
-        return order;
-    }
-
-    public static Order CreateFromIntake(
-        UlidId orderId,
-        UlidId subjectId,
-        UlidId customerId,
-        string policySnapshotId,
-        DateTimeOffset createdAt,
-        UlidId requestedBy
-    )
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(policySnapshotId);
-
-        var order = CreateCore(orderId, subjectId, customerId, policySnapshotId, createdAt, null);
-
-        order.AddDomainEvent(new OrderCreated(
-            order.Id,
-            order.SubjectId,
-            order.CustomerId,
-            order.PolicySnapshotId,
-            createdAt));
-
-        order.AddDomainEvent(new OrderCreatedFromIntake(
-            order.Id,
-            order.SubjectId,
-            order.CustomerId,
-            order.PolicySnapshotId,
+        var order = CreateCore(
+            orderId,
+            customerId,
+            policySnapshotId,
+            normalizedEmail,
+            normalizedPhone,
             createdAt,
-            requestedBy));
+            packageCode);
+
+        order.AddDomainEvent(new OrderRequested(
+            order.Id,
+            order.CustomerId,
+            order.SubjectEmail,
+            order.SubjectPhone,
+            order.PolicySnapshotId,
+            order.PackageCode,
+            createdAt,
+            createdBy));
 
         order.AddDomainEvent(new OrderStatusChanged(order.Id, order.CustomerId, order.Status, "Order created",
             createdAt));
-
         return order;
     }
 
     private static Order CreateCore(
         UlidId orderId,
-        UlidId subjectId,
         UlidId customerId,
         string policySnapshotId,
+        string subjectEmail,
+        string? subjectPhone,
         DateTimeOffset createdAt,
         string? packageCode
     )
@@ -115,9 +100,11 @@ public sealed class Order : AggregateRoot
         return new Order
         {
             Id = orderId,
-            SubjectId = subjectId,
+            SubjectId = null,
             CustomerId = customerId,
             PolicySnapshotId = policySnapshotId,
+            SubjectEmail = subjectEmail,
+            SubjectPhone = subjectPhone,
             PackageCode = packageCode,
             Status = OrderStatus.Created,
             CreatedAt = createdAt,
@@ -127,9 +114,11 @@ public sealed class Order : AggregateRoot
 
     public static Order Rehydrate(
         UlidId orderId,
-        UlidId subjectId,
         UlidId customerId,
         string policySnapshotId,
+        string subjectEmail,
+        string? subjectPhone,
+        UlidId? subjectId,
         OrderStatus status,
         DateTimeOffset createdAt,
         DateTimeOffset lastUpdatedAt,
@@ -152,6 +141,8 @@ public sealed class Order : AggregateRoot
             SubjectId = subjectId,
             CustomerId = customerId,
             PolicySnapshotId = policySnapshotId,
+            SubjectEmail = subjectEmail,
+            SubjectPhone = subjectPhone,
             Status = status,
             CreatedAt = createdAt,
             LastUpdatedAt = lastUpdatedAt,
@@ -167,6 +158,30 @@ public sealed class Order : AggregateRoot
             ClosedAt = closedAt,
             CanceledAt = canceledAt
         };
+    }
+
+    public bool AssignSubject(UlidId subjectId, DateTimeOffset assignedAt)
+    {
+        if (SubjectId.HasValue)
+        {
+            return SubjectId.Value == subjectId;
+        }
+
+        SubjectId = subjectId;
+        LastUpdatedAt = assignedAt;
+        AddDomainEvent(new OrderSubjectAssigned(Id, CustomerId, subjectId, assignedAt));
+        return true;
+    }
+
+    public bool LinkIntakeSession(UlidId intakeSessionId, DateTimeOffset linkedAt, string? reason = null)
+    {
+        if (ActiveIntakeSessionId.HasValue)
+        {
+            return ActiveIntakeSessionId.Value == intakeSessionId;
+        }
+
+        RecordInvite(intakeSessionId, linkedAt, reason ?? "Intake session linked");
+        return true;
     }
 
     public void RecordInvite(UlidId intakeSessionId, DateTimeOffset invitedAt, string? reason = null)
@@ -192,6 +207,11 @@ public sealed class Order : AggregateRoot
 
     public void MarkIntakeSubmitted(UlidId sessionId, DateTimeOffset submittedAt, string? reason = null)
     {
+        if (Status == OrderStatus.IntakeComplete && LastCompletedIntakeSessionId == sessionId)
+        {
+            return;
+        }
+
         EnsureActiveSession(sessionId);
         reason ??= "Intake submission received";
         IntakeCompletedAt = submittedAt;

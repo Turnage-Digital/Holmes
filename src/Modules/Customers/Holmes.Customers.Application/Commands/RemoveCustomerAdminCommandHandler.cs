@@ -9,11 +9,10 @@ public sealed class RemoveCustomerAdminCommandHandler(ICustomersUnitOfWork unitO
 {
     public async Task<Result> Handle(RemoveCustomerAdminCommand request, CancellationToken cancellationToken)
     {
-        var repository = unitOfWork.Customers;
-        var customer = await repository.GetByIdAsync(request.TargetCustomerId, cancellationToken);
+        var customer = await unitOfWork.Customers.GetByIdAsync(request.TargetCustomerId, cancellationToken);
         if (customer is null)
         {
-            return Result.Fail($"Customer '{request.TargetCustomerId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         var actor = request.GetUserUlid();
@@ -21,12 +20,12 @@ public sealed class RemoveCustomerAdminCommandHandler(ICustomersUnitOfWork unitO
         {
             customer.RemoveAdmin(request.TargetUserId, actor, request.RemovedAt);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            return Result.Fail(ex.Message);
+            return Result.Fail(ResultErrors.Validation);
         }
 
-        await repository.UpdateAsync(customer, cancellationToken);
+        await unitOfWork.Customers.UpdateAsync(customer, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

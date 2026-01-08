@@ -10,9 +10,13 @@ public static class OrderMapper
     {
         return Order.Rehydrate(
             UlidId.Parse(db.OrderId),
-            UlidId.Parse(db.SubjectId),
             UlidId.Parse(db.CustomerId),
             db.PolicySnapshotId,
+            db.SubjectEmail,
+            db.SubjectPhone,
+            string.IsNullOrWhiteSpace(db.SubjectId)
+                ? null
+                : UlidId.Parse(db.SubjectId),
             Enum.Parse<OrderStatus>(db.Status),
             db.CreatedAt,
             db.LastUpdatedAt,
@@ -45,9 +49,11 @@ public static class OrderMapper
     public static void UpdateDb(OrderDb db, Order order)
     {
         db.OrderId = order.Id.ToString();
-        db.SubjectId = order.SubjectId.ToString();
+        db.SubjectId = order.SubjectId?.ToString();
         db.CustomerId = order.CustomerId.ToString();
         db.PolicySnapshotId = order.PolicySnapshotId;
+        db.SubjectEmail = order.SubjectEmail;
+        db.SubjectPhone = order.SubjectPhone;
         db.PackageCode = order.PackageCode;
         db.Status = order.Status.ToString();
         db.BlockedFromStatus = order.BlockedFromStatus?.ToString();

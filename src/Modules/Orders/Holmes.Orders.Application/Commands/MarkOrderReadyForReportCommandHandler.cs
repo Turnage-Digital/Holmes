@@ -12,16 +12,16 @@ public sealed class MarkOrderReadyForReportCommandHandler(IOrdersUnitOfWork unit
         var order = await unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
-            return Result.Fail($"Order '{request.OrderId}' not found.");
+            return Result.Fail(ResultErrors.NotFound);
         }
 
         try
         {
             order.MarkReadyForReport(request.ReadyAt, request.Reason);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            return Result.Fail(ex.Message);
+            return Result.Fail(ResultErrors.Validation);
         }
 
         await unitOfWork.Orders.UpdateAsync(order, cancellationToken);

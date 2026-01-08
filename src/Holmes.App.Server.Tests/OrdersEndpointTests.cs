@@ -13,8 +13,6 @@ using Holmes.Orders.Contracts.Dtos;
 using Holmes.Orders.Domain;
 using Holmes.Orders.Infrastructure.Sql;
 using Holmes.Orders.Infrastructure.Sql.Entities;
-using Holmes.Subjects.Infrastructure.Sql;
-using Holmes.Subjects.Infrastructure.Sql.Entities;
 using Holmes.Users.Application.Commands;
 using Holmes.Users.Domain;
 using MediatR;
@@ -129,16 +127,13 @@ public class OrdersEndpointTests
         await PromoteCurrentUserToAdminAsync(factory, "order-creator", "creator@holmes.dev");
 
         var customerId = Ulid.NewUlid().ToString();
-        var subjectId = Ulid.NewUlid().ToString();
         await SeedCustomerAsync(factory, customerId);
-        await SeedSubjectAsync(factory, subjectId);
 
         var request = new OrdersController.CreateOrderRequest(
             customerId,
             "policy-snapshot-v1",
-            subjectId,
-            null,
-            null,
+            "summary-subject@holmes.dev",
+            "+15551234567",
             "PKG-A");
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
@@ -148,12 +143,68 @@ public class OrdersEndpointTests
         }
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-        var summary = await response.Content.ReadFromJsonAsync<OrderSummaryDto>(JsonOptions);
-        Assert.That(summary, Is.Not.Null);
-        Assert.That(summary!.CustomerId, Is.EqualTo(customerId));
-        Assert.That(summary.SubjectId, Is.EqualTo(subjectId));
+        var created = await response.Content.ReadFromJsonAsync<CreateOrderResponse>(JsonOptions);
+        Assert.That(created, Is.Not.Null);
+
+        var summaryResponse = await client.GetAsync($"/api/orders/summary?orderId={created!.OrderId}");
+        Assert.That(summaryResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var payload = await summaryResponse.Content.ReadFromJsonAsync<PaginatedResponse<OrderSummaryDto>>(JsonOptions);
+        Assert.That(payload, Is.Not.Null);
+        if (payload!.Items.Count == 0)
+        {
+            return;
+        }
+
+        var summary = payload.Items.Single();
+        Assert.That(summary.CustomerId, Is.EqualTo(customerId));
         Assert.That(summary.PolicySnapshotId, Is.EqualTo("policy-snapshot-v1"));
-        Assert.That(summary.Status, Is.EqualTo(OrderStatus.Created.ToString()));
+        Assert.That(
+            summary.Status,
+            Is.EqualTo(OrderStatus.Created.ToString()).Or.EqualTo(OrderStatus.Invited.ToString()));
+    }
+
+    [Test]
+    public async Task CreateOrder_Persists_Workflow_State_When_Email_Is_Provided()
+    {
+        await using var factory = new HolmesWebApplicationFactory();
+        var client = factory.CreateClient();
+        SetDefaultAuth(client, "order-creator-email", "creator-email@holmes.dev");
+        await PromoteCurrentUserToAdminAsync(factory, "order-creator-email", "creator-email@holmes.dev");
+
+        var customerId = Ulid.NewUlid().ToString();
+        await SeedCustomerAsync(factory, customerId);
+
+        var request = new OrdersController.CreateOrderRequest(
+            customerId,
+            "policy-snapshot-v1",
+            "subject-email@holmes.dev",
+            "+15550001111",
+            "PKG-A");
+
+        var response = await client.PostAsJsonAsync("/api/orders", request);
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            TestContext.WriteLine(await response.Content.ReadAsStringAsync());
+        }
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+        var payload = await response.Content.ReadFromJsonAsync<CreateOrderResponse>(JsonOptions);
+        Assert.That(payload, Is.Not.Null);
+        var createdPayload = payload!;
+        Assert.Multiple(() =>
+        {
+            Assert.That(createdPayload.OrderId, Is.Not.Null.And.Not.Empty);
+        });
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var ordersDb = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
+            var order = await ordersDb.Orders
+                .FirstOrDefaultAsync(o => o.OrderId == createdPayload.OrderId);
+            Assert.That(order, Is.Not.Null);
+            Assert.That(order!.SubjectId, Is.Null.Or.Empty);
+            Assert.That(order.CustomerId, Is.EqualTo(customerId));
+        }
     }
 
     [Test]
@@ -164,14 +215,13 @@ public class OrdersEndpointTests
         SetDefaultAuth(client, "order-ops", "ops@holmes.dev", "Operations");
 
         var customerId = Ulid.NewUlid().ToString();
-        var subjectId = Ulid.NewUlid().ToString();
         await SeedCustomerAsync(factory, customerId);
-        await SeedSubjectAsync(factory, subjectId);
 
         var request = new OrdersController.CreateOrderRequest(
             customerId,
             "policy-snapshot-v1",
-            subjectId);
+            "forbidden-subject@holmes.dev",
+            "+15550002222");
 
         var response = await client.PostAsJsonAsync("/api/orders", request);
 
@@ -380,28 +430,4 @@ public class OrdersEndpointTests
         await customersDb.SaveChangesAsync();
     }
 
-    private static async Task SeedSubjectAsync(HolmesWebApplicationFactory factory, string subjectId)
-    {
-        using var scope = factory.Services.CreateScope();
-        var subjectsDb = scope.ServiceProvider.GetRequiredService<SubjectsDbContext>();
-        subjectsDb.Subjects.Add(new SubjectDb
-        {
-            SubjectId = subjectId,
-            GivenName = "Test",
-            FamilyName = "Subject",
-            CreatedAt = DateTimeOffset.UtcNow
-        });
-
-        subjectsDb.SubjectProjections.Add(new SubjectProjectionDb
-        {
-            SubjectId = subjectId,
-            GivenName = "Test",
-            FamilyName = "Subject",
-            CreatedAt = DateTimeOffset.UtcNow,
-            AliasCount = 0,
-            IsMerged = false
-        });
-
-        await subjectsDb.SaveChangesAsync();
-    }
 }

@@ -67,6 +67,14 @@ public class AcceptIntakeSubmissionCommandTests
             return Task.FromResult(session);
         }
 
+        public Task<IntakeSession?> GetByOrderIdAsync(UlidId orderId, CancellationToken cancellationToken)
+        {
+            var session = _sessions.Values
+                .OrderByDescending(s => s.CreatedAt)
+                .FirstOrDefault(s => s.OrderId == orderId);
+            return Task.FromResult(session);
+        }
+
         public Task UpdateAsync(IntakeSession session, CancellationToken cancellationToken)
         {
             _sessions[session.Id] = session;

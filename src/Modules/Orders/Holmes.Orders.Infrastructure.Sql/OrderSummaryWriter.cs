@@ -19,14 +19,14 @@ public sealed class OrderSummaryWriter(OrdersDbContext dbContext)
             {
                 OrderId = order.Id.ToString(),
                 CreatedAt = order.CreatedAt,
-                SubjectId = order.SubjectId.ToString(),
+                SubjectId = order.SubjectId?.ToString(),
                 CustomerId = order.CustomerId.ToString(),
                 PolicySnapshotId = order.PolicySnapshotId
             };
             dbContext.OrderSummaries.Add(record);
         }
 
-        record.SubjectId = order.SubjectId.ToString();
+        record.SubjectId = order.SubjectId?.ToString();
         record.CustomerId = order.CustomerId.ToString();
         record.PolicySnapshotId = order.PolicySnapshotId;
         record.PackageCode = order.PackageCode;
