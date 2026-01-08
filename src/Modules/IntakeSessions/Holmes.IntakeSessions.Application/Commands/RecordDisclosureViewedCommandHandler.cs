@@ -4,12 +4,11 @@ using MediatR;
 
 namespace Holmes.IntakeSessions.Application.Commands;
 
-public sealed class AcceptIntakeSubmissionCommandHandler(
+public sealed class RecordDisclosureViewedCommandHandler(
     IIntakeSessionsUnitOfWork unitOfWork
-)
-    : IRequestHandler<AcceptIntakeSubmissionCommand, Result>
+) : IRequestHandler<RecordDisclosureViewedCommand, Result>
 {
-    public async Task<Result> Handle(AcceptIntakeSubmissionCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(RecordDisclosureViewedCommand request, CancellationToken cancellationToken)
     {
         var repository = unitOfWork.IntakeSessions;
         var session = await repository.GetByIdAsync(request.IntakeSessionId, cancellationToken);
@@ -18,15 +17,9 @@ public sealed class AcceptIntakeSubmissionCommandHandler(
             return Result.Fail(ResultErrors.NotFound);
         }
 
-        if (session.AuthorizationArtifact is null)
-        {
-            return Result.Fail(ResultErrors.Validation);
-        }
-
-        session.AcceptSubmission(request.AcceptedAt);
+        session.RecordDisclosureViewed(request.ViewedAt);
         await repository.UpdateAsync(session, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-
         return Result.Success();
     }
 }

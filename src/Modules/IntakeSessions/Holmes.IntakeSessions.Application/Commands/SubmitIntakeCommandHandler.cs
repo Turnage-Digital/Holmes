@@ -26,7 +26,7 @@ public sealed class SubmitIntakeCommandHandler(
             return Result.Fail(ResultErrors.NotFound);
         }
 
-        if (session.ConsentArtifact is null || session.AnswersSnapshot is null)
+        if (session.AuthorizationArtifact is null || session.AnswersSnapshot is null)
         {
             return Result.Fail(ResultErrors.Validation);
         }

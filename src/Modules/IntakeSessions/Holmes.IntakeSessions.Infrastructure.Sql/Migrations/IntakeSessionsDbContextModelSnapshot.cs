@@ -22,7 +22,7 @@ namespace Holmes.IntakeSessions.Infrastructure.Sql.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Holmes.IntakeSessions.Infrastructure.Sql.Entities.ConsentArtifactDb", b =>
+            modelBuilder.Entity("Holmes.IntakeSessions.Infrastructure.Sql.Entities.AuthorizationArtifactDb", b =>
                 {
                     b.Property<string>("ArtifactId")
                         .HasMaxLength(26)

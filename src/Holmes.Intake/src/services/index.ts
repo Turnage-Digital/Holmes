@@ -1,8 +1,9 @@
 export {
   startIntakeSession,
   verifyIntakeOtp,
-  captureConsentArtifact,
+  captureAuthorizationArtifact,
   saveIntakeProgress,
+  recordDisclosureViewed,
   submitIntake,
   getIntakeBootstrap,
 } from "./intake";

@@ -8,23 +8,34 @@ namespace Holmes.IntakeSessions.Application.EventHandlers;
 public sealed class IntakeTimelineHandler(IOrderTimelineWriter timelineWriter)
     : INotificationHandler<IntakeSessionInvited>,
         INotificationHandler<IntakeSessionStarted>,
-        INotificationHandler<ConsentCaptured>,
+        INotificationHandler<AuthorizationCaptured>,
+        INotificationHandler<DisclosureViewed>,
         INotificationHandler<IntakeSubmissionReceived>,
         INotificationHandler<IntakeSubmissionAccepted>,
         INotificationHandler<IntakeSessionExpired>,
         INotificationHandler<IntakeSessionSuperseded>
 {
-    public Task Handle(ConsentCaptured notification, CancellationToken cancellationToken)
+    public Task Handle(AuthorizationCaptured notification, CancellationToken cancellationToken)
     {
         return WriteAsync(notification.OrderId,
-            "intake.consent_captured",
-            "Consent captured",
+            "intake.authorization_captured",
+            "Authorization captured",
             notification.Artifact.CapturedAt,
             new
             {
                 sessionId = notification.IntakeSessionId.ToString(),
                 artifactId = notification.Artifact.ArtifactId.ToString()
             },
+            cancellationToken);
+    }
+
+    public Task Handle(DisclosureViewed notification, CancellationToken cancellationToken)
+    {
+        return WriteAsync(notification.OrderId,
+            "intake.disclosure_viewed",
+            "Disclosure viewed",
+            notification.ViewedAt,
+            new { sessionId = notification.IntakeSessionId.ToString() },
             cancellationToken);
     }
 

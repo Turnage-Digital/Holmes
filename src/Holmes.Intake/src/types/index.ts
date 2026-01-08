@@ -3,10 +3,11 @@ export type {
   StartIntakeSessionRequest,
   VerifyOtpRequest,
   VerifyOtpResponse,
-  CaptureConsentRequest,
-  CaptureConsentResponse,
+  CaptureAuthorizationRequest,
+  CaptureAuthorizationResponse,
   SaveIntakeProgressRequest,
   SubmitIntakeRequest,
+  RecordDisclosureViewedRequest,
   IntakeSectionConfig,
   IntakeBootstrapResponse,
 } from "./api";

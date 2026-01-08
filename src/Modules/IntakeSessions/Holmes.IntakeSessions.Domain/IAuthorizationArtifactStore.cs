@@ -2,20 +2,20 @@ using Holmes.Core.Domain.ValueObjects;
 
 namespace Holmes.IntakeSessions.Domain;
 
-public interface IConsentArtifactStore
+public interface IAuthorizationArtifactStore
 {
-    Task<ConsentArtifactDescriptor> SaveAsync(
-        ConsentArtifactWriteRequest request,
+    Task<AuthorizationArtifactDescriptor> SaveAsync(
+        AuthorizationArtifactWriteRequest request,
         Stream payload,
         CancellationToken cancellationToken
     );
 
-    Task<ConsentArtifactStream?> GetAsync(UlidId artifactId, CancellationToken cancellationToken);
+    Task<AuthorizationArtifactStream?> GetAsync(UlidId artifactId, CancellationToken cancellationToken);
 
     Task<bool> ExistsAsync(UlidId artifactId, CancellationToken cancellationToken);
 }
 
-public sealed record ConsentArtifactWriteRequest(
+public sealed record AuthorizationArtifactWriteRequest(
     UlidId ArtifactId,
     UlidId OrderId,
     UlidId SubjectId,
@@ -25,7 +25,7 @@ public sealed record ConsentArtifactWriteRequest(
     IReadOnlyDictionary<string, string> Metadata
 );
 
-public sealed record ConsentArtifactDescriptor(
+public sealed record AuthorizationArtifactDescriptor(
     UlidId ArtifactId,
     string MimeType,
     long Length,
@@ -36,7 +36,7 @@ public sealed record ConsentArtifactDescriptor(
     string? StorageHint = null
 );
 
-public sealed record ConsentArtifactStream(
-    ConsentArtifactDescriptor Descriptor,
+public sealed record AuthorizationArtifactStream(
+    AuthorizationArtifactDescriptor Descriptor,
     Stream Content
 );

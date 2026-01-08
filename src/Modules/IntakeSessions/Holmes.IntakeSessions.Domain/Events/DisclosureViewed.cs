@@ -1,11 +1,10 @@
 using Holmes.Core.Domain.ValueObjects;
-using Holmes.IntakeSessions.Domain.ValueObjects;
 using MediatR;
 
 namespace Holmes.IntakeSessions.Domain.Events;
 
-public sealed record ConsentCaptured(
+public sealed record DisclosureViewed(
     UlidId IntakeSessionId,
     UlidId OrderId,
-    ConsentArtifactPointer Artifact
+    DateTimeOffset ViewedAt
 ) : INotification;

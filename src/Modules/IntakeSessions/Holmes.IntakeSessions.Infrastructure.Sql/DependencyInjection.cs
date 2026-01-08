@@ -21,7 +21,7 @@ public static class DependencyInjection
 
         // Write side
         services.AddScoped<IIntakeSessionsUnitOfWork, IntakeSessionsUnitOfWork>();
-        services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
+        services.AddScoped<IAuthorizationArtifactStore, DatabaseAuthorizationArtifactStore>();
 
         // Read side (CQRS)
         services.AddScoped<IIntakeSessionQueries, IntakeSessionQueries>();

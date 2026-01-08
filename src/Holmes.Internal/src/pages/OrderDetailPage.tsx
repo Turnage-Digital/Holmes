@@ -1001,8 +1001,8 @@ const getTriggerTypeLabel = (
       return "Intake Invited";
     case "IntakeSubmissionReceived":
       return "Intake Submitted";
-    case "ConsentCaptured":
-      return "Consent Captured";
+    case "AuthorizationCaptured":
+      return "Authorization Captured";
     case "OrderStateChanged":
       return "Order Status Changed";
     case "SlaClockAtRisk":

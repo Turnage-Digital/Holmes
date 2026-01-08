@@ -27,6 +27,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Holmes.IntakeSessions.Domain\Holmes.IntakeSessions.Domain.csproj"/>
         <ProjectReference Include="..\Holmes.IntakeSessions.Application\Holmes.IntakeSessions.Application.csproj"/>
+        <ProjectReference Include="..\Holmes.IntakeSessions.Infrastructure.Sql\Holmes.IntakeSessions.Infrastructure.Sql.csproj"/>
     </ItemGroup>
 
 </Project>

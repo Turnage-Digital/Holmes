@@ -44,7 +44,7 @@ public class IntakeSessionTests
     }
 
     [Test]
-    public void Submit_RequiresConsentAndAnswers()
+    public void Submit_RequiresAuthorizationAndAnswers()
     {
         var session = CreateInvitedSession();
         session.Start(DateTimeOffset.UtcNow, null);
@@ -55,9 +55,9 @@ public class IntakeSessionTests
         session.SaveProgress(answers);
         Assert.Throws<InvalidOperationException>(() => session.Submit(DateTimeOffset.UtcNow));
 
-        var artifact = ConsentArtifactPointer.Create(UlidId.NewUlid(), "application/pdf", 1024, "hash", "SHA256",
+        var artifact = AuthorizationArtifactPointer.Create(UlidId.NewUlid(), "application/pdf", 1024, "hash", "SHA256",
             "schema", DateTimeOffset.UtcNow);
-        session.CaptureConsent(artifact);
+        session.CaptureAuthorization(artifact);
 
         Assert.DoesNotThrow(() => session.Submit(DateTimeOffset.UtcNow));
         Assert.That(session.Status, Is.EqualTo(IntakeSessionStatus.AwaitingReview));
@@ -107,9 +107,9 @@ public class IntakeSessionTests
         session.Start(DateTimeOffset.UtcNow, null);
         var answers = IntakeAnswersSnapshot.Create("schema", "hash", "cipher", DateTimeOffset.UtcNow);
         session.SaveProgress(answers);
-        var artifact = ConsentArtifactPointer.Create(UlidId.NewUlid(), "application/pdf", 1024, "hash", "SHA256",
+        var artifact = AuthorizationArtifactPointer.Create(UlidId.NewUlid(), "application/pdf", 1024, "hash", "SHA256",
             "schema", DateTimeOffset.UtcNow);
-        session.CaptureConsent(artifact);
+        session.CaptureAuthorization(artifact);
         session.Submit(DateTimeOffset.UtcNow);
         return session;
     }

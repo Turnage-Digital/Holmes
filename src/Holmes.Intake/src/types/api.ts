@@ -12,7 +12,7 @@ export interface VerifyOtpResponse {
   verified: boolean;
 }
 
-export interface CaptureConsentRequest {
+export interface CaptureAuthorizationRequest {
   mimeType: string;
   schemaVersion: string;
   payloadBase64: string;
@@ -20,7 +20,7 @@ export interface CaptureConsentRequest {
   metadata?: Record<string, string>;
 }
 
-export interface CaptureConsentResponse {
+export interface CaptureAuthorizationResponse {
   artifactId: string;
   mimeType: string;
   length: number;
@@ -40,6 +40,10 @@ export interface SaveIntakeProgressRequest {
 
 export interface SubmitIntakeRequest {
   submittedAt?: string;
+}
+
+export interface RecordDisclosureViewedRequest {
+  viewedAt?: string;
 }
 
 /**
@@ -66,7 +70,23 @@ export interface IntakeBootstrapResponse {
   acceptedAt?: string;
   cancellationReason?: string;
   supersededBySessionId?: string;
-  consent?: {
+  disclosure?: {
+    disclosureId: string;
+    disclosureVersion: string;
+    disclosureHash: string;
+    disclosureFormat: string;
+    disclosureContent?: string;
+    disclosureFetchUrl?: string;
+  };
+  authorizationCopy?: {
+    authorizationId: string;
+    authorizationVersion: string;
+    authorizationHash: string;
+    authorizationFormat: string;
+    authorizationContent?: string;
+  };
+  authorizationMode: string;
+  authorization?: {
     artifactId: string;
     mimeType: string;
     length: number;

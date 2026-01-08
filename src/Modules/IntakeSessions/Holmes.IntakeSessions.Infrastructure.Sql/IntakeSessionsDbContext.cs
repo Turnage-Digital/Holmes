@@ -7,19 +7,19 @@ namespace Holmes.IntakeSessions.Infrastructure.Sql;
 public class IntakeSessionsDbContext(DbContextOptions<IntakeSessionsDbContext> options)
     : DbContext(options)
 {
-    public DbSet<ConsentArtifactDb> ConsentArtifacts => Set<ConsentArtifactDb>();
+    public DbSet<AuthorizationArtifactDb> AuthorizationArtifacts => Set<AuthorizationArtifactDb>();
     public DbSet<IntakeSessionDb> IntakeSessions => Set<IntakeSessionDb>();
     public DbSet<IntakeSessionProjectionDb> IntakeSessionProjections => Set<IntakeSessionProjectionDb>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        ConfigureConsentArtifacts(modelBuilder.Entity<ConsentArtifactDb>());
+        ConfigureAuthorizationArtifacts(modelBuilder.Entity<AuthorizationArtifactDb>());
         ConfigureIntakeSessions(modelBuilder.Entity<IntakeSessionDb>());
         ConfigureIntakeSessionProjections(modelBuilder.Entity<IntakeSessionProjectionDb>());
     }
 
-    private static void ConfigureConsentArtifacts(EntityTypeBuilder<ConsentArtifactDb> builder)
+    private static void ConfigureAuthorizationArtifacts(EntityTypeBuilder<AuthorizationArtifactDb> builder)
     {
         builder.ToTable("consent_artifacts");
         builder.HasKey(x => x.ArtifactId);
@@ -79,11 +79,25 @@ public class IntakeSessionsDbContext(DbContextOptions<IntakeSessionsDbContext> o
         builder.Property(x => x.AnswersPayloadCipherText).HasColumnType("longtext");
         builder.Property(x => x.CancellationReason).HasMaxLength(256);
         builder.Property(x => x.SupersededBySessionId).HasMaxLength(26);
-        builder.Property(x => x.ConsentArtifactId).HasMaxLength(26);
-        builder.Property(x => x.ConsentMimeType).HasMaxLength(256);
-        builder.Property(x => x.ConsentHash).HasMaxLength(128);
-        builder.Property(x => x.ConsentHashAlgorithm).HasMaxLength(32);
-        builder.Property(x => x.ConsentSchemaVersion).HasMaxLength(64);
+        builder.Property(x => x.AuthorizationArtifactId)
+            .HasMaxLength(26)
+            .HasColumnName("ConsentArtifactId");
+        builder.Property(x => x.AuthorizationMimeType)
+            .HasMaxLength(256)
+            .HasColumnName("ConsentMimeType");
+        builder.Property(x => x.AuthorizationHash)
+            .HasMaxLength(128)
+            .HasColumnName("ConsentHash");
+        builder.Property(x => x.AuthorizationHashAlgorithm)
+            .HasMaxLength(32)
+            .HasColumnName("ConsentHashAlgorithm");
+        builder.Property(x => x.AuthorizationSchemaVersion)
+            .HasMaxLength(64)
+            .HasColumnName("ConsentSchemaVersion");
+        builder.Property(x => x.AuthorizationLength)
+            .HasColumnName("ConsentLength");
+        builder.Property(x => x.AuthorizationCapturedAt)
+            .HasColumnName("ConsentCapturedAt");
         builder.Property(x => x.AnswersSchemaVersion).HasMaxLength(64);
         builder.Property(x => x.AnswersPayloadHash).HasMaxLength(128);
 

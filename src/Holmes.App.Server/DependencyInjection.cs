@@ -292,7 +292,7 @@ internal static class DependencyInjection
         services.AddScoped<ISubjectProjectionWriter, SubjectProjectionWriter>();
         services.AddScoped<IIntakeSessionsUnitOfWork, IntakeSessionsUnitOfWork>();
         services.AddScoped<IIntakeSessionProjectionWriter, IntakeSessionProjectionWriter>();
-        services.AddScoped<IConsentArtifactStore, DatabaseConsentArtifactStore>();
+        services.AddScoped<IAuthorizationArtifactStore, DatabaseAuthorizationArtifactStore>();
         services.AddSingleton<IIntakeSectionMappingService, IntakeSectionMappingService>();
         services.AddScoped<IOrdersUnitOfWork, OrdersUnitOfWork>();
         services.AddScoped<IOrderTimelineWriter, OrderTimelineWriter>();

@@ -1,7 +1,7 @@
 # IntakeSession Domain Notes
 
 **Context:** Phase 2 Intake & Workflow launch. IntakeSession captures the full subject experience from invite to
-submission while anchoring consent, policy snapshots, and partial progress.
+submission while anchoring authorization, policy snapshots, and partial progress.
 
 ## 1. Purpose
 
@@ -10,6 +10,7 @@ submission while anchoring consent, policy snapshots, and partial progress.
   order transitions.
 - Persist **policy snapshots** (permissible purpose, disclosure versions, Fair-Chance overlays) so downstream
   adjudication references immutable context.
+- Snapshot includes disclosure + authorization copy identifiers, versions, and hashes used for evidence binding.
 - Emit **timeline events** that power projections (`intake_sessions`, `order_timeline_events`) and SSE feeds.
 
 ## 2. Lifecycle & States
@@ -17,7 +18,7 @@ submission while anchoring consent, policy snapshots, and partial progress.
 | State             | Description                                                                   | Entry Event                                       | Exit Trigger                                      |
 |-------------------|-------------------------------------------------------------------------------|---------------------------------------------------|---------------------------------------------------|
 | `invited`         | Session created, invite sent with resume token; no subject interaction yet    | `IntakeSessionInvited`                            | Subject authenticates via OTP                     |
-| `in_progress`     | Subject verified, may save partial answers; consent pending                   | `IntakeSessionStarted`                            | Consent captured + all required sections complete |
+| `in_progress`     | Subject verified, may save partial answers; authorization pending             | `IntakeSessionStarted`                            | Authorization captured + all required sections complete |
 | `awaiting_review` | Subject submitted data but order validation still running (IDV, fraud checks) | `IntakeSubmissionReceived`                        | All validations pass (or manual override)         |
 | `submitted`       | Intake locked, data attached to pending order transition                      | `IntakeSubmissionAccepted`                        | Order workflow moves to `ready_for_routing`       |
 | `abandoned`       | Invite expired or subject withdrew; session archived                          | `IntakeSessionExpired` / `IntakeSessionWithdrawn` | n/a                                               |
@@ -35,7 +36,8 @@ Rules:
 - `IssueIntakeInviteCommand` — creates session, sends communication payloads.
 - `StartIntakeSessionCommand` — verifies OTP token, records device metadata.
 - `SaveIntakeProgressCommand` — idempotent partial updates; enforces schema validation.
-- `CaptureConsentCommand` — stores disclosure acceptance, signature artifacts.
+- `CaptureAuthorizationArtifactCommand` — stores disclosure acceptance, authorization artifacts.
+- `RecordDisclosureViewedCommand` — records disclosure view confirmation.
 - `SubmitIntakeCommand` — finalizes answers, locks session, raises submission events.
 - `ExpireIntakeSessionCommand` / `WithdrawIntakeSessionCommand` — handles abandonment flows.
 
@@ -44,7 +46,8 @@ Rules:
 - `IntakeSessionInvited`
 - `IntakeSessionStarted`
 - `IntakeProgressSaved`
-- `ConsentCaptured`
+- `DisclosureViewed`
+- `AuthorizationCaptured`
 - `IntakeSubmissionReceived`
 - `IntakeSubmissionAccepted`
 - `IntakeSessionExpired`
@@ -60,23 +63,24 @@ Key fields:
 - `IntakeSessionId` (ULID), `OrderId`, `SubjectId`, `CustomerId`
 - `Status`, `ExpiresAt`, `LastTouchedAt`
 - `PolicySnapshot` (embedded JSON / reference ID)
-- `ConsentArtifacts` (hash pointer to immutable storage)
+- `AuthorizationArtifacts` (hash pointer to immutable storage, bound to disclosure snapshot via metadata)
 - `Answers` (encrypted payload or reference to normalized tables)
 - `ResumeToken` (one-time + rotating option for security)
 
 Invariants:
 
 1. `OrderId` + `SubjectId` combination must be unique for active sessions.
-2. `ConsentCaptured` required before `SubmitIntakeCommand` succeeds.
+2. `AuthorizationCaptured` required before `SubmitIntakeCommand` succeeds.
 3. `Answers` schema version must match `PolicySnapshot.SchemaVersion`.
-4. Once `submitted`, no mutable fields other than metadata (e.g., `SubmittedAt` timestamp).
-5. Superseding a session emits `IntakeSessionSuperseded` and marks prior session as read-only.
+4. Authorization artifacts must include disclosure id/version/hash and server-derived IP/UA metadata.
+5. Once `submitted`, no mutable fields other than metadata (e.g., `SubmittedAt` timestamp).
+6. Superseding a session emits `IntakeSessionSuperseded` and marks prior session as read-only.
 
-### Consent Artifact Storage (Phase 2)
+### Authorization Artifact Storage (Phase 2)
 
-- Expose an abstraction `IConsentArtifactStore` (`SaveAsync`, `GetAsync`, `ExistsAsync`) so the aggregate/application
-  layer only depends on metadata (`ConsentArtifactPointer`) rather than storage details.
-- Phase 2 ships with `DatabaseConsentArtifactStore` implemented inside `Holmes.IntakeSessions.Infrastructure.Sql`,
+- Expose an abstraction `IAuthorizationArtifactStore` (`SaveAsync`, `GetAsync`, `ExistsAsync`) so the aggregate/application
+  layer only depends on metadata (`AuthorizationArtifactPointer`) rather than storage details.
+- Phase 2 ships with `DatabaseAuthorizationArtifactStore` implemented inside `Holmes.IntakeSessions.Infrastructure.Sql`,
   persisting
   encrypted byte arrays plus metadata columns (`Hash`, `MimeType`, `Length`, `SchemaVersion`) in MySQL.
 - Application handlers call the store, receive a pointer (ULID/URI) that is persisted on the `IntakeSession`. Swapping
@@ -87,7 +91,7 @@ Invariants:
 **Interface & DTO sketch:**
 
 ```csharp
-public sealed record ConsentArtifactDescriptor(
+public sealed record AuthorizationArtifactDescriptor(
     Ulid ArtifactId,
     string MimeType,
     long Length,
@@ -97,21 +101,21 @@ public sealed record ConsentArtifactDescriptor(
     DateTimeOffset CreatedAt,
     string? StorageHint = null);
 
-public interface IConsentArtifactStore
+public interface IAuthorizationArtifactStore
 {
-    Task<ConsentArtifactDescriptor> SaveAsync(
-        ConsentArtifactWriteRequest request,
+    Task<AuthorizationArtifactDescriptor> SaveAsync(
+        AuthorizationArtifactWriteRequest request,
         Stream payload,
         CancellationToken cancellationToken);
 
-    Task<ConsentArtifactStream> GetAsync(
+    Task<AuthorizationArtifactStream> GetAsync(
         Ulid artifactId,
         CancellationToken cancellationToken);
 
     Task<bool> ExistsAsync(Ulid artifactId, CancellationToken cancellationToken);
 }
 
-public sealed record ConsentArtifactWriteRequest(
+public sealed record AuthorizationArtifactWriteRequest(
     Ulid ArtifactId,
     Ulid OrderId,
     Ulid SubjectId,
@@ -119,12 +123,12 @@ public sealed record ConsentArtifactWriteRequest(
     string SchemaVersion,
     IDictionary<string, string> Metadata);
 
-public sealed record ConsentArtifactStream(
-    ConsentArtifactDescriptor Descriptor,
+public sealed record AuthorizationArtifactStream(
+    AuthorizationArtifactDescriptor Descriptor,
     Stream Content);
 ```
 
-`DatabaseConsentArtifactStore` implements the interface, encrypts content before writing to MySQL, and returns the
+`DatabaseAuthorizationArtifactStore` implements the interface, encrypts content before writing to MySQL, and returns the
 descriptor so aggregates persist only the pointer + hash.
 
 ## 5. Interactions with Order Aggregate
@@ -139,9 +143,9 @@ descriptor so aggregates persist only the pointer + hash.
 
 - UX must surface session status, expiration timer, and last saved timestamp; auto-save should call
   `SaveIntakeProgressCommand`.
-- SSE channel should broadcast `IntakeSessionStarted`, `ConsentCaptured`, and `IntakeSubmissionAccepted` so ops
+- SSE channel should broadcast `IntakeSessionStarted`, `DisclosureViewed`, `AuthorizationCaptured`, and `IntakeSubmissionAccepted` so ops
   dashboards reflect live progress.
-- Runbooks need procedures for resending invites, force-expiring sessions, and verifying consent artifacts.
+- Runbooks need procedures for resending invites, force-expiring sessions, and verifying authorization artifacts.
 - OTP remains the gate into `StartIntakeSession`—keep issuance/resend/expiration logic intact even as the operator IdP
   moves to the first-class IdentityServer host. Subject OTP validation is distinct from operator OIDC login.
 
@@ -149,7 +153,7 @@ descriptor so aggregates persist only the pointer + hash.
 
 1. Do we allow multiple active sessions per subject if different customers request background checks simultaneously? (
    Default: yes, but per-order uniqueness enforced.)
-2. Should consent artifacts live in object storage or SQL blob for Phase 2? Decision impacts `ConsentCaptured` handling.
+2. Should authorization artifacts live in object storage or SQL blob for Phase 2? Decision impacts `AuthorizationCaptured` handling.
 3. What is the default expiration window, and can customers override it?
 
 Track these decisions in the weekly Domain & Experience checkpoints and update this doc as the answers solidify.

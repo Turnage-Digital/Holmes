@@ -43,9 +43,10 @@ public class AcceptIntakeSubmissionCommandTests
         var session = IntakeSessionTestFactory.CreateInvitedSession();
         session.Start(DateTimeOffset.UtcNow, null);
         session.SaveProgress(IntakeAnswersSnapshot.Create("schema", "hash", "cipher", DateTimeOffset.UtcNow));
-        var artifact = ConsentArtifactPointer.Create(UlidId.NewUlid(), "application/pdf", 1024, "hash", "SHA256",
+        var artifact = AuthorizationArtifactPointer.Create(UlidId.NewUlid(), "application/pdf", 1024, "hash",
+            "SHA256",
             "schema", DateTimeOffset.UtcNow);
-        session.CaptureConsent(artifact);
+        session.CaptureAuthorization(artifact);
         session.Submit(DateTimeOffset.UtcNow);
         await _repository.AddAsync(session, CancellationToken.None);
         return session;

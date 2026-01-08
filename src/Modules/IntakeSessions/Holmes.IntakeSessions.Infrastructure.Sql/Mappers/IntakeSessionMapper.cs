@@ -30,23 +30,23 @@ public static class IntakeSessionMapper
                 db.AnswersUpdatedAt.Value);
         }
 
-        ConsentArtifactPointer? consent = null;
-        if (db.ConsentArtifactId is not null &&
-            db.ConsentMimeType is not null &&
-            db.ConsentLength is not null &&
-            db.ConsentHash is not null &&
-            db.ConsentHashAlgorithm is not null &&
-            db.ConsentSchemaVersion is not null &&
-            db.ConsentCapturedAt is not null)
+        AuthorizationArtifactPointer? authorization = null;
+        if (db.AuthorizationArtifactId is not null &&
+            db.AuthorizationMimeType is not null &&
+            db.AuthorizationLength is not null &&
+            db.AuthorizationHash is not null &&
+            db.AuthorizationHashAlgorithm is not null &&
+            db.AuthorizationSchemaVersion is not null &&
+            db.AuthorizationCapturedAt is not null)
         {
-            consent = ConsentArtifactPointer.Create(
-                UlidId.Parse(db.ConsentArtifactId),
-                db.ConsentMimeType,
-                db.ConsentLength.Value,
-                db.ConsentHash,
-                db.ConsentHashAlgorithm,
-                db.ConsentSchemaVersion,
-                db.ConsentCapturedAt.Value);
+            authorization = AuthorizationArtifactPointer.Create(
+                UlidId.Parse(db.AuthorizationArtifactId),
+                db.AuthorizationMimeType,
+                db.AuthorizationLength.Value,
+                db.AuthorizationHash,
+                db.AuthorizationHashAlgorithm,
+                db.AuthorizationSchemaVersion,
+                db.AuthorizationCapturedAt.Value);
         }
 
         return IntakeSession.Rehydrate(
@@ -61,7 +61,7 @@ public static class IntakeSessionMapper
             db.ResumeToken,
             policySnapshot,
             answers,
-            consent,
+            authorization,
             db.SubmittedAt,
             db.AcceptedAt,
             db.CancellationReason,
@@ -107,25 +107,25 @@ public static class IntakeSessionMapper
             db.AnswersUpdatedAt = null;
         }
 
-        if (session.ConsentArtifact is not null)
+        if (session.AuthorizationArtifact is not null)
         {
-            db.ConsentArtifactId = session.ConsentArtifact.ArtifactId.ToString();
-            db.ConsentMimeType = session.ConsentArtifact.MimeType;
-            db.ConsentLength = session.ConsentArtifact.Length;
-            db.ConsentHash = session.ConsentArtifact.Hash;
-            db.ConsentHashAlgorithm = session.ConsentArtifact.HashAlgorithm;
-            db.ConsentSchemaVersion = session.ConsentArtifact.SchemaVersion;
-            db.ConsentCapturedAt = session.ConsentArtifact.CapturedAt;
+            db.AuthorizationArtifactId = session.AuthorizationArtifact.ArtifactId.ToString();
+            db.AuthorizationMimeType = session.AuthorizationArtifact.MimeType;
+            db.AuthorizationLength = session.AuthorizationArtifact.Length;
+            db.AuthorizationHash = session.AuthorizationArtifact.Hash;
+            db.AuthorizationHashAlgorithm = session.AuthorizationArtifact.HashAlgorithm;
+            db.AuthorizationSchemaVersion = session.AuthorizationArtifact.SchemaVersion;
+            db.AuthorizationCapturedAt = session.AuthorizationArtifact.CapturedAt;
         }
         else
         {
-            db.ConsentArtifactId = null;
-            db.ConsentMimeType = null;
-            db.ConsentLength = null;
-            db.ConsentHash = null;
-            db.ConsentHashAlgorithm = null;
-            db.ConsentSchemaVersion = null;
-            db.ConsentCapturedAt = null;
+            db.AuthorizationArtifactId = null;
+            db.AuthorizationMimeType = null;
+            db.AuthorizationLength = null;
+            db.AuthorizationHash = null;
+            db.AuthorizationHashAlgorithm = null;
+            db.AuthorizationSchemaVersion = null;
+            db.AuthorizationCapturedAt = null;
         }
 
         db.SubmittedAt = session.SubmittedAt;
