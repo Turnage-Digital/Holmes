@@ -118,8 +118,11 @@ public sealed class IntakeSessionQueries(IntakeSessionsDbContext dbContext) : II
         var policySnapshotId = policyJson.RootElement.GetProperty("snapshotId").GetString() ?? "";
         var policySchemaVersion = policyJson.RootElement.GetProperty("schemaVersion").GetString() ?? "";
 
-        // Extract section config from policy metadata
+        // Extract metadata-driven payloads
         var sectionConfig = ParseSectionConfig(policyJson.RootElement);
+        var disclosure = ParseDisclosureSnapshot(policyJson.RootElement);
+        var authorizationCopy = ParseAuthorizationCopy(policyJson.RootElement);
+        var authorizationMode = ParseAuthorizationMode(policyJson.RootElement);
 
         AuthorizationArtifactDto? authorization = null;
         if (session.AuthorizationArtifactId is not null &&
@@ -170,6 +173,9 @@ public sealed class IntakeSessionQueries(IntakeSessionsDbContext dbContext) : II
             session.AcceptedAt,
             session.CancellationReason,
             session.SupersededBySessionId,
+            disclosure,
+            authorizationCopy,
+            authorizationMode,
             authorization,
             answers,
             sectionConfig
@@ -216,5 +222,77 @@ public sealed class IntakeSessionQueries(IntakeSessionsDbContext dbContext) : II
         }
 
         return new IntakeSectionConfigDto(requiredSections, enabledServiceCodes);
+    }
+
+    private static DisclosureSnapshotDto? ParseDisclosureSnapshot(JsonElement policyElement)
+    {
+        if (!TryGetMetadata(policyElement, IntakeMetadataKeys.DisclosureId, out var disclosureId) ||
+            !TryGetMetadata(policyElement, IntakeMetadataKeys.DisclosureVersion, out var disclosureVersion) ||
+            !TryGetMetadata(policyElement, IntakeMetadataKeys.DisclosureHash, out var disclosureHash) ||
+            !TryGetMetadata(policyElement, IntakeMetadataKeys.DisclosureFormat, out var disclosureFormat))
+        {
+            return null;
+        }
+
+        TryGetMetadata(policyElement, IntakeMetadataKeys.DisclosureContent, out var disclosureContent);
+
+        return new DisclosureSnapshotDto(
+            disclosureId,
+            disclosureVersion,
+            disclosureHash,
+            disclosureFormat,
+            disclosureContent,
+            null);
+    }
+
+    private static AuthorizationCopyDto? ParseAuthorizationCopy(JsonElement policyElement)
+    {
+        if (!TryGetMetadata(policyElement, IntakeMetadataKeys.AuthorizationId, out var authorizationId) ||
+            !TryGetMetadata(policyElement, IntakeMetadataKeys.AuthorizationVersion, out var authorizationVersion) ||
+            !TryGetMetadata(policyElement, IntakeMetadataKeys.AuthorizationHash, out var authorizationHash) ||
+            !TryGetMetadata(policyElement, IntakeMetadataKeys.AuthorizationFormat, out var authorizationFormat))
+        {
+            return null;
+        }
+
+        TryGetMetadata(policyElement, IntakeMetadataKeys.AuthorizationContent, out var authorizationContent);
+
+        return new AuthorizationCopyDto(
+            authorizationId,
+            authorizationVersion,
+            authorizationHash,
+            authorizationFormat,
+            authorizationContent);
+    }
+
+    private static string ParseAuthorizationMode(JsonElement policyElement)
+    {
+        if (TryGetMetadata(policyElement, IntakeMetadataKeys.AuthorizationMode, out var mode))
+        {
+            return mode.Equals(AuthorizationModes.Ongoing, StringComparison.OrdinalIgnoreCase)
+                ? AuthorizationModes.Ongoing
+                : AuthorizationModes.OneTime;
+        }
+
+        return AuthorizationModes.OneTime;
+    }
+
+    private static bool TryGetMetadata(JsonElement policyElement, string key, out string value)
+    {
+        value = string.Empty;
+        if (!policyElement.TryGetProperty("metadata", out var metadataElement) ||
+            metadataElement.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (!metadataElement.TryGetProperty(key, out var property) ||
+            property.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        value = property.GetString() ?? string.Empty;
+        return !string.IsNullOrWhiteSpace(value);
     }
 }

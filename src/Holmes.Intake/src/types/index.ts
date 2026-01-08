@@ -7,6 +7,7 @@ export type {
   CaptureAuthorizationResponse,
   SaveIntakeProgressRequest,
   SubmitIntakeRequest,
+  RecordDisclosureViewedRequest,
   IntakeSectionConfig,
   IntakeBootstrapResponse,
 } from "./api";

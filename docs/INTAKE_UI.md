@@ -116,6 +116,7 @@ The client authenticates by **presenting the invite token**.
 * GET /api/intake/session/{id}
 * GET /api/policy/snapshot/{id}
 * GET /api/subjects/{id} (lightweight subset)
+* Disclosure + authorization copy are delivered via intake bootstrap (policy snapshot metadata).
 
 ### 4.3 Writes
 
@@ -156,12 +157,14 @@ Events emitted:
 ## 5.3 Disclosure
 
 * Show disclosure content only (HTML/PDF)
+* Content must be server-sourced and immutable for the session
 * No checkbox or authorization language
 * “Continue” → Authorization
 
 ## 5.4 Authorization
 
 * Short authorization statement
+* Authorization copy must be server-sourced and versioned
 * Unchecked checkbox + timestamp
 * “Authorize & continue” → Data Entry
 
@@ -214,7 +217,8 @@ Events emitted:
 
 ### 6.5 Evidence Capture
 
-* Authorization step must record checkbox, timestamp, IP/UA context, and the disclosure version/hash surfaced by the server.
+* Authorization step must record checkbox, timestamp, IP/UA context, authorization mode, and the disclosure version/hash surfaced by the server.
+* Disclosure step should be recorded when viewed/continued.
 * Review step surfaces what will be stored; submission wipes local draft data.
 
 ---

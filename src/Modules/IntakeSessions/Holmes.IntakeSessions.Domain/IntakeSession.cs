@@ -144,6 +144,18 @@ public sealed class IntakeSession : AggregateRoot
         AddDomainEvent(new IntakeProgressSaved(Id, OrderId, answers));
     }
 
+    public void RecordDisclosureViewed(DateTimeOffset viewedAt)
+    {
+        EnsureActive();
+        if (Status is not (IntakeSessionStatus.InProgress or IntakeSessionStatus.AwaitingReview))
+        {
+            throw new InvalidOperationException("Disclosure can only be viewed for active sessions.");
+        }
+
+        LastTouchedAt = viewedAt;
+        AddDomainEvent(new DisclosureViewed(Id, OrderId, viewedAt));
+    }
+
     public void CaptureAuthorization(AuthorizationArtifactPointer artifact)
     {
         ArgumentNullException.ThrowIfNull(artifact);

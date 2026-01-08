@@ -42,6 +42,10 @@ export interface SubmitIntakeRequest {
   submittedAt?: string;
 }
 
+export interface RecordDisclosureViewedRequest {
+  viewedAt?: string;
+}
+
 /**
  * Configuration for which intake form sections should be displayed,
  * based on the services ordered for this background check.
@@ -66,6 +70,22 @@ export interface IntakeBootstrapResponse {
   acceptedAt?: string;
   cancellationReason?: string;
   supersededBySessionId?: string;
+  disclosure?: {
+    disclosureId: string;
+    disclosureVersion: string;
+    disclosureHash: string;
+    disclosureFormat: string;
+    disclosureContent?: string;
+    disclosureFetchUrl?: string;
+  };
+  authorizationCopy?: {
+    authorizationId: string;
+    authorizationVersion: string;
+    authorizationHash: string;
+    authorizationFormat: string;
+    authorizationContent?: string;
+  };
+  authorizationMode: string;
   authorization?: {
     artifactId: string;
     mimeType: string;

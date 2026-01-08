@@ -4,6 +4,7 @@ import {
   CaptureAuthorizationRequest,
   CaptureAuthorizationResponse,
   IntakeBootstrapResponse,
+  RecordDisclosureViewedRequest,
   SaveIntakeProgressRequest,
   StartIntakeSessionRequest,
   SubmitIntakeRequest,
@@ -62,6 +63,15 @@ export const saveIntakeProgress = (
   payload: SaveIntakeProgressRequest,
 ) =>
   apiFetch<void>(`/intake/sessions/${sessionId}/progress`, {
+    method: "POST",
+    body: payload,
+  });
+
+export const recordDisclosureViewed = (
+  sessionId: string,
+  payload: RecordDisclosureViewedRequest,
+) =>
+  apiFetch<void>(`/intake/sessions/${sessionId}/disclosure/viewed`, {
     method: "POST",
     body: payload,
   });

@@ -31,6 +31,12 @@ public sealed class CaptureAuthorizationArtifactCommandHandler(
 
         var artifactId = UlidId.NewUlid();
         await using var stream = new MemoryStream(request.Payload, false);
+        var metadata = BuildAuthorizationMetadata(request.Metadata, session.PolicySnapshot.Metadata);
+        if (metadata is null)
+        {
+            return Result.Fail<AuthorizationArtifactDescriptor>(ResultErrors.Validation);
+        }
+
         var writeRequest = new AuthorizationArtifactWriteRequest(
             artifactId,
             session.OrderId,
@@ -38,7 +44,7 @@ public sealed class CaptureAuthorizationArtifactCommandHandler(
             request.MimeType,
             request.SchemaVersion,
             request.CapturedAt,
-            request.Metadata ?? new Dictionary<string, string>());
+            metadata);
 
         var descriptor = await artifactStore.SaveAsync(writeRequest, stream, cancellationToken);
         var pointer = AuthorizationArtifactPointer.Create(
@@ -55,5 +61,44 @@ public sealed class CaptureAuthorizationArtifactCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(descriptor);
+    }
+
+    private static Dictionary<string, string>? BuildAuthorizationMetadata(
+        IReadOnlyDictionary<string, string>? requestMetadata,
+        IReadOnlyDictionary<string, string> policyMetadata)
+    {
+        var metadata = new Dictionary<string, string>(
+            requestMetadata ?? new Dictionary<string, string>(),
+            StringComparer.OrdinalIgnoreCase);
+
+        if (!TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.DisclosureId) ||
+            !TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.DisclosureVersion) ||
+            !TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.DisclosureHash) ||
+            !TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.AuthorizationMode) ||
+            !TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.AuthorizationVersion) ||
+            !TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.AuthorizationHash))
+        {
+            return null;
+        }
+
+        TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.DisclosureFormat);
+        TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.AuthorizationFormat);
+        TryCopyPolicyField(policyMetadata, metadata, IntakeMetadataKeys.AuthorizationId);
+
+        return metadata;
+    }
+
+    private static bool TryCopyPolicyField(
+        IReadOnlyDictionary<string, string> policyMetadata,
+        IDictionary<string, string> destination,
+        string key)
+    {
+        if (!policyMetadata.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        destination[key] = value;
+        return true;
     }
 }

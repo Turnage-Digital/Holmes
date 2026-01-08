@@ -39,6 +39,7 @@ import { fromBase64, hashString, toBase64 } from "@/lib/crypto";
 import {
   captureAuthorizationArtifact,
   getIntakeBootstrap,
+  recordDisclosureViewed,
   saveIntakeProgress,
   startIntakeSession,
   submitIntake,
@@ -103,7 +104,6 @@ interface IntakeFormState {
 }
 
 const formSchemaVersion = "intake-extended-v2";
-const authorizationSchemaVersion = "authorization-basic-v1";
 
 const initialFormState: IntakeFormState = {
   firstName: "",
@@ -121,11 +121,16 @@ const initialFormState: IntakeFormState = {
   phones: [],
 };
 
-const DISCLOSURE_TEXT = `A consumer report (background check) may be obtained about you for employment purposes.
-This disclosure is provided before authorization is requested.`;
-
-const AUTHORIZATION_TEXT = `I authorize Holmes to obtain a consumer report about me for employment purposes.
-This authorization applies to this background check request and may be revoked in writing.`;
+const resolveMimeType = (format: string) => {
+  switch (format) {
+    case "html":
+      return "text/html";
+    case "pdf":
+      return "application/pdf";
+    default:
+      return "text/plain";
+  }
+};
 
 const StepCopy = ({
   heading,
@@ -209,6 +214,15 @@ const IntakeFlow = () => {
   const [authorizationError, setAuthorizationError] = useState<string | null>(
     null,
   );
+  const [disclosureSnapshot, setDisclosureSnapshot] =
+    useState<IntakeBootstrapResponse["disclosure"] | null>(null);
+  const [authorizationCopy, setAuthorizationCopy] =
+    useState<IntakeBootstrapResponse["authorizationCopy"] | null>(null);
+  const [authorizationMode, setAuthorizationMode] = useState<string | null>(
+    null,
+  );
+  const [disclosureViewed, setDisclosureViewed] = useState(false);
+  const [disclosureError, setDisclosureError] = useState<string | null>(null);
   const [progressError, setProgressError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
@@ -285,18 +299,24 @@ const IntakeFlow = () => {
     mutateAsync: captureAuthorizationMutateAsync,
     isPending: isCapturingAuthorization,
   } = useMutation({
-    mutationFn: () =>
-      captureAuthorizationArtifact(requireSessionId(), {
-        mimeType: "text/plain",
-        schemaVersion: authorizationSchemaVersion,
-        payloadBase64: toBase64(AUTHORIZATION_TEXT),
+    mutationFn: () => {
+      if (!authorizationCopy?.authorizationContent) {
+        throw new Error("Authorization copy is missing.");
+      }
+
+      const format = authorizationCopy.authorizationFormat || "text";
+      return captureAuthorizationArtifact(requireSessionId(), {
+        mimeType: resolveMimeType(format),
+        schemaVersion: authorizationCopy.authorizationVersion,
+        payloadBase64: toBase64(authorizationCopy.authorizationContent),
         capturedAt: new Date().toISOString(),
         metadata: {
           source: "intake-ui",
           variant: "phase-2",
           artifactType: "authorization",
         },
-      }),
+      });
+    },
   });
 
   const { mutateAsync: saveProgressMutateAsync, isPending: isSavingProgress } =
@@ -326,6 +346,16 @@ const IntakeFlow = () => {
         setBootstrapError(extractErrorMessage(error));
       },
     });
+
+  const {
+    mutateAsync: recordDisclosureViewedAsync,
+    isPending: isRecordingDisclosureViewed,
+  } = useMutation({
+    mutationFn: () =>
+      recordDisclosureViewed(requireSessionId(), {
+        viewedAt: new Date().toISOString(),
+      }),
+  });
 
   const updateField = useCallback(
     <K extends keyof IntakeFormState>(key: K, value: IntakeFormState[K]) =>
@@ -443,10 +473,27 @@ const IntakeFlow = () => {
 
   const applyBootstrap = useCallback((bootstrap: IntakeBootstrapResponse) => {
     setBootstrapError(null);
+    setDisclosureError(null);
 
     // Store section configuration for policy-driven visibility
     if (bootstrap.sectionConfig) {
       setSectionConfig(bootstrap.sectionConfig);
+    }
+
+    setDisclosureSnapshot(bootstrap.disclosure ?? null);
+    setAuthorizationCopy(bootstrap.authorizationCopy ?? null);
+    setAuthorizationMode(bootstrap.authorizationMode ?? "one_time");
+
+    if (!bootstrap.disclosure?.disclosureContent) {
+      setDisclosureError(
+        "We could not load the disclosure. Please refresh or contact support.",
+      );
+    }
+
+    if (!bootstrap.authorizationCopy?.authorizationContent) {
+      setAuthorizationError(
+        "We could not load the authorization copy. Please refresh or contact support.",
+      );
     }
 
     if (bootstrap.authorization) {
@@ -550,9 +597,40 @@ const IntakeFlow = () => {
 
   const verifyingOtp = isVerifyingOtp || isStartingSession || isBootstrapping;
 
+  const handleDisclosureViewed = useCallback(async () => {
+    if (disclosureViewed) {
+      return true;
+    }
+
+    if (!disclosureSnapshot?.disclosureContent) {
+      setDisclosureError(
+        "We could not load the disclosure. Please refresh or contact support.",
+      );
+      return false;
+    }
+
+    setDisclosureError(null);
+
+    try {
+      await recordDisclosureViewedAsync();
+      setDisclosureViewed(true);
+      return true;
+    } catch (error) {
+      setDisclosureError(extractErrorMessage(error));
+      return false;
+    }
+  }, [disclosureSnapshot, disclosureViewed, recordDisclosureViewedAsync]);
+
   const handleAuthorizationCapture = useCallback(async () => {
     if (authorizationReceipt) {
       return true;
+    }
+
+    if (!authorizationCopy?.authorizationContent) {
+      setAuthorizationError(
+        "We could not load the authorization copy. Please refresh or contact support.",
+      );
+      return false;
     }
 
     if (!formState.authorizationAccepted) {
@@ -572,6 +650,7 @@ const IntakeFlow = () => {
     }
   }, [
     captureAuthorizationMutateAsync,
+    authorizationCopy,
     authorizationReceipt,
     formState.authorizationAccepted,
   ]);
@@ -729,24 +808,51 @@ const IntakeFlow = () => {
         id: "disclosure",
         title: "Disclosure",
         subtitle: "Review the standalone disclosure before continuing.",
-        render: () => (
-          <Stack spacing={2}>
-            <StepCopy
-              heading="Disclosure"
-              body="Please read the disclosure below. This page is only the disclosure."
-            />
-            <Paper variant="outlined" sx={{ p: 2 }}>
-              <Stack spacing={1}>
-                {DISCLOSURE_TEXT.split("\n").map((line) => (
-                  <Typography key={line} variant="body2" color="text.secondary">
-                    {line}
-                  </Typography>
-                ))}
-              </Stack>
-            </Paper>
-          </Stack>
-        ),
-        primaryCtaLabel: "Continue",
+        render: () => {
+          const disclosureContent = disclosureSnapshot?.disclosureContent ?? "";
+          const disclosureLines = disclosureContent.split("\n");
+          const disclosureErrorAlert = disclosureError ? (
+            <Alert severity="error">{disclosureError}</Alert>
+          ) : null;
+          const isHtmlDisclosure =
+            disclosureSnapshot?.disclosureFormat === "html";
+
+          return (
+            <Stack spacing={2}>
+              <StepCopy
+                heading="Disclosure"
+                body="Please read the disclosure below. This page is only the disclosure."
+              />
+              {disclosureErrorAlert}
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                {isHtmlDisclosure ? (
+                  <Box
+                    sx={{ typography: "body2", color: "text.secondary" }}
+                    dangerouslySetInnerHTML={{ __html: disclosureContent }}
+                  />
+                ) : (
+                  <Stack spacing={1}>
+                    {disclosureLines.map((line) => (
+                      <Typography
+                        key={line}
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        {line}
+                      </Typography>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+            </Stack>
+          );
+        },
+        primaryCtaLabel: isRecordingDisclosureViewed
+          ? "Saving..."
+          : "Continue",
+        onPrimary: handleDisclosureViewed,
+        primaryButtonDisabled:
+          isRecordingDisclosureViewed || !disclosureSnapshot?.disclosureContent,
       },
       {
         id: "authorization",
@@ -765,26 +871,42 @@ const IntakeFlow = () => {
           const authorizationErrorAlert = authorizationError ? (
             <Alert severity="error">{authorizationError}</Alert>
           ) : null;
+          const authorizationHelper =
+            authorizationMode === "ongoing"
+              ? "This authorization covers ongoing checks during your relationship."
+              : "We will attach this authorization to your intake record.";
+          const authorizationContent =
+            authorizationCopy?.authorizationContent ?? "";
+          const authorizationLines = authorizationContent.split("\n");
+          const isHtmlAuthorization =
+            authorizationCopy?.authorizationFormat === "html";
 
           return (
             <Stack spacing={2}>
               <StepCopy
                 heading="Authorize this background check"
                 body="Confirm you authorize Holmes to obtain a consumer report."
-                helper="We will attach this authorization to your intake record."
+                helper={authorizationHelper}
               />
               <Paper variant="outlined" sx={{ p: 2 }}>
-                <Stack spacing={1}>
-                  {AUTHORIZATION_TEXT.split("\n").map((line) => (
-                    <Typography
-                      key={line}
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      {line}
-                    </Typography>
-                  ))}
-                </Stack>
+                {isHtmlAuthorization ? (
+                  <Box
+                    sx={{ typography: "body2", color: "text.secondary" }}
+                    dangerouslySetInnerHTML={{ __html: authorizationContent }}
+                  />
+                ) : (
+                  <Stack spacing={1}>
+                    {authorizationLines.map((line) => (
+                      <Typography
+                        key={line}
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        {line}
+                      </Typography>
+                    ))}
+                  </Stack>
+                )}
               </Paper>
               <FormControlLabel
                 control={
@@ -1246,13 +1368,19 @@ const IntakeFlow = () => {
     [
       authorizationError,
       authorizationReceipt,
+      authorizationCopy,
+      authorizationMode,
+      disclosureError,
+      disclosureSnapshot,
       formState,
+      handleDisclosureViewed,
       handleAuthorizationCapture,
       handleOtpVerification,
       handleSubmit,
       inviteError,
       inviteParamsMissing,
       isCapturingAuthorization,
+      isRecordingDisclosureViewed,
       isSavingProgress,
       isSubmittingIntake,
       otpCode,
@@ -1317,6 +1445,11 @@ const IntakeFlow = () => {
     setOtpVerified(false);
     setAuthorizationReceipt(null);
     setAuthorizationError(null);
+    setDisclosureSnapshot(null);
+    setAuthorizationCopy(null);
+    setAuthorizationMode(null);
+    setDisclosureViewed(false);
+    setDisclosureError(null);
     setProgressError(null);
     setSubmissionError(null);
     setFormState(initialFormState);

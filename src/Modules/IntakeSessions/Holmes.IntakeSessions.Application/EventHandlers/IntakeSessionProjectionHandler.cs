@@ -13,6 +13,7 @@ public sealed class IntakeSessionProjectionHandler(
 ) : INotificationHandler<IntakeSessionInvited>,
     INotificationHandler<IntakeSessionStarted>,
     INotificationHandler<IntakeProgressSaved>,
+    INotificationHandler<DisclosureViewed>,
     INotificationHandler<AuthorizationCaptured>,
     INotificationHandler<IntakeSubmissionReceived>,
     INotificationHandler<IntakeSubmissionAccepted>,
@@ -24,6 +25,13 @@ public sealed class IntakeSessionProjectionHandler(
         await UpdateAsync(notification.IntakeSessionId, projection =>
             projection with { LastTouchedAt = notification.Artifact.CapturedAt }, cancellationToken);
         RecordMetric("authorization_captured");
+    }
+
+    public async Task Handle(DisclosureViewed notification, CancellationToken cancellationToken)
+    {
+        await UpdateAsync(notification.IntakeSessionId, projection =>
+            projection with { LastTouchedAt = notification.ViewedAt }, cancellationToken);
+        RecordMetric("disclosure_viewed");
     }
 
     public async Task Handle(IntakeProgressSaved notification, CancellationToken cancellationToken)

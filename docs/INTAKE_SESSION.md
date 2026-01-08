@@ -10,6 +10,7 @@ submission while anchoring authorization, policy snapshots, and partial progress
   order transitions.
 - Persist **policy snapshots** (permissible purpose, disclosure versions, Fair-Chance overlays) so downstream
   adjudication references immutable context.
+- Snapshot includes disclosure + authorization copy identifiers, versions, and hashes used for evidence binding.
 - Emit **timeline events** that power projections (`intake_sessions`, `order_timeline_events`) and SSE feeds.
 
 ## 2. Lifecycle & States
@@ -36,6 +37,7 @@ Rules:
 - `StartIntakeSessionCommand` — verifies OTP token, records device metadata.
 - `SaveIntakeProgressCommand` — idempotent partial updates; enforces schema validation.
 - `CaptureAuthorizationArtifactCommand` — stores disclosure acceptance, authorization artifacts.
+- `RecordDisclosureViewedCommand` — records disclosure view confirmation.
 - `SubmitIntakeCommand` — finalizes answers, locks session, raises submission events.
 - `ExpireIntakeSessionCommand` / `WithdrawIntakeSessionCommand` — handles abandonment flows.
 
@@ -44,6 +46,7 @@ Rules:
 - `IntakeSessionInvited`
 - `IntakeSessionStarted`
 - `IntakeProgressSaved`
+- `DisclosureViewed`
 - `AuthorizationCaptured`
 - `IntakeSubmissionReceived`
 - `IntakeSubmissionAccepted`
@@ -60,7 +63,7 @@ Key fields:
 - `IntakeSessionId` (ULID), `OrderId`, `SubjectId`, `CustomerId`
 - `Status`, `ExpiresAt`, `LastTouchedAt`
 - `PolicySnapshot` (embedded JSON / reference ID)
-- `AuthorizationArtifacts` (hash pointer to immutable storage)
+- `AuthorizationArtifacts` (hash pointer to immutable storage, bound to disclosure snapshot via metadata)
 - `Answers` (encrypted payload or reference to normalized tables)
 - `ResumeToken` (one-time + rotating option for security)
 
@@ -69,8 +72,9 @@ Invariants:
 1. `OrderId` + `SubjectId` combination must be unique for active sessions.
 2. `AuthorizationCaptured` required before `SubmitIntakeCommand` succeeds.
 3. `Answers` schema version must match `PolicySnapshot.SchemaVersion`.
-4. Once `submitted`, no mutable fields other than metadata (e.g., `SubmittedAt` timestamp).
-5. Superseding a session emits `IntakeSessionSuperseded` and marks prior session as read-only.
+4. Authorization artifacts must include disclosure id/version/hash and server-derived IP/UA metadata.
+5. Once `submitted`, no mutable fields other than metadata (e.g., `SubmittedAt` timestamp).
+6. Superseding a session emits `IntakeSessionSuperseded` and marks prior session as read-only.
 
 ### Authorization Artifact Storage (Phase 2)
 
@@ -139,7 +143,7 @@ descriptor so aggregates persist only the pointer + hash.
 
 - UX must surface session status, expiration timer, and last saved timestamp; auto-save should call
   `SaveIntakeProgressCommand`.
-- SSE channel should broadcast `IntakeSessionStarted`, `AuthorizationCaptured`, and `IntakeSubmissionAccepted` so ops
+- SSE channel should broadcast `IntakeSessionStarted`, `DisclosureViewed`, `AuthorizationCaptured`, and `IntakeSubmissionAccepted` so ops
   dashboards reflect live progress.
 - Runbooks need procedures for resending invites, force-expiring sessions, and verifying authorization artifacts.
 - OTP remains the gate into `StartIntakeSession`—keep issuance/resend/expiration logic intact even as the operator IdP

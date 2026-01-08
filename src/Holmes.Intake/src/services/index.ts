@@ -3,6 +3,7 @@ export {
   verifyIntakeOtp,
   captureAuthorizationArtifact,
   saveIntakeProgress,
+  recordDisclosureViewed,
   submitIntake,
   getIntakeBootstrap,
 } from "./intake";

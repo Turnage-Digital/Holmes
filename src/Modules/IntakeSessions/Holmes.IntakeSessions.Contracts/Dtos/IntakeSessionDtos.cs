@@ -34,9 +34,29 @@ public sealed record IntakeSessionBootstrapDto(
     DateTimeOffset? AcceptedAt,
     string? CancellationReason,
     string? SupersededBySessionId,
+    DisclosureSnapshotDto? Disclosure,
+    AuthorizationCopyDto? AuthorizationCopy,
+    string AuthorizationMode,
     AuthorizationArtifactDto? Authorization,
     AnswersSnapshotDto? Answers,
     IntakeSectionConfigDto? SectionConfig
+);
+
+public sealed record DisclosureSnapshotDto(
+    string DisclosureId,
+    string DisclosureVersion,
+    string DisclosureHash,
+    string DisclosureFormat,
+    string? DisclosureContent,
+    string? DisclosureFetchUrl
+);
+
+public sealed record AuthorizationCopyDto(
+    string AuthorizationId,
+    string AuthorizationVersion,
+    string AuthorizationHash,
+    string AuthorizationFormat,
+    string? AuthorizationContent
 );
 
 public sealed record AuthorizationArtifactDto(

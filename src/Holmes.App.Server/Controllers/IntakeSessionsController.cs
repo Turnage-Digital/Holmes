@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 using Holmes.App.Infrastructure.Security;
 using Holmes.Core.Domain.ValueObjects;
 using Holmes.IntakeSessions.Application.Commands;
 using Holmes.IntakeSessions.Application.Queries;
+using Holmes.IntakeSessions.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -84,13 +86,16 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
             return BadRequest("Authorization payload must be base64 encoded.");
         }
 
+        var capturedAt = DateTimeOffset.UtcNow;
+        var metadata = BuildAuthorizationMetadata(request);
+
         var command = new CaptureAuthorizationArtifactCommand(
             parsedSession,
             request.MimeType,
             request.SchemaVersion,
             payload,
-            request.CapturedAt ?? DateTimeOffset.UtcNow,
-            request.Metadata);
+            capturedAt,
+            metadata);
 
         var result = await mediator.Send(command, cancellationToken);
         if (!result.IsSuccess)
@@ -159,6 +164,30 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
             request.PayloadCipherText,
             request.UpdatedAt ?? DateTimeOffset.UtcNow);
 
+        var result = await mediator.Send(command, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Accepted();
+    }
+
+    [HttpPost("{sessionId}/disclosure/viewed")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RecordDisclosureViewed(
+        string sessionId,
+        [FromBody] RecordDisclosureViewedRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!TryParseUlid(sessionId, out var parsedSession))
+        {
+            return BadRequest("Invalid intake session id.");
+        }
+
+        var viewedAt = DateTimeOffset.UtcNow;
+        var command = new RecordDisclosureViewedCommand(parsedSession, viewedAt);
         var result = await mediator.Send(command, cancellationToken);
         if (!result.IsSuccess)
         {
@@ -322,7 +351,76 @@ public sealed class IntakeSessionsController(IMediator mediator) : ControllerBas
         IReadOnlyDictionary<string, string>? Metadata
     );
 
+    public sealed record RecordDisclosureViewedRequest(DateTimeOffset? ViewedAt);
+
     public sealed record SubmitIntakeRequest(DateTimeOffset? SubmittedAt);
 
     public sealed record AcceptIntakeSubmissionRequest(DateTimeOffset? AcceptedAt);
+
+    private IReadOnlyDictionary<string, string> BuildAuthorizationMetadata(
+        CaptureAuthorizationArtifactRequest request)
+    {
+        var metadata = new Dictionary<string, string>(
+            request.Metadata ?? new Dictionary<string, string>(),
+            StringComparer.OrdinalIgnoreCase);
+
+        var ipAddress = GetClientIpAddress(HttpContext);
+        if (!string.IsNullOrWhiteSpace(ipAddress))
+        {
+            metadata[IntakeMetadataKeys.ClientIpAddress] = ipAddress;
+        }
+
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+        if (!string.IsNullOrWhiteSpace(userAgent))
+        {
+            metadata[IntakeMetadataKeys.ClientUserAgent] = userAgent;
+        }
+
+        metadata[IntakeMetadataKeys.ServerReceivedAt] = DateTimeOffset.UtcNow.ToString("O");
+        if (request.CapturedAt.HasValue)
+        {
+            metadata[IntakeMetadataKeys.ClientCapturedAt] = request.CapturedAt.Value.ToString("O");
+        }
+
+        return metadata;
+    }
+
+    private static string? GetClientIpAddress(HttpContext context)
+    {
+        var remoteIp = context.Connection.RemoteIpAddress;
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
+        if (!string.IsNullOrWhiteSpace(forwardedFor) && IsTrustedProxy(remoteIp))
+        {
+            var first = forwardedFor.Split(',')[0].Trim();
+            if (IPAddress.TryParse(first, out var forwarded))
+            {
+                return forwarded.ToString();
+            }
+        }
+
+        return remoteIp?.ToString();
+    }
+
+    private static bool IsTrustedProxy(IPAddress? address)
+    {
+        if (address is null)
+        {
+            return false;
+        }
+
+        if (IPAddress.IsLoopback(address))
+        {
+            return true;
+        }
+
+        if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            var bytes = address.GetAddressBytes();
+            return bytes[0] == 10 ||
+                   (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) ||
+                   (bytes[0] == 192 && bytes[1] == 168);
+        }
+
+        return false;
+    }
 }

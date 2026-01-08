@@ -9,6 +9,7 @@ public sealed class IntakeTimelineHandler(IOrderTimelineWriter timelineWriter)
     : INotificationHandler<IntakeSessionInvited>,
         INotificationHandler<IntakeSessionStarted>,
         INotificationHandler<AuthorizationCaptured>,
+        INotificationHandler<DisclosureViewed>,
         INotificationHandler<IntakeSubmissionReceived>,
         INotificationHandler<IntakeSubmissionAccepted>,
         INotificationHandler<IntakeSessionExpired>,
@@ -25,6 +26,16 @@ public sealed class IntakeTimelineHandler(IOrderTimelineWriter timelineWriter)
                 sessionId = notification.IntakeSessionId.ToString(),
                 artifactId = notification.Artifact.ArtifactId.ToString()
             },
+            cancellationToken);
+    }
+
+    public Task Handle(DisclosureViewed notification, CancellationToken cancellationToken)
+    {
+        return WriteAsync(notification.OrderId,
+            "intake.disclosure_viewed",
+            "Disclosure viewed",
+            notification.ViewedAt,
+            new { sessionId = notification.IntakeSessionId.ToString() },
             cancellationToken);
     }
 
